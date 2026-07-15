@@ -12,3 +12,38 @@
 - 分支：`custom` @ `88189de4`；备份指针 `backup/pre-custom-dev-eb2b8632` @ `c2e19776`
 - 未做：push、分支保护、release 对齐（可稍后）
 - 下一步：可从 `custom` 开 `feature/<name>` 做业务功能
+
+
+## Session 1: 二次开发工作流落地与任务收尾
+
+**Date**: 2026-07-15
+**Task**: 二次开发工作流落地与任务收尾
+**Branch**: `custom`
+
+### Summary
+
+完成阶段一开工准备与阶段四二开规范沉淀；阶段二 release 对齐延后。归档 07-15-downstream-upstream-sync。custom 可开 feature 做业务；main 仍待首次 release 对齐。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `88189de4` | (see git log) |
+| `b8c5e003` | (see git log) |
+| `865e7772` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
