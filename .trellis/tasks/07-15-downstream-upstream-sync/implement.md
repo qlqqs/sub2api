@@ -6,7 +6,7 @@
 - [x] 可选：创建只读安全指针 `backup/pre-custom-dev-eb2b8632`。
 - [x] 从 `custom` 创建 `chore/trellis-workflow`，仅提交 `.trellis/`、`.cursor/` 和 `.agents/`。
 - [x] 审查该提交不包含运行时状态、缓存、凭据或业务文件，验证后合并回 `custom`。
-- [ ] 推送 `custom`（如需要），并为 `main`、`custom` 配置禁止 force push 的分支保护。
+- [x] 推送 `custom`（如需要），并为 `main`、`custom` 配置禁止 force push 的分支保护。
 - [x] **此后即可从 `custom` 创建 `feature/<name>` 开始正式二次开发。**
 
 ## 阶段二：首次 release 基线对齐（可与功能开发并行，稍后执行）
