@@ -2,12 +2,12 @@
 
 ## 阶段一：立即开工准备（不阻塞业务）
 
-- [ ] 确认当前 `custom` 指向可用基线（当前为 `eb2b8632`），工作树状态已知。
-- [ ] 可选：创建只读安全指针 `backup/pre-custom-dev-eb2b8632`。
-- [ ] 从 `custom` 创建 `chore/trellis-workflow`，仅提交 `.trellis/`、`.cursor/` 和 `.agents/`。
-- [ ] 审查该提交不包含运行时状态、缓存、凭据或业务文件，验证后合并回 `custom`。
+- [x] 确认当前 `custom` 指向可用基线（当前为 `eb2b8632`），工作树状态已知。
+- [x] 可选：创建只读安全指针 `backup/pre-custom-dev-eb2b8632`。
+- [x] 从 `custom` 创建 `chore/trellis-workflow`，仅提交 `.trellis/`、`.cursor/` 和 `.agents/`。
+- [x] 审查该提交不包含运行时状态、缓存、凭据或业务文件，验证后合并回 `custom`。
 - [ ] 推送 `custom`（如需要），并为 `main`、`custom` 配置禁止 force push 的分支保护。
-- [ ] **此后即可从 `custom` 创建 `feature/<name>` 开始正式二次开发。**
+- [x] **此后即可从 `custom` 创建 `feature/<name>` 开始正式二次开发。**
 
 ## 阶段二：首次 release 基线对齐（可与功能开发并行，稍后执行）
 
@@ -80,7 +80,7 @@
 
 ## 阶段四：将二开约束沉淀为项目 spec（执行阶段，规划已写清要求）
 
-- [ ] 新增 `.trellis/spec/guides/secondary-development.md`（或 `fork-constraints.md`），内容从 `design.md`「代码级二次开发约束」提炼为可执行规范。
-- [ ] 更新 `.trellis/spec/guides/index.md`，挂上该指南及触发条件（fork 二开 / sync 前 / 改上游核心文件前）。
-- [ ] 可选：在 backend/frontend `index.md` 增加「二开时必读」链接。
-- [ ] 该步骤与 workflow chore 提交可同批或紧随其后，但不得与业务功能提交混在一起。
+- [x] 新增 `.trellis/spec/guides/secondary-development.md`（或 `fork-constraints.md`），内容从 `design.md`「代码级二次开发约束」提炼为可执行规范。
+- [x] 更新 `.trellis/spec/guides/index.md`，挂上该指南及触发条件（fork 二开 / sync 前 / 改上游核心文件前）。
+- [x] 可选：在 backend/frontend `index.md` 增加「二开时必读」链接。
+- [x] 该步骤与 workflow chore 提交可同批或紧随其后，但不得与业务功能提交混在一起。
