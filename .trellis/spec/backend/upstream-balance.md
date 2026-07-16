@@ -48,11 +48,26 @@ POST /admin/accounts/:id/upstream-balance
 #### Service
 
 ```go
+// 只依赖 GetByID，不注入完整 AccountRepository。
+// 全量 AccountRepository 在 Wire 层满足此接口即可。
+type UpstreamBalanceAccountLookup interface {
+    GetByID(ctx context.Context, id int64) (*Account, error)
+}
+
+func NewUpstreamBalanceService(
+    accountLookup UpstreamBalanceAccountLookup,
+    httpClient UpstreamBalanceHTTPClient,
+) *UpstreamBalanceService
+
 func (service *UpstreamBalanceService) QueryAccountBalance(
     ctx context.Context,
     accountID int64,
 ) (*UpstreamBalanceResult, error)
 ```
+
+- **依赖面**：service 只读 `GetByID`；测试用 GetByID stub，禁止为满足完整 `AccountRepository` 再铺一堆 panic 写方法。
+- **只读保证**：构造函数参数类型本身不含写方法，降低误写状态/健康/调度的风险。
+- **Wire**：`NewUpstreamBalanceService(accountRepository, httpClient)` 合法，因 repository 实现了 `GetByID`。
 
 #### HTTP transport
 
