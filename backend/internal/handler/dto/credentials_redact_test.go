@@ -21,6 +21,9 @@ func TestRedactCredentials_StripsSensitiveKeysAndReportsStatus(t *testing.T) {
 		"service_account_json":  map[string]any{"private_key": "..."},
 		"private_key":           "raw-key",
 		"agent_private_key":     "agent-key-secret",
+		// CUSTOM: balance-only credentials must be redacted and reported via has_* status.
+		"balance_access_token": "balance-token-secret",
+		"balance_user_id":      "42",
 		// 非敏感
 		"base_url":      "https://api.example.com",
 		"model_mapping": map[string]any{"foo": "bar"},
@@ -50,6 +53,10 @@ func TestRedactCredentials_StripsSensitiveKeysAndReportsStatus(t *testing.T) {
 	require.True(t, status["has_service_account_json"])
 	require.True(t, status["has_private_key"])
 	require.True(t, status["has_agent_private_key"])
+	require.True(t, status["has_balance_access_token"])
+	require.True(t, status["has_balance_user_id"])
+	require.NotContains(t, out, "balance_access_token")
+	require.NotContains(t, out, "balance_user_id")
 
 	// 状态 map 不应携带非敏感键的 has_*
 	require.NotContains(t, status, "has_base_url")

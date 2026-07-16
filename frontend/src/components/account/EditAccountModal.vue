@@ -662,6 +662,70 @@
           />
           <p class="input-hint">{{ t('admin.accounts.leaveEmptyToKeep') }}</p>
         </div>
+        <!-- CUSTOM: Balance lookup credentials are isolated from model proxy credentials. -->
+        <div>
+          <label class="input-label">{{ t('admin.accounts.upstreamBalance.platform.label') }}</label>
+          <select v-model="upstreamPlatformType" class="input">
+            <option value="auto">{{ t('admin.accounts.upstreamBalance.platform.auto') }}</option>
+            <option value="sub2api">{{ t('admin.accounts.upstreamBalance.platform.sub2api') }}</option>
+            <option value="new_api">{{ t('admin.accounts.upstreamBalance.platform.newApi') }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="input-label">
+            {{ t('admin.accounts.upstreamBalance.accessToken') }}
+            <span
+              v-if="hasConfiguredBalanceAccessToken && !editBalanceAccessToken"
+              class="ml-2 text-xs font-normal text-emerald-600 dark:text-emerald-400"
+            >
+              {{ t('admin.accounts.upstreamBalance.configured') }}
+            </span>
+          </label>
+          <input
+            v-model="editBalanceAccessToken"
+            type="password"
+            class="input font-mono"
+            autocomplete="new-password"
+            data-1p-ignore
+            data-lpignore="true"
+            data-bwignore="true"
+            :placeholder="t('admin.accounts.upstreamBalance.accessTokenPlaceholder')"
+          />
+          <p class="input-hint">{{ t('admin.accounts.upstreamBalance.leaveEmptyToKeep') }}</p>
+        </div>
+        <div>
+          <label class="input-label">
+            {{ t('admin.accounts.upstreamBalance.userId') }}
+            <span
+              v-if="hasConfiguredBalanceUserId && !editBalanceUserId"
+              class="ml-2 text-xs font-normal text-emerald-600 dark:text-emerald-400"
+            >
+              {{ t('admin.accounts.upstreamBalance.configured') }}
+            </span>
+          </label>
+          <div class="flex gap-2">
+            <input
+              v-model="editBalanceUserId"
+              type="text"
+              class="input font-mono flex-1"
+              autocomplete="off"
+              data-1p-ignore
+              data-lpignore="true"
+              data-bwignore="true"
+              :placeholder="t('admin.accounts.upstreamBalance.userIdPlaceholder')"
+              @input="onBalanceUserIdInput"
+            />
+            <button
+              v-if="hasConfiguredBalanceUserId || editBalanceUserId"
+              type="button"
+              class="btn btn-secondary whitespace-nowrap"
+              @click="clearBalanceUserId"
+            >
+              {{ t('admin.accounts.upstreamBalance.clearUserId') }}
+            </button>
+          </div>
+          <p class="input-hint">{{ t('admin.accounts.upstreamBalance.userIdHint') }}</p>
+        </div>
       </div>
 
       <!-- Vertex Service Account -->
@@ -2653,6 +2717,29 @@ interface TempUnschedRuleForm {
 const submitting = ref(false)
 const editBaseUrl = ref('https://api.anthropic.com')
 const editApiKey = ref('')
+// CUSTOM: Dedicated balance settings never prefill the sensitive access token.
+// credentials_status.has_balance_* reports "configured but hidden" without echoing values.
+const upstreamPlatformType = ref<'auto' | 'sub2api' | 'new_api'>('auto')
+const editBalanceAccessToken = ref('')
+const editBalanceUserId = ref('')
+const hasConfiguredBalanceAccessToken = ref(false)
+const hasConfiguredBalanceUserId = ref(false)
+// True when the admin intentionally emptied balance_user_id after it was configured.
+const balanceUserIdExplicitlyCleared = ref(false)
+
+const clearBalanceUserId = () => {
+  editBalanceUserId.value = ''
+  balanceUserIdExplicitlyCleared.value = true
+  hasConfiguredBalanceUserId.value = false
+}
+
+const onBalanceUserIdInput = () => {
+  // Typing a new value cancels any prior explicit-clear intent.
+  if (editBalanceUserId.value.trim()) {
+    balanceUserIdExplicitlyCleared.value = false
+  }
+}
+
 // Bedrock credentials
 const editBedrockAccessKeyId = ref('')
 const editBedrockSecretAccessKey = ref('')
@@ -3448,6 +3535,23 @@ const syncFormFromAccount = (newAccount: Account | null) => {
   } else if (newAccount.type === 'upstream' && newAccount.credentials) {
     const credentials = newAccount.credentials as Record<string, unknown>
     editBaseUrl.value = (credentials.base_url as string) || ''
+    // Never prefill sensitive balance credentials; existence comes from credentials_status.
+    editBalanceAccessToken.value = ''
+    editBalanceUserId.value = ''
+    balanceUserIdExplicitlyCleared.value = false
+    const credentialsStatus = newAccount.credentials_status
+    hasConfiguredBalanceAccessToken.value = Boolean(
+      credentialsStatus?.has_balance_access_token ??
+        (typeof credentials.balance_access_token === 'string' && credentials.balance_access_token.length > 0)
+    )
+    hasConfiguredBalanceUserId.value = Boolean(
+      credentialsStatus?.has_balance_user_id ??
+        (typeof credentials.balance_user_id === 'string' && credentials.balance_user_id.length > 0)
+    )
+    const platformType = (newAccount.extra as Record<string, unknown> | undefined)?.upstream_platform_type
+    upstreamPlatformType.value = platformType === 'sub2api' || platformType === 'new_api'
+      ? platformType
+      : 'auto'
   } else if ((newAccount.platform === 'gemini' || newAccount.platform === 'anthropic') && newAccount.type === 'service_account' && newAccount.credentials) {
     const credentials = newAccount.credentials as Record<string, unknown>
     editVertexProjectId.value = (credentials.project_id as string) || ''
@@ -4079,6 +4183,26 @@ const handleSubmit = async () => {
 
       if (editApiKey.value.trim()) {
         newCredentials.api_key = editApiKey.value.trim()
+      }
+
+      // Access token: leave empty to preserve; presence reported via credentials_status.
+      if (editBalanceAccessToken.value.trim()) {
+        newCredentials.balance_access_token = editBalanceAccessToken.value.trim()
+      }
+      // User ID: non-empty overwrites; intentional clear sends "" so MergePreserving overwrites;
+      // omit the key when empty and not explicitly cleared so opening+saving preserves.
+      if (editBalanceUserId.value.trim()) {
+        newCredentials.balance_user_id = editBalanceUserId.value.trim()
+      } else if (balanceUserIdExplicitlyCleared.value) {
+        newCredentials.balance_user_id = ''
+      } else {
+        delete newCredentials.balance_user_id
+      }
+
+      const currentExtra = (props.account.extra as Record<string, unknown>) || {}
+      updatePayload.extra = {
+        ...currentExtra,
+        upstream_platform_type: upstreamPlatformType.value
       }
 
       // Add intercept warmup requests setting

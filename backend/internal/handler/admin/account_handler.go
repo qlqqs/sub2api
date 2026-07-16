@@ -45,6 +45,10 @@ func NewOAuthHandler(oauthService *service.OAuthService) *OAuthHandler {
 	}
 }
 
+type upstreamBalanceQuerier interface {
+	QueryAccountBalance(ctx context.Context, accountID int64) (*service.UpstreamBalanceResult, error)
+}
+
 // AccountHandler handles admin account management
 type AccountHandler struct {
 	adminService            service.AdminService
@@ -62,6 +66,8 @@ type AccountHandler struct {
 	rpmCache                service.RPMCache
 	tokenCacheInvalidator   service.TokenCacheInvalidator
 	grokImportProber        grokUsageProber
+	// CUSTOM: Balance queries use a dedicated read-only service and never mutate account runtime state.
+	upstreamBalanceService upstreamBalanceQuerier
 }
 
 // NewAccountHandler creates a new admin account handler

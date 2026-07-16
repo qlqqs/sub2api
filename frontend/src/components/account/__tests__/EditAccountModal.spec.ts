@@ -992,4 +992,41 @@ describe('EditAccountModal', () => {
       'antigravity_project_id'
     )
   })
+
+  it('does not expose configured balance credentials and sends an explicit user ID clear', async () => {
+    const account = {
+      ...buildAccount(),
+      type: 'upstream',
+      credentials: {
+        base_url: 'https://upstream.example.com',
+        api_key: 'inference-key'
+      },
+      credentials_status: {
+        has_balance_access_token: true,
+        has_balance_user_id: true
+      },
+      extra: {
+        upstream_platform_type: 'new_api'
+      }
+    }
+    updateAccountMock.mockReset().mockResolvedValue(account)
+    checkMixedChannelRiskMock.mockReset().mockResolvedValue({ has_risk: false })
+
+    const wrapper = mountModal(account)
+    expect(wrapper.text()).toContain('admin.accounts.upstreamBalance.configured')
+    expect(wrapper.findAll('input').every((input) => input.element.value !== 'management-token')).toBe(true)
+
+    const clearButton = wrapper.findAll('button').find((candidate) => {
+      return candidate.text().includes('admin.accounts.upstreamBalance.clearUserId')
+    })
+    expect(clearButton).toBeDefined()
+    await clearButton?.trigger('click')
+    await wrapper.get('form#edit-account-form').trigger('submit.prevent')
+
+    expect(updateAccountMock).toHaveBeenCalledTimes(1)
+    const updates = updateAccountMock.mock.calls[0]?.[1]
+    expect(updates.credentials.balance_user_id).toBe('')
+    expect(updates.credentials).not.toHaveProperty('balance_access_token')
+    expect(updates.extra.upstream_platform_type).toBe('new_api')
+  })
 })

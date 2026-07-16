@@ -113,6 +113,7 @@ export default {
         status: '状态',
         schedulable: '调度',
         todayStats: '今日统计',
+        upstreamBalance: '账号余额',
         groups: '分组',
         usageWindows: '用量窗口',
         proxy: '代理',
@@ -120,6 +121,43 @@ export default {
         createdAt: '创建时间',
         expiresAt: '过期时间',
         actions: '操作'
+      },
+      // CUSTOM: 上游账号余额查询文案与页面内临时状态。
+      upstreamBalance: {
+        refresh: '刷新余额',
+        refreshCurrentPage: '刷新本页余额',
+        refreshingCurrentPage: '正在刷新余额...',
+        notApplicable: '不适用',
+        notQueried: '未查询',
+        loading: '查询中...',
+        unsupported: '不支持的上游协议',
+        queriedAt: '查询时间',
+        apiKeyRate: 'Key 倍率',
+        noAccountsOnPage: '当前页没有上游账号',
+        batchSummary: '余额刷新完成：成功 {success}，失败 {failed}，不支持 {unsupported}',
+        scope: {
+          user: '用户余额',
+          apiKey: 'Key 额度',
+          unknown: '可用额度'
+        },
+        platform: {
+          label: '余额查询协议',
+          auto: '自动识别',
+          sub2api: 'sub2api',
+          newApi: 'New API'
+        },
+        accessToken: '余额查询访问令牌',
+        accessTokenPlaceholder: '可选的专用访问令牌',
+        userId: '余额查询用户 ID',
+        userIdPlaceholder: '部分 New API 部署需要填写',
+        credentialsHint: '仅用于查询余额，不会参与模型代理请求。',
+        leaveEmptyToKeep: '留空将保留已配置的令牌。',
+        configured: '已配置',
+        clearUserId: '清除用户 ID',
+        userIdHint: '留空将保留当前用户 ID；点击“清除用户 ID”可删除。',
+        errors: {
+          fallback: '余额查询失败'
+        }
       },
       schedulerScore: {
         baseShort: '普通',

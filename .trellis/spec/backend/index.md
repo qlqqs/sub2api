@@ -10,6 +10,7 @@
 - [ ] 涉及失败路径、HTTP envelope、网关协议、流式响应或 panic 边界时，阅读[错误处理](./error-handling.md)。
 - [ ] 涉及 request ID、上游错误体、结构化字段或敏感数据时，阅读[日志规范](./logging-guidelines.md)。
 - [ ] 修改前搜索现有接口、构造函数、错误、migration 和测试，优先沿用项目现有边界，不扩散文档中标记的历史例外。
+- [ ] 涉及上游账号余额查询、平台协议适配、余额专用凭证或管理端余额 DTO 时，阅读[上游账号余额查询](./upstream-balance.md)。
 
 ## 规范索引
 
@@ -20,6 +21,7 @@
 | [错误处理](./error-handling.md) | `ApplicationError`、持久化错误翻译、HTTP/协议响应、错误链与 Recovery | 已完成 |
 | [日志规范](./logging-guidelines.md) | Zap/slog/stdlog 桥接、请求关联、access log、结构化字段与脱敏 | 已完成 |
 | [质量规范](./quality-guidelines.md) | golangci-lint、依赖边界、build tags、Testcontainers、迁移测试和代码生成 | 已完成 |
+| [上游账号余额查询](./upstream-balance.md) | `POST .../upstream-balance`、协议选择、错误分类、敏感凭证与只读边界 | 已完成 |
 
 ## 使用顺序
 
@@ -27,7 +29,8 @@
 2. 涉及 Ent schema、Repository、事务、Redis 或迁移时，同时读[数据库规范](./database-guidelines.md)和[质量规范](./quality-guidelines.md)。
 3. 涉及 Handler/Service 失败路径、网关协议或 panic 边界时，读[错误处理](./error-handling.md)。
 4. 涉及可观测性、请求 ID、上游错误体或敏感数据时，读[日志规范](./logging-guidelines.md)。
-5. 提交前按[质量规范](./quality-guidelines.md)选择正确的默认、unit、integration 或 e2e 命令，并确认生成代码与迁移测试已同步。
+5. 涉及上游余额查询、平台探测或余额专用凭证时，读[上游账号余额查询](./upstream-balance.md)，并同时核对[错误处理](./error-handling.md)与[日志规范](./logging-guidelines.md)的脱敏与 envelope 约束。
+6. 提交前按[质量规范](./quality-guidelines.md)选择正确的默认、unit、integration 或 e2e 命令，并确认生成代码与迁移测试已同步。
 
 ## Quality Check
 

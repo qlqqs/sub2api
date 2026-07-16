@@ -144,6 +144,8 @@ var ProviderSet = wire.NewSet(
 	NewClaudeUsageFetcher,
 	NewClaudeOAuthClient,
 	NewHTTPUpstream,
+	// CUSTOM: Dedicated no-redirect transport for administrator balance queries.
+	NewUpstreamBalanceHTTPClient,
 	NewOpenAIOAuthClient,
 	NewGrokOAuthClient,
 	NewGeminiOAuthClient,

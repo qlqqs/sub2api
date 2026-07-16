@@ -115,6 +115,17 @@ pnpm --dir frontend exec vitest run src/api/__tests__
 
 这些测试被 `frontend/tsconfig.json` 排除，不属于 `pnpm --dir frontend run typecheck`；必须实际运行 Vitest。根 `make test-frontend` 也不包含完整 API 测试集合。
 
+## 上游账号余额查询 API
+
+> 完整契约见 [backend/upstream-balance.md](../backend/upstream-balance.md)。此处仅前端 API 层约束。
+
+- 函数：`frontend/src/api/admin/accounts.ts` 的 `queryUpstreamBalance(id: number): Promise<UpstreamBalanceResult>`。
+- 方法/路径：`POST /admin/accounts/${id}/upstream-balance`；无 body。
+- 泛型 `T` 为**拦截器解包后**的 `UpstreamBalanceResult`（含 `status`、`platform_type`、`scope`、金额字符串、`queried_at` 等）。
+- 金额字段类型为 `string`，不要改成 `number`。
+- 错误走统一 client 结构化对象 + `extractApiErrorMessage`；不要把失败显示成零余额。
+- 批量刷新**不要**新增后端批量接口；在 view 内对当前页 ID 列表受限并发调用本函数。
+
 ## 禁止模式
 
 - 不要在 view/composable 新建 Axios client、重复 token refresh，或手工附加横切 headers。

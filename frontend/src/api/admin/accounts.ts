@@ -20,7 +20,8 @@ import type {
   CodexSessionImportResult,
   OpenAICodexPATCreateRequest,
   CheckMixedChannelRequest,
-  CheckMixedChannelResponse
+  CheckMixedChannelResponse,
+  UpstreamBalanceResult
 } from '@/types'
 
 /**
@@ -238,6 +239,14 @@ export async function testAccount(id: number): Promise<{
     message: string
     latency_ms?: number
   }>(`/admin/accounts/${id}/test`)
+  return data
+}
+
+// CUSTOM: Trigger a read-only balance lookup without changing account runtime state.
+export async function queryUpstreamBalance(id: number): Promise<UpstreamBalanceResult> {
+  const { data } = await apiClient.post<UpstreamBalanceResult>(
+    `/admin/accounts/${id}/upstream-balance`
+  )
   return data
 }
 
@@ -859,6 +868,7 @@ export const accountsAPI = {
   delete: deleteAccount,
   toggleStatus,
   testAccount,
+  queryUpstreamBalance,
   refreshCredentials,
   applyOAuthCredentials,
   getStats,

@@ -183,6 +183,7 @@ func ProvideAccountHandler(
 	rpmCache service.RPMCache,
 	tokenCacheInvalidator service.TokenCacheInvalidator,
 	grokQuotaService *service.GrokQuotaService,
+	upstreamBalanceService *service.UpstreamBalanceService,
 ) *AccountHandler {
 	handler := NewAccountHandler(
 		adminService,
@@ -201,5 +202,7 @@ func ProvideAccountHandler(
 		tokenCacheInvalidator,
 	)
 	handler.grokImportProber = grokQuotaService
+	// CUSTOM: Inject the isolated upstream balance query service through the production provider.
+	handler.upstreamBalanceService = upstreamBalanceService
 	return handler
 }

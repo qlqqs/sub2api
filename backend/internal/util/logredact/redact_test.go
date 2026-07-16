@@ -5,6 +5,61 @@ import (
 	"testing"
 )
 
+func TestRedactMap_DefaultBalanceCredentials(t *testing.T) {
+	input := map[string]any{
+		"credentials": map[string]any{
+			"balance_access_token": "balance-token-secret",
+			"balance_user_id":      "balance-user-secret",
+			"base_url":             "https://upstream.example.com",
+		},
+	}
+
+	redacted := RedactMap(input)
+	credentials, ok := redacted["credentials"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected nested credentials map, got %#v", redacted["credentials"])
+	}
+	if credentials["balance_access_token"] != "***" {
+		t.Fatalf("expected balance access token redacted, got %#v", credentials["balance_access_token"])
+	}
+	if credentials["balance_user_id"] != "***" {
+		t.Fatalf("expected balance user ID redacted, got %#v", credentials["balance_user_id"])
+	}
+	if credentials["base_url"] != "https://upstream.example.com" {
+		t.Fatalf("expected non-sensitive base URL preserved, got %#v", credentials["base_url"])
+	}
+}
+
+func TestRedactJSON_DefaultBalanceCredentials(t *testing.T) {
+	input := []byte(`{"balance_access_token":"balance-token-secret","nested":{"balance_user_id":"balance-user-secret"},"other":"ok"}`)
+
+	redacted := RedactJSON(input)
+	if strings.Contains(redacted, "balance-token-secret") || strings.Contains(redacted, "balance-user-secret") {
+		t.Fatalf("expected balance credentials redacted, got %q", redacted)
+	}
+	if !strings.Contains(redacted, `"balance_access_token":"***"`) {
+		t.Fatalf("expected balance access token marker, got %q", redacted)
+	}
+	if !strings.Contains(redacted, `"balance_user_id":"***"`) {
+		t.Fatalf("expected balance user ID marker, got %q", redacted)
+	}
+}
+
+func TestRedactText_DefaultBalanceCredentials(t *testing.T) {
+	input := "balance_access_token=balance-token-secret balance_user_id: balance-user-secret"
+
+	redacted := RedactText(input)
+	if strings.Contains(redacted, "balance-token-secret") || strings.Contains(redacted, "balance-user-secret") {
+		t.Fatalf("expected balance credentials redacted, got %q", redacted)
+	}
+	if !strings.Contains(redacted, "balance_access_token=***") {
+		t.Fatalf("expected balance access token marker, got %q", redacted)
+	}
+	if !strings.Contains(redacted, "balance_user_id: ***") {
+		t.Fatalf("expected balance user ID marker, got %q", redacted)
+	}
+}
+
 func TestRedactText_JSONLike(t *testing.T) {
 	in := `{"access_token":"ya29.a0AfH6SMDUMMY","refresh_token":"1//0gDUMMY","other":"ok"}`
 	out := RedactText(in)

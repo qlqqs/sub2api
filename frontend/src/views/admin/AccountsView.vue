@@ -17,6 +17,19 @@
             @create="showCreate = true"
           >
             <template #after>
+              <!-- CUSTOM: Balance requests are limited to upstream accounts on the visible page. -->
+              <button
+                type="button"
+                class="btn btn-secondary px-2"
+                :disabled="refreshingCurrentPageBalances || currentPageUpstreamAccountsCount === 0"
+                :aria-label="currentPageBalanceRefreshLabel"
+                :aria-busy="refreshingCurrentPageBalances"
+                :title="currentPageBalanceRefreshLabel"
+                @click="refreshCurrentPageUpstreamBalances"
+              >
+                <Icon name="refresh" size="sm" :class="refreshingCurrentPageBalances ? 'animate-spin' : ''" />
+              </button>
+
               <!-- Auto Refresh Dropdown -->
               <div class="relative" ref="autoRefreshDropdownRef">
                 <button
@@ -278,6 +291,13 @@
               :error="todayStatsError"
             />
           </template>
+          <template #cell-upstream_balance="{ row }">
+            <AccountBalanceCell
+              :account-type="row.type"
+              :state="getUpstreamBalanceState(row.id)"
+              @refresh="refreshUpstreamBalance(row)"
+            />
+          </template>
           <template #cell-groups="{ row }">
             <AccountGroupsCell :groups="row.groups" :max-display="4" />
           </template>
@@ -457,6 +477,7 @@ import type { SelectOption } from '@/components/common/Select.vue'
 import AccountStatusIndicator from '@/components/account/AccountStatusIndicator.vue'
 import AccountUsageCell from '@/components/account/AccountUsageCell.vue'
 import AccountTodayStatsCell from '@/components/account/AccountTodayStatsCell.vue'
+import AccountBalanceCell from '@/components/account/AccountBalanceCell.vue'
 import AccountGroupsCell from '@/components/account/AccountGroupsCell.vue'
 import AccountCapacityCell from '@/components/account/AccountCapacityCell.vue'
 import PlatformTypeBadge from '@/components/common/PlatformTypeBadge.vue'
@@ -464,9 +485,11 @@ import Icon from '@/components/icons/Icon.vue'
 import ErrorPassthroughRulesModal from '@/components/admin/ErrorPassthroughRulesModal.vue'
 import TLSFingerprintProfilesModal from '@/components/admin/TLSFingerprintProfilesModal.vue'
 import { buildOpenAIUsageRefreshKey } from '@/utils/accountUsageRefresh'
+import { createConcurrencyLimiter } from '@/utils/concurrencyLimiter'
 import { formatDateTime, formatRelativeTime } from '@/utils/format'
 import { proxyExpiryBadgeClass, proxyExpiryLabelKey } from '@/utils/proxyExpiry'
-import type { Account, AccountPlatform, AccountSchedulerGroupScore, AccountType, Proxy as AccountProxy, AdminGroup, WindowStats, ClaudeModel } from '@/types'
+import { extractApiErrorMessage } from '@/utils/apiError'
+import type { Account, AccountBalanceRowState, AccountPlatform, AccountSchedulerGroupScore, AccountType, Proxy as AccountProxy, AdminGroup, WindowStats, ClaudeModel } from '@/types'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -544,6 +567,17 @@ const scheduleModelOptions = ref<SelectOption[]>([])
 const togglingSchedulable = ref<number | null>(null)
 const menu = reactive<{show:boolean, acc:Account|null, pos:{top:number, left:number}|null}>({ show: false, acc: null, pos: null })
 const exportingData = ref(false)
+// CUSTOM: Balance results live only for this AccountsView instance.
+const upstreamBalanceByAccountId = ref<Record<string, AccountBalanceRowState>>({})
+const upstreamBalanceRequests = new Map<number, Promise<UpstreamBalanceRefreshOutcome>>()
+const upstreamBalanceRequestLimiter = createConcurrencyLimiter(4)
+const refreshingCurrentPageBalances = ref(false)
+let acceptsUpstreamBalanceResults = true
+
+type UpstreamBalanceRefreshOutcome =
+  | { status: 'success'; accountId: number }
+  | { status: 'unsupported'; accountId: number }
+  | { status: 'failed'; accountId: number }
 
 // Account tools dropdown
 const showAccountToolsDropdown = ref(false)
@@ -847,6 +881,15 @@ const {
   }
 })
 
+const currentPageUpstreamAccountsCount = computed(
+  () => accounts.value.filter(account => account.type === 'upstream').length
+)
+const currentPageBalanceRefreshLabel = computed(() =>
+  refreshingCurrentPageBalances.value
+    ? t('admin.accounts.upstreamBalance.refreshingCurrentPage')
+    : t('admin.accounts.upstreamBalance.refreshCurrentPage')
+)
+
 const {
   selectedIds: selIds,
   allVisibleSelected,
@@ -1084,6 +1127,121 @@ const handleManualRefresh = async () => {
   usageManualRefreshToken.value += 1
 }
 
+const getUpstreamBalanceState = (accountId: number): AccountBalanceRowState => {
+  return upstreamBalanceByAccountId.value[String(accountId)] ?? { phase: 'idle' }
+}
+
+const shouldApplyUpstreamBalanceResult = (account: Account): boolean => {
+  if (!acceptsUpstreamBalanceResults) return false
+
+  const currentAccount = accounts.value.find(candidate => candidate.id === account.id)
+  return currentAccount?.updated_at === account.updated_at
+}
+
+const refreshUpstreamBalance = (account: Account): Promise<UpstreamBalanceRefreshOutcome> => {
+  if (account.type !== 'upstream') {
+    return Promise.resolve({ status: 'failed', accountId: account.id })
+  }
+
+  const existingRequest = upstreamBalanceRequests.get(account.id)
+  if (existingRequest) return existingRequest
+
+  const previousState = getUpstreamBalanceState(account.id)
+  const lastSuccessfulResult = previousState.latest_result?.status === 'available'
+    ? previousState.latest_result
+    : previousState.last_successful_result
+
+  upstreamBalanceByAccountId.value[String(account.id)] = {
+    phase: 'loading',
+    last_successful_result: lastSuccessfulResult
+  }
+
+  let requestPromise!: Promise<UpstreamBalanceRefreshOutcome>
+  requestPromise = (async () => {
+    try {
+      const result = await upstreamBalanceRequestLimiter.run(() => {
+        return adminAPI.accounts.queryUpstreamBalance(account.id)
+      })
+      if (result.status === 'unsupported') {
+        if (shouldApplyUpstreamBalanceResult(account)) {
+          upstreamBalanceByAccountId.value[String(account.id)] = {
+            phase: 'unsupported'
+          }
+        }
+        return { status: 'unsupported', accountId: account.id }
+      }
+
+      if (shouldApplyUpstreamBalanceResult(account)) {
+        upstreamBalanceByAccountId.value[String(account.id)] = {
+          phase: 'available',
+          latest_result: result,
+          last_successful_result: result
+        }
+      }
+      return { status: 'success', accountId: account.id }
+    } catch (error: unknown) {
+      if (shouldApplyUpstreamBalanceResult(account)) {
+        upstreamBalanceByAccountId.value[String(account.id)] = {
+          phase: 'failed',
+          last_successful_result: lastSuccessfulResult,
+          error_message: extractApiErrorMessage(error, t('admin.accounts.upstreamBalance.errors.fallback'))
+        }
+      }
+      return { status: 'failed', accountId: account.id }
+    } finally {
+      if (upstreamBalanceRequests.get(account.id) === requestPromise) {
+        upstreamBalanceRequests.delete(account.id)
+      }
+    }
+  })()
+
+  upstreamBalanceRequests.set(account.id, requestPromise)
+  return requestPromise
+}
+
+const refreshCurrentPageUpstreamBalances = async () => {
+  if (refreshingCurrentPageBalances.value) return
+
+  const currentPageAccounts = accounts.value.filter(account => account.type === 'upstream')
+  if (currentPageAccounts.length === 0) {
+    appStore.showInfo(t('admin.accounts.upstreamBalance.noAccountsOnPage'))
+    return
+  }
+
+  refreshingCurrentPageBalances.value = true
+  const outcomes: UpstreamBalanceRefreshOutcome[] = []
+  let nextAccountIndex = 0
+
+  const worker = async () => {
+    while (nextAccountIndex < currentPageAccounts.length) {
+      const account = currentPageAccounts[nextAccountIndex]
+      nextAccountIndex += 1
+      outcomes.push(await refreshUpstreamBalance(account))
+    }
+  }
+
+  try {
+    const workerCount = Math.min(4, currentPageAccounts.length)
+    await Promise.all(Array.from({ length: workerCount }, () => worker()))
+
+    const success = outcomes.filter(outcome => outcome.status === 'success').length
+    const failed = outcomes.filter(outcome => outcome.status === 'failed').length
+    const unsupported = outcomes.filter(outcome => outcome.status === 'unsupported').length
+    const summary = t('admin.accounts.upstreamBalance.batchSummary', {
+      success,
+      failed,
+      unsupported
+    })
+    if (failed === 0 && unsupported === 0) {
+      appStore.showSuccess(summary)
+    } else {
+      appStore.showWarning(summary)
+    }
+  } finally {
+    refreshingCurrentPageBalances.value = false
+  }
+}
+
 const closeAccountToolsDropdown = () => {
   showAccountToolsDropdown.value = false
 }
@@ -1271,7 +1429,9 @@ const allColumns = computed(() => {
     { key: 'capacity', label: t('admin.accounts.columns.capacity'), sortable: false },
     { key: 'status', label: t('admin.accounts.columns.status'), sortable: true },
     { key: 'schedulable', label: t('admin.accounts.columns.schedulable'), sortable: true },
-    { key: 'today_stats', label: t('admin.accounts.columns.todayStats'), sortable: false }
+    { key: 'today_stats', label: t('admin.accounts.columns.todayStats'), sortable: false },
+    // CUSTOM: Balance is transient page state and cannot participate in server-side sorting.
+    { key: 'upstream_balance', label: t('admin.accounts.columns.upstreamBalance'), sortable: false }
   ]
   if (!authStore.isSimpleMode) {
     c.push({ key: 'groups', label: t('admin.accounts.columns.groups'), sortable: false })
@@ -1904,6 +2064,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  acceptsUpstreamBalanceResults = false
   window.removeEventListener('scroll', handleScroll, true)
   document.removeEventListener('click', handleClickOutside)
 })

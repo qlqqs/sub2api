@@ -740,6 +740,29 @@ export interface UpdateGroupRequest {
 
 export type AccountPlatform = 'anthropic' | 'openai' | 'gemini' | 'antigravity' | 'grok'
 export type AccountType = 'oauth' | 'setup-token' | 'apikey' | 'upstream' | 'bedrock' | 'service_account'
+// CUSTOM: Upstream balance lookup uses an account-local protocol selector and transient result.
+export type UpstreamPlatformType = 'auto' | 'sub2api' | 'new_api'
+export type UpstreamBalanceStatus = 'available' | 'unsupported'
+export type UpstreamBalanceScope = 'user' | 'api_key' | 'unknown'
+
+export interface UpstreamBalanceResult {
+  status: UpstreamBalanceStatus
+  platform_type: Exclude<UpstreamPlatformType, 'auto'> | 'unknown'
+  scope: UpstreamBalanceScope
+  remaining?: string
+  used?: string
+  total?: string
+  unit?: string
+  api_key_rate?: string
+  queried_at: string
+}
+
+export interface AccountBalanceRowState {
+  phase: 'idle' | 'loading' | 'available' | 'unsupported' | 'failed'
+  latest_result?: UpstreamBalanceResult
+  last_successful_result?: UpstreamBalanceResult
+  error_message?: string
+}
 export type OAuthAddMethod = 'oauth' | 'setup-token'
 export type ProxyProtocol = 'http' | 'https' | 'socks5' | 'socks5h'
 

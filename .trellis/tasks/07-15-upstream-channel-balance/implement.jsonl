@@ -1,0 +1,8 @@
+{"file":".trellis/spec/backend/upstream-balance.md","reason":"实现上游余额协议、错误、安全、只读和跨层契约"}
+{"file":".trellis/spec/backend/error-handling.md","reason":"遵循管理 API envelope 与稳定错误 reason"}
+{"file":".trellis/spec/backend/logging-guidelines.md","reason":"确保余额访问令牌和用户 ID 不进入日志"}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"选择 unit build tag、默认测试、lint 和 Wire 生成门禁"}
+{"file":".trellis/spec/frontend/api-guidelines.md","reason":"实现管理员单账号余额 POST API 契约"}
+{"file":".trellis/spec/frontend/state-management.md","reason":"实现页面局部状态、去重、并发和迟到响应规则"}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"补充并运行 API、组件和页面专项 Vitest"}
+{"file":".trellis/spec/guides/secondary-development.md","reason":"保持 CUSTOM 窄挂点和 fork 可维护性"}

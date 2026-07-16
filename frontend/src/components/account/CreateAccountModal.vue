@@ -1138,6 +1138,49 @@
           <p v-if="apiKeyHint" class="input-hint">{{ apiKeyHint }}</p>
         </div>
 
+        <!-- CUSTOM: API Key creation also configures the upstream balance integration. -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div>
+            <label for="create-balance-user-id" class="input-label">
+              {{ t('admin.accounts.upstreamBalance.userId') }}
+            </label>
+            <input
+              id="create-balance-user-id"
+              v-model="balanceUserId"
+              type="text"
+              class="input font-mono"
+              :placeholder="t('admin.accounts.upstreamBalance.userIdPlaceholder')"
+            />
+          </div>
+          <div>
+            <label for="create-balance-access-token" class="input-label">
+              {{ t('admin.accounts.upstreamBalance.accessToken') }}
+            </label>
+            <input
+              id="create-balance-access-token"
+              v-model="balanceAccessToken"
+              type="password"
+              class="input font-mono"
+              autocomplete="new-password"
+              data-1p-ignore
+              data-lpignore="true"
+              data-bwignore="true"
+              :placeholder="t('admin.accounts.upstreamBalance.accessTokenPlaceholder')"
+            />
+          </div>
+          <div>
+            <label for="create-upstream-platform-type" class="input-label">
+              {{ t('admin.accounts.upstreamBalance.platform.label') }}
+            </label>
+            <select id="create-upstream-platform-type" v-model="upstreamPlatformType" class="input">
+              <option value="auto">{{ t('admin.accounts.upstreamBalance.platform.auto') }}</option>
+              <option value="sub2api">{{ t('admin.accounts.upstreamBalance.platform.sub2api') }}</option>
+              <option value="new_api">{{ t('admin.accounts.upstreamBalance.platform.newApi') }}</option>
+            </select>
+          </div>
+        </div>
+        <p class="input-hint">{{ t('admin.accounts.upstreamBalance.credentialsHint') }}</p>
+
         <!-- Gemini API Key tier selection -->
         <div v-if="form.platform === 'gemini'">
           <label class="input-label">{{ t('admin.accounts.gemini.tier.label') }}</label>
@@ -3657,7 +3700,7 @@ interface TempUnschedRuleForm {
 // State
 const step = ref(1)
 const submitting = ref(false)
-const accountCategory = ref<'oauth-based' | 'apikey' | 'bedrock' | 'service_account'>('oauth-based') // UI selection for account category
+const accountCategory = ref<'oauth-based' | 'apikey' | 'upstream' | 'bedrock' | 'service_account'>('oauth-based') // UI selection for account category
 const addMethod = ref<AddMethod>('oauth') // For oauth-based: 'oauth' or 'setup-token'
 const apiKeyBaseUrl = ref('https://api.anthropic.com')
 const apiKeyValue = ref('')
@@ -3790,6 +3833,10 @@ const antigravityAccountType = ref<'oauth' | 'upstream'>('oauth') // For antigra
 const antigravityProjectId = ref('')
 const upstreamBaseUrl = ref('') // For upstream type: base URL
 const upstreamApiKey = ref('') // For upstream type: API key
+// CUSTOM: Balance-only credentials never participate in model proxy requests.
+const upstreamPlatformType = ref<'auto' | 'sub2api' | 'new_api'>('auto')
+const balanceAccessToken = ref('')
+const balanceUserId = ref('')
 const antigravityModelRestrictionMode = ref<'whitelist' | 'mapping'>('whitelist')
 const antigravityWhitelistModels = ref<string[]>([])
 const antigravityModelMappings = ref<ModelMapping[]>([])
@@ -4124,6 +4171,10 @@ watch(
     // Antigravity upstream 类型（实际创建为 apikey）
     if (form.platform === 'antigravity' && agType === 'upstream') {
       form.type = 'apikey'
+      return
+    }
+    if (category === 'upstream') {
+      form.type = 'upstream'
       return
     }
     // Bedrock 类型
@@ -4654,6 +4705,9 @@ const resetForm = () => {
   antigravityProjectId.value = ''
   upstreamBaseUrl.value = ''
   upstreamApiKey.value = ''
+  upstreamPlatformType.value = 'auto'
+  balanceAccessToken.value = ''
+  balanceUserId.value = ''
   vertexServiceAccountJson.value = ''
   vertexProjectId.value = ''
   vertexClientEmail.value = ''
@@ -4941,6 +4995,47 @@ const handleSubmit = async () => {
     applyInterceptWarmup(credentials, interceptWarmupRequests.value, 'create')
 
     await createAccountAndFinish('anthropic', 'bedrock' as AccountType, credentials)
+    return
+  }
+
+  // CUSTOM: API Key authentication creates an upstream account and keeps balance credentials isolated.
+  if (accountCategory.value === 'apikey') {
+    if (!form.name.trim()) {
+      appStore.showError(t('admin.accounts.pleaseEnterAccountName'))
+      return
+    }
+    if (!apiKeyValue.value.trim()) {
+      appStore.showError(t('admin.accounts.upstream.pleaseEnterApiKey'))
+      return
+    }
+
+    const defaultBaseURLs: Record<string, string> = {
+      anthropic: 'https://api.anthropic.com',
+      openai: 'https://api.openai.com',
+      gemini: 'https://generativelanguage.googleapis.com',
+      grok: 'https://api.x.ai/v1'
+    }
+    const upstreamBaseURL = apiKeyBaseUrl.value.trim() || defaultBaseURLs[form.platform]
+    if (!upstreamBaseURL) {
+      appStore.showError(t('admin.accounts.upstream.pleaseEnterBaseUrl'))
+      return
+    }
+
+    const credentials: Record<string, unknown> = {
+      base_url: upstreamBaseURL,
+      api_key: apiKeyValue.value.trim()
+    }
+    if (balanceAccessToken.value.trim()) {
+      credentials.balance_access_token = balanceAccessToken.value.trim()
+    }
+    if (balanceUserId.value.trim()) {
+      credentials.balance_user_id = balanceUserId.value.trim()
+    }
+
+    const upstreamExtra = buildAnthropicExtra(buildOpenAIExtra({
+      upstream_platform_type: upstreamPlatformType.value
+    }))
+    await createAccountAndFinish(form.platform, 'upstream', credentials, upstreamExtra)
     return
   }
 

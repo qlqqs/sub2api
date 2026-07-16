@@ -118,3 +118,7 @@
 
 - 写业务代码前仍读 [代码复用](./code-reuse-thinking-guide.md) 与 [跨层](./cross-layer-thinking-guide.md)。
 - backend / frontend 层规范仍适用；本指南只约束 **fork 边界与同步友好性**。
+
+## 相关功能规范
+
+- 上游账号余额查询（只读、敏感凭证、`CUSTOM:` 窄挂点）：[backend/upstream-balance.md](../backend/upstream-balance.md)

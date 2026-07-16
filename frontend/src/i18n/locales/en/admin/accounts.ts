@@ -157,6 +157,7 @@ export default {
         status: 'Status',
         schedulable: 'Schedulable',
         todayStats: 'Today Stats',
+        upstreamBalance: 'Account Balance',
         groups: 'Groups',
         usageWindows: 'Usage Windows',
         proxy: 'Proxy',
@@ -164,6 +165,42 @@ export default {
         createdAt: 'Created',
         expiresAt: 'Expires At',
         actions: 'Actions'
+      },
+      // CUSTOM: Upstream account balance query labels and transient states.
+      upstreamBalance: {
+        refresh: 'Refresh balance',
+        refreshCurrentPage: 'Refresh page balances',
+        refreshingCurrentPage: 'Refreshing balances...',
+        notApplicable: 'Not applicable',
+        notQueried: 'Not queried',
+        loading: 'Querying...',
+        unsupported: 'Unsupported upstream protocol',
+        queriedAt: 'Queried',
+        apiKeyRate: 'Key rate',
+        noAccountsOnPage: 'No upstream accounts on this page',
+        batchSummary: 'Balance refresh completed: {success} succeeded, {failed} failed, {unsupported} unsupported',
+        scope: {
+          user: 'User balance',
+          apiKey: 'Key quota',
+          unknown: 'Available balance'
+        },
+        platform: {
+          label: 'Balance protocol',
+          auto: 'Auto detect',
+          sub2api: 'sub2api',
+          newApi: 'New API'
+        },
+        accessToken: 'Balance access token',
+        accessTokenPlaceholder: 'Optional dedicated token',
+        userId: 'Balance user ID',
+        userIdPlaceholder: 'Required by some New API deployments',
+        credentialsHint: 'Used only for balance lookup and never sent with model proxy requests.',
+        leaveEmptyToKeep: 'Leave empty to keep the configured token.',
+        clearUserId: 'Clear user ID',
+        userIdHint: 'Leave empty to keep the current user ID. Use Clear to remove it.',
+        errors: {
+          fallback: 'Balance query failed'
+        }
       },
       schedulerScore: {
         baseShort: 'Base',

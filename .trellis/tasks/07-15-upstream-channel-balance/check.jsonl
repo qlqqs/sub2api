@@ -1,0 +1,8 @@
+{"file":".trellis/spec/backend/upstream-balance.md","reason":"核验协议、错误、安全、只读边界及必需测试"}
+{"file":".trellis/spec/backend/error-handling.md","reason":"核验 Handler envelope 和错误映射"}
+{"file":".trellis/spec/backend/logging-guidelines.md","reason":"核验日志和错误链中的凭证脱敏"}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"核验 unit、默认测试、lint 与生成代码"}
+{"file":".trellis/spec/frontend/api-guidelines.md","reason":"核验前端 API 方法、路径和响应类型"}
+{"file":".trellis/spec/frontend/state-management.md","reason":"核验页面状态、全局并发、去重与迟到响应"}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"核验聚焦与完整前端测试门禁"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"核验后端到前端字段和失败语义完整流转"}

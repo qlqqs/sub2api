@@ -247,3 +247,69 @@ describe('CreateAccountModal OpenAI long-context billing', () => {
     expect(createOpenAICodexPATMock.mock.calls[0]?.[0]?.extra?.openai_long_context_billing_enabled).toBe(false)
   })
 })
+
+describe('CreateAccountModal upstream balance configuration', () => {
+  beforeEach(() => {
+    createAccountMock.mockReset().mockResolvedValue({})
+  })
+
+  it('submits the selected platform and dedicated balance credentials', async () => {
+    const wrapper = mountModal()
+    await selectButtonByText(wrapper, 'admin.accounts.apiKey')
+
+    const textInputs = wrapper.findAll('form#create-account-form input[type="text"]')
+    await textInputs[0].setValue('Upstream account')
+    await wrapper.get('input[placeholder="https://api.anthropic.com"]').setValue('https://upstream.example.com')
+    await wrapper.get('#create-balance-user-id').setValue('user-42')
+
+    await wrapper.get('input[placeholder="sk-ant-..."]').setValue('inference-key')
+    await wrapper.get('#create-balance-access-token').setValue('management-token')
+    await wrapper.get('#create-upstream-platform-type').setValue('new_api')
+
+    await wrapper.get('form#create-account-form').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(createAccountMock).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'upstream',
+      credentials: expect.objectContaining({
+        base_url: 'https://upstream.example.com',
+        api_key: 'inference-key',
+        balance_access_token: 'management-token',
+        balance_user_id: 'user-42'
+      }),
+      extra: expect.objectContaining({
+        upstream_platform_type: 'new_api'
+      })
+    }))
+  })
+
+  it('renders balance fields in the required responsive order with associated labels', async () => {
+    const wrapper = mountModal()
+    await selectButtonByText(wrapper, 'admin.accounts.apiKey')
+
+    const userIdInput = wrapper.get('#create-balance-user-id')
+    const accessTokenInput = wrapper.get('#create-balance-access-token')
+    const protocolSelect = wrapper.get('#create-upstream-platform-type')
+    const balanceFieldsGrid = userIdInput.element.parentElement?.parentElement
+
+    expect(balanceFieldsGrid?.classList.contains('grid-cols-1')).toBe(true)
+    expect(balanceFieldsGrid?.classList.contains('sm:grid-cols-3')).toBe(true)
+    expect(userIdInput.element.compareDocumentPosition(accessTokenInput.element)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
+    expect(accessTokenInput.element.compareDocumentPosition(protocolSelect.element)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
+    expect(wrapper.get('label[for="create-balance-user-id"]').exists()).toBe(true)
+    expect(wrapper.get('label[for="create-balance-access-token"]').exists()).toBe(true)
+    expect(wrapper.get('label[for="create-upstream-platform-type"]').exists()).toBe(true)
+  })
+
+  it('does not show a separate upstream account selection', () => {
+    const wrapper = mountModal()
+
+    expect(wrapper.findAll('button').some((button) =>
+      button.text().includes('admin.accounts.types.upstream')
+    )).toBe(false)
+  })
+})

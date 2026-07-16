@@ -619,6 +619,8 @@ func ProvideAPIKeyService(
 // ProviderSet is the Wire provider set for all services
 var ProviderSet = wire.NewSet(
 	// Core services
+	// CUSTOM: Read-only upstream account balance orchestration.
+	NewUpstreamBalanceService,
 	NewAuthService,
 	NewUserService,
 	ProvideAPIKeyService,
@@ -646,6 +648,7 @@ var ProviderSet = wire.NewSet(
 	NewOAuthService,
 	ProvideOpenAIOAuthService,
 	NewGrokOAuthService,
+	wire.Bind(new(GrokOAuthTokenService), new(*GrokOAuthService)),
 	NewGeminiOAuthService,
 	NewGeminiQuotaService,
 	NewCompositeTokenCacheInvalidator,
