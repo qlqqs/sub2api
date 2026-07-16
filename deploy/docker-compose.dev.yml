@@ -4,9 +4,11 @@
 # Build from local source code for testing changes.
 #
 # Usage:
-#   cd deploy
-#   docker compose -f docker-compose.dev.yml up --build
+#   docker compose --env-file deploy/.env.test -f deploy/docker-compose.dev.yml up --build
 # =============================================================================
+
+# CUSTOM: Isolate custom and test resources from the official production stack.
+name: sub2api-${DEPLOY_ENV:?DEPLOY_ENV is required}
 
 services:
   sub2api:
@@ -15,17 +17,18 @@ services:
       dockerfile: Dockerfile
       args:
         NPM_CONFIG_REGISTRY: ${NPM_CONFIG_REGISTRY:-https://registry.npmmirror.com}
-    container_name: sub2api-dev
+    # CUSTOM: Keep explicit container names unique per isolated environment.
+    container_name: sub2api-${DEPLOY_ENV:?DEPLOY_ENV is required}
     restart: unless-stopped
     ports:
-      - "${BIND_HOST:-127.0.0.1}:${SERVER_PORT:-8080}:8080"
+      - "${BIND_HOST:?BIND_HOST is required}:${SERVER_PORT:?SERVER_PORT is required}:8080"
     volumes:
-      - ./data:/app/data:Z
+      - ./${DEPLOY_ENV:?DEPLOY_ENV is required}_data:/app/data:Z
     environment:
       - AUTO_SETUP=true
       - SERVER_HOST=0.0.0.0
       - SERVER_PORT=8080
-      - SERVER_MODE=debug
+      - SERVER_MODE=${SERVER_MODE:-debug}
       - ENABLE_SERVER_TIMING=${ENABLE_SERVER_TIMING:-false}
       - RUN_MODE=${RUN_MODE:-standard}
       - DATABASE_HOST=postgres
@@ -89,10 +92,11 @@ services:
 
   postgres:
     image: postgres:18-alpine
-    container_name: sub2api-postgres-dev
+    # CUSTOM: Keep the environment database separate from production and peers.
+    container_name: sub2api-${DEPLOY_ENV:?DEPLOY_ENV is required}-postgres
     restart: unless-stopped
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data:Z
+      - ./${DEPLOY_ENV:?DEPLOY_ENV is required}_postgres_data:/var/lib/postgresql/data:Z
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-sub2api}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
@@ -110,20 +114,18 @@ services:
 
   redis:
     image: redis:8-alpine
-    container_name: sub2api-redis-dev
+    # CUSTOM: Keep the environment cache separate from production and peers.
+    container_name: sub2api-${DEPLOY_ENV:?DEPLOY_ENV is required}-redis
     restart: unless-stopped
     volumes:
-      - ./redis_data:/data:Z
-    command: >
-        sh -c '
-          redis-server
-          --save 60 1
-          --appendonly yes
-          --appendfsync everysec
-          ${REDIS_PASSWORD:+--requirepass "$REDIS_PASSWORD"}'
+      - ./${DEPLOY_ENV:?DEPLOY_ENV is required}_redis_data:/data:Z
+    command:
+      - sh
+      - -c
+      - exec redis-server --save 60 1 --appendonly yes --appendfsync everysec --requirepass "$$REDISCLI_AUTH"
     environment:
       - TZ=${TZ:-Asia/Shanghai}
-      - REDISCLI_AUTH=${REDIS_PASSWORD:-}
+      - REDISCLI_AUTH=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     networks:
       - sub2api-network
     healthcheck:

@@ -1,0 +1,1 @@
+{"file":".trellis/spec/guides/secondary-development.md","reason":"二次开发部署配置应优先新增文件并保持与官方上游配置的窄边界，避免增加后续同步冲突。"}

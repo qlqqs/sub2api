@@ -6,9 +6,19 @@
 data/
 postgres_data/
 redis_data/
+# CUSTOM: Runtime data for isolated custom and test Compose projects.
+custom_data/
+custom_postgres_data/
+custom_redis_data/
+test_data/
+test_postgres_data/
+test_redis_data/
 
 # Environment configuration (contains sensitive information)
 .env
+# CUSTOM: Real environment files are local secrets; examples remain tracked.
+.env.custom
+.env.test
 
 # Backup files
 *.backup
