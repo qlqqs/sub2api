@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 1
-- **Last Active**: 2026-07-15
+- **Total Sessions**: 2
+- **Last Active**: 2026-07-16
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~49 | Active |
+| `journal-1.md` | ~85 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 2 | 2026-07-16 | 上游账号余额查询收尾 | `e50e547a`, `3f5bc161`, `5e07e578`, `14565c68` | `feat/upstream-channel-balance` |
 | 1 | 2026-07-15 | 二次开发工作流落地与任务收尾 | `88189de4`, `b8c5e003`, `865e7772` | `custom` |
 <!-- @@@/auto:session-history -->
 

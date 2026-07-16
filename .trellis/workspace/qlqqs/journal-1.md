@@ -47,3 +47,39 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: 上游账号余额查询收尾
+
+**Date**: 2026-07-16
+**Task**: 上游账号余额查询收尾
+**Branch**: `feat/upstream-channel-balance`
+
+### Summary
+
+完成 upstream-channel-balance：实现与自动化验收通过；补 UpstreamBalanceAccountLookup 规范；归档任务。人工验收 §8 仍待线上验证。无关 date-range WIP 仍在 stash。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e50e547a` | (see git log) |
+| `3f5bc161` | (see git log) |
+| `5e07e578` | (see git log) |
+| `14565c68` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
