@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"sync"
@@ -410,6 +411,19 @@ func (s *BillingCacheService) InvalidateUserBalance(ctx context.Context, userID 
 // ============================================
 // 订阅缓存方法
 // ============================================
+
+// CUSTOM: Usage compatibility endpoints need the complete active subscription,
+// including window metadata that is intentionally absent from the billing cache DTO.
+func (s *BillingCacheService) GetActiveSubscriptionForUsage(
+	ctx context.Context,
+	userID int64,
+	groupID int64,
+) (*UserSubscription, error) {
+	if s == nil || s.subRepo == nil {
+		return nil, errors.New("subscription repository is unavailable")
+	}
+	return s.subRepo.GetActiveByUserIDAndGroupID(ctx, userID, groupID)
+}
 
 // GetSubscriptionStatus 获取订阅状态（优先从缓存读取）
 func (s *BillingCacheService) GetSubscriptionStatus(ctx context.Context, userID, groupID int64) (*subscriptionCacheData, error) {

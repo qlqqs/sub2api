@@ -36,6 +36,10 @@ const gatewayCompatibilityMetricsLogInterval = 1024
 
 var gatewayCompatibilityMetricsLogCounter atomic.Uint64
 
+type usageSubscriptionProvider interface {
+	GetActiveSubscriptionForUsage(ctx context.Context, userID int64, groupID int64) (*service.UserSubscription, error)
+}
+
 // GatewayHandler handles API gateway requests
 type GatewayHandler struct {
 	gatewayService            *service.GatewayService
@@ -43,6 +47,8 @@ type GatewayHandler struct {
 	antigravityGatewayService *service.AntigravityGatewayService
 	userService               *service.UserService
 	billingCacheService       *service.BillingCacheService
+	// CUSTOM: Keeps /v1/usage subscription responses complete even when billing middleware is skipped.
+	usageSubscriptionProvider usageSubscriptionProvider
 	usageService              *service.UsageService
 	apiKeyService             *service.APIKeyService
 	usageRecordWorkerPool     *service.UsageRecordWorkerPool
@@ -98,6 +104,7 @@ func NewGatewayHandler(
 		antigravityGatewayService: antigravityGatewayService,
 		userService:               userService,
 		billingCacheService:       billingCacheService,
+		usageSubscriptionProvider: billingCacheService,
 		usageService:              usageService,
 		apiKeyService:             apiKeyService,
 		usageRecordWorkerPool:     usageRecordWorkerPool,
@@ -1452,21 +1459,32 @@ func (h *GatewayHandler) usageUnrestricted(c *gin.Context, ctx context.Context, 
 			"unit":     "USD",
 		}
 
-		// 订阅信息可能不在 context 中（/v1/usage 路径跳过了中间件的计费检查）
+		// CUSTOM: /v1/usage skips billing checks, so resolve the active subscription
+		// explicitly instead of returning an ambiguous unrestricted response without balance.
 		subscription, ok := middleware2.GetSubscriptionFromContext(c)
-		if ok {
-			remaining := h.calculateSubscriptionRemaining(apiKey.Group, subscription)
-			resp["remaining"] = remaining
-			resp["subscription"] = gin.H{
-				"daily_usage_usd":     subscription.DailyUsageUSD,
-				"weekly_usage_usd":    subscription.WeeklyUsageUSD,
-				"monthly_usage_usd":   subscription.MonthlyUsageUSD,
-				"daily_limit_usd":     apiKey.Group.DailyLimitUSD,
-				"weekly_limit_usd":    apiKey.Group.WeeklyLimitUSD,
-				"monthly_limit_usd":   apiKey.Group.MonthlyLimitUSD,
-				"weekly_window_start": subscription.WeeklyWindowStart,
-				"expires_at":          subscription.ExpiresAt,
+		if !ok && h.usageSubscriptionProvider != nil {
+			loadedSubscription, loadErr := h.usageSubscriptionProvider.GetActiveSubscriptionForUsage(ctx, subject.UserID, apiKey.Group.ID)
+			if loadErr == nil && loadedSubscription != nil {
+				subscription = loadedSubscription
+				ok = true
 			}
+		}
+		if !ok {
+			h.errorResponse(c, http.StatusForbidden, "authentication_error", "Active subscription is required")
+			return
+		}
+
+		remaining := h.calculateSubscriptionRemaining(apiKey.Group, subscription)
+		resp["remaining"] = remaining
+		resp["subscription"] = gin.H{
+			"daily_usage_usd":     subscription.DailyUsageUSD,
+			"weekly_usage_usd":    subscription.WeeklyUsageUSD,
+			"monthly_usage_usd":   subscription.MonthlyUsageUSD,
+			"daily_limit_usd":     apiKey.Group.DailyLimitUSD,
+			"weekly_limit_usd":    apiKey.Group.WeeklyLimitUSD,
+			"monthly_limit_usd":   apiKey.Group.MonthlyLimitUSD,
+			"weekly_window_start": subscription.WeeklyWindowStart,
+			"expires_at":          subscription.ExpiresAt,
 		}
 
 		if usageData != nil {
