@@ -15,7 +15,6 @@ import (
 	"time"
 
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
-	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
 	"github.com/stretchr/testify/require"
 )
 
@@ -137,16 +136,13 @@ func TestSensitiveCredentialKeys_IncludeBalanceFields(t *testing.T) {
 	require.Equal(t, "token-keep", mergedClear["balance_access_token"])
 }
 
-// --- service-level tests with minimal repository surface ---
+// --- service-level tests with minimal account lookup surface ---
 
-// upstreamBalanceAccountRepoStub implements only GetByID; remaining methods panic.
-// Compile-time assertion is done by assigning to AccountRepository in the helper.
 type upstreamBalanceAccountRepoStub struct {
 	account      *Account
 	err          error
 	mu           sync.Mutex
 	getByIDCalls int
-	writeCalls   int
 }
 
 func (stub *upstreamBalanceAccountRepoStub) GetByID(ctx context.Context, id int64) (*Account, error) {
@@ -157,13 +153,6 @@ func (stub *upstreamBalanceAccountRepoStub) GetByID(ctx context.Context, id int6
 		return nil, stub.err
 	}
 	return stub.account, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) recordWrite(methodName string) error {
-	stub.mu.Lock()
-	stub.writeCalls++
-	stub.mu.Unlock()
-	panic("unexpected repository write: " + methodName)
 }
 
 type upstreamBalanceHTTPClientStub struct {
@@ -223,254 +212,16 @@ func sampleUpstreamAccount(platformType string, credentials map[string]any) *Acc
 	}
 }
 
-// upstreamBalanceRepoAdapter wraps the GetByID-only stub so NewUpstreamBalanceService
-// can accept it. We implement the interface by embedding and overriding GetByID via
-// a dedicated type that panics on unused methods - generated below if compile fails.
-//
-// For unit tests we construct UpstreamBalanceService directly with the stub field typed
-// as the package's AccountRepository only if the stub implements the full interface.
-// To keep the test file maintainable, service tests use a local constructor that sets
-// the unexported-equivalent fields via New + type assertion workaround:
-//
-//	service := &UpstreamBalanceService{accountRepository: ..., httpClient: ..., now: ...}
-//
-// AccountRepository is an interface; the stub must implement all methods.
-// We use a panic-default embedding approach via code generation from the interface.
 
-// NOTE: The following methods satisfy AccountRepository with panics/no-ops so the
-// service tests can run. Only GetByID is used by QueryAccountBalance.
-func (stub *upstreamBalanceAccountRepoStub) Create(ctx context.Context, account *Account) error {
-	_ = stub.recordWrite("Create")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) GetByIDs(ctx context.Context, ids []int64) ([]*Account, error) {
-	panic("unexpected GetByIDs call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ExistsByID(ctx context.Context, id int64) (bool, error) {
-	panic("unexpected ExistsByID call")
-	return false, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) GetByCRSAccountID(ctx context.Context, crsAccountID string) (*Account, error) {
-	panic("unexpected GetByCRSAccountID call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) FindByExtraField(ctx context.Context, key string, value any) ([]Account, error) {
-	panic("unexpected FindByExtraField call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListCRSAccountIDs(ctx context.Context) (map[string]int64, error) {
-	panic("unexpected ListCRSAccountIDs call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) Update(ctx context.Context, account *Account) error {
-	_ = stub.recordWrite("Update")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) Delete(ctx context.Context, id int64) error {
-	_ = stub.recordWrite("Delete")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) List(ctx context.Context, params pagination.PaginationParams) ([]Account, *pagination.PaginationResult, error) {
-	panic("unexpected List call")
-	return nil, nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListWithFilters(ctx context.Context, params pagination.PaginationParams, platform, accountType, status, search string, groupID int64, privacyMode string) ([]Account, *pagination.PaginationResult, error) {
-	panic("unexpected ListWithFilters call")
-	return nil, nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListAllWithFilters(ctx context.Context, platform, accountType, status, search string, groupID int64, privacyMode string) ([]Account, error) {
-	panic("unexpected ListAllWithFilters call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListByGroup(ctx context.Context, groupID int64) ([]Account, error) {
-	panic("unexpected ListByGroup call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListActive(ctx context.Context) ([]Account, error) {
-	panic("unexpected ListActive call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListByPlatform(ctx context.Context, platform string) ([]Account, error) {
-	panic("unexpected ListByPlatform call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) UpdateLastUsed(ctx context.Context, id int64) error {
-	_ = stub.recordWrite("UpdateLastUsed")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) BatchUpdateLastUsed(ctx context.Context, updates map[int64]time.Time) error {
-	_ = stub.recordWrite("BatchUpdateLastUsed")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) SetError(ctx context.Context, id int64, errorMsg string) error {
-	_ = stub.recordWrite("SetError")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ClearError(ctx context.Context, id int64) error {
-	_ = stub.recordWrite("ClearError")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) SetSchedulable(ctx context.Context, id int64, schedulable bool) error {
-	_ = stub.recordWrite("SetSchedulable")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) AutoPauseExpiredAccounts(ctx context.Context, now time.Time) (int64, error) {
-	_ = stub.recordWrite("AutoPauseExpiredAccounts")
-	return 0, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) BindGroups(ctx context.Context, accountID int64, groupIDs []int64) error {
-	_ = stub.recordWrite("BindGroups")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListSchedulable(ctx context.Context) ([]Account, error) {
-	panic("unexpected ListSchedulable call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListSchedulableByGroupID(ctx context.Context, groupID int64) ([]Account, error) {
-	panic("unexpected ListSchedulableByGroupID call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListSchedulableByPlatform(ctx context.Context, platform string) ([]Account, error) {
-	panic("unexpected ListSchedulableByPlatform call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListSchedulableByGroupIDAndPlatform(ctx context.Context, groupID int64, platform string) ([]Account, error) {
-	panic("unexpected ListSchedulableByGroupIDAndPlatform call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListSchedulableByPlatforms(ctx context.Context, platforms []string) ([]Account, error) {
-	panic("unexpected ListSchedulableByPlatforms call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListSchedulableByGroupIDAndPlatforms(ctx context.Context, groupID int64, platforms []string) ([]Account, error) {
-	panic("unexpected ListSchedulableByGroupIDAndPlatforms call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListSchedulableUngroupedByPlatform(ctx context.Context, platform string) ([]Account, error) {
-	panic("unexpected ListSchedulableUngroupedByPlatform call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListSchedulableUngroupedByPlatforms(ctx context.Context, platforms []string) ([]Account, error) {
-	panic("unexpected ListSchedulableUngroupedByPlatforms call")
-	return nil, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) SetRateLimited(ctx context.Context, id int64, resetAt time.Time) error {
-	_ = stub.recordWrite("SetRateLimited")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) SetModelRateLimit(ctx context.Context, id int64, scope string, resetAt time.Time, reason ...string) error {
-	_ = stub.recordWrite("SetModelRateLimit")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) SetOverloaded(ctx context.Context, id int64, until time.Time) error {
-	_ = stub.recordWrite("SetOverloaded")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) SetTempUnschedulable(ctx context.Context, id int64, until time.Time, reason string) error {
-	_ = stub.recordWrite("SetTempUnschedulable")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ClearTempUnschedulable(ctx context.Context, id int64) error {
-	_ = stub.recordWrite("ClearTempUnschedulable")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ClearRateLimit(ctx context.Context, id int64) error {
-	_ = stub.recordWrite("ClearRateLimit")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ClearAntigravityQuotaScopes(ctx context.Context, id int64) error {
-	_ = stub.recordWrite("ClearAntigravityQuotaScopes")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ClearModelRateLimits(ctx context.Context, id int64) error {
-	_ = stub.recordWrite("ClearModelRateLimits")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) UpdateSessionWindow(ctx context.Context, id int64, start, end *time.Time, status string) error {
-	_ = stub.recordWrite("UpdateSessionWindow")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) UpdateSessionWindowEnd(ctx context.Context, id int64, end time.Time) error {
-	_ = stub.recordWrite("UpdateSessionWindowEnd")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) UpdateExtra(ctx context.Context, id int64, updates map[string]any) error {
-	_ = stub.recordWrite("UpdateExtra")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) BulkUpdate(ctx context.Context, ids []int64, updates AccountBulkUpdate) (int64, error) {
-	panic("unexpected BulkUpdate call")
-	return 0, nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) IncrementQuotaUsed(ctx context.Context, id int64, amount float64) error {
-	panic("unexpected IncrementQuotaUsed call")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ResetQuotaUsed(ctx context.Context, id int64) error {
-	panic("unexpected ResetQuotaUsed call")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) RevertProxyFallback(ctx context.Context, accountID int64) error {
-	panic("unexpected RevertProxyFallback call")
-	return nil
-}
-
-func (stub *upstreamBalanceAccountRepoStub) ListShadowsByParent(ctx context.Context, parentID int64) ([]*Account, error) {
-	panic("unexpected ListShadowsByParent call")
-	return nil, nil
-}
-
-func newUpstreamBalanceServiceForTest(account *Account, httpClient UpstreamBalanceHTTPClient) (*UpstreamBalanceService, *upstreamBalanceAccountRepoStub) {
+func newUpstreamBalanceServiceForTest(
+	account *Account,
+	httpClient UpstreamBalanceHTTPClient,
+) (*UpstreamBalanceService, *upstreamBalanceAccountRepoStub) {
 	repoStub := &upstreamBalanceAccountRepoStub{account: account}
-	// Compile-time interface check.
-	var _ AccountRepository = repoStub
-	serviceInstance := NewUpstreamBalanceService(repoStub, httpClient)
-	serviceInstance.now = func() time.Time {
-		return time.Date(2026, 7, 16, 12, 0, 0, 0, time.UTC)
+	serviceInstance := &UpstreamBalanceService{
+		accountLookup: repoStub,
+		httpClient:    httpClient,
+		now:           func() time.Time { return time.Date(2026, 7, 16, 12, 0, 0, 0, time.UTC) },
 	}
 	return serviceInstance, repoStub
 }
@@ -540,7 +291,6 @@ func TestQueryAccountBalance_CredentialRequiredDisabledAndNoWrites(t *testing.T)
 	var appErr *infraerrors.ApplicationError
 	require.True(t, errors.As(err, &appErr))
 	require.Equal(t, "UPSTREAM_BALANCE_CREDENTIAL_REQUIRED", appErr.Reason)
-	require.Equal(t, 0, repoStub.writeCalls)
 
 	// Disabled upstream account is still queryable without repository writes.
 	disabledAccount := sampleUpstreamAccount(UpstreamBalancePlatformSub2API, map[string]any{
@@ -556,7 +306,6 @@ func TestQueryAccountBalance_CredentialRequiredDisabledAndNoWrites(t *testing.T)
 	require.Equal(t, UpstreamBalanceStatusAvailable, result.Status)
 	require.Equal(t, "3.25", result.Remaining)
 	require.Equal(t, 1, repoStub.getByIDCalls)
-	require.Equal(t, 0, repoStub.writeCalls)
 	require.Equal(t, "inactive", disabledAccount.Status)
 
 	// Redirect/transport failure does not write repository state.
@@ -567,7 +316,6 @@ func TestQueryAccountBalance_CredentialRequiredDisabledAndNoWrites(t *testing.T)
 	serviceInstance, repoStub := newUpstreamBalanceServiceForTest(account, redirectHTTP)
 	_, err = serviceInstance.QueryAccountBalance(context.Background(), 42)
 	require.Error(t, err)
-	require.Equal(t, 0, repoStub.writeCalls)
 	require.NotContains(t, err.Error(), "sk-test")
 }
 
@@ -709,7 +457,6 @@ func TestQueryAccountBalance_ValidationAndReadOnlyBoundaries(t *testing.T) {
 
 			_, err := serviceInstance.QueryAccountBalance(context.Background(), 42)
 			requireApplicationErrorReason(t, err, testCase.expectedReason)
-			require.Equal(t, 0, repositoryStub.writeCalls)
 		})
 	}
 }

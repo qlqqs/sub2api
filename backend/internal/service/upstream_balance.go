@@ -61,20 +61,26 @@ type UpstreamBalanceHTTPClient interface {
 	Do(request *http.Request, proxyURL string) (*http.Response, error)
 }
 
+// UpstreamBalanceAccountLookup is the minimal account dependency for balance queries.
+// Full AccountRepository satisfies this interface at the wiring layer.
+type UpstreamBalanceAccountLookup interface {
+	GetByID(ctx context.Context, id int64) (*Account, error)
+}
+
 type UpstreamBalanceService struct {
-	accountRepository AccountRepository
-	httpClient        UpstreamBalanceHTTPClient
-	now               func() time.Time
+	accountLookup UpstreamBalanceAccountLookup
+	httpClient    UpstreamBalanceHTTPClient
+	now           func() time.Time
 }
 
 func NewUpstreamBalanceService(
-	accountRepository AccountRepository,
+	accountLookup UpstreamBalanceAccountLookup,
 	httpClient UpstreamBalanceHTTPClient,
 ) *UpstreamBalanceService {
 	return &UpstreamBalanceService{
-		accountRepository: accountRepository,
-		httpClient:        httpClient,
-		now:               time.Now,
+		accountLookup: accountLookup,
+		httpClient:    httpClient,
+		now:           time.Now,
 	}
 }
 
@@ -82,11 +88,11 @@ func (service *UpstreamBalanceService) QueryAccountBalance(
 	ctx context.Context,
 	accountID int64,
 ) (*UpstreamBalanceResult, error) {
-	if service == nil || service.accountRepository == nil || service.httpClient == nil {
+	if service == nil || service.accountLookup == nil || service.httpClient == nil {
 		return nil, infraerrors.New(http.StatusServiceUnavailable, "UPSTREAM_BALANCE_UNAVAILABLE", "upstream balance service is unavailable")
 	}
 
-	account, err := service.accountRepository.GetByID(ctx, accountID)
+	account, err := service.accountLookup.GetByID(ctx, accountID)
 	if err != nil {
 		return nil, err
 	}
