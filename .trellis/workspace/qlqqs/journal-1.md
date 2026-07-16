@@ -83,3 +83,37 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: 配置测试与部署环境收尾
+
+**Date**: 2026-07-16
+**Task**: 配置测试与部署环境收尾
+**Branch**: `feat/upstream-channel-balance`
+
+### Summary
+
+用户确认 07-16-configure-test-deployment 已完成：custom/test Compose 隔离部署配置就绪并归档任务。含 deploy 环境隔离与前端 Node/pnpm 固定。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `54fc349a` | (see git log) |
+| `7d2f0190` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
