@@ -60,13 +60,22 @@ describe('AccountBalanceCell', () => {
       last_successful_result: successfulResult
     })
 
-    expect(wrapper.text()).toContain('Key quota: $0.00')
+    expect(wrapper.text()).toContain('Key quota:')
+    expect(wrapper.text()).toContain('$0.00')
     expect(wrapper.text()).toContain('Key rate: 1.5x')
     expect(wrapper.text()).not.toContain('Queried at:')
     const queriedAtIcon = wrapper.get('[aria-label^="Queried at:"]')
     const refreshButton = wrapper.get('button[aria-label="Refresh"]')
+    const balanceText = wrapper.get('.font-medium')
     expect(queriedAtIcon.attributes('title')).toBe(queriedAtIcon.attributes('aria-label'))
-    expect(refreshButton.element.compareDocumentPosition(queriedAtIcon.element)).toBe(
+    // Clock icon, then refresh, both to the left of the balance amount.
+    expect(queriedAtIcon.element.compareDocumentPosition(refreshButton.element)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
+    expect(queriedAtIcon.element.compareDocumentPosition(balanceText.element)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
+    expect(refreshButton.element.compareDocumentPosition(balanceText.element)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING
     )
   })
@@ -88,7 +97,8 @@ describe('AccountBalanceCell', () => {
       }
     })
 
-    expect(wrapper.text()).toContain(`Key quota: ${expectedBalance}`)
+    expect(wrapper.text()).toContain('Key quota:')
+    expect(wrapper.text()).toContain(expectedBalance)
   })
 
   it.each([
@@ -105,7 +115,8 @@ describe('AccountBalanceCell', () => {
       }
     })
 
-    expect(wrapper.text()).toContain(`${expectedLabel}: $8.00`)
+    expect(wrapper.text()).toContain(`${expectedLabel}:`)
+    expect(wrapper.text()).toContain('$8.00')
     expect(wrapper.text()).not.toContain('Key rate:')
   })
 
@@ -124,7 +135,8 @@ describe('AccountBalanceCell', () => {
       error_message: 'Credentials rejected'
     })
 
-    expect(wrapper.text()).toContain('Key quota: $0.00')
+    expect(wrapper.text()).toContain('Key quota:')
+    expect(wrapper.text()).toContain('$0.00')
     expect(wrapper.text()).toContain('Credentials rejected')
   })
 
@@ -135,7 +147,8 @@ describe('AccountBalanceCell', () => {
     })
 
     expect(wrapper.text()).toContain('Unsupported')
-    expect(wrapper.text()).not.toContain('Key quota: $0.00')
+    expect(wrapper.text()).not.toContain('Key quota:')
+    expect(wrapper.text()).not.toContain('$0.00')
   })
 
   it('disables refresh while loading and emits refresh otherwise', async () => {

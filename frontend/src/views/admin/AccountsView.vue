@@ -20,7 +20,7 @@
               <!-- CUSTOM: Balance requests are limited to upstream accounts on the visible page. -->
               <button
                 type="button"
-                class="btn btn-secondary px-2"
+                class="btn btn-secondary px-2 md:px-3"
                 :disabled="refreshingCurrentPageBalances || currentPageUpstreamAccountsCount === 0"
                 :aria-label="currentPageBalanceRefreshLabel"
                 :aria-busy="refreshingCurrentPageBalances"
@@ -28,6 +28,7 @@
                 @click="refreshCurrentPageUpstreamBalances"
               >
                 <Icon name="refresh" size="sm" :class="refreshingCurrentPageBalances ? 'animate-spin' : ''" />
+                <span>{{ t('admin.accounts.upstreamBalance.refresh') }}</span>
               </button>
 
               <!-- Auto Refresh Dropdown -->

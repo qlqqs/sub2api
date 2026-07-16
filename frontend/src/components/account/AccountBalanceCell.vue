@@ -6,12 +6,61 @@
     </span>
 
     <template v-else>
-      <div class="flex items-start justify-between gap-1.5">
-        <div class="min-w-0 space-y-1">
+      <div class="flex items-center gap-1.5">
+        <div class="flex shrink-0 items-center gap-0.5">
+          <span
+            v-if="displayedResult"
+            class="flex h-5 w-5 items-center justify-center text-gray-400 dark:text-gray-500"
+            role="img"
+            tabindex="0"
+            :aria-label="queriedAtLabel(displayedResult.queried_at)"
+            :title="queriedAtLabel(displayedResult.queried_at)"
+          >
+            <svg
+              class="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="8.5" />
+              <path stroke-linecap="round" d="M12 7.5V12l3 2" />
+            </svg>
+          </span>
+          <button
+            type="button"
+            class="flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-primary-400"
+            :disabled="state.phase === 'loading'"
+            :aria-label="refreshButtonLabel"
+            :aria-busy="state.phase === 'loading'"
+            :title="refreshButtonLabel"
+            @click="$emit('refresh')"
+          >
+            <svg
+              class="h-4 w-4"
+              :class="state.phase === 'loading' ? 'animate-spin' : ''"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20 11a8.1 8.1 0 0 0-15.5-2M4 5v4h4" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 13a8.1 8.1 0 0 0 15.5 2M20 19v-4h-4" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="min-w-0 flex-1 space-y-1">
           <div v-if="displayedResult" class="space-y-0.5">
-            <div class="font-medium text-gray-900 dark:text-white">
-              {{ scopeLabel(displayedResult.scope) }}:
-              {{ formatBalance(displayedResult.remaining, displayedResult.unit) }}
+            <div class="space-y-0.5 text-left">
+              <div class="text-gray-500 dark:text-gray-400">
+                {{ scopeLabel(displayedResult.scope) }}:
+              </div>
+              <div class="font-medium text-gray-900 dark:text-white">
+                {{ formatBalance(displayedResult.remaining, displayedResult.unit) }}
+              </div>
             </div>
             <div v-if="displayedResult.api_key_rate" class="text-gray-500 dark:text-gray-400">
               {{ t('admin.accounts.upstreamBalance.apiKeyRate') }}: {{ displayedResult.api_key_rate }}x
@@ -44,51 +93,6 @@
           >
             {{ state.error_message || t('admin.accounts.upstreamBalance.errors.fallback') }}
           </div>
-        </div>
-
-        <div class="flex shrink-0 items-center gap-0.5">
-          <button
-            type="button"
-            class="flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-primary-400"
-            :disabled="state.phase === 'loading'"
-            :aria-label="refreshButtonLabel"
-            :aria-busy="state.phase === 'loading'"
-            :title="refreshButtonLabel"
-            @click="$emit('refresh')"
-          >
-            <svg
-              class="h-4 w-4"
-              :class="state.phase === 'loading' ? 'animate-spin' : ''"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              aria-hidden="true"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M20 11a8.1 8.1 0 0 0-15.5-2M4 5v4h4" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 13a8.1 8.1 0 0 0 15.5 2M20 19v-4h-4" />
-            </svg>
-          </button>
-          <span
-            v-if="displayedResult"
-            class="flex h-5 w-5 items-center justify-center text-gray-400 dark:text-gray-500"
-            role="img"
-            tabindex="0"
-            :aria-label="queriedAtLabel(displayedResult.queried_at)"
-            :title="queriedAtLabel(displayedResult.queried_at)"
-          >
-            <svg
-              class="h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="8.5" />
-              <path stroke-linecap="round" d="M12 7.5V12l3 2" />
-            </svg>
-          </span>
         </div>
       </div>
     </template>

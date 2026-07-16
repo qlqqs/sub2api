@@ -187,7 +187,7 @@ describe('AccountsView upstream balances', () => {
     await flushPromises()
 
     const batchButton = getCurrentPageBalanceRefreshButton(wrapper)
-    expect(batchButton.text()).toBe('')
+    expect(batchButton.text()).toContain('admin.accounts.upstreamBalance.refresh')
     await batchButton.trigger('click')
     await flushPromises()
 
