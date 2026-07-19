@@ -117,3 +117,36 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: Rebuild custom from upstream main
+
+**Date**: 2026-07-19
+**Task**: Rebuild custom from upstream main
+**Branch**: `custom`
+
+### Summary
+
+Rebased the deployable custom branch on upstream v0.1.161, preserved portable Trellis/Cursor tooling and isolated development environments, removed retired Custom business contracts, validated builds and tests, replaced origin/custom with lease protection, restored branch protection, and cleaned migration recovery artifacts.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `84940856eaef71d517964d1601aa2a93bb182879` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
