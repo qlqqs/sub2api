@@ -6,11 +6,23 @@
 data/
 postgres_data/
 redis_data/
+# CUSTOM: Runtime data for isolated custom, development, and test stacks.
+custom_data/
+custom_postgres_data/
+custom_redis_data/
+test_data/
+dev_postgres_data/
+dev_redis_data/
+dev_source_data/
 
 # Environment configuration (contains sensitive information)
 .env
+# CUSTOM: Real isolated-environment files contain local secrets.
+.env.custom
+.env.dev
 
 # Backup files
+migration-backups/
 *.backup
 *.bak
 

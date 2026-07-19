@@ -1,0 +1,1 @@
+{"file":".trellis/spec/guides/secondary-development.md","reason":"检查新增部署文件是否未无关修改上游核心配置，且生产隔离约束和自定义边界清晰。"}

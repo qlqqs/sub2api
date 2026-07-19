@@ -1,0 +1,2 @@
+{"file":".trellis/spec/guides/secondary-development.md","reason":"Verify the rebuilt branch preserves upstream synchronization and custom isolation constraints."}
+{"file":".trellis/tasks/07-19-replace-custom-with-upstream-main/implement.md","reason":"Verify every preservation, cleanup, validation, and rollback gate was completed."}
