@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Kimi K3 历史用量与成本核算</title>
+  <style>
+    :root {
+      --background: #f3f4f1;
+      --surface: #ffffff;
+      --surface-subtle: #f7f8f5;
+      --text-primary: #20231f;
+      --text-secondary: #626860;
+      --border: #d8dcd4;
+      --border-strong: #aeb5aa;
+      --accent: #176b55;
+      --accent-soft: #e1f1eb;
+      --highlight: #f2c84b;
+      --highlight-soft: #fff8dc;
+      --danger: #a33b2c;
+      --chart-input: #496a88;
+      --chart-cache: #238568;
+      --chart-output: #bd653e;
+      --chart-original: #4e5550;
+      --chart-third: #c48725;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; }
+
+    ::selection {
+      color: #12362c;
+      background: #b9e6d6;
+    }
+
+    html { background: var(--background); }
+
+    body {
+      margin: 0;
+      color: var(--text-primary);
+      background: var(--background);
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+      font-size: 14px;
+      line-height: 1.65;
+      letter-spacing: 0;
+    }
+
+    .page {
+      width: min(1440px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 40px 0 64px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(260px, .5fr);
+      gap: 32px;
+      align-items: end;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--text-primary);
+    }
+
+    .kicker {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    h1, h2, p { margin-top: 0; }
+    strong { font-weight: 600; }
+
+    h1 {
+      max-width: 700px;
+      margin-bottom: 10px;
+      font-size: 44px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    .lede {
+      max-width: 780px;
+      margin-bottom: 0;
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+
+    .scope {
+      margin: 0;
+      padding: 16px 18px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .scope dt {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .scope dd {
+      margin: 1px 0 10px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+    }
+
+    .scope dd:last-child { margin-bottom: 0; }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr;
+      margin: 24px 0 0;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 18px 20px;
+      border-right: 1px solid var(--border);
+    }
+
+    .metric:last-child { border-right: 0; }
+
+    .metric.primary { background: var(--accent-soft); }
+
+    .metric-label {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .metric-value {
+      display: block;
+      margin-top: 5px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 26px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .metric-unit {
+      margin-left: 4px;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .visual-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(420px, .82fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .chart-panel {
+      min-width: 0;
+      margin: 0;
+      padding: 20px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .chart-panel.wide { grid-row: span 2; }
+    .chart-panel.full { grid-column: 1 / -1; }
+
+    .chart-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    .chart-title {
+      margin: 0 0 2px;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    .chart-subtitle,
+    .chart-summary {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .chart-summary {
+      max-width: 28em;
+      text-align: right;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin: 0 0 16px;
+      padding: 0;
+      color: var(--text-secondary);
+      font-size: 12px;
+      list-style: none;
+    }
+
+    .legend li {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      background: var(--swatch);
+    }
+
+    .bar-chart {
+      display: grid;
+      gap: 9px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 88px minmax(120px, 1fr) 112px;
+      gap: 10px;
+      align-items: center;
+      min-height: 24px;
+    }
+
+    .bar-label,
+    .bar-value {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bar-value { text-align: right; }
+
+    .bar-track {
+      position: relative;
+      height: 16px;
+      overflow: hidden;
+      border-radius: 3px;
+      background: #e9ece6;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: calc(var(--value) * 1%);
+      min-width: 1px;
+      border-radius: 3px;
+      background: var(--fill, var(--chart-cache));
+    }
+
+    .volume-scale {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 122px 0 98px;
+      color: var(--text-secondary);
+      font-size: 10px;
+    }
+
+    .composition-chart {
+      display: grid;
+      gap: 11px;
+    }
+
+    .composition-row {
+      display: grid;
+      grid-template-columns: 88px minmax(160px, 1fr) 54px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .stacked-bar {
+      display: flex;
+      height: 18px;
+      overflow: hidden;
+      border-radius: 3px;
+      background: #e9ece6;
+    }
+
+    .segment { width: calc(var(--share) * 1%); height: 100%; }
+    .segment.input { background: var(--chart-input); }
+    .segment.cache { background: var(--chart-cache); }
+    .segment.output { background: var(--chart-output); }
+
+    .hit-rate {
+      color: var(--text-secondary);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      text-align: right;
+    }
+
+    .donut-layout {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      align-items: center;
+    }
+
+    .donut-block {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+    }
+
+    .donut {
+      display: grid;
+      width: 112px;
+      aspect-ratio: 1;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--donut-background);
+    }
+
+    .donut::after {
+      width: 72px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--surface);
+      content: "";
+    }
+
+    .donut-number {
+      position: absolute;
+      z-index: 1;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 16px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .donut-wrap {
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+
+    .donut-copy strong,
+    .donut-copy span { display: block; }
+
+    .donut-copy strong {
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .donut-copy span {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .insights {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface-subtle);
+    }
+
+    .insight {
+      padding: 14px 16px;
+      border-right: 1px solid var(--border);
+    }
+
+    .insight:last-child { border-right: 0; }
+
+    .insight strong,
+    .insight span { display: block; }
+
+    .insight strong {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .insight span {
+      margin-top: 2px;
+      color: var(--text-secondary);
+      font-size: 11px;
+    }
+
+    section { margin-top: 36px; }
+
+    .section-heading {
+      display: flex;
+      gap: 20px;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      margin-bottom: 0;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .section-note {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--surface);
+      overscroll-behavior-x: contain;
+      scrollbar-color: var(--accent) var(--surface-subtle);
+      scrollbar-width: thin;
+    }
+
+    .table-wrap::-webkit-scrollbar { height: 7px; }
+    .table-wrap::-webkit-scrollbar-track { background: var(--surface-subtle); }
+    .table-wrap::-webkit-scrollbar-thumb { border-radius: 4px; background: var(--accent); }
+
+    .table-wrap:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    th, td {
+      padding: 10px 14px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+
+    th:last-child, td:last-child { border-right: 0; }
+    tbody tr:last-child td, tfoot tr:last-child td { border-bottom: 0; }
+
+    th {
+      color: var(--text-secondary);
+      background: var(--surface-subtle);
+      font-size: 12px;
+      font-weight: 500;
+      vertical-align: bottom;
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+
+    tbody tr:nth-child(even) { background: #fafbf8; }
+
+    tfoot td {
+      background: var(--highlight-soft);
+      font-weight: 600;
+    }
+
+    .money { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    .same { color: var(--text-secondary); }
+    .best { color: var(--accent); font-weight: 600; }
+
+    .formula-cell {
+      color: var(--text-primary);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      text-align: left;
+      white-space: normal;
+    }
+
+    footer {
+      display: flex;
+      gap: 24px;
+      justify-content: space-between;
+      margin-top: 36px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      header, .visual-grid { grid-template-columns: 1fr; }
+      .chart-panel.wide { grid-row: auto; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .insights { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .insight:nth-child(2) { border-right: 0; }
+      .insight:nth-child(-n + 2) { border-bottom: 1px solid var(--border); }
+      .metric { border-bottom: 1px solid var(--border); }
+      .metric:nth-child(2n) { border-right: 0; }
+      .metric:last-child { grid-column: 1 / -1; border-bottom: 0; }
+    }
+
+    @media (max-width: 620px) {
+      .page { width: min(100% - 24px, 1440px); padding-top: 24px; }
+      header { gap: 20px; }
+      h1 { font-size: 32px; }
+      .summary { grid-template-columns: 1fr; }
+      .metric { border-right: 0; }
+      .metric:last-child { grid-column: auto; }
+      .chart-panel { padding: 16px; }
+      .chart-header { flex-direction: column; gap: 5px; }
+      .chart-summary { max-width: none; text-align: left; }
+      .bar-row, .composition-row { grid-template-columns: 78px minmax(100px, 1fr) 98px; gap: 7px; }
+      .volume-scale { margin-right: 105px; margin-left: 85px; }
+      .donut-layout { grid-template-columns: 1fr; }
+      .insights { grid-template-columns: 1fr; }
+      .insight, .insight:nth-child(2) { border-right: 0; border-bottom: 1px solid var(--border); }
+      .insight:last-child { border-bottom: 0; }
+      .section-heading, footer { align-items: flex-start; flex-direction: column; gap: 6px; }
+      .section-note { text-align: left; }
+      th, td { padding: 9px 11px; }
+    }
+
+    @media print {
+      @page { size: A4 landscape; margin: 12mm; }
+      body { background: #ffffff; font-size: 10px; }
+      .page { width: 100%; padding: 0; }
+      header { grid-template-columns: 1.5fr .5fr; }
+      h1 { font-size: 28px; }
+      section { margin-top: 22px; break-inside: avoid; }
+      .summary { grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr; }
+      .metric { padding: 12px; border-bottom: 0; }
+      .metric:last-child { grid-column: auto; }
+      .visual-grid { grid-template-columns: 1fr 1fr; }
+      .chart-panel.wide { grid-row: span 2; }
+      .chart-panel { break-inside: avoid; }
+      .insights { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .insight { border-right: 1px solid var(--border); border-bottom: 0; }
+      th, td { padding: 6px 8px; }
+      .table-wrap { overflow: visible; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <p class="kicker">历史用量核算 · Kimi K3</p>
+        <h1>输入、输出与四种价格口径</h1>
+        <p class="lede">按请求明细重新聚合，小时边界采用实例记录时区 UTC+8。成本使用提供的定价页重新计算，不采用系统日志中的历史记账金额。</p>
+      </div>
+      <dl class="scope">
+        <dt>数据快照</dt>
+        <dd>2026-09-05 11:59（UTC+8）</dd>
+        <dt>统计范围</dt>
+        <dd>2026-09-03 17:00 至 2026-09-04 20:59</dd>
+        <dt>模型匹配</dt>
+        <dd>请求模型 kimi-k3</dd>
+        <dt>数据完整性</dt>
+        <dd>153 / 153 条明细</dd>
+      </dl>
+    </header>
+
+    <section aria-labelledby="pricing-basis-title">
+      <div class="section-heading">
+        <h2 id="pricing-basis-title">定价与计算口径</h2>
+        <p class="section-note">单位：人民币 / 百万 tokens；套餐单价展示 4 位小数，成本计算使用未舍入精度。</p>
+      </div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="定价与计算口径，可横向滚动">
+        <table>
+          <thead>
+            <tr>
+              <th>价格口径</th>
+              <th>换算规则</th>
+              <th>非缓存输入</th>
+              <th>缓存命中输入</th>
+              <th>输出</th>
+            </tr>
+          </thead>
+          <tbody class="money">
+            <tr><td>移动原价</td><td>移动云合作标价</td><td>¥20.0000</td><td>¥2.0000</td><td>¥100.0000</td></tr>
+            <tr><td>官方原价</td><td>Kimi 官方标价</td><td>¥20.0000</td><td>¥2.0000</td><td>¥100.0000</td></tr>
+            <tr><td>官方套餐</td><td>官方原价 ÷ 5.38</td><td>¥3.7175</td><td>¥0.3717</td><td>¥18.5874</td></tr>
+            <tr><td>三方渠道</td><td>官方原价 × 0.65</td><td>¥13.0000</td><td>¥1.3000</td><td>¥65.0000</td></tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>成本公式</td>
+              <td colspan="4" class="formula-cell">成本 = 非缓存输入 tokens × 非缓存输入单价 ÷ 1,000,000 + 缓存命中输入 tokens × 缓存命中单价 ÷ 1,000,000 + 输出 tokens × 输出单价 ÷ 1,000,000</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+
+    <div class="summary" aria-label="核心汇总">
+      <div class="metric primary">
+        <span class="metric-label">总 Tokens</span>
+        <span class="metric-value">29,746,197</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">请求数</span>
+        <span class="metric-value">153<span class="metric-unit">次</span></span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">总输入</span>
+        <span class="metric-value">29.536<span class="metric-unit">M</span></span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">总输出</span>
+        <span class="metric-value">0.210<span class="metric-unit">M</span></span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">最低核算成本</span>
+        <span class="metric-value">¥20.7491</span>
+      </div>
+    </div>
+
+    <section aria-labelledby="visual-title">
+      <div class="section-heading">
+        <h2 id="visual-title">用量与成本图形分析</h2>
+        <p class="section-note">长度图均从 0 开始；颜色表示不同 token 或价格类别，不表示状态。</p>
+      </div>
+
+      <div class="visual-grid">
+        <figure class="chart-panel wide">
+          <figcaption class="chart-header">
+            <div>
+              <h3 class="chart-title">用量集中在哪些小时</h3>
+              <p class="chart-subtitle">每小时总 tokens，线性比例；最大时段 12.530 M = 100%，非零极小值保留 1 px 标记</p>
+            </div>
+            <p class="chart-summary">09-04 19:00 与 20:00 两小时合计占全部用量的 79.64%。</p>
+          </figcaption>
+          <div class="bar-chart" role="img" aria-label="每小时总 token 条形图。最高为 9 月 4 日 20 时的 12529551 tokens，其次为 19 时的 11159989 tokens。">
+            <div class="bar-row"><span class="bar-label">09-03 17:00</span><div class="bar-track"><div class="bar-fill" style="--value: 0.006"></div></div><span class="bar-value">776</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 11:00</span><div class="bar-track"><div class="bar-fill" style="--value: 0.002"></div></div><span class="bar-value">204</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 14:00</span><div class="bar-track"><div class="bar-fill" style="--value: 0.707"></div></div><span class="bar-value">88.6 K</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 15:00</span><div class="bar-track"><div class="bar-fill" style="--value: 16.937"></div></div><span class="bar-value">2.122 M</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 16:00</span><div class="bar-track"><div class="bar-fill" style="--value: 8.986"></div></div><span class="bar-value">1.126 M</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 17:00</span><div class="bar-track"><div class="bar-fill" style="--value: 13.175"></div></div><span class="bar-value">1.651 M</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 18:00</span><div class="bar-track"><div class="bar-fill" style="--value: 8.526"></div></div><span class="bar-value">1.068 M</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 19:00</span><div class="bar-track"><div class="bar-fill" style="--value: 89.069"></div></div><span class="bar-value">11.160 M</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 20:00</span><div class="bar-track"><div class="bar-fill" style="--value: 100"></div></div><span class="bar-value">12.530 M</span></div>
+          </div>
+          <div class="volume-scale" aria-hidden="true"><span>0</span><span>6.265 M</span><span>12.530 M</span></div>
+        </figure>
+
+        <figure class="chart-panel">
+          <figcaption class="chart-header">
+            <div>
+              <h3 class="chart-title">四种价格口径差多少</h3>
+              <p class="chart-subtitle">历史总成本，单位：人民币</p>
+            </div>
+          </figcaption>
+          <div class="bar-chart" role="img" aria-label="总成本对比。移动原价与官方原价均为 111.63 元，三方渠道为 72.5595 元，官方套餐为 20.7491 元。">
+            <div class="bar-row"><span class="bar-label">移动原价</span><div class="bar-track"><div class="bar-fill" style="--value: 100; --fill: var(--chart-original)"></div></div><span class="bar-value">¥111.6300</span></div>
+            <div class="bar-row"><span class="bar-label">官方原价</span><div class="bar-track"><div class="bar-fill" style="--value: 100; --fill: var(--chart-input)"></div></div><span class="bar-value">¥111.6300</span></div>
+            <div class="bar-row"><span class="bar-label">官方套餐</span><div class="bar-track"><div class="bar-fill" style="--value: 18.587; --fill: var(--chart-cache)"></div></div><span class="bar-value best">¥20.7491</span></div>
+            <div class="bar-row"><span class="bar-label">三方渠道</span><div class="bar-track"><div class="bar-fill" style="--value: 65; --fill: var(--chart-third)"></div></div><span class="bar-value">¥72.5595</span></div>
+          </div>
+        </figure>
+
+        <figure class="chart-panel">
+          <figcaption class="chart-header">
+            <div>
+              <h3 class="chart-title">缓存与原价成本构成</h3>
+              <p class="chart-subtitle">整体输入命中率与官方原价拆分</p>
+            </div>
+          </figcaption>
+          <div class="donut-layout">
+            <div class="donut-block">
+              <div class="donut-wrap">
+                <div class="donut" style="--donut-background: conic-gradient(var(--chart-cache) 0 94.0715%, #e1e5de 94.0715% 100%)" role="img" aria-label="输入缓存命中率 94.07%"></div>
+                <span class="donut-number">94.07%</span>
+              </div>
+              <div class="donut-copy"><strong>输入缓存命中率</strong><span>27.785 M / 29.536 M 输入 tokens</span></div>
+            </div>
+            <div class="donut-block">
+              <div class="donut-wrap">
+                <div class="donut" style="--donut-background: conic-gradient(var(--chart-input) 0 31.37%, var(--chart-cache) 31.37% 81.15%, var(--chart-output) 81.15% 100%)" role="img" aria-label="官方原价成本构成：非缓存输入 31.37%，缓存命中输入 49.78%，输出 18.85%"></div>
+                <span class="donut-number">¥111.63</span>
+              </div>
+              <div class="donut-copy"><strong>官方原价构成</strong><span>非缓存 31.37% · 缓存 49.78% · 输出 18.85%</span></div>
+            </div>
+          </div>
+        </figure>
+
+        <figure class="chart-panel full">
+          <figcaption class="chart-header">
+            <div>
+              <h3 class="chart-title">每小时输入输出结构</h3>
+              <p class="chart-subtitle">100% 堆叠；右侧为该小时输入缓存命中率</p>
+            </div>
+            <ul class="legend" aria-label="图例">
+              <li><span class="swatch" style="--swatch: var(--chart-input)"></span>非缓存输入</li>
+              <li><span class="swatch" style="--swatch: var(--chart-cache)"></span>缓存命中输入</li>
+              <li><span class="swatch" style="--swatch: var(--chart-output)"></span>输出</li>
+            </ul>
+          </figcaption>
+          <div class="composition-chart" role="img" aria-label="每小时 token 构成。大多数小时以缓存命中输入为主，9 月 4 日 20 时缓存输入占总 token 的 99.14%。">
+            <div class="composition-row"><span class="bar-label">09-03 17:00</span><div class="stacked-bar"><span class="segment input" style="--share: 0"></span><span class="segment cache" style="--share: 33.247"></span><span class="segment output" style="--share: 66.753"></span></div><span class="hit-rate">100.0%</span></div>
+            <div class="composition-row"><span class="bar-label">09-04 11:00</span><div class="stacked-bar"><span class="segment input" style="--share: 0"></span><span class="segment cache" style="--share: 84.314"></span><span class="segment output" style="--share: 15.686"></span></div><span class="hit-rate">100.0%</span></div>
+            <div class="composition-row"><span class="bar-label">09-04 14:00</span><div class="stacked-bar"><span class="segment input" style="--share: 16.909"></span><span class="segment cache" style="--share: 82.307"></span><span class="segment output" style="--share: 0.784"></span></div><span class="hit-rate">83.0%</span></div>
+            <div class="composition-row"><span class="bar-label">09-04 15:00</span><div class="stacked-bar"><span class="segment input" style="--share: 4.558"></span><span class="segment cache" style="--share: 94.028"></span><span class="segment output" style="--share: 1.414"></span></div><span class="hit-rate">95.4%</span></div>
+            <div class="composition-row"><span class="bar-label">09-04 16:00</span><div class="stacked-bar"><span class="segment input" style="--share: 16.400"></span><span class="segment cache" style="--share: 82.401"></span><span class="segment output" style="--share: 1.198"></span></div><span class="hit-rate">83.4%</span></div>
+            <div class="composition-row"><span class="bar-label">09-04 17:00</span><div class="stacked-bar"><span class="segment input" style="--share: 9.456"></span><span class="segment cache" style="--share: 88.473"></span><span class="segment output" style="--share: 2.071"></span></div><span class="hit-rate">90.3%</span></div>
+            <div class="composition-row"><span class="bar-label">09-04 18:00</span><div class="stacked-bar"><span class="segment input" style="--share: 32.611"></span><span class="segment cache" style="--share: 66.573"></span><span class="segment output" style="--share: 0.816"></span></div><span class="hit-rate">67.1%</span></div>
+            <div class="composition-row"><span class="bar-label">09-04 19:00</span><div class="stacked-bar"><span class="segment input" style="--share: 7.967"></span><span class="segment cache" style="--share: 91.353"></span><span class="segment output" style="--share: 0.680"></span></div><span class="hit-rate">92.0%</span></div>
+            <div class="composition-row"><span class="bar-label">09-04 20:00</span><div class="stacked-bar"><span class="segment input" style="--share: 0.488"></span><span class="segment cache" style="--share: 99.138"></span><span class="segment output" style="--share: 0.374"></span></div><span class="hit-rate">99.5%</span></div>
+          </div>
+        </figure>
+
+        <figure class="chart-panel full">
+          <figcaption class="chart-header">
+            <div>
+              <h3 class="chart-title">请求强度与单次平均用量</h3>
+              <p class="chart-subtitle">柱长为每小时请求数，相对峰值 42 次；右侧为该小时每次请求平均总 tokens</p>
+            </div>
+            <p class="chart-summary">15:00 请求最密集，但 20:00 的单次平均用量最高，说明峰值并非只由请求数量驱动。</p>
+          </figcaption>
+          <div class="bar-chart" role="img" aria-label="每小时请求数。9 月 4 日 15 时最高，为 42 次；19 时 35 次；20 时 32 次。20 时单次请求平均约 391548 tokens。">
+            <div class="bar-row"><span class="bar-label">09-03 17:00</span><div class="bar-track"><div class="bar-fill" style="--value: 7.143; --fill: var(--chart-input)"></div></div><span class="bar-value">3 · 均 259</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 11:00</span><div class="bar-track"><div class="bar-fill" style="--value: 4.762; --fill: var(--chart-input)"></div></div><span class="bar-value">2 · 均 102</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 14:00</span><div class="bar-track"><div class="bar-fill" style="--value: 9.524; --fill: var(--chart-input)"></div></div><span class="bar-value">4 · 均 22.2 K</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 15:00</span><div class="bar-track"><div class="bar-fill" style="--value: 100; --fill: var(--chart-input)"></div></div><span class="bar-value">42 · 均 50.5 K</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 16:00</span><div class="bar-track"><div class="bar-fill" style="--value: 26.190; --fill: var(--chart-input)"></div></div><span class="bar-value">11 · 均 102.4 K</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 17:00</span><div class="bar-track"><div class="bar-fill" style="--value: 30.952; --fill: var(--chart-input)"></div></div><span class="bar-value">13 · 均 127.0 K</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 18:00</span><div class="bar-track"><div class="bar-fill" style="--value: 26.190; --fill: var(--chart-input)"></div></div><span class="bar-value">11 · 均 97.1 K</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 19:00</span><div class="bar-track"><div class="bar-fill" style="--value: 83.333; --fill: var(--chart-input)"></div></div><span class="bar-value">35 · 均 318.9 K</span></div>
+            <div class="bar-row"><span class="bar-label">09-04 20:00</span><div class="bar-track"><div class="bar-fill" style="--value: 76.190; --fill: var(--chart-input)"></div></div><span class="bar-value">32 · 均 391.5 K</span></div>
+          </div>
+        </figure>
+      </div>
+
+      <div class="insights" aria-label="关键结论">
+        <div class="insight"><strong>12.530 M</strong><span>峰值小时用量 · 09-04 20:00</span></div>
+        <div class="insight"><strong>79.64%</strong><span>19:00–20:59 两小时用量占比</span></div>
+        <div class="insight"><strong>94.07%</strong><span>整体输入缓存命中率</span></div>
+        <div class="insight"><strong>节省 81.41%</strong><span>官方套餐相对官方原价</span></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="usage-title">
+      <div class="section-heading">
+        <h2 id="usage-title">每小时 Token 用量</h2>
+        <p class="section-note">总输入 = 非缓存输入 + 缓存命中输入；本批次缓存创建为 0。</p>
+      </div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="每小时 Token 用量，可横向滚动">
+        <table>
+          <thead>
+            <tr>
+              <th>时间（UTC+8）</th>
+              <th>请求数</th>
+              <th>非缓存输入</th>
+              <th>缓存命中输入</th>
+              <th>总输入</th>
+              <th>输出</th>
+              <th>总 Tokens</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>2026-09-03 17:00</td><td>3</td><td>0</td><td>258</td><td>258</td><td>518</td><td>776</td></tr>
+            <tr><td>2026-09-04 11:00</td><td>2</td><td>0</td><td>172</td><td>172</td><td>32</td><td>204</td></tr>
+            <tr><td>2026-09-04 14:00</td><td>4</td><td>14,989</td><td>72,960</td><td>87,949</td><td>695</td><td>88,644</td></tr>
+            <tr><td>2026-09-04 15:00</td><td>42</td><td>96,731</td><td>1,995,396</td><td>2,092,127</td><td>30,005</td><td>2,122,132</td></tr>
+            <tr><td>2026-09-04 16:00</td><td>11</td><td>184,646</td><td>927,744</td><td>1,112,390</td><td>13,493</td><td>1,125,883</td></tr>
+            <tr><td>2026-09-04 17:00</td><td>13</td><td>156,093</td><td>1,460,480</td><td>1,616,573</td><td>34,185</td><td>1,650,758</td></tr>
+            <tr><td>2026-09-04 18:00</td><td>11</td><td>348,372</td><td>711,168</td><td>1,059,540</td><td>8,720</td><td>1,068,260</td></tr>
+            <tr><td>2026-09-04 19:00</td><td>35</td><td>889,106</td><td>10,195,040</td><td>11,084,146</td><td>75,843</td><td>11,159,989</td></tr>
+            <tr><td>2026-09-04 20:00</td><td>32</td><td>61,083</td><td>12,421,559</td><td>12,482,642</td><td>46,909</td><td>12,529,551</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td>合计</td><td>153</td><td>1,751,020</td><td>27,784,777</td><td>29,535,797</td><td>210,400</td><td>29,746,197</td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="hour-cost-title">
+      <div class="section-heading">
+        <h2 id="hour-cost-title">每小时成本对比</h2>
+        <p class="section-note">人民币；保留 4 位小数。移动原价与官方原价在参考页中相同。</p>
+      </div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="每小时成本对比，可横向滚动">
+        <table>
+          <thead>
+            <tr>
+              <th>时间（UTC+8）</th>
+              <th>移动原价</th>
+              <th>官方原价</th>
+              <th>官方套餐（÷ 5.38）</th>
+              <th>三方渠道（官方 65 折）</th>
+            </tr>
+          </thead>
+          <tbody class="money">
+            <tr><td>2026-09-03 17:00</td><td>¥0.0523</td><td class="same">¥0.0523</td><td class="best">¥0.0097</td><td>¥0.0340</td></tr>
+            <tr><td>2026-09-04 11:00</td><td>¥0.0035</td><td class="same">¥0.0035</td><td class="best">¥0.0007</td><td>¥0.0023</td></tr>
+            <tr><td>2026-09-04 14:00</td><td>¥0.5152</td><td class="same">¥0.5152</td><td class="best">¥0.0958</td><td>¥0.3349</td></tr>
+            <tr><td>2026-09-04 15:00</td><td>¥8.9259</td><td class="same">¥8.9259</td><td class="best">¥1.6591</td><td>¥5.8018</td></tr>
+            <tr><td>2026-09-04 16:00</td><td>¥6.8977</td><td class="same">¥6.8977</td><td class="best">¥1.2821</td><td>¥4.4835</td></tr>
+            <tr><td>2026-09-04 17:00</td><td>¥9.4613</td><td class="same">¥9.4613</td><td class="best">¥1.7586</td><td>¥6.1499</td></tr>
+            <tr><td>2026-09-04 18:00</td><td>¥9.2618</td><td class="same">¥9.2618</td><td class="best">¥1.7215</td><td>¥6.0202</td></tr>
+            <tr><td>2026-09-04 19:00</td><td>¥45.7565</td><td class="same">¥45.7565</td><td class="best">¥8.5049</td><td>¥29.7417</td></tr>
+            <tr><td>2026-09-04 20:00</td><td>¥30.7557</td><td class="same">¥30.7557</td><td class="best">¥5.7167</td><td>¥19.9912</td></tr>
+          </tbody>
+          <tfoot class="money">
+            <tr><td>合计</td><td>¥111.6300</td><td>¥111.6300</td><td class="best">¥20.7491</td><td>¥72.5595</td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="cost-breakdown-title">
+      <div class="section-heading">
+        <h2 id="cost-breakdown-title">总成本拆分</h2>
+        <p class="section-note">单位：人民币。移动原价与官方原价相同；空闲小时不补零行。</p>
+      </div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="总成本拆分，可横向滚动">
+        <table>
+          <thead>
+            <tr><th>价格口径</th><th>非缓存输入</th><th>缓存命中输入</th><th>输出</th><th>合计</th></tr>
+          </thead>
+          <tbody class="money">
+            <tr><td>移动原价</td><td>¥35.0204</td><td>¥55.5696</td><td>¥21.0400</td><td>¥111.6300</td></tr>
+            <tr><td>官方原价</td><td>¥35.0204</td><td>¥55.5696</td><td>¥21.0400</td><td>¥111.6300</td></tr>
+            <tr><td>官方套餐</td><td>¥6.5094</td><td>¥10.3289</td><td>¥3.9108</td><td class="best">¥20.7491</td></tr>
+            <tr><td>三方渠道</td><td>¥22.7633</td><td>¥36.1202</td><td>¥13.6760</td><td>¥72.5595</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <span>数据源：Sub2API 管理员使用明细（只读查询后本地聚合）</span>
+      <span>价格源：用户提供的 ai-model-pricing.html · 1 M = 1,000,000 tokens</span>
+    </footer>
+  </main>
+</body>
+</html>
