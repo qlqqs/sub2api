@@ -7374,6 +7374,16 @@
               <Toggle v-model="form.affiliate_enabled" />
             </div>
 
+            <div class="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-dark-700">
+              <div>
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.settings.features.affiliate.bind.entryTitle') }}</p>
+                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ t('admin.settings.features.affiliate.bind.entryHint') }}</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" @click="affiliateBindDialogOpen = true">
+                {{ t('admin.settings.features.affiliate.bind.open') }}
+              </button>
+            </div>
+
             <div v-if="form.affiliate_enabled" class="space-y-6">
               <div class="flex items-center justify-between">
                 <div>
@@ -7593,6 +7603,12 @@
             </div>
           </div>
         </div>
+
+        <AdminAffiliateBindInviterDialog
+          :show="affiliateBindDialogOpen"
+          @close="affiliateBindDialogOpen = false"
+          @success="handleAffiliateBindSuccess"
+        />
 
         <!-- Affiliate add/edit modal -->
         <div
@@ -8875,6 +8891,7 @@ import ImageUpload from "@/components/common/ImageUpload.vue";
 import BackupSettings from "@/views/admin/BackupView.vue";
 import EmailTemplateEditor from "@/views/admin/settings/EmailTemplateEditor.vue";
 import OpenAIFastPolicyUserSelector from "@/views/admin/settings/OpenAIFastPolicyUserSelector.vue";
+import AdminAffiliateBindInviterDialog from "@/views/admin/settings/AdminAffiliateBindInviterDialog.vue";
 import { useClipboard } from "@/composables/useClipboard";
 import {
   useStepUp,
@@ -12666,6 +12683,14 @@ interface AffiliateState {
   search: string;
   selected: number[];
   searchTimer: number | null;
+}
+
+const affiliateBindDialogOpen = ref(false);
+
+async function handleAffiliateBindSuccess() {
+  affiliateBindDialogOpen.value = false;
+  appStore.showSuccess(t("admin.settings.features.affiliate.bind.success"));
+  await loadAffiliateUsers();
 }
 
 const affiliateState = reactive<AffiliateState>({

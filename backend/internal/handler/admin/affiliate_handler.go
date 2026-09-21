@@ -7,6 +7,7 @@ import (
 
 	"github.com/Wei-Shaw/sub2api/internal/pkg/response"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/timezone"
+	middleware "github.com/Wei-Shaw/sub2api/internal/server/middleware"
 	"github.com/Wei-Shaw/sub2api/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -181,6 +182,37 @@ func (h *AffiliateHandler) LookupUsers(c *gin.Context) {
 	result := make([]AffiliateUserSummary, len(users))
 	for i, u := range users {
 		result[i] = AffiliateUserSummary{ID: u.ID, Email: u.Email, Username: u.Username}
+	}
+	response.Success(c, result)
+}
+
+type BindAffiliateInviterRequest struct {
+	InviterID int64  `json:"inviter_id" binding:"required"`
+	Reason    string `json:"reason" binding:"required"`
+}
+
+// BindInviter permanently assigns an inviter to a user that has never been bound.
+// POST /api/v1/admin/affiliates/users/:invitee_id/inviter
+func (h *AffiliateHandler) BindInviter(c *gin.Context) {
+	inviteeID, err := strconv.ParseInt(c.Param("invitee_id"), 10, 64)
+	if err != nil || inviteeID <= 0 {
+		response.BadRequest(c, "Invalid invitee_id")
+		return
+	}
+	var req BindAffiliateInviterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request")
+		return
+	}
+	subject, ok := middleware.GetAuthSubjectFromContext(c)
+	if !ok || subject.UserID <= 0 {
+		response.Unauthorized(c, "Unauthorized")
+		return
+	}
+	result, err := h.affiliateService.AdminBindInviter(c.Request.Context(), inviteeID, req.InviterID, subject.UserID, req.Reason)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
 	}
 	response.Success(c, result)
 }

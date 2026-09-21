@@ -103,6 +103,18 @@ export interface BatchSetRateRequest {
   clear?: boolean
 }
 
+export interface BindInviterRequest {
+  inviter_id: number
+  reason: string
+}
+
+export interface BindInviterResponse {
+  invitee_id: number
+  inviter_id: number
+  bound_at: string
+  source: 'admin' | 'registration'
+}
+
 export interface SimpleUser {
   id: number
   email: string
@@ -125,10 +137,24 @@ export async function listUsers(
   return data
 }
 
-export async function lookupUsers(q: string): Promise<SimpleUser[]> {
+export async function lookupUsers(
+  q: string,
+  options: { signal?: AbortSignal } = {},
+): Promise<SimpleUser[]> {
   const { data } = await apiClient.get<SimpleUser[]>(
     '/admin/affiliates/users/lookup',
-    { params: { q } },
+    { params: { q }, signal: options.signal },
+  )
+  return data
+}
+
+export async function bindInviter(
+  inviteeId: number,
+  payload: BindInviterRequest,
+): Promise<BindInviterResponse> {
+  const { data } = await apiClient.post<BindInviterResponse>(
+    `/admin/affiliates/users/${inviteeId}/inviter`,
+    payload,
   )
   return data
 }
@@ -218,6 +244,7 @@ export async function getUserOverview(
 export const affiliatesAPI = {
   listUsers,
   lookupUsers,
+  bindInviter,
   updateUserSettings,
   clearUserSettings,
   batchSetRate,

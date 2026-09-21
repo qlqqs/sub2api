@@ -5,7 +5,9 @@ package service
 import (
 	"context"
 	"math"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -128,4 +130,67 @@ func TestIsValidAffiliateCodeFormat(t *testing.T) {
 			require.Equal(t, tc.want, isValidAffiliateCodeFormat(tc.in))
 		})
 	}
+}
+
+type adminBindAffiliateRepoStub struct {
+	AffiliateRepository
+	summaries map[int64]*AffiliateSummary
+	result    *AffiliateInviterBindingResult
+	bound     bool
+	binding   AffiliateInviterBinding
+}
+
+func (r *adminBindAffiliateRepoStub) EnsureUserAffiliate(_ context.Context, userID int64) (*AffiliateSummary, error) {
+	summary, ok := r.summaries[userID]
+	if !ok {
+		return nil, ErrUserNotFound
+	}
+	return summary, nil
+}
+
+func (r *adminBindAffiliateRepoStub) BindInviter(_ context.Context, inviteeID, inviterID int64, binding AffiliateInviterBinding) (*AffiliateInviterBindingResult, bool, error) {
+	r.binding = binding
+	return r.result, r.bound, nil
+}
+
+func TestAffiliateService_AdminBindInviter(t *testing.T) {
+	t.Parallel()
+	now := time.Now()
+	repo := &adminBindAffiliateRepoStub{
+		summaries: map[int64]*AffiliateSummary{1: {UserID: 1}, 2: {UserID: 2}},
+		result:    &AffiliateInviterBindingResult{InviteeID: 1, InviterID: 2, BoundAt: now, Source: "admin"},
+		bound:     true,
+	}
+	svc := NewAffiliateService(repo, nil, nil, nil)
+	result, err := svc.AdminBindInviter(context.Background(), 1, 2, 9, "  support verified  ")
+	require.NoError(t, err)
+	require.Equal(t, repo.result, result)
+	require.Equal(t, "admin", repo.binding.Source)
+	require.Equal(t, int64(9), *repo.binding.BoundBy)
+	require.Equal(t, "support verified", *repo.binding.Reason)
+}
+
+func TestAffiliateService_AdminBindInviterRejectsInvalidAndPreviouslyBound(t *testing.T) {
+	t.Parallel()
+	svc := NewAffiliateService(&adminBindAffiliateRepoStub{
+		summaries: map[int64]*AffiliateSummary{1: {UserID: 1}, 2: {UserID: 2}},
+	}, nil, nil, nil)
+
+	_, err := svc.AdminBindInviter(context.Background(), 1, 1, 9, "reason")
+	require.ErrorIs(t, err, ErrAffiliateSelfInvite)
+	_, err = svc.AdminBindInviter(context.Background(), 1, 2, 9, "   ")
+	require.ErrorIs(t, err, ErrAffiliateBindReason)
+	_, err = svc.AdminBindInviter(context.Background(), 1, 2, 9, strings.Repeat("界", 501))
+	require.ErrorIs(t, err, ErrAffiliateBindReason)
+
+	boundAt := time.Now()
+	svc.repo.(*adminBindAffiliateRepoStub).summaries[1].InviterBoundAt = &boundAt
+	_, err = svc.AdminBindInviter(context.Background(), 1, 2, 9, "reason")
+	require.ErrorIs(t, err, ErrAffiliateAlreadyBound)
+
+	repo := svc.repo.(*adminBindAffiliateRepoStub)
+	repo.summaries[1].InviterBoundAt = nil
+	repo.bound = false
+	_, err = svc.AdminBindInviter(context.Background(), 1, 2, 9, "reason")
+	require.ErrorIs(t, err, ErrAffiliateAlreadyBound)
 }

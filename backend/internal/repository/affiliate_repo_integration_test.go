@@ -5,11 +5,14 @@ package repository
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
 	dbent "github.com/Wei-Shaw/sub2api/ent"
 	"github.com/Wei-Shaw/sub2api/internal/service"
+	"github.com/Wei-Shaw/sub2api/migrations"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 )
 
@@ -141,7 +144,7 @@ func TestAffiliateRepository_AccrueQuota_ReusesOuterTransaction(t *testing.T) {
 	_, err = repo.EnsureUserAffiliate(txCtx, invitee.ID)
 	require.NoError(t, err)
 
-	bound, err := repo.BindInviter(txCtx, invitee.ID, inviter.ID)
+	_, bound, err := repo.BindInviter(txCtx, invitee.ID, inviter.ID, service.AffiliateInviterBinding{Source: "registration"})
 	require.NoError(t, err)
 	require.True(t, bound, "invitee must bind to inviter")
 
@@ -416,4 +419,207 @@ func TestAffiliateRepository_ListUsersWithCustomSettings(t *testing.T) {
 	require.InDelta(t, 33.3, *rateEntry.AffRebateRatePercent, 1e-9)
 
 	require.GreaterOrEqual(t, total, int64(2), "total must include at least our 2 custom rows")
+}
+
+func TestAffiliateRepository_BindInviterPersistsMetadataAndOnlyIncrementsOnce(t *testing.T) {
+	ctx := context.Background()
+	tx := testEntTx(t)
+	txCtx := dbent.NewTxContext(ctx, tx)
+	client := tx.Client()
+	repo := NewAffiliateRepository(client, integrationDB)
+
+	admin := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-admin-%d@example.com", time.Now().UnixNano()), PasswordHash: "hash", Role: service.RoleAdmin, Status: service.StatusActive, Concurrency: 5})
+	inviter := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-bind-inviter-%d@example.com", time.Now().UnixNano()), PasswordHash: "hash", Role: service.RoleUser, Status: service.StatusActive, Concurrency: 5})
+	invitee := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-bind-invitee-%d@example.com", time.Now().UnixNano()), PasswordHash: "hash", Role: service.RoleUser, Status: service.StatusActive, Concurrency: 5})
+	reason := "registration omission"
+
+	result, bound, err := repo.BindInviter(txCtx, invitee.ID, inviter.ID, service.AffiliateInviterBinding{Source: "admin", BoundBy: &admin.ID, Reason: &reason})
+	require.NoError(t, err)
+	require.True(t, bound)
+	require.Equal(t, invitee.ID, result.InviteeID)
+
+	_, bound, err = repo.BindInviter(txCtx, invitee.ID, inviter.ID, service.AffiliateInviterBinding{Source: "admin", BoundBy: &admin.ID, Reason: &reason})
+	require.NoError(t, err)
+	require.False(t, bound)
+	require.Equal(t, 1, querySingleInt(t, txCtx, client, "SELECT aff_count FROM user_affiliates WHERE user_id = $1", inviter.ID))
+
+	rows, err := client.QueryContext(txCtx, "SELECT inviter_id, inviter_bound_source, inviter_bound_by, inviter_bind_reason, inviter_bound_at FROM user_affiliates WHERE user_id = $1", invitee.ID)
+	require.NoError(t, err)
+	defer func() { _ = rows.Close() }()
+	require.True(t, rows.Next())
+	var gotInviter, gotAdmin int64
+	var gotSource, gotReason string
+	var gotBoundAt time.Time
+	require.NoError(t, rows.Scan(&gotInviter, &gotSource, &gotAdmin, &gotReason, &gotBoundAt))
+	require.Equal(t, inviter.ID, gotInviter)
+	require.Equal(t, "admin", gotSource)
+	require.Equal(t, admin.ID, gotAdmin)
+	require.Equal(t, reason, gotReason)
+	require.False(t, gotBoundAt.IsZero())
+}
+
+func TestAffiliateRepository_BindInviterConcurrentRequestsOnlyIncrementOnce(t *testing.T) {
+	ctx := context.Background()
+	client := testEntClient(t)
+	repo := NewAffiliateRepository(client, integrationDB)
+	suffix := time.Now().UnixNano()
+	admin := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-race-admin-%d@example.com", suffix), Role: service.RoleAdmin})
+	inviterA := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-race-a-%d@example.com", suffix)})
+	inviterB := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-race-b-%d@example.com", suffix)})
+	invitee := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-race-invitee-%d@example.com", suffix)})
+	userIDs := []int64{admin.ID, inviterA.ID, inviterB.ID, invitee.ID}
+	t.Cleanup(func() {
+		_, _ = integrationDB.ExecContext(context.Background(), "DELETE FROM user_affiliates WHERE user_id = ANY($1)", pq.Array(userIDs))
+		_, _ = integrationDB.ExecContext(context.Background(), "DELETE FROM users WHERE id = ANY($1)", pq.Array(userIDs))
+	})
+
+	for _, userID := range userIDs {
+		_, err := repo.EnsureUserAffiliate(ctx, userID)
+		require.NoError(t, err)
+	}
+
+	type bindResult struct {
+		bound bool
+		err   error
+	}
+	start := make(chan struct{})
+	results := make(chan bindResult, 2)
+	var wg sync.WaitGroup
+	for _, inviterID := range []int64{inviterA.ID, inviterB.ID} {
+		wg.Add(1)
+		go func(id int64) {
+			defer wg.Done()
+			<-start
+			reason := "concurrent support correction"
+			_, bound, err := repo.BindInviter(ctx, invitee.ID, id, service.AffiliateInviterBinding{Source: "admin", BoundBy: &admin.ID, Reason: &reason})
+			results <- bindResult{bound: bound, err: err}
+		}(inviterID)
+	}
+	close(start)
+	wg.Wait()
+	close(results)
+
+	successes := 0
+	for result := range results {
+		require.NoError(t, result.err)
+		if result.bound {
+			successes++
+		}
+	}
+	require.Equal(t, 1, successes)
+	countA := querySingleInt(t, ctx, client, "SELECT aff_count FROM user_affiliates WHERE user_id = $1", inviterA.ID)
+	countB := querySingleInt(t, ctx, client, "SELECT aff_count FROM user_affiliates WHERE user_id = $1", inviterB.ID)
+	require.Equal(t, 1, countA+countB)
+}
+
+func TestAffiliateRepository_BindInviterRollsBackRelationshipWhenCountIncrementFails(t *testing.T) {
+	ctx := context.Background()
+	client := testEntClient(t)
+	repo := NewAffiliateRepository(client, integrationDB)
+	suffix := time.Now().UnixNano()
+	admin := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-rollback-admin-%d@example.com", suffix), Role: service.RoleAdmin})
+	inviter := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-rollback-inviter-%d@example.com", suffix)})
+	invitee := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-rollback-invitee-%d@example.com", suffix)})
+	userIDs := []int64{admin.ID, inviter.ID, invitee.ID}
+	t.Cleanup(func() {
+		_, _ = integrationDB.ExecContext(context.Background(), "DELETE FROM user_affiliates WHERE user_id = ANY($1)", pq.Array(userIDs))
+		_, _ = integrationDB.ExecContext(context.Background(), "DELETE FROM users WHERE id = ANY($1)", pq.Array(userIDs))
+	})
+
+	for _, userID := range userIDs {
+		_, err := repo.EnsureUserAffiliate(ctx, userID)
+		require.NoError(t, err)
+	}
+	_, err := integrationDB.ExecContext(ctx, "UPDATE user_affiliates SET aff_count = 2147483647 WHERE user_id = $1", inviter.ID)
+	require.NoError(t, err)
+
+	reason := "force rollback coverage"
+	_, bound, err := repo.BindInviter(ctx, invitee.ID, inviter.ID, service.AffiliateInviterBinding{Source: "admin", BoundBy: &admin.ID, Reason: &reason})
+	require.Error(t, err)
+	require.False(t, bound)
+
+	var inviterID, boundAt any
+	require.NoError(t, integrationDB.QueryRowContext(ctx,
+		"SELECT inviter_id, inviter_bound_at FROM user_affiliates WHERE user_id = $1", invitee.ID,
+	).Scan(&inviterID, &boundAt))
+	require.Nil(t, inviterID)
+	require.Nil(t, boundAt)
+	require.Equal(t, 2147483647, querySingleInt(t, ctx, client, "SELECT aff_count FROM user_affiliates WHERE user_id = $1", inviter.ID))
+}
+
+func TestAffiliateInviterBindingTriggerSupportsLegacyWritesAndPermanentMarker(t *testing.T) {
+	ctx := context.Background()
+	client := testEntClient(t)
+	repo := NewAffiliateRepository(client, integrationDB)
+	suffix := time.Now().UnixNano()
+	legacyInviter := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-trigger-legacy-%d@example.com", suffix)})
+	replacementInviter := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-trigger-replacement-%d@example.com", suffix)})
+	invitee := mustCreateUser(t, client, &service.User{Email: fmt.Sprintf("affiliate-trigger-invitee-%d@example.com", suffix)})
+	userIDs := []int64{legacyInviter.ID, replacementInviter.ID, invitee.ID}
+	t.Cleanup(func() {
+		_, _ = integrationDB.ExecContext(context.Background(), "DELETE FROM user_affiliates WHERE user_id = ANY($1)", pq.Array(userIDs))
+		_, _ = integrationDB.ExecContext(context.Background(), "DELETE FROM users WHERE id = ANY($1)", pq.Array(userIDs))
+	})
+
+	for _, userID := range userIDs {
+		_, err := repo.EnsureUserAffiliate(ctx, userID)
+		require.NoError(t, err)
+	}
+
+	// Simulate an old binary that only knows about inviter_id.
+	_, err := integrationDB.ExecContext(ctx,
+		"UPDATE user_affiliates SET inviter_id = $1, updated_at = NOW() WHERE user_id = $2",
+		legacyInviter.ID, invitee.ID)
+	require.NoError(t, err)
+
+	var boundAt time.Time
+	var source string
+	require.NoError(t, integrationDB.QueryRowContext(ctx,
+		"SELECT inviter_bound_at, inviter_bound_source FROM user_affiliates WHERE user_id = $1", invitee.ID,
+	).Scan(&boundAt, &source))
+	require.False(t, boundAt.IsZero())
+	require.Equal(t, "registration", source)
+
+	// A direct attempt to clear the permanent marker is normalized back to the
+	// original value rather than reopening the row for another binding.
+	_, err = integrationDB.ExecContext(ctx,
+		"UPDATE user_affiliates SET inviter_bound_at = NULL WHERE user_id = $1", invitee.ID)
+	require.NoError(t, err)
+	var preservedAt time.Time
+	require.NoError(t, integrationDB.QueryRowContext(ctx,
+		"SELECT inviter_bound_at FROM user_affiliates WHERE user_id = $1", invitee.ID,
+	).Scan(&preservedAt))
+	require.True(t, preservedAt.Equal(boundAt))
+
+	// Exercise the real FK action: deleting the inviter may clear inviter_id,
+	// but the trigger must preserve the one-time marker.
+	_, err = integrationDB.ExecContext(ctx, "DELETE FROM users WHERE id = $1", legacyInviter.ID)
+	require.NoError(t, err)
+	var inviterID any
+	require.NoError(t, integrationDB.QueryRowContext(ctx,
+		"SELECT inviter_id, inviter_bound_at FROM user_affiliates WHERE user_id = $1", invitee.ID,
+	).Scan(&inviterID, &preservedAt))
+	require.Nil(t, inviterID)
+	require.True(t, preservedAt.Equal(boundAt))
+
+	// Once the marker exists, assigning a replacement inviter is forbidden.
+	_, err = integrationDB.ExecContext(ctx,
+		"UPDATE user_affiliates SET inviter_id = $1 WHERE user_id = $2",
+		replacementInviter.ID, invitee.ID)
+	require.Error(t, err)
+	require.NoError(t, integrationDB.QueryRowContext(ctx,
+		"SELECT inviter_id, inviter_bound_at FROM user_affiliates WHERE user_id = $1", invitee.ID,
+	).Scan(&inviterID, &preservedAt))
+	require.Nil(t, inviterID)
+	require.True(t, preservedAt.Equal(boundAt))
+}
+
+func TestAffiliateInviterBindingMigrationCanBeReapplied(t *testing.T) {
+	content, err := migrations.FS.ReadFile("239_affiliate_inviter_binding_metadata.sql")
+	require.NoError(t, err)
+
+	for i := 0; i < 2; i++ {
+		_, err = integrationDB.ExecContext(context.Background(), string(content))
+		require.NoErrorf(t, err, "migration 239 reapply %d", i+1)
+	}
 }

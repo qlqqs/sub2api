@@ -146,6 +146,41 @@ func TestPromptAuditMutationAuditRoutesHaveStableActionsAndOmitBodies(t *testing
 	}
 }
 
+func TestAffiliateInviterBindingAuditCapturesActorTargetsReasonAndOutcome(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	repository := &auditCaptureRepository{}
+	auditService := service.NewAuditLogService(repository, nil)
+	auditService.Start()
+
+	router := gin.New()
+	router.Use(func(c *gin.Context) {
+		c.Set(string(ContextKeyUser), AuthSubject{UserID: 77})
+		c.Set(string(ContextKeyUserRole), "admin")
+		c.Next()
+	})
+	router.Use(gin.HandlerFunc(NewAuditLogMiddleware(auditService)))
+	router.POST("/api/v1/admin/affiliates/users/:invitee_id/inviter", func(c *gin.Context) {
+		c.Status(http.StatusConflict)
+	})
+
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/admin/affiliates/users/11/inviter", bytes.NewBufferString(`{"inviter_id":22,"reason":"support verified"}`))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	auditService.Stop()
+
+	repository.mu.Lock()
+	logs := append([]*service.AuditLog(nil), repository.logs...)
+	repository.mu.Unlock()
+	require.Len(t, logs, 1)
+	entry := logs[0]
+	require.Equal(t, "admin.affiliate.inviter.bind", entry.Action)
+	require.Equal(t, int64(77), *entry.ActorUserID)
+	require.Equal(t, http.StatusConflict, entry.StatusCode)
+	require.JSONEq(t, `{"inviter_id":22,"reason":"support verified"}`, entry.RequestBody)
+	require.Equal(t, map[string]string{"invitee_id": "11"}, entry.Extra["params"])
+}
+
 func TestPasskeyLoginAuditUsesCanonicalLoginActionAndOmitsCredentialBody(t *testing.T) {
 	route := "POST /api/v1/auth/passkey/login/finish"
 	require.Equal(t, service.AuditActionLogin, auditActionOverrides[route])
