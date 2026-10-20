@@ -1,0 +1,9 @@
+{"file":".trellis/spec/backend/index.md","reason":"后端分层与开发前检查"}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"SQL 迁移、事务和 repository 规范"}
+{"file":".trellis/spec/backend/error-handling.md","reason":"稳定业务错误与 HTTP 响应规范"}
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"后端测试与质量门槛"}
+{"file":".trellis/spec/frontend/index.md","reason":"前端开发前检查"}
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"管理弹窗、可访问性和异步交互规范"}
+{"file":".trellis/spec/frontend/type-safety.md","reason":"API 请求响应和组件状态类型规范"}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"前端测试与质量门槛"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"跨数据库、后端 API 与前端的数据流检查"}

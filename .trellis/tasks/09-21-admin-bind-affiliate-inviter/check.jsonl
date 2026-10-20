@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/quality-guidelines.md","reason":"验证后端事务、接口和测试完整性"}
+{"file":".trellis/spec/backend/error-handling.md","reason":"检查错误 reason 和安全响应"}
+{"file":".trellis/spec/frontend/quality-guidelines.md","reason":"验证前端 lint、类型、测试和构建"}
+{"file":".trellis/spec/frontend/component-guidelines.md","reason":"检查弹窗交互与可访问性"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"检查跨层合约一致性"}
