@@ -36,3 +36,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 6: 多级代理返利（最多三级）实现
+<!-- trellis-session: v=2 fp=cbce7bc908f84931 -->
+
+**Date**: 2026-10-20
+**Task**: 多级代理返利（最多三级）实现
+**Branch**: `sub2api-custom`
+
+### Summary
+
+新增 affiliate_rebate_levels / affiliate_rebate_rate_l2 / _l3 设置与迁移 246（ledger.rebate_level）；AccrueInviteRebateForOrder 沿邀请链逐级入账；管理端设置与返利记录、用户端邀请页展示层级比例；后端 unit/integration、前端 lint/typecheck/test/build 通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `adb0db824` | Merge upstream main into sub2api-custom |
+
+### Status
+
+[OK] **Completed**
