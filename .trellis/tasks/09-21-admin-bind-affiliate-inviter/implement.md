@@ -84,3 +84,13 @@ pnpm build
 - Broad backend repository execution can hit pre-existing Aliyun captcha local test-server timeouts; affected focused tests passed.
 - `golangci-lint` is unavailable in the local environment.
 - A full-repository ESLint invocation segfaulted locally; targeted changed-file ESLint passed.
+
+## Upstream Merge Validation (2026-10-20)
+
+- 同步基线：`upstream/main`、`origin/main`、本地 `main` 均为 `8f2cbb53d9d1c40e1865b07ac460571f7d4c48de`；定制代码只合入 `sub2api-custom`。
+- 保留补绑和上游提现的实现及全部原有相关测试；新增路由共存回归测试，统一动态参数为 `user_id`，同步 handler 和审计映射。
+- 已提交的补绑迁移文件内容保持不变；真实 PostgreSQL/Redis 上 25 项邀请返利相关集成测试通过。
+- 前端全量 373 个测试文件、2873 项测试通过；typecheck、生产构建、相关 API/弹窗/i18n/SettingsView ESLint 通过。
+- 后端补绑/提现 service、handler、路由、审计的 unit-tagged 定向测试通过；迁移测试、路由和审计 package 测试、服务端构建通过。
+- 初次全量后端测试中，本机代理导致 3 项阿里云验证码 httptest 请求超时；仅在测试命令中移除代理环境变量后，repository 全包和验证码定向测试通过，未修改应用逻辑或全局代理配置。
+- 移除代理后以 120 秒 package 限时重跑，真实 OpenAI API 对比测试超时；离线验证应显式跳过 `TestEstimateOpenAIInputTokens_CompareWithOpenAIAPI`，不将其计作通过。

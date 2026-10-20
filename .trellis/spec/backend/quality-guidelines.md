@@ -56,3 +56,13 @@ go build ./cmd/server
 - 为绕过 lint 在 handler/service 直接引入数据库实现。
 - 修改历史迁移，或只改 schema 不更新迁移/生成代码。
 - 在测试中依赖共享外部状态、未清理全局 logger/timer，或因本机无 Docker 就宣称集成测试通过。
+
+## Gin 同级路由参数兼容
+
+- **适用范围**：合并上游或新增同一 HTTP method 的同级动态路由时。
+- **签名**：邀请管理路由统一使用 `/api/v1/admin/affiliates/users/:user_id`；补绑为 `POST .../:user_id/inviter`，提现为 `POST .../:user_id/withdraw`。
+- **合约**：handler 读取 `c.Param("user_id")`；审计 action override 使用相同模板，补绑动作仍为 `admin.affiliate.inviter.bind`，响应字段仍为 `invitee_id`。
+- **错误边界**：同级动态段名称不一致会使 Gin 在注册时 panic，而不是返回 HTTP 错误；合法路由应能同时注册并解析用户 ID。
+- **正反例**：同为 `:user_id` 可共存；单独注册补绑无法覆盖共存问题；补绑 `:invitee_id` 与提现 `:user_id` 混用是错误模式。
+- **必要测试**：`internal/server/routes/affiliate_routes_test.go` 同时注册补绑/提现并验证匹配路径和 `user_id`；handler 和审计测试分别验证认证操作者与审计参数。
+- **错误与正确**：不要只消除文本冲突并保留不同 wildcard；应统一路由、handler、审计和测试中的参数名，不改变客户端实际 URL。

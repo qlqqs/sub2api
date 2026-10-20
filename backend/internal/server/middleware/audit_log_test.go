@@ -159,7 +159,7 @@ func TestAffiliateInviterBindingAuditCapturesActorTargetsReasonAndOutcome(t *tes
 		c.Next()
 	})
 	router.Use(gin.HandlerFunc(NewAuditLogMiddleware(auditService)))
-	router.POST("/api/v1/admin/affiliates/users/:invitee_id/inviter", func(c *gin.Context) {
+	router.POST("/api/v1/admin/affiliates/users/:user_id/inviter", func(c *gin.Context) {
 		c.Status(http.StatusConflict)
 	})
 
@@ -178,7 +178,7 @@ func TestAffiliateInviterBindingAuditCapturesActorTargetsReasonAndOutcome(t *tes
 	require.Equal(t, int64(77), *entry.ActorUserID)
 	require.Equal(t, http.StatusConflict, entry.StatusCode)
 	require.JSONEq(t, `{"inviter_id":22,"reason":"support verified"}`, entry.RequestBody)
-	require.Equal(t, map[string]string{"invitee_id": "11"}, entry.Extra["params"])
+	require.Equal(t, map[string]string{"user_id": "11"}, entry.Extra["params"])
 }
 
 func TestPasskeyLoginAuditUsesCanonicalLoginActionAndOmitsCredentialBody(t *testing.T) {

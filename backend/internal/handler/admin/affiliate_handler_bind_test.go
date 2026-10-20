@@ -38,7 +38,7 @@ func TestAffiliateHandlerBindInviterUsesAuthenticatedAdmin(t *testing.T) {
 	router.Use(func(c *gin.Context) {
 		c.Set(string(middleware.ContextKeyUser), middleware.AuthSubject{UserID: 99})
 	})
-	router.POST("/api/v1/admin/affiliates/users/:invitee_id/inviter", handler.BindInviter)
+	router.POST("/api/v1/admin/affiliates/users/:user_id/inviter", handler.BindInviter)
 
 	body, err := json.Marshal(gin.H{"inviter_id": 22, "reason": " verified by support "})
 	require.NoError(t, err)

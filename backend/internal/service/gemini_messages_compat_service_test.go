@@ -704,6 +704,105 @@ func TestConvertClaudeMessagesToGeminiGenerateContent_AddsThoughtSignatureForToo
 	}
 }
 
+func TestConvertClaudeMessagesToGeminiGenerateContent_ExtractsToolResultImages(t *testing.T) {
+	claudeReq := map[string]any{
+		"messages": []any{
+			map[string]any{
+				"role": "assistant",
+				"content": []any{
+					map[string]any{
+						"type": "tool_use",
+						"id":   "toolu_123",
+						"name": "inspect",
+						"input": map[string]any{
+							"path": "image.png",
+						},
+					},
+				},
+			},
+			map[string]any{
+				"role": "user",
+				"content": []any{
+					map[string]any{
+						"type":        "tool_result",
+						"tool_use_id": "toolu_123",
+						"content": []any{
+							map[string]any{"type": "text", "text": "found it"},
+							map[string]any{
+								"type": "image",
+								"source": map[string]any{
+									"type":       "base64",
+									"media_type": "image/png",
+									"data":       "aGVsbG8=",
+								},
+							},
+						},
+					},
+					map[string]any{
+						"type":        "tool_result",
+						"tool_use_id": "toolu_123",
+						"content": []any{
+							map[string]any{
+								"type": "image",
+								"source": map[string]any{
+									"type":       "base64",
+									"media_type": "image/jpeg",
+									"data":       "d29ybGQ=",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	body, err := json.Marshal(claudeReq)
+	require.NoError(t, err)
+
+	converted, err := convertClaudeMessagesToGeminiGenerateContent(body)
+	require.NoError(t, err)
+
+	var geminiReq map[string]any
+	require.NoError(t, json.Unmarshal(converted, &geminiReq))
+	contents, ok := geminiReq["contents"].([]any)
+	require.True(t, ok)
+	content, ok := contents[1].(map[string]any)
+	require.True(t, ok)
+	parts, ok := content["parts"].([]any)
+	require.True(t, ok)
+	require.Len(t, parts, 4)
+
+	firstPart, ok := parts[0].(map[string]any)
+	require.True(t, ok)
+	firstResponse, ok := firstPart["functionResponse"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "inspect", firstResponse["name"])
+	firstResponseBody, ok := firstResponse["response"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "found it", firstResponseBody["content"])
+
+	secondPart, ok := parts[1].(map[string]any)
+	require.True(t, ok)
+	secondResponse, ok := secondPart["functionResponse"].(map[string]any)
+	require.True(t, ok)
+	secondResponseBody, ok := secondResponse["response"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "[image attached below]", secondResponseBody["content"])
+
+	firstImagePart, ok := parts[2].(map[string]any)
+	require.True(t, ok)
+	firstImage, ok := firstImagePart["inlineData"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "image/png", firstImage["mimeType"])
+	require.Equal(t, "aGVsbG8=", firstImage["data"])
+	secondImagePart, ok := parts[3].(map[string]any)
+	require.True(t, ok)
+	secondImage, ok := secondImagePart["inlineData"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "image/jpeg", secondImage["mimeType"])
+	require.Equal(t, "d29ybGQ=", secondImage["data"])
+}
+
 func TestEnsureGeminiFunctionCallThoughtSignatures_InsertsWhenMissing(t *testing.T) {
 	geminiReq := map[string]any{
 		"contents": []any{
@@ -846,6 +945,16 @@ func TestExtractGeminiUsage(t *testing.T) {
 				InputTokens:          100,
 				OutputTokens:         50,
 				CacheReadInputTokens: 0,
+			},
+		},
+		{
+			name:    "prompt 被拦截只报 cachedContentTokenCount — input 下限为 0",
+			input:   `{"promptFeedback":{"blockReason":"PROHIBITED_CONTENT"},"usageMetadata":{"cachedContentTokenCount":12980}}`,
+			wantNil: false,
+			wantUsage: &ClaudeUsage{
+				InputTokens:          0,
+				OutputTokens:         0,
+				CacheReadInputTokens: 12980,
 			},
 		},
 		{
@@ -1016,6 +1125,40 @@ func TestParseGeminiRateLimitResetTime(t *testing.T) {
 			input:       `not json but Please retry in 10s`,
 			wantNil:     false,
 			approxDelta: 10,
+		},
+		{
+			name:        "Vertex RetryInfo retryDelay",
+			input:       `{"error":{"code":429,"message":"Resource exhausted. Please try again later.","status":"RESOURCE_EXHAUSTED","details":[{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"39s"}]}}`,
+			wantNil:     false,
+			approxDelta: 39,
+		},
+		{
+			name:        "Vertex RetryInfo 小数秒向上取整",
+			input:       `{"error":{"code":429,"status":"RESOURCE_EXHAUSTED","details":[{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"1.5s"}]}}`,
+			wantNil:     false,
+			approxDelta: 2,
+		},
+		{
+			name:        "Vertex RetryInfo 超过上限被截断到 15 分钟",
+			input:       `{"error":{"code":429,"status":"RESOURCE_EXHAUSTED","details":[{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"3600s"}]}}`,
+			wantNil:     false,
+			approxDelta: 900,
+		},
+		{
+			name:    "retryDelay 存在但 @type 不是 RetryInfo 则忽略",
+			input:   `{"error":{"code":429,"details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","retryDelay":"39s"}]}}`,
+			wantNil: true,
+		},
+		{
+			name:    "RetryInfo retryDelay 非法值忽略",
+			input:   `{"error":{"code":429,"details":[{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"soon"}]}}`,
+			wantNil: true,
+		},
+		{
+			name:        "quotaResetDelay 与 RetryInfo 并存时先到者优先",
+			input:       `{"error":{"code":429,"details":[{"metadata":{"quotaResetDelay":"120s"}},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"39s"}]}}`,
+			wantNil:     false,
+			approxDelta: 120,
 		},
 	}
 

@@ -7,7 +7,7 @@
 ```text
 SettingsView / Bind Dialog
   -> frontend admin affiliates API
-  -> POST /api/v1/admin/affiliates/users/:invitee_id/inviter
+  -> POST /api/v1/admin/affiliates/users/:user_id/inviter
   -> admin.AffiliateHandler
   -> AffiliateService.AdminBindInviter
   -> AffiliateRepository.BindInviterWithMetadata
@@ -89,7 +89,7 @@ Repository 原子绑定方法接收绑定元数据。注册绑定写入：
 ## HTTP Contract
 
 ```http
-POST /api/v1/admin/affiliates/users/:invitee_id/inviter
+POST /api/v1/admin/affiliates/users/:user_id/inviter
 Content-Type: application/json
 
 {
@@ -132,3 +132,7 @@ Content-Type: application/json
 - 迁移仅增加 nullable 列并做受限回填，不重写金额或 ledger。
 - 应用回滚后新增列可保留，不影响旧代码；旧代码仍读取原字段。数据库 trigger 会为旧代码的邀请人写入补齐注册来源元数据，并继续执行一次性绑定约束。
 - 不提供解除接口。误操作需要单独的受审计数据修复流程，不能通过产品 API 绕过一次性规则。
+
+## Upstream Merge Compatibility (2026-10-20)
+
+上游新增同一用户的提现 POST 路由后，补绑路由模板统一使用 `:user_id`，避免 Gin 同级动态参数名冲突。客户端 URL、请求体、响应 `invitee_id` 和审计动作名不变；审计 path params 使用 `user_id`。保留上游提现实现和测试，以及本地补绑实现和测试。迁移按完整文件名识别，保留原有 `239_affiliate_inviter_binding_metadata.sql` 文件及内容，避免已应用环境 checksum 失配。
