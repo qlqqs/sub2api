@@ -32,7 +32,10 @@ SELECT ua.user_id,
        ua.aff_count,
        COALESCE(rebated.rebated_invitee_count, 0),
        (ua.aff_quota + COALESCE(matured.matured_frozen_quota, 0))::double precision,
-       ua.aff_history_quota::double precision
+       ua.aff_history_quota::double precision,
+       ua.agent_level,
+       ua.agent_level_locked,
+       ua.agent_level_source
 FROM user_affiliates ua
 JOIN users u ON u.id = ua.user_id
 LEFT JOIN (
@@ -141,7 +144,7 @@ RETURNING inviter_bound_at`, inviterID, binding.Source, binding.BoundBy, binding
 	return result, bound, nil
 }
 
-func (r *affiliateRepository) AccrueQuota(ctx context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, sourceOrderID *int64, rebateLevel int) (bool, error) {
+func (r *affiliateRepository) AccrueQuota(ctx context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, source service.AffiliateAccrueSource, rebateLevel int) (bool, error) {
 	if amount <= 0 {
 		return false, nil
 	}
@@ -170,15 +173,15 @@ func (r *affiliateRepository) AccrueQuota(ctx context.Context, inviterID, invite
 
 		if freezeHours > 0 {
 			if _, err = txClient.ExecContext(txCtx, `
-INSERT INTO user_affiliate_ledger (user_id, action, amount, source_user_id, source_order_id, rebate_level, frozen_until, created_at, updated_at)
-VALUES ($1, 'accrue', $2, $3, $4, $6, NOW() + make_interval(hours => $5), NOW(), NOW())`,
-				inviterID, amount, inviteeUserID, nullableInt64Arg(sourceOrderID), freezeHours, rebateLevel); err != nil {
+INSERT INTO user_affiliate_ledger (user_id, action, amount, source_user_id, source_order_id, source_usage_until, rebate_level, frozen_until, created_at, updated_at)
+VALUES ($1, 'accrue', $2, $3, $4, $5, $7, NOW() + make_interval(hours => $6), NOW(), NOW())`,
+				inviterID, amount, inviteeUserID, nullableInt64Arg(source.OrderID), nullableTimeArg(source.UsageUntil), freezeHours, rebateLevel); err != nil {
 				return fmt.Errorf("insert affiliate accrue ledger: %w", err)
 			}
 		} else {
 			if _, err = txClient.ExecContext(txCtx, `
-INSERT INTO user_affiliate_ledger (user_id, action, amount, source_user_id, source_order_id, rebate_level, created_at, updated_at)
-VALUES ($1, 'accrue', $2, $3, $4, $5, NOW(), NOW())`, inviterID, amount, inviteeUserID, nullableInt64Arg(sourceOrderID), rebateLevel); err != nil {
+INSERT INTO user_affiliate_ledger (user_id, action, amount, source_user_id, source_order_id, source_usage_until, rebate_level, created_at, updated_at)
+VALUES ($1, 'accrue', $2, $3, $4, $5, $6, NOW(), NOW())`, inviterID, amount, inviteeUserID, nullableInt64Arg(source.OrderID), nullableTimeArg(source.UsageUntil), rebateLevel); err != nil {
 				return fmt.Errorf("insert affiliate accrue ledger: %w", err)
 			}
 		}
@@ -877,6 +880,9 @@ func (r *affiliateRepository) GetAffiliateUserOverview(ctx context.Context, user
 		&overview.RebatedInviteeCount,
 		&overview.AvailableQuota,
 		&overview.HistoryQuota,
+		&overview.AgentLevel,
+		&overview.AgentLevelLocked,
+		&overview.AgentLevelSource,
 	); err != nil {
 		return nil, err
 	}
@@ -1009,9 +1015,8 @@ ON CONFLICT (user_id) DO NOTHING`, userID, code)
 	return queryAffiliateByUserID(ctx, client, userID)
 }
 
-func queryAffiliateByUserID(ctx context.Context, client affiliateQueryExecer, userID int64) (*service.AffiliateSummary, error) {
-	rows, err := client.QueryContext(ctx, `
-SELECT user_id,
+const affiliateSummaryColumns = `
+       user_id,
        aff_code,
        aff_code_custom,
        aff_rebate_rate_percent,
@@ -1024,102 +1029,42 @@ SELECT user_id,
        aff_quota::double precision,
        aff_frozen_quota::double precision,
        aff_history_quota::double precision,
+       agent_level,
+       agent_level_locked,
+       agent_level_source,
+       agent_level_updated_at,
+       rebate_settled_at,
+       rebate_settled_consumption::double precision,
        created_at,
-       updated_at
-FROM user_affiliates
-WHERE user_id = $1`, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = rows.Close() }()
-	if !rows.Next() {
-		if err := rows.Err(); err != nil {
-			return nil, err
-		}
-		return nil, service.ErrAffiliateProfileNotFound
-	}
+       updated_at`
 
-	var out service.AffiliateSummary
-	var inviterID, inviterBoundBy sql.NullInt64
-	var inviterBoundAt sql.NullTime
-	var inviterBoundSource, inviterBindReason sql.NullString
-	var rebateRate sql.NullFloat64
-	if err := rows.Scan(
-		&out.UserID,
-		&out.AffCode,
-		&out.AffCodeCustom,
-		&rebateRate,
-		&inviterID,
-		&inviterBoundAt,
-		&inviterBoundSource,
-		&inviterBoundBy,
-		&inviterBindReason,
-		&out.AffCount,
-		&out.AffQuota,
-		&out.AffFrozenQuota,
-		&out.AffHistoryQuota,
-		&out.CreatedAt,
-		&out.UpdatedAt,
-	); err != nil {
-		return nil, err
-	}
-	if inviterID.Valid {
-		out.InviterID = &inviterID.Int64
-	}
-	if inviterBoundAt.Valid {
-		out.InviterBoundAt = &inviterBoundAt.Time
-	}
-	if inviterBoundSource.Valid {
-		out.InviterBoundSource = &inviterBoundSource.String
-	}
-	if inviterBoundBy.Valid {
-		out.InviterBoundBy = &inviterBoundBy.Int64
-	}
-	if inviterBindReason.Valid {
-		out.InviterBindReason = &inviterBindReason.String
-	}
-	if rebateRate.Valid {
-		v := rebateRate.Float64
-		out.AffRebateRatePercent = &v
-	}
-	return &out, nil
+func queryAffiliateByUserID(ctx context.Context, client affiliateQueryExecer, userID int64) (*service.AffiliateSummary, error) {
+	return queryAffiliateSummary(ctx, client, "SELECT"+affiliateSummaryColumns+" FROM user_affiliates WHERE user_id = $1 LIMIT 1", userID)
 }
 
 func queryAffiliateByCode(ctx context.Context, client affiliateQueryExecer, code string) (*service.AffiliateSummary, error) {
-	rows, err := client.QueryContext(ctx, `
-SELECT user_id,
-       aff_code,
-       aff_code_custom,
-       aff_rebate_rate_percent,
-       inviter_id,
-       inviter_bound_at,
-       inviter_bound_source,
-       inviter_bound_by,
-       inviter_bind_reason,
-       aff_count,
-       aff_quota::double precision,
-       aff_frozen_quota::double precision,
-       aff_history_quota::double precision,
-       created_at,
-       updated_at
-FROM user_affiliates
-WHERE aff_code = $1
-LIMIT 1`, strings.ToUpper(strings.TrimSpace(code)))
+	return queryAffiliateSummary(ctx, client, "SELECT"+affiliateSummaryColumns+" FROM user_affiliates WHERE aff_code = $1 LIMIT 1", strings.ToUpper(strings.TrimSpace(code)))
+}
+
+func queryAffiliateSummary(ctx context.Context, client affiliateQueryExecer, query string, args ...any) (*service.AffiliateSummary, error) {
+	rows, err := client.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = rows.Close() }()
-
 	if !rows.Next() {
 		if err := rows.Err(); err != nil {
 			return nil, err
 		}
 		return nil, service.ErrAffiliateProfileNotFound
 	}
+	return scanAffiliateSummary(rows)
+}
 
+func scanAffiliateSummary(rows *sql.Rows) (*service.AffiliateSummary, error) {
 	var out service.AffiliateSummary
 	var inviterID, inviterBoundBy sql.NullInt64
-	var inviterBoundAt sql.NullTime
+	var inviterBoundAt, agentLevelUpdatedAt sql.NullTime
 	var inviterBoundSource, inviterBindReason sql.NullString
 	var rebateRate sql.NullFloat64
 	if err := rows.Scan(
@@ -1136,6 +1081,12 @@ LIMIT 1`, strings.ToUpper(strings.TrimSpace(code)))
 		&out.AffQuota,
 		&out.AffFrozenQuota,
 		&out.AffHistoryQuota,
+		&out.AgentLevel,
+		&out.AgentLevelLocked,
+		&out.AgentLevelSource,
+		&agentLevelUpdatedAt,
+		&out.RebateSettledAt,
+		&out.RebateSettledConsumption,
 		&out.CreatedAt,
 		&out.UpdatedAt,
 	); err != nil {
@@ -1159,6 +1110,9 @@ LIMIT 1`, strings.ToUpper(strings.TrimSpace(code)))
 	if rebateRate.Valid {
 		v := rebateRate.Float64
 		out.AffRebateRatePercent = &v
+	}
+	if agentLevelUpdatedAt.Valid {
+		out.AgentLevelUpdatedAt = &agentLevelUpdatedAt.Time
 	}
 	return &out, nil
 }
@@ -1405,7 +1359,14 @@ func nullableInt64Arg(v *int64) any {
 	return *v
 }
 
-// ListUsersWithCustomSettings 列出有专属配置（自定义码或专属比例）的用户。
+func nullableTimeArg(v *time.Time) any {
+	if v == nil {
+		return nil
+	}
+	return *v
+}
+
+// ListUsersWithCustomSettings 列出有专属配置（自定义码、专属比例、非默认代理等级或锁定）的用户。
 //
 // 单一查询同时处理"无搜索"与"按邮箱/用户名模糊搜索"：
 // 空 search 时拼接出的 LIKE 模式为 "%%"，匹配所有行；非空时按 ILIKE 子串匹配。
@@ -1425,7 +1386,10 @@ func (r *affiliateRepository) ListUsersWithCustomSettings(ctx context.Context, f
 	const baseFrom = `
 FROM user_affiliates ua
 JOIN users u ON u.id = ua.user_id
-WHERE (ua.aff_code_custom = true OR ua.aff_rebate_rate_percent IS NOT NULL)
+WHERE (ua.aff_code_custom = true
+       OR ua.aff_rebate_rate_percent IS NOT NULL
+       OR ua.agent_level <> 3
+       OR ua.agent_level_locked)
   AND (u.email ILIKE $1 OR u.username ILIKE $1)`
 
 	client := clientFromContext(ctx, r.client)
@@ -1442,7 +1406,10 @@ SELECT ua.user_id,
        ua.aff_code,
        ua.aff_code_custom,
        ua.aff_rebate_rate_percent,
-       ua.aff_count` + baseFrom + `
+       ua.aff_count,
+       ua.agent_level,
+       ua.agent_level_locked,
+       ua.agent_level_source` + baseFrom + `
 ORDER BY ua.updated_at DESC
 LIMIT $2 OFFSET $3`
 
@@ -1457,7 +1424,7 @@ LIMIT $2 OFFSET $3`
 		var e service.AffiliateAdminEntry
 		var rebate sql.NullFloat64
 		if err := rows.Scan(&e.UserID, &e.Email, &e.Username, &e.AffCode,
-			&e.AffCodeCustom, &rebate, &e.AffCount); err != nil {
+			&e.AffCodeCustom, &rebate, &e.AffCount, &e.AgentLevel, &e.AgentLevelLocked, &e.AgentLevelSource); err != nil {
 			return nil, 0, err
 		}
 		if rebate.Valid {

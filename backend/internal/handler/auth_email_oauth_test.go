@@ -391,7 +391,7 @@ func (r *oauthEmailAffiliateRepoStub) BindInviter(_ context.Context, userID, inv
 	return &service.AffiliateInviterBindingResult{InviteeID: userID, InviterID: inviterID}, true, nil
 }
 
-func (r *oauthEmailAffiliateRepoStub) AccrueQuota(context.Context, int64, int64, float64, int, *int64, int) (bool, error) {
+func (r *oauthEmailAffiliateRepoStub) AccrueQuota(context.Context, int64, int64, float64, int, service.AffiliateAccrueSource, int) (bool, error) {
 	panic("unexpected AccrueQuota call")
 }
 
@@ -433,6 +433,42 @@ func (r *oauthEmailAffiliateRepoStub) BatchSetUserRebateRate(context.Context, []
 
 func (r *oauthEmailAffiliateRepoStub) ListUsersWithCustomSettings(context.Context, service.AffiliateAdminFilter) ([]service.AffiliateAdminEntry, int64, error) {
 	panic("unexpected ListUsersWithCustomSettings call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) CountQualifiedInvitees(context.Context, int64, bool) (int, error) {
+	panic("unexpected CountQualifiedInvitees call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) PromoteAgentLevelAuto(context.Context, int64, int) (bool, error) {
+	panic("unexpected PromoteAgentLevelAuto call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) SetAgentLevelManual(context.Context, []int64, int) error {
+	panic("unexpected SetAgentLevelManual call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) SetAgentLevelLocked(context.Context, []int64, bool) error {
+	panic("unexpected SetAgentLevelLocked call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) ListInviterIDs(context.Context, int64, int) ([]int64, error) {
+	panic("unexpected ListInviterIDs call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) WithTx(context.Context, func(context.Context) error) error {
+	panic("unexpected WithTx call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) ListUsersWithPendingConsumption(context.Context, time.Duration, int) ([]int64, error) {
+	panic("unexpected ListUsersWithPendingConsumption call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) LockPendingConsumption(context.Context, int64, time.Duration) (*service.AffiliatePendingConsumption, error) {
+	panic("unexpected LockPendingConsumption call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) AdvanceConsumptionWatermark(context.Context, int64, time.Time, float64) error {
+	panic("unexpected AdvanceConsumptionWatermark call")
 }
 
 func (r *oauthEmailAffiliateRepoStub) ListAffiliateInviteRecords(context.Context, service.AffiliateRecordFilter) ([]service.AffiliateInviteRecord, int64, error) {

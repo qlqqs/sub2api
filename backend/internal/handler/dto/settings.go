@@ -165,18 +165,23 @@ type SystemSettings struct {
 	CustomMenuItems             []CustomMenuItem `json:"custom_menu_items"`
 	CustomEndpoints             []CustomEndpoint `json:"custom_endpoints"`
 
-	DefaultConcurrency           int                          `json:"default_concurrency"`
-	DefaultBalance               float64                      `json:"default_balance"`
-	AffiliateRebateRate          float64                      `json:"affiliate_rebate_rate"`
-	AffiliateRebateFreezeHours   int                          `json:"affiliate_rebate_freeze_hours"`
-	AffiliateRebateDurationDays  int                          `json:"affiliate_rebate_duration_days"`
-	AffiliateRebatePerInviteeCap float64                      `json:"affiliate_rebate_per_invitee_cap"`
-	AdminRechargeRebateEnabled   bool                         `json:"affiliate_admin_recharge_enabled"`
-	AffiliateRebateLevels        int                          `json:"affiliate_rebate_levels"`
-	AffiliateRebateRateL2        float64                      `json:"affiliate_rebate_rate_l2"`
-	AffiliateRebateRateL3        float64                      `json:"affiliate_rebate_rate_l3"`
-	DefaultUserRPMLimit          int                          `json:"default_user_rpm_limit"`
-	DefaultSubscriptions         []DefaultSubscriptionSetting `json:"default_subscriptions"`
+	DefaultConcurrency             int                          `json:"default_concurrency"`
+	DefaultBalance                 float64                      `json:"default_balance"`
+	AffiliateRebateRate            float64                      `json:"affiliate_rebate_rate"`
+	AffiliateRebateFreezeHours     int                          `json:"affiliate_rebate_freeze_hours"`
+	AffiliateRebateDurationDays    int                          `json:"affiliate_rebate_duration_days"`
+	AffiliateRebatePerInviteeCap   float64                      `json:"affiliate_rebate_per_invitee_cap"`
+	AdminRechargeRebateEnabled     bool                         `json:"affiliate_admin_recharge_enabled"`
+	AffiliateRebateLevels          int                          `json:"affiliate_rebate_levels"`
+	AffiliateRebateRateL2          float64                      `json:"affiliate_rebate_rate_l2"`
+	AffiliateRebateBase            string                       `json:"affiliate_rebate_base"`
+	AffiliateAgentUpgradeMode      string                       `json:"affiliate_agent_upgrade_mode"`
+	AffiliateAgentLevel2Threshold  int                          `json:"affiliate_agent_level2_threshold"`
+	AffiliateAgentLevel1Threshold  int                          `json:"affiliate_agent_level1_threshold"`
+	AffiliateAgentCountMode        string                       `json:"affiliate_agent_count_mode"`
+	AffiliateSettleIntervalMinutes int                          `json:"affiliate_settle_interval_minutes"`
+	DefaultUserRPMLimit            int                          `json:"default_user_rpm_limit"`
+	DefaultSubscriptions           []DefaultSubscriptionSetting `json:"default_subscriptions"`
 
 	// Model fallback configuration
 	EnableModelFallback      bool   `json:"enable_model_fallback"`

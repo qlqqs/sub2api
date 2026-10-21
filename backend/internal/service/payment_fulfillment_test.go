@@ -122,10 +122,46 @@ func (r *paymentFulfillmentAffiliateRepoStub) BindInviter(context.Context, int64
 	panic("unexpected BindInviter call")
 }
 
-func (r *paymentFulfillmentAffiliateRepoStub) AccrueQuota(_ context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, sourceOrderID *int64, _ int) (bool, error) {
+func (r *paymentFulfillmentAffiliateRepoStub) CountQualifiedInvitees(context.Context, int64, bool) (int, error) {
+	panic("unexpected CountQualifiedInvitees call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) PromoteAgentLevelAuto(context.Context, int64, int) (bool, error) {
+	panic("unexpected PromoteAgentLevelAuto call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) SetAgentLevelManual(context.Context, []int64, int) error {
+	panic("unexpected SetAgentLevelManual call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) SetAgentLevelLocked(context.Context, []int64, bool) error {
+	panic("unexpected SetAgentLevelLocked call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) ListInviterIDs(context.Context, int64, int) ([]int64, error) {
+	panic("unexpected ListInviterIDs call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) WithTx(context.Context, func(context.Context) error) error {
+	panic("unexpected WithTx call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) ListUsersWithPendingConsumption(context.Context, time.Duration, int) ([]int64, error) {
+	panic("unexpected ListUsersWithPendingConsumption call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) LockPendingConsumption(context.Context, int64, time.Duration) (*AffiliatePendingConsumption, error) {
+	panic("unexpected LockPendingConsumption call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) AdvanceConsumptionWatermark(context.Context, int64, time.Time, float64) error {
+	panic("unexpected AdvanceConsumptionWatermark call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) AccrueQuota(_ context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, source AffiliateAccrueSource, _ int) (bool, error) {
 	var sourceCopy *int64
-	if sourceOrderID != nil {
-		v := *sourceOrderID
+	if source.OrderID != nil {
+		v := *source.OrderID
 		sourceCopy = &v
 	}
 	r.accrueCalls = append(r.accrueCalls, paymentFulfillmentAffiliateAccrueCall{
@@ -1161,13 +1197,15 @@ func TestExecuteSubscriptionFulfillmentAppliesAffiliateRebate(t *testing.T) {
 			CreatedAt: time.Now().Add(-24 * time.Hour),
 		},
 		inviterSummary: &AffiliateSummary{
-			UserID:    inviterID,
-			AffCode:   "INVITER",
-			CreatedAt: time.Now().Add(-48 * time.Hour),
+			UserID:     inviterID,
+			AffCode:    "INVITER",
+			AgentLevel: 2,
+			CreatedAt:  time.Now().Add(-48 * time.Hour),
 		},
 	}
 	settingSvc := NewSettingService(&paymentFulfillmentSettingRepoStub{values: map[string]string{
 		SettingKeyAffiliateEnabled:           "true",
+		SettingKeyAffiliateRebateBase:        AffiliateRebateBaseRecharge,
 		SettingKeyAffiliateRebateRate:        "15",
 		SettingKeyAffiliateRebateFreezeHours: "0",
 	}}, nil)
@@ -1261,13 +1299,15 @@ func TestExecuteSubscriptionFulfillmentDoesNotDuplicateWorkAfterLegacySuccessAud
 			CreatedAt: time.Now().Add(-24 * time.Hour),
 		},
 		inviterSummary: &AffiliateSummary{
-			UserID:    inviterID,
-			AffCode:   "INVITER",
-			CreatedAt: time.Now().Add(-48 * time.Hour),
+			UserID:     inviterID,
+			AffCode:    "INVITER",
+			AgentLevel: 2,
+			CreatedAt:  time.Now().Add(-48 * time.Hour),
 		},
 	}
 	settingSvc := NewSettingService(&paymentFulfillmentSettingRepoStub{values: map[string]string{
 		SettingKeyAffiliateEnabled:    "true",
+		SettingKeyAffiliateRebateBase: AffiliateRebateBaseRecharge,
 		SettingKeyAffiliateRebateRate: "20",
 	}}, nil)
 	subRepo := newSubscriptionUserSubRepoStub()

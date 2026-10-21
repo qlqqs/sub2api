@@ -59,6 +59,12 @@ describe('AffiliateView', () => {
       effective_rebate_rate_percent: 10,
       rebate_levels: 1,
       level_rebate_rate_percents: [10],
+      unlocked_layers: 1,
+      rebate_base: 'consumption',
+      agent_level: 2,
+      agent_level_locked: false,
+      agent_upgrade_mode: 'manual',
+      current_invite_count: 0,
       invitees: [],
     })
   })
@@ -114,5 +120,86 @@ describe('AffiliateView', () => {
       `${window.location.origin}/register?aff=${encodeURIComponent(affiliateCode)}`,
       'affiliate.linkCopied',
     )
+  })
+
+  it('shows the agent level, locked layers and auto-upgrade progress', async () => {
+    getAffiliateDetail.mockResolvedValueOnce({
+      user_id: 1,
+      aff_code: affiliateCode,
+      inviter_id: null,
+      aff_count: 3,
+      aff_quota: 0,
+      aff_frozen_quota: 0,
+      aff_history_quota: 0,
+      effective_rebate_rate_percent: 8,
+      rebate_levels: 2,
+      level_rebate_rate_percents: [8, 3],
+      unlocked_layers: 1,
+      rebate_base: 'consumption',
+      agent_level: 2,
+      agent_level_locked: false,
+      agent_upgrade_mode: 'auto',
+      next_agent_level: 1,
+      next_level_threshold: 10,
+      current_invite_count: 3,
+      invitees: [],
+    })
+
+    const wrapper = mount(AffiliateView, {
+      global: {
+        stubs: {
+          AppLayout: { template: '<main><slot /></main>' },
+          Icon: true,
+        },
+      },
+    })
+    await flushPromises()
+
+    const card = wrapper.find('[data-test="affiliate-agent-level"]')
+    expect(card.exists()).toBe(true)
+    expect(card.text()).toContain('affiliate.stats.agentLevelValue')
+    expect(card.text()).toContain('affiliate.stats.unlockedLayers')
+    expect(wrapper.find('[data-test="affiliate-upgrade-progress"]').text()).toBe('affiliate.stats.upgradeProgress')
+
+    const rates = wrapper.findAll('[data-test="affiliate-level-rates"] li')
+    expect(rates).toHaveLength(2)
+    expect(rates[0]!.classes()).not.toContain('line-through')
+    expect(rates[1]!.classes()).toContain('line-through')
+    expect(rates[1]!.text()).toContain('affiliate.stats.levelRateLocked')
+  })
+
+  it('tells the user the level is admin-managed when upgrades are manual or locked', async () => {
+    getAffiliateDetail.mockResolvedValueOnce({
+      user_id: 1,
+      aff_code: affiliateCode,
+      inviter_id: null,
+      aff_count: 0,
+      aff_quota: 0,
+      aff_frozen_quota: 0,
+      aff_history_quota: 0,
+      effective_rebate_rate_percent: 8,
+      rebate_levels: 1,
+      level_rebate_rate_percents: [8],
+      unlocked_layers: 0,
+      rebate_base: 'recharge',
+      agent_level: 3,
+      agent_level_locked: true,
+      agent_upgrade_mode: 'auto',
+      next_agent_level: 2,
+      next_level_threshold: 5,
+      current_invite_count: 0,
+      invitees: [],
+    })
+
+    const wrapper = mount(AffiliateView, {
+      global: { stubs: { AppLayout: { template: '<main><slot /></main>' }, Icon: true } },
+    })
+    await flushPromises()
+
+    const card = wrapper.find('[data-test="affiliate-agent-level"]')
+    expect(card.text()).toContain('affiliate.stats.agentLevelLocked')
+    expect(card.text()).toContain('affiliate.stats.noUnlockedLayers')
+    expect(wrapper.find('[data-test="affiliate-upgrade-progress"]').text()).toBe('affiliate.stats.upgradeManual')
+    expect(wrapper.text()).toContain('affiliate.stats.rebateBaseRecharge')
   })
 })

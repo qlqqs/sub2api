@@ -58,3 +58,41 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 7: 代理等级与按消费结算的两层返利（实现完成，待提交）
+<!-- trellis-session: v=2 fp=aa4cc9c53e210de8 -->
+
+**Date**: 2026-10-21
+**Task**: 代理等级与按消费结算的两层返利（实现完成，待提交）
+**Branch**: `sub2api-custom`
+
+### Summary
+
+user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层返利受等级限制；新增消费定时结算任务、自动升级、管理端等级接口与前端页面
+
+### Main Changes
+
+- 迁移 247：agent_level、agent_level_locked、agent_level_source、rebate_settled_at、rebate_settled_consumption、ledger.source_usage_until
+- 设置：affiliate_rebate_base、affiliate_agent_upgrade_mode、level1/level2 阈值、count_mode、settle_interval；levels 上限改为 2，移除 L3
+- AccrueInviteRebate 仅在 recharge 基数生效；accrueRebateUpChain 按等级限制层数；SettleConsumptionRebates + AffiliateRebateSettleService 定时结算
+- 管理端：PUT users/:id 支持 agent_level/agent_level_locked，新增 batch-agent-level 与 agent-levels/reevaluate
+- 前端：设置页代理等级区块、专属用户等级列/批量设置/解锁、用户邀请页等级卡
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] go test ./... 通过（Aliyun captcha 3 个用例为环境原因预先失败）
+- [OK] 集成测试 Affiliate 相关通过（Docker Postgres）
+- [OK] 前端 typecheck/lint/check:i18n/全部 2876 用例/build 通过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 用户确认后提交并归档任务

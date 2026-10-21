@@ -490,7 +490,10 @@ export default {
         invitedCount: '邀请人数',
         rebatedInviteeCount: '已产生返利人数',
         availableQuota: '可提余额',
-        historyQuota: '历史返利'
+        historyQuota: '历史返利',
+        agentLevel: '代理等级',
+        agentLevelValue: '{n} 级',
+        agentLevelLocked: '已锁定'
       }
     },
 

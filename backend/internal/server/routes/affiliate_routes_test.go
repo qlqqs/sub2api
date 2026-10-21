@@ -27,6 +27,13 @@ func TestAffiliateRoutesBindingAndWithdrawalCoexist(t *testing.T) {
 
 	// Gin requires the same wildcard name for sibling routes of a method.
 	require.NotPanics(t, func() { registerAffiliateRoutes(admin, handlers) })
+	for _, path := range []string{"/api/v1/admin/affiliates/users/batch-agent-level", "/api/v1/admin/affiliates/agent-levels/reevaluate"} {
+		matchedPath = ""
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, httptest.NewRequest(http.MethodPost, path, nil))
+		require.Equal(t, http.StatusNoContent, response.Code, path)
+		require.Equal(t, path, matchedPath)
+	}
 	for _, tc := range []struct {
 		method string
 		suffix string

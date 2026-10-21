@@ -57,6 +57,11 @@ type UpdateAffiliateUserRequest struct {
 	// ClearRebateRate explicitly clears the per-user rate (sets it to NULL).
 	// Used to disambiguate from "field not provided".
 	ClearRebateRate bool `json:"clear_rebate_rate"`
+	// AgentLevel sets the fixed agent level (1 highest … 3 default). A demotion
+	// locks the user out of auto-upgrade; a promotion unlocks.
+	AgentLevel *int `json:"agent_level"`
+	// AgentLevelLocked explicitly locks/unlocks auto-upgrade, applied after AgentLevel.
+	AgentLevelLocked *bool `json:"agent_level_locked"`
 }
 
 func (h *AffiliateHandler) UpdateUserSettings(c *gin.Context) {
@@ -91,14 +96,28 @@ func (h *AffiliateHandler) UpdateUserSettings(c *gin.Context) {
 		}
 	}
 
+	if req.AgentLevel != nil {
+		if err := h.affiliateService.AdminSetAgentLevel(c.Request.Context(), []int64{userID}, *req.AgentLevel); err != nil {
+			response.ErrorFrom(c, err)
+			return
+		}
+	}
+	if req.AgentLevelLocked != nil {
+		if err := h.affiliateService.AdminSetAgentLevelLocked(c.Request.Context(), []int64{userID}, *req.AgentLevelLocked); err != nil {
+			response.ErrorFrom(c, err)
+			return
+		}
+	}
+
 	response.Success(c, gin.H{"user_id": userID})
 }
 
 // ClearUserSettings removes ALL of a user's custom affiliate settings — clears
-// the exclusive rebate rate AND regenerates the invite code as a new system
-// random one. Conceptually this "removes the user from the custom list".
+// the exclusive rebate rate, regenerates the invite code as a new system
+// random one, and resets the agent level to the default (unlocked).
+// Conceptually this "removes the user from the custom list".
 //
-// Both writes happen in this handler; failure of one leaves the other applied,
+// The writes happen in this handler; failure of one leaves the others applied,
 // but the operation is idempotent so the admin can re-run it safely.
 // DELETE /api/v1/admin/affiliates/users/:user_id
 func (h *AffiliateHandler) ClearUserSettings(c *gin.Context) {
@@ -115,7 +134,52 @@ func (h *AffiliateHandler) ClearUserSettings(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
+	if err := h.affiliateService.AdminSetAgentLevel(c.Request.Context(), []int64{userID}, service.AffiliateAgentLevelDefault); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	if err := h.affiliateService.AdminSetAgentLevelLocked(c.Request.Context(), []int64{userID}, false); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
 	response.Success(c, gin.H{"user_id": userID})
+}
+
+// BatchSetAgentLevelRequest sets the same agent level on many users. Demotions
+// lock auto-upgrade, promotions unlock it (same rule as single updates).
+// POST /api/v1/admin/affiliates/users/batch-agent-level
+type BatchSetAgentLevelRequest struct {
+	UserIDs    []int64 `json:"user_ids" binding:"required"`
+	AgentLevel int     `json:"agent_level" binding:"required"`
+}
+
+func (h *AffiliateHandler) BatchSetAgentLevel(c *gin.Context) {
+	var req BatchSetAgentLevelRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request: "+err.Error())
+		return
+	}
+	if len(req.UserIDs) == 0 {
+		response.BadRequest(c, "user_ids cannot be empty")
+		return
+	}
+	if err := h.affiliateService.AdminSetAgentLevel(c.Request.Context(), req.UserIDs, req.AgentLevel); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"affected": len(req.UserIDs)})
+}
+
+// ReevaluateAgentLevels re-runs the auto-upgrade evaluation for every user who
+// has invitees, using the current thresholds. Only promotions happen.
+// POST /api/v1/admin/affiliates/agent-levels/reevaluate
+func (h *AffiliateHandler) ReevaluateAgentLevels(c *gin.Context) {
+	evaluated, promoted, err := h.affiliateService.ReevaluateAllAgentLevels(c.Request.Context())
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"evaluated": evaluated, "promoted": promoted})
 }
 
 // BatchSetRate applies the same rebate rate (or clears it) to multiple users.

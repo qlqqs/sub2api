@@ -979,6 +979,7 @@ var ProviderSet = wire.NewSet(
 	ProvidePaymentConfigService,
 	ProvidePaymentService,
 	ProvidePaymentOrderExpiryService,
+	ProvideAffiliateRebateSettleService,
 	ProvideBalanceNotifyService,
 	ProvideChannelMonitorService,
 	ProvideChannelMonitorRunner,
@@ -1013,6 +1014,14 @@ func ProvideBalanceNotifyService(emailService *EmailService, settingRepo Setting
 func ProvidePaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, redeemService *RedeemService, subscriptionSvc *SubscriptionService, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository, affiliateService *AffiliateService, notificationEmailService *NotificationEmailService) *PaymentService {
 	svc := NewPaymentService(entClient, registry, loadBalancer, redeemService, subscriptionSvc, configService, userRepo, groupRepo, affiliateService)
 	svc.SetNotificationEmailService(notificationEmailService)
+	return svc
+}
+
+// ProvideAffiliateRebateSettleService creates and starts the consumption rebate settlement job.
+func ProvideAffiliateRebateSettleService(affiliateSvc *AffiliateService, settingSvc *SettingService, lockCache LeaderLockCache, db *sql.DB) *AffiliateRebateSettleService {
+	svc := NewAffiliateRebateSettleService(affiliateSvc, settingSvc)
+	svc.SetLeaderLock(lockCache, db)
+	svc.Start()
 	return svc
 }
 

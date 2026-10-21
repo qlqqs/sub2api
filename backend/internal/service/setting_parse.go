@@ -131,7 +131,12 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyAffiliateRebatePerInviteeCap:              strconv.FormatFloat(AffiliateRebatePerInviteeCapDefault, 'f', 2, 64),
 		SettingKeyAffiliateRebateLevels:                     strconv.Itoa(AffiliateRebateLevelsDefault),
 		SettingKeyAffiliateRebateRateL2:                     strconv.FormatFloat(AffiliateRebateRateL2Default, 'f', 8, 64),
-		SettingKeyAffiliateRebateRateL3:                     strconv.FormatFloat(AffiliateRebateRateL3Default, 'f', 8, 64),
+		SettingKeyAffiliateRebateBase:                       AffiliateRebateBaseDefault,
+		SettingKeyAffiliateAgentUpgradeMode:                 AffiliateAgentUpgradeModeDefault,
+		SettingKeyAffiliateAgentLevel2Threshold:             strconv.Itoa(AffiliateAgentThresholdDefault),
+		SettingKeyAffiliateAgentLevel1Threshold:             strconv.Itoa(AffiliateAgentThresholdDefault),
+		SettingKeyAffiliateAgentCountMode:                   AffiliateAgentCountModeDefault,
+		SettingKeyAffiliateSettleIntervalMinutes:            strconv.Itoa(AffiliateSettleIntervalMinutesDefault),
 		SettingKeyDefaultUserRPMLimit:                       "0",
 		SettingKeyDefaultSubscriptions:                      "[]",
 		SettingKeyAuthSourceDefaultEmailBalance:             "0",
@@ -434,9 +439,14 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 	if rate, err := strconv.ParseFloat(settings[SettingKeyAffiliateRebateRateL2], 64); err == nil {
 		result.AffiliateRebateRateL2 = clampAffiliateRebateRate(rate)
 	}
-	result.AffiliateRebateRateL3 = AffiliateRebateRateL3Default
-	if rate, err := strconv.ParseFloat(settings[SettingKeyAffiliateRebateRateL3], 64); err == nil {
-		result.AffiliateRebateRateL3 = clampAffiliateRebateRate(rate)
+	result.AffiliateRebateBase = normalizeAffiliateRebateBase(settings[SettingKeyAffiliateRebateBase])
+	result.AffiliateAgentUpgradeMode = normalizeAffiliateAgentUpgradeMode(settings[SettingKeyAffiliateAgentUpgradeMode])
+	result.AffiliateAgentLevel2Threshold = parseAffiliateAgentThreshold(settings[SettingKeyAffiliateAgentLevel2Threshold])
+	result.AffiliateAgentLevel1Threshold = parseAffiliateAgentThreshold(settings[SettingKeyAffiliateAgentLevel1Threshold])
+	result.AffiliateAgentCountMode = normalizeAffiliateAgentCountMode(settings[SettingKeyAffiliateAgentCountMode])
+	result.AffiliateSettleIntervalMinutes = AffiliateSettleIntervalMinutesDefault
+	if minutes, err := strconv.Atoi(settings[SettingKeyAffiliateSettleIntervalMinutes]); err == nil {
+		result.AffiliateSettleIntervalMinutes = clampAffiliateSettleIntervalMinutes(minutes)
 	}
 	result.DefaultSubscriptions = parseDefaultSubscriptions(settings[SettingKeyDefaultSubscriptions])
 
@@ -1043,6 +1053,55 @@ func clampAffiliateRebateLevels(value int) int {
 	}
 	if value > AffiliateRebateLevelsMax {
 		return AffiliateRebateLevelsMax
+	}
+	return value
+}
+
+func normalizeAffiliateRebateBase(value string) string {
+	if strings.EqualFold(strings.TrimSpace(value), AffiliateRebateBaseRecharge) {
+		return AffiliateRebateBaseRecharge
+	}
+	return AffiliateRebateBaseConsumption
+}
+
+func normalizeAffiliateAgentUpgradeMode(value string) string {
+	if strings.EqualFold(strings.TrimSpace(value), AffiliateAgentUpgradeModeAuto) {
+		return AffiliateAgentUpgradeModeAuto
+	}
+	return AffiliateAgentUpgradeModeManual
+}
+
+func normalizeAffiliateAgentCountMode(value string) string {
+	if strings.EqualFold(strings.TrimSpace(value), AffiliateAgentCountModeRecharged) {
+		return AffiliateAgentCountModeRecharged
+	}
+	return AffiliateAgentCountModeAll
+}
+
+func clampAffiliateAgentThreshold(value int) int {
+	if value < 0 {
+		return AffiliateAgentThresholdDefault
+	}
+	if value > AffiliateAgentThresholdMax {
+		return AffiliateAgentThresholdMax
+	}
+	return value
+}
+
+func parseAffiliateAgentThreshold(raw string) int {
+	value, err := strconv.Atoi(strings.TrimSpace(raw))
+	if err != nil {
+		return AffiliateAgentThresholdDefault
+	}
+	return clampAffiliateAgentThreshold(value)
+}
+
+func clampAffiliateSettleIntervalMinutes(value int) int {
+	if value < AffiliateSettleIntervalMinutesMin {
+		return AffiliateSettleIntervalMinutesMin
+	}
+	if value > AffiliateSettleIntervalMinutesMax {
+		return AffiliateSettleIntervalMinutesMax
 	}
 	return value
 }

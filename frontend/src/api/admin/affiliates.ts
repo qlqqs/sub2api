@@ -15,6 +15,10 @@ export interface AffiliateAdminEntry {
   aff_code_custom: boolean
   aff_rebate_rate_percent?: number | null
   aff_count: number
+  /** Fixed agent level: 1 highest, 3 default. */
+  agent_level: number
+  agent_level_locked: boolean
+  agent_level_source: 'default' | 'auto' | 'manual' | string
 }
 
 export interface ListAffiliateUsersParams {
@@ -119,6 +123,9 @@ export interface AffiliateUserOverview {
   rebated_invitee_count: number
   available_quota: number
   history_quota: number
+  agent_level: number
+  agent_level_locked: boolean
+  agent_level_source: string
 }
 
 export interface UpdateAffiliateUserRequest {
@@ -126,6 +133,20 @@ export interface UpdateAffiliateUserRequest {
   aff_rebate_rate_percent?: number | null
   /** Set true to explicitly clear the per-user rate (sets it to NULL). */
   clear_rebate_rate?: boolean
+  /** Agent level 1-3. Demotion locks auto-upgrade, promotion unlocks. */
+  agent_level?: number
+  /** Explicitly lock/unlock auto-upgrade; applied after agent_level. */
+  agent_level_locked?: boolean
+}
+
+export interface BatchSetAgentLevelRequest {
+  user_ids: number[]
+  agent_level: number
+}
+
+export interface ReevaluateAgentLevelsResponse {
+  evaluated: number
+  promoted: number
 }
 
 export interface BatchSetRateRequest {
@@ -221,6 +242,23 @@ export async function batchSetRate(
   return data
 }
 
+export async function batchSetAgentLevel(
+  payload: BatchSetAgentLevelRequest,
+): Promise<{ affected: number }> {
+  const { data } = await apiClient.post<{ affected: number }>(
+    '/admin/affiliates/users/batch-agent-level',
+    payload,
+  )
+  return data
+}
+
+export async function reevaluateAgentLevels(): Promise<ReevaluateAgentLevelsResponse> {
+  const { data } = await apiClient.post<ReevaluateAgentLevelsResponse>(
+    '/admin/affiliates/agent-levels/reevaluate',
+  )
+  return data
+}
+
 function recordParams(params: ListAffiliateRecordsParams = {}) {
   return {
     page: params.page ?? 1,
@@ -301,6 +339,8 @@ export const affiliatesAPI = {
   updateUserSettings,
   clearUserSettings,
   batchSetRate,
+  batchSetAgentLevel,
+  reevaluateAgentLevels,
   listInviteRecords,
   listRebateRecords,
   listTransferRecords,

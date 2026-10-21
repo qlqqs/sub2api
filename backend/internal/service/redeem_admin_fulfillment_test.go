@@ -31,11 +31,12 @@ func TestAdminFulfillmentBypassesLimitAndKeepsRedeemAffiliate(t *testing.T) {
 			UserID: userID, AffCode: "INVITEE", InviterID: &inviterID, CreatedAt: time.Now().Add(-time.Hour),
 		},
 		inviterSummary: &AffiliateSummary{
-			UserID: inviterID, AffCode: "INVITER", CreatedAt: time.Now().Add(-2 * time.Hour),
+			UserID: inviterID, AffCode: "INVITER", AgentLevel: 2, CreatedAt: time.Now().Add(-2 * time.Hour),
 		},
 	}
 	settingSvc := NewSettingService(&paymentFulfillmentSettingRepoStub{values: map[string]string{
 		SettingKeyAffiliateEnabled:           "true",
+		SettingKeyAffiliateRebateBase:        AffiliateRebateBaseRecharge,
 		SettingKeyAffiliateRebateRate:        "10",
 		SettingKeyAffiliateRebateFreezeHours: "0",
 	}}, nil)

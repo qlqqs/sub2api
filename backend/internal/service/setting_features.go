@@ -175,29 +175,82 @@ func (s *SettingService) GetAffiliateRebateLevels(ctx context.Context) int {
 }
 
 // GetAffiliateRebateRatePercentForLevel 返回指定层级的全局返利比例。
-// 一级沿用 affiliate_rebate_rate；二、三级各有独立设置项；越界层级返回 0。
+// 第一层沿用 affiliate_rebate_rate；第二层有独立设置项；越界层级返回 0。
 func (s *SettingService) GetAffiliateRebateRatePercentForLevel(ctx context.Context, level int) float64 {
-	var key string
-	var fallback float64
 	switch level {
 	case 1:
 		return s.GetAffiliateRebateRatePercent(ctx)
 	case 2:
-		key, fallback = SettingKeyAffiliateRebateRateL2, AffiliateRebateRateL2Default
-	case 3:
-		key, fallback = SettingKeyAffiliateRebateRateL3, AffiliateRebateRateL3Default
+	default:
+		return 0
+	}
+	raw, err := s.settingRepo.GetValue(ctx, SettingKeyAffiliateRebateRateL2)
+	if err != nil {
+		return AffiliateRebateRateL2Default
+	}
+	rate, err := strconv.ParseFloat(strings.TrimSpace(raw), 64)
+	if err != nil || math.IsNaN(rate) || math.IsInf(rate, 0) {
+		return AffiliateRebateRateL2Default
+	}
+	return clampAffiliateRebateRate(rate)
+}
+
+// GetAffiliateRebateBase 返回返利基数：recharge（按充值即时入账）或 consumption（按余额消费定时结算）。
+func (s *SettingService) GetAffiliateRebateBase(ctx context.Context) string {
+	raw, err := s.settingRepo.GetValue(ctx, SettingKeyAffiliateRebateBase)
+	if err != nil {
+		return AffiliateRebateBaseDefault
+	}
+	return normalizeAffiliateRebateBase(raw)
+}
+
+// GetAffiliateAgentUpgradeMode 返回代理升级方式：manual 或 auto。
+func (s *SettingService) GetAffiliateAgentUpgradeMode(ctx context.Context) string {
+	raw, err := s.settingRepo.GetValue(ctx, SettingKeyAffiliateAgentUpgradeMode)
+	if err != nil {
+		return AffiliateAgentUpgradeModeDefault
+	}
+	return normalizeAffiliateAgentUpgradeMode(raw)
+}
+
+// GetAffiliateAgentCountMode 返回自动升级时邀请人数的统计口径：all 或 recharged。
+func (s *SettingService) GetAffiliateAgentCountMode(ctx context.Context) string {
+	raw, err := s.settingRepo.GetValue(ctx, SettingKeyAffiliateAgentCountMode)
+	if err != nil {
+		return AffiliateAgentCountModeDefault
+	}
+	return normalizeAffiliateAgentCountMode(raw)
+}
+
+// GetAffiliateAgentLevelThreshold 返回自动升到指定等级（1 或 2）所需的邀请人数；0 表示不自动升。
+func (s *SettingService) GetAffiliateAgentLevelThreshold(ctx context.Context, level int) int {
+	var key string
+	switch level {
+	case 1:
+		key = SettingKeyAffiliateAgentLevel1Threshold
+	case 2:
+		key = SettingKeyAffiliateAgentLevel2Threshold
 	default:
 		return 0
 	}
 	raw, err := s.settingRepo.GetValue(ctx, key)
 	if err != nil {
-		return fallback
+		return AffiliateAgentThresholdDefault
 	}
-	rate, err := strconv.ParseFloat(strings.TrimSpace(raw), 64)
-	if err != nil || math.IsNaN(rate) || math.IsInf(rate, 0) {
-		return fallback
+	return parseAffiliateAgentThreshold(raw)
+}
+
+// GetAffiliateSettleIntervalMinutes 返回消费返利结算周期（分钟），始终落在 [Min, Max]。
+func (s *SettingService) GetAffiliateSettleIntervalMinutes(ctx context.Context) int {
+	raw, err := s.settingRepo.GetValue(ctx, SettingKeyAffiliateSettleIntervalMinutes)
+	if err != nil {
+		return AffiliateSettleIntervalMinutesDefault
 	}
-	return clampAffiliateRebateRate(rate)
+	minutes, err := strconv.Atoi(strings.TrimSpace(raw))
+	if err != nil {
+		return AffiliateSettleIntervalMinutesDefault
+	}
+	return clampAffiliateSettleIntervalMinutes(minutes)
 }
 
 // IsPasswordResetEnabled 检查是否启用密码重置功能

@@ -824,12 +824,14 @@ func registerAffiliateRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		affiliates.GET("/invites", h.Admin.Affiliate.ListInviteRecords)
 		affiliates.GET("/rebates", h.Admin.Affiliate.ListRebateRecords)
 		affiliates.GET("/transfers", h.Admin.Affiliate.ListTransferRecords)
+		affiliates.POST("/agent-levels/reevaluate", h.Admin.Affiliate.ReevaluateAgentLevels)
 
 		users := affiliates.Group("/users")
 		{
 			users.GET("", h.Admin.Affiliate.ListUsers)
 			users.GET("/lookup", h.Admin.Affiliate.LookupUsers)
 			users.POST("/batch-rate", h.Admin.Affiliate.BatchSetRate)
+			users.POST("/batch-agent-level", h.Admin.Affiliate.BatchSetAgentLevel)
 			users.GET("/:user_id/overview", h.Admin.Affiliate.GetUserOverview)
 			users.POST("/:user_id/inviter", h.Admin.Affiliate.BindInviter)
 			users.POST("/:user_id/withdraw", h.Admin.Affiliate.WithdrawQuota)

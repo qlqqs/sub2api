@@ -78,8 +78,38 @@ type AffiliateSummary struct {
 	AffQuota             float64    `json:"aff_quota"`
 	AffFrozenQuota       float64    `json:"aff_frozen_quota"`
 	AffHistoryQuota      float64    `json:"aff_history_quota"`
-	CreatedAt            time.Time  `json:"created_at"`
-	UpdatedAt            time.Time  `json:"updated_at"`
+	// AgentLevel 是固定的代理等级：1 最高，3 最低（默认）。等级决定能获得几层返利。
+	AgentLevel          int        `json:"agent_level"`
+	AgentLevelLocked    bool       `json:"agent_level_locked"`
+	AgentLevelSource    string     `json:"agent_level_source"`
+	AgentLevelUpdatedAt *time.Time `json:"agent_level_updated_at,omitempty"`
+	// RebateSettledAt / RebateSettledConsumption 是按消费结算返利的水位。
+	RebateSettledAt          time.Time `json:"-"`
+	RebateSettledConsumption float64   `json:"-"`
+	CreatedAt                time.Time `json:"created_at"`
+	UpdatedAt                time.Time `json:"updated_at"`
+}
+
+// AffiliateAccrueSource 标识一笔返利的来源：充值订单（OrderID）或消费结算
+// （UsageUntil 为本次结算覆盖到的 usage_logs.created_at 上界）。两者都为 nil
+// 时来自兑换码或管理员加款。
+type AffiliateAccrueSource struct {
+	OrderID    *int64
+	UsageUntil *time.Time
+}
+
+// AffiliatePendingConsumption 是一个用户待结算的余额消费快照（行锁内读取）。
+type AffiliatePendingConsumption struct {
+	UserID int64
+	// SettledAt 是上次结算的水位；UntilAt 是本次可推进到的水位（当前时间减去滞后）。
+	SettledAt time.Time
+	UntilAt   time.Time
+	// DeltaCost 是 (SettledAt, UntilAt] 区间内的余额消费合计。
+	DeltaCost float64
+	// PaidTotal 是真实支付的充值总额（扣除赠送与已退款）；SettledConsumption 是
+	// 之前已计入返利的累计消费。两者之差是本次最多可计入返利的额度。
+	PaidTotal          float64
+	SettledConsumption float64
 }
 
 type AffiliateInviterBinding struct {
@@ -115,23 +145,52 @@ type AffiliateDetail struct {
 	// 优先用户自己的专属比例（aff_rebate_rate_percent），否则回退到全局比例。
 	// 用于在用户的 /affiliate 页面直观展示「分享后能拿到多少」。
 	EffectiveRebateRatePercent float64 `json:"effective_rebate_rate_percent"`
-	// RebateLevels 是管理员开放的代理层级数；LevelRebateRatePercents 按层级
-	// 列出当前用户可获得的比例（下标 0 为直属一级，已套用专属比例）。
-	RebateLevels            int                `json:"rebate_levels"`
-	LevelRebateRatePercents []float64          `json:"level_rebate_rate_percents"`
-	Invitees                []AffiliateInvitee `json:"invitees"`
+	// RebateLevels 是管理员开放的返利层数；LevelRebateRatePercents 按层列出
+	// 比例（下标 0 为直属一层，已套用专属比例）。UnlockedLayers 是当前用户
+	// 按代理等级实际能获得的层数。
+	RebateLevels            int       `json:"rebate_levels"`
+	LevelRebateRatePercents []float64 `json:"level_rebate_rate_percents"`
+	UnlockedLayers          int       `json:"unlocked_layers"`
+	RebateBase              string    `json:"rebate_base"`
+	AgentLevel              int       `json:"agent_level"`
+	AgentLevelLocked        bool      `json:"agent_level_locked"`
+	// 自动升级模式下的进度：NextAgentLevel/NextLevelThreshold 为 nil 表示没有可自动升到的等级。
+	AgentUpgradeMode   string             `json:"agent_upgrade_mode"`
+	NextAgentLevel     *int               `json:"next_agent_level,omitempty"`
+	NextLevelThreshold *int               `json:"next_level_threshold,omitempty"`
+	CurrentInviteCount int                `json:"current_invite_count"`
+	Invitees           []AffiliateInvitee `json:"invitees"`
 }
 
 type AffiliateRepository interface {
 	EnsureUserAffiliate(ctx context.Context, userID int64) (*AffiliateSummary, error)
 	GetAffiliateByCode(ctx context.Context, code string) (*AffiliateSummary, error)
 	BindInviter(ctx context.Context, userID, inviterID int64, binding AffiliateInviterBinding) (*AffiliateInviterBindingResult, bool, error)
-	AccrueQuota(ctx context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, sourceOrderID *int64, rebateLevel int) (bool, error)
+	AccrueQuota(ctx context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, source AffiliateAccrueSource, rebateLevel int) (bool, error)
 	GetAccruedRebateFromInvitee(ctx context.Context, inviterID, inviteeUserID int64) (float64, error)
 	ThawFrozenQuota(ctx context.Context, userID int64) (float64, error)
 	TransferQuotaToBalance(ctx context.Context, userID int64) (float64, float64, error)
 	WithdrawQuota(ctx context.Context, userID int64, amount float64, operationID string) (*AffiliateWithdrawResult, error)
 	ListInvitees(ctx context.Context, inviterID int64, limit int) ([]AffiliateInvitee, error)
+
+	// 代理等级
+	// CountQualifiedInvitees 统计直属邀请人数；rechargedOnly 时只算有过真实支付充值的。
+	CountQualifiedInvitees(ctx context.Context, inviterID int64, rechargedOnly bool) (int, error)
+	// PromoteAgentLevelAuto 把未锁定且等级低于 level 的用户自动升到 level，返回是否升级。
+	PromoteAgentLevelAuto(ctx context.Context, userID int64, level int) (bool, error)
+	// SetAgentLevelManual 管理员设置等级：降级时锁定，升级时解锁，相同等级只改来源。
+	SetAgentLevelManual(ctx context.Context, userIDs []int64, level int) error
+	SetAgentLevelLocked(ctx context.Context, userIDs []int64, locked bool) error
+	// ListInviterIDs 按 user_id 升序分页列出有直属下级的用户，用于重新评估等级。
+	ListInviterIDs(ctx context.Context, afterUserID int64, limit int) ([]int64, error)
+
+	// 按消费结算
+	WithTx(ctx context.Context, fn func(txCtx context.Context) error) error
+	// ListUsersWithPendingConsumption 列出有邀请人且水位之后有新余额消费的用户。
+	ListUsersWithPendingConsumption(ctx context.Context, lag time.Duration, limit int) ([]int64, error)
+	// LockPendingConsumption 在事务内锁定用户行并读取待结算消费快照。
+	LockPendingConsumption(ctx context.Context, userID int64, lag time.Duration) (*AffiliatePendingConsumption, error)
+	AdvanceConsumptionWatermark(ctx context.Context, userID int64, until time.Time, settledConsumption float64) error
 
 	// 管理端：用户级专属配置
 	UpdateUserAffCode(ctx context.Context, userID int64, newCode string) error
@@ -161,6 +220,9 @@ type AffiliateAdminEntry struct {
 	AffCodeCustom        bool     `json:"aff_code_custom"`
 	AffRebateRatePercent *float64 `json:"aff_rebate_rate_percent,omitempty"`
 	AffCount             int      `json:"aff_count"`
+	AgentLevel           int      `json:"agent_level"`
+	AgentLevelLocked     bool     `json:"agent_level_locked"`
+	AgentLevelSource     string   `json:"agent_level_source"`
 }
 
 type AffiliateRecordFilter struct {
@@ -250,6 +312,9 @@ type AffiliateUserOverview struct {
 	RebatedInviteeCount int     `json:"rebated_invitee_count"`
 	AvailableQuota      float64 `json:"available_quota"`
 	HistoryQuota        float64 `json:"history_quota"`
+	AgentLevel          int     `json:"agent_level"`
+	AgentLevelLocked    bool    `json:"agent_level_locked"`
+	AgentLevelSource    string  `json:"agent_level_source"`
 }
 
 type AffiliateService struct {
@@ -306,7 +371,12 @@ func (s *AffiliateService) GetAffiliateDetail(ctx context.Context, userID int64)
 	for level := 1; level <= levels; level++ {
 		levelRates = append(levelRates, s.resolveRebateRatePercentForLevel(ctx, summary, level))
 	}
-	return &AffiliateDetail{
+	agentLevel := normalizeAgentLevel(summary.AgentLevel)
+	unlocked := agentLevelAllowedLayers(agentLevel)
+	if unlocked > levels {
+		unlocked = levels
+	}
+	detail := &AffiliateDetail{
 		UserID:                     summary.UserID,
 		AffCode:                    summary.AffCode,
 		InviterID:                  summary.InviterID,
@@ -317,8 +387,25 @@ func (s *AffiliateService) GetAffiliateDetail(ctx context.Context, userID int64)
 		EffectiveRebateRatePercent: levelRates[0],
 		RebateLevels:               levels,
 		LevelRebateRatePercents:    levelRates,
+		UnlockedLayers:             unlocked,
+		RebateBase:                 s.rebateBase(ctx),
+		AgentLevel:                 agentLevel,
+		AgentLevelLocked:           summary.AgentLevelLocked,
+		AgentUpgradeMode:           s.agentUpgradeMode(ctx),
 		Invitees:                   invitees,
-	}, nil
+	}
+	if detail.AgentUpgradeMode == AffiliateAgentUpgradeModeAuto && !summary.AgentLevelLocked {
+		if next, threshold, ok := s.nextAutoAgentLevel(ctx, agentLevel); ok {
+			count, err := s.repo.CountQualifiedInvitees(ctx, userID, s.agentCountMode(ctx) == AffiliateAgentCountModeRecharged)
+			if err != nil {
+				return nil, err
+			}
+			detail.NextAgentLevel = &next
+			detail.NextLevelThreshold = &threshold
+			detail.CurrentInviteCount = count
+		}
+	}
+	return detail, nil
 }
 
 func (s *AffiliateService) BindInviterByCode(ctx context.Context, userID int64, rawCode string) error {
@@ -363,6 +450,7 @@ func (s *AffiliateService) BindInviterByCode(ctx context.Context, userID int64, 
 	if !bound {
 		return ErrAffiliateAlreadyBound
 	}
+	s.tryAutoUpgradeAgentLevel(ctx, inviterSummary.UserID)
 	return nil
 }
 
@@ -401,9 +489,12 @@ func (s *AffiliateService) AdminBindInviter(ctx context.Context, inviteeID, invi
 	if !bound {
 		return nil, ErrAffiliateAlreadyBound
 	}
+	s.tryAutoUpgradeAgentLevel(ctx, inviterID)
 	return result, nil
 }
 
+// AccrueInviteRebate 按充值入账返利。仅在返利基数为「充值」时生效；基数为「消费」
+// 时充值不产生返利，由 SettleConsumptionRebates 定时按消费结算。
 func (s *AffiliateService) AccrueInviteRebate(ctx context.Context, inviteeUserID int64, baseRechargeAmount float64) (float64, error) {
 	return s.AccrueInviteRebateForOrder(ctx, inviteeUserID, baseRechargeAmount, nil)
 }
@@ -419,22 +510,32 @@ func (s *AffiliateService) AccrueInviteRebateForOrder(ctx context.Context, invit
 	if !s.IsEnabled(ctx) {
 		return 0, nil
 	}
+	if s.rebateBase(ctx) != AffiliateRebateBaseRecharge {
+		return 0, nil
+	}
 
 	inviteeSummary, err := s.repo.EnsureUserAffiliate(ctx, inviteeUserID)
 	if err != nil {
 		return 0, err
 	}
-	if inviteeSummary.InviterID == nil || *inviteeSummary.InviterID <= 0 {
+	return s.accrueRebateUpChain(ctx, inviteeSummary, baseRechargeAmount, AffiliateAccrueSource{OrderID: sourceOrderID})
+}
+
+// accrueRebateUpChain 沿 sourceUser 的邀请链向上逐层入账：每一层都以 baseAmount
+// 为基数，受益人必须具备该层对应的代理等级，否则该层由平台保留并继续向上。
+// 有效期以 sourceUser 的绑定时间为准，对全部层级统一判断。
+func (s *AffiliateService) accrueRebateUpChain(ctx context.Context, sourceUser *AffiliateSummary, baseAmount float64, source AffiliateAccrueSource) (float64, error) {
+	if sourceUser == nil || sourceUser.InviterID == nil || *sourceUser.InviterID <= 0 {
 		return 0, nil
 	}
-
-	// 有效期检查：超过返利有效期后不再产生返利。以充值用户自己的绑定时间为准，
-	// 对全部层级统一判断。
+	if baseAmount <= 0 || math.IsNaN(baseAmount) || math.IsInf(baseAmount, 0) {
+		return 0, nil
+	}
 	if s.settingService != nil {
 		if durationDays := s.settingService.GetAffiliateRebateDurationDays(ctx); durationDays > 0 {
-			bindingStart := inviteeSummary.CreatedAt
-			if inviteeSummary.InviterBoundAt != nil {
-				bindingStart = *inviteeSummary.InviterBoundAt
+			bindingStart := sourceUser.CreatedAt
+			if sourceUser.InviterBoundAt != nil {
+				bindingStart = *sourceUser.InviterBoundAt
 			}
 			if time.Now().After(bindingStart.AddDate(0, 0, durationDays)) {
 				return 0, nil
@@ -449,12 +550,12 @@ func (s *AffiliateService) AccrueInviteRebateForOrder(ctx context.Context, invit
 		perInviteeCap = s.settingService.GetAffiliateRebatePerInviteeCap(ctx)
 	}
 	levels := s.rebateLevels(ctx)
+	sourceUserID := sourceUser.UserID
 
-	// 沿邀请链向上逐级入账：每一级都以充值用户的本次流水为基数。
 	// visited 防止历史数据中出现环时死循环。
-	visited := map[int64]struct{}{inviteeUserID: {}}
+	visited := map[int64]struct{}{sourceUserID: {}}
 	var total float64
-	beneficiaryID := *inviteeSummary.InviterID
+	beneficiaryID := *sourceUser.InviterID
 	for level := 1; level <= levels; level++ {
 		if _, seen := visited[beneficiaryID]; seen {
 			break
@@ -470,10 +571,13 @@ func (s *AffiliateService) AccrueInviteRebateForOrder(ctx context.Context, invit
 			return total, err
 		}
 
-		rebate := roundTo(baseRechargeAmount*(s.resolveRebateRatePercentForLevel(ctx, beneficiary, level)/100), 8)
+		var rebate float64
+		if agentLevelAllowsLayer(beneficiary.AgentLevel, level) {
+			rebate = roundTo(baseAmount*(s.resolveRebateRatePercentForLevel(ctx, beneficiary, level)/100), 8)
+		}
 		if rebate > 0 && perInviteeCap > 0 {
-			// 单人上限按「受益人 × 充值用户」独立计算，精确截断到剩余额度
-			existing, err := s.repo.GetAccruedRebateFromInvitee(ctx, beneficiaryID, inviteeUserID)
+			// 单人上限按「受益人 × 来源用户」独立计算，精确截断到剩余额度
+			existing, err := s.repo.GetAccruedRebateFromInvitee(ctx, beneficiaryID, sourceUserID)
 			if err != nil {
 				return total, err
 			}
@@ -484,7 +588,7 @@ func (s *AffiliateService) AccrueInviteRebateForOrder(ctx context.Context, invit
 			}
 		}
 		if rebate > 0 {
-			applied, err := s.repo.AccrueQuota(ctx, beneficiaryID, inviteeUserID, rebate, freezeHours, sourceOrderID, level)
+			applied, err := s.repo.AccrueQuota(ctx, beneficiaryID, sourceUserID, rebate, freezeHours, source, level)
 			if err != nil {
 				return total, err
 			}
@@ -501,7 +605,16 @@ func (s *AffiliateService) AccrueInviteRebateForOrder(ctx context.Context, invit
 	return total, nil
 }
 
-// rebateLevels returns how many agent levels the admin has opened (1 when
+// rebateBase 返回返利基数（充值 / 消费）；SettingService 不可用时按充值处理，
+// 与历史行为一致。
+func (s *AffiliateService) rebateBase(ctx context.Context) string {
+	if s == nil || s.settingService == nil {
+		return AffiliateRebateBaseRecharge
+	}
+	return s.settingService.GetAffiliateRebateBase(ctx)
+}
+
+// rebateLevels returns how many rebate layers the admin has opened (1 when
 // SettingService is unavailable, matching the single-level legacy behavior).
 func (s *AffiliateService) rebateLevels(ctx context.Context) int {
 	if s == nil || s.settingService == nil {

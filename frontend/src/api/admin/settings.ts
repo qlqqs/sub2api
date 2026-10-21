@@ -434,7 +434,12 @@ export interface SystemSettings {
   affiliate_admin_recharge_enabled: boolean;
   affiliate_rebate_levels: number;
   affiliate_rebate_rate_l2: number;
-  affiliate_rebate_rate_l3: number;
+  affiliate_rebate_base: "recharge" | "consumption";
+  affiliate_agent_upgrade_mode: "manual" | "auto";
+  affiliate_agent_level2_threshold: number;
+  affiliate_agent_level1_threshold: number;
+  affiliate_agent_count_mode: "all" | "recharged";
+  affiliate_settle_interval_minutes: number;
   default_concurrency: number;
   default_user_rpm_limit: number;
   default_subscriptions: DefaultSubscriptionSetting[];
@@ -790,7 +795,12 @@ export interface UpdateSettingsRequest {
   affiliate_admin_recharge_enabled?: boolean;
   affiliate_rebate_levels?: number;
   affiliate_rebate_rate_l2?: number;
-  affiliate_rebate_rate_l3?: number;
+  affiliate_rebate_base?: "recharge" | "consumption";
+  affiliate_agent_upgrade_mode?: "manual" | "auto";
+  affiliate_agent_level2_threshold?: number;
+  affiliate_agent_level1_threshold?: number;
+  affiliate_agent_count_mode?: "all" | "recharged";
+  affiliate_settle_interval_minutes?: number;
   default_concurrency?: number;
   default_user_rpm_limit?: number;
   default_subscriptions?: DefaultSubscriptionSetting[];

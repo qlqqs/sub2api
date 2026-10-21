@@ -490,7 +490,10 @@ export default {
         invitedCount: 'Invited Users',
         rebatedInviteeCount: 'Rebated Invitees',
         availableQuota: 'Available Quota',
-        historyQuota: 'Historical Rebate'
+        historyQuota: 'Historical Rebate',
+        agentLevel: 'Agent Level',
+        agentLevelValue: 'Level {n}',
+        agentLevelLocked: 'locked'
       }
     },
 

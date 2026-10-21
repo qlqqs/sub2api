@@ -8,6 +8,28 @@
       </div>
 
       <template v-else-if="detail">
+        <div class="card p-5" data-test="affiliate-agent-level">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.stats.agentLevel') }}</p>
+              <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                {{ t('affiliate.stats.agentLevelValue', { n: detail.agent_level }) }}
+                <span
+                  v-if="detail.agent_level_locked"
+                  class="ml-2 align-middle rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                >{{ t('affiliate.stats.agentLevelLocked') }}</span>
+              </p>
+              <p class="mt-1 text-xs text-gray-400 dark:text-dark-500">
+                <template v-if="detail.unlocked_layers > 0">{{ t('affiliate.stats.unlockedLayers', { n: detail.unlocked_layers }, detail.unlocked_layers) }}</template>
+                <template v-else>{{ t('affiliate.stats.noUnlockedLayers') }}</template>
+              </p>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300" data-test="affiliate-upgrade-progress">
+              {{ upgradeProgressText }}
+            </p>
+          </div>
+        </div>
+
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div class="card p-5">
             <p class="flex items-center gap-1.5 text-sm text-gray-500 dark:text-dark-400">
@@ -18,15 +40,16 @@
               {{ formattedRebateRate }}<span class="ml-0.5 text-base font-medium">%</span>
             </p>
             <p class="mt-1 text-xs text-gray-400 dark:text-dark-500">
-              {{ t('affiliate.stats.rebateRateHint') }}
+              {{ rebateBaseText }}
             </p>
             <ul
               v-if="levelRates.length > 1"
               class="mt-2 space-y-0.5 text-xs text-gray-500 dark:text-dark-400"
               data-test="affiliate-level-rates"
             >
-              <li v-for="item in levelRates" :key="item.level">
+              <li v-for="item in levelRates" :key="item.level" :class="item.unlocked ? '' : 'line-through opacity-60'">
                 {{ t('affiliate.stats.levelRateItem', { n: item.level, rate: `${item.rate}%` }) }}
+                <span v-if="!item.unlocked">({{ t('affiliate.stats.levelRateLocked') }})</span>
               </li>
             </ul>
           </div>
@@ -189,8 +212,28 @@ const levelRates = computed(() =>
   (detail.value?.level_rebate_rate_percents ?? []).map((rate, index) => ({
     level: index + 1,
     rate: formatRate(rate),
+    unlocked: index < (detail.value?.unlocked_layers ?? 0),
   })),
 )
+
+const rebateBaseText = computed(() =>
+  detail.value?.rebate_base === 'recharge'
+    ? t('affiliate.stats.rebateBaseRecharge')
+    : t('affiliate.stats.rebateBaseConsumption'),
+)
+
+const upgradeProgressText = computed(() => {
+  const d = detail.value
+  if (!d) return ''
+  if (d.agent_upgrade_mode !== 'auto' || d.agent_level_locked) return t('affiliate.stats.upgradeManual')
+  if (d.next_agent_level == null || d.next_level_threshold == null) return t('affiliate.stats.upgradeMaxed')
+  return t('affiliate.stats.upgradeProgress', {
+    remaining: Math.max(0, d.next_level_threshold - d.current_invite_count),
+    n: d.next_agent_level,
+    count: d.current_invite_count,
+    threshold: d.next_level_threshold,
+  })
+})
 
 function formatCount(value: number): string {
   return value.toLocaleString()

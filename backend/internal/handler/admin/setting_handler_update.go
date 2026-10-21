@@ -179,7 +179,12 @@ type UpdateSettingsRequest struct {
 	AdminRechargeRebateEnabled                *bool                             `json:"affiliate_admin_recharge_enabled"`
 	AffiliateRebateLevels                     *int                              `json:"affiliate_rebate_levels"`
 	AffiliateRebateRateL2                     *float64                          `json:"affiliate_rebate_rate_l2"`
-	AffiliateRebateRateL3                     *float64                          `json:"affiliate_rebate_rate_l3"`
+	AffiliateRebateBase                       *string                           `json:"affiliate_rebate_base"`
+	AffiliateAgentUpgradeMode                 *string                           `json:"affiliate_agent_upgrade_mode"`
+	AffiliateAgentLevel2Threshold             *int                              `json:"affiliate_agent_level2_threshold"`
+	AffiliateAgentLevel1Threshold             *int                              `json:"affiliate_agent_level1_threshold"`
+	AffiliateAgentCountMode                   *string                           `json:"affiliate_agent_count_mode"`
+	AffiliateSettleIntervalMinutes            *int                              `json:"affiliate_settle_interval_minutes"`
 	DefaultUserRPMLimit                       int                               `json:"default_user_rpm_limit"`
 	DefaultSubscriptions                      []dto.DefaultSubscriptionSetting  `json:"default_subscriptions"`
 	AuthSourceDefaultEmailBalance             *float64                          `json:"auth_source_default_email_balance"`
@@ -615,7 +620,30 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		affiliateRebateLevels = service.AffiliateRebateLevelsMax
 	}
 	affiliateRebateRateL2 := clampAffiliateRateInput(previousSettings.AffiliateRebateRateL2, req.AffiliateRebateRateL2)
-	affiliateRebateRateL3 := clampAffiliateRateInput(previousSettings.AffiliateRebateRateL3, req.AffiliateRebateRateL3)
+	affiliateRebateBase := previousSettings.AffiliateRebateBase
+	if req.AffiliateRebateBase != nil {
+		affiliateRebateBase = *req.AffiliateRebateBase
+	}
+	affiliateAgentUpgradeMode := previousSettings.AffiliateAgentUpgradeMode
+	if req.AffiliateAgentUpgradeMode != nil {
+		affiliateAgentUpgradeMode = *req.AffiliateAgentUpgradeMode
+	}
+	affiliateAgentLevel2Threshold := previousSettings.AffiliateAgentLevel2Threshold
+	if req.AffiliateAgentLevel2Threshold != nil {
+		affiliateAgentLevel2Threshold = *req.AffiliateAgentLevel2Threshold
+	}
+	affiliateAgentLevel1Threshold := previousSettings.AffiliateAgentLevel1Threshold
+	if req.AffiliateAgentLevel1Threshold != nil {
+		affiliateAgentLevel1Threshold = *req.AffiliateAgentLevel1Threshold
+	}
+	affiliateAgentCountMode := previousSettings.AffiliateAgentCountMode
+	if req.AffiliateAgentCountMode != nil {
+		affiliateAgentCountMode = *req.AffiliateAgentCountMode
+	}
+	affiliateSettleIntervalMinutes := previousSettings.AffiliateSettleIntervalMinutes
+	if req.AffiliateSettleIntervalMinutes != nil {
+		affiliateSettleIntervalMinutes = *req.AffiliateSettleIntervalMinutes
+	}
 	// 通用表格配置：兼容旧客户端未传字段时保留当前值。
 	if req.TableDefaultPageSize <= 0 {
 		req.TableDefaultPageSize = previousSettings.TableDefaultPageSize
@@ -1670,7 +1698,12 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AdminRechargeRebateEnabled:             adminRechargeRebateEnabled,
 		AffiliateRebateLevels:                  affiliateRebateLevels,
 		AffiliateRebateRateL2:                  affiliateRebateRateL2,
-		AffiliateRebateRateL3:                  affiliateRebateRateL3,
+		AffiliateRebateBase:                    affiliateRebateBase,
+		AffiliateAgentUpgradeMode:              affiliateAgentUpgradeMode,
+		AffiliateAgentLevel2Threshold:          affiliateAgentLevel2Threshold,
+		AffiliateAgentLevel1Threshold:          affiliateAgentLevel1Threshold,
+		AffiliateAgentCountMode:                affiliateAgentCountMode,
+		AffiliateSettleIntervalMinutes:         affiliateSettleIntervalMinutes,
 		DefaultUserRPMLimit:                    req.DefaultUserRPMLimit,
 		DefaultSubscriptions:                   defaultSubscriptions,
 		EnableModelFallback:                    req.EnableModelFallback,
@@ -2337,7 +2370,12 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AdminRechargeRebateEnabled:                             updatedSettings.AdminRechargeRebateEnabled,
 		AffiliateRebateLevels:                                  updatedSettings.AffiliateRebateLevels,
 		AffiliateRebateRateL2:                                  updatedSettings.AffiliateRebateRateL2,
-		AffiliateRebateRateL3:                                  updatedSettings.AffiliateRebateRateL3,
+		AffiliateRebateBase:                                    updatedSettings.AffiliateRebateBase,
+		AffiliateAgentUpgradeMode:                              updatedSettings.AffiliateAgentUpgradeMode,
+		AffiliateAgentLevel2Threshold:                          updatedSettings.AffiliateAgentLevel2Threshold,
+		AffiliateAgentLevel1Threshold:                          updatedSettings.AffiliateAgentLevel1Threshold,
+		AffiliateAgentCountMode:                                updatedSettings.AffiliateAgentCountMode,
+		AffiliateSettleIntervalMinutes:                         updatedSettings.AffiliateSettleIntervalMinutes,
 		DefaultUserRPMLimit:                                    updatedSettings.DefaultUserRPMLimit,
 		DefaultSubscriptions:                                   updatedDefaultSubscriptions,
 		EnableModelFallback:                                    updatedSettings.EnableModelFallback,

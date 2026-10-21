@@ -168,6 +168,10 @@
           <OverviewStat :label="t('admin.affiliates.overview.rebatedInviteeCount')" :value="String(selectedOverview.rebated_invitee_count)" />
           <OverviewStat :label="t('admin.affiliates.overview.availableQuota')" :value="'$' + formatAmount(selectedOverview.available_quota)" />
           <OverviewStat :label="t('admin.affiliates.overview.historyQuota')" :value="'$' + formatAmount(selectedOverview.history_quota)" />
+          <OverviewStat
+            :label="t('admin.affiliates.overview.agentLevel')"
+            :value="t('admin.affiliates.overview.agentLevelValue', { n: selectedOverview.agent_level }) + (selectedOverview.agent_level_locked ? ' · ' + t('admin.affiliates.overview.agentLevelLocked') : '')"
+          />
         </div>
       </div>
     </BaseDialog>

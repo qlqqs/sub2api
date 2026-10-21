@@ -1219,36 +1219,55 @@ describe("admin SettingsView payment visible method controls", () => {
     );
   });
 
-  it("submits multi-level affiliate agent settings and reveals upper-level rates", async () => {
+  it("submits two-layer affiliate rates, rebate base and agent-level settings", async () => {
     getSettings.mockResolvedValueOnce({
       ...baseSettingsResponse,
       affiliate_enabled: true,
-      affiliate_rebate_levels: 3,
+      affiliate_rebate_levels: 2,
       affiliate_rebate_rate: 8,
       affiliate_rebate_rate_l2: 3,
-      affiliate_rebate_rate_l3: 1,
+      affiliate_rebate_base: "consumption",
+      affiliate_settle_interval_minutes: 30,
+      affiliate_agent_upgrade_mode: "manual",
+      affiliate_agent_level2_threshold: 0,
+      affiliate_agent_level1_threshold: 0,
+      affiliate_agent_count_mode: "all",
     });
 
     const wrapper = mountView();
 
     await flushPromises();
     expect(wrapper.find('[data-test="affiliate-rebate-rate-l2"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="affiliate-rebate-rate-l3"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="affiliate-settle-interval"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="affiliate-agent-level2-threshold"]').exists()).toBe(false);
 
-    await wrapper.find('[data-test="affiliate-rebate-levels"]').setValue("2");
+    await wrapper.find('[data-test="affiliate-rebate-levels"]').setValue("1");
     await flushPromises();
-    expect(wrapper.find('[data-test="affiliate-rebate-rate-l3"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="affiliate-rebate-rate-l2"]').exists()).toBe(false);
 
-    await wrapper.find('[data-test="affiliate-rebate-rate-l2"]').setValue("150");
+    await wrapper.find('[data-test="affiliate-rebate-base"]').setValue("recharge");
+    await flushPromises();
+    expect(wrapper.find('[data-test="affiliate-settle-interval"]').exists()).toBe(false);
+
+    await wrapper.find('[data-test="affiliate-agent-upgrade-mode"]').setValue("auto");
+    await flushPromises();
+    await wrapper.find('[data-test="affiliate-agent-count-mode"]').setValue("recharged");
+    await wrapper.find('[data-test="affiliate-agent-level2-threshold"]').setValue("5");
+    await wrapper.find('[data-test="affiliate-agent-level1-threshold"]').setValue("-3");
     await wrapper.find("form").trigger("submit.prevent");
     await flushPromises();
 
     expect(updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
-        affiliate_rebate_levels: 2,
+        affiliate_rebate_levels: 1,
         affiliate_rebate_rate: 8,
-        affiliate_rebate_rate_l2: 100,
-        affiliate_rebate_rate_l3: 1,
+        affiliate_rebate_rate_l2: 3,
+        affiliate_rebate_base: "recharge",
+        affiliate_settle_interval_minutes: 30,
+        affiliate_agent_upgrade_mode: "auto",
+        affiliate_agent_count_mode: "recharged",
+        affiliate_agent_level2_threshold: 5,
+        affiliate_agent_level1_threshold: 0,
       }),
     );
   });
