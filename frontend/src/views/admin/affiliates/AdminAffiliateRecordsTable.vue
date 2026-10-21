@@ -95,6 +95,12 @@
           <template #cell-rebate_amount="{ row }">
             <AmountText :value="row.rebate_amount" strong />
           </template>
+          <template #cell-rebate_level="{ row }">
+            <span v-if="row.rebate_level == null" class="text-sm text-gray-400 dark:text-dark-500">-</span>
+            <span v-else :class="['badge whitespace-nowrap', row.rebate_level === 1 ? 'badge-primary' : 'badge-warning']">
+              {{ t('admin.affiliates.records.rebateLevelValue', { n: row.rebate_level }) }}
+            </span>
+          </template>
           <template #cell-action="{ row }">
             <span :class="['badge whitespace-nowrap', row.action === 'withdraw' ? 'badge-warning' : 'badge-primary']">
               {{ outflowTypeLabel(row.action) }}
@@ -223,6 +229,7 @@ const columns = computed<Column[]>(() => {
       { key: 'order_amount', label: t('admin.affiliates.records.orderAmount'), sortable: true },
       { key: 'pay_amount', label: t('admin.affiliates.records.payAmount'), sortable: true },
       { key: 'rebate_amount', label: t('admin.affiliates.records.rebateAmount') },
+      { key: 'rebate_level', label: t('admin.affiliates.records.rebateLevel'), sortable: true },
       { key: 'payment_type', label: t('admin.affiliates.records.paymentType'), sortable: true },
       { key: 'order_status', label: t('admin.affiliates.records.orderStatus'), sortable: true },
       { key: 'created_at', label: t('admin.affiliates.records.rebatedAt'), sortable: true },

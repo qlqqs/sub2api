@@ -161,6 +161,45 @@ func (s *SettingService) GetAffiliateRebatePerInviteeCap(ctx context.Context) fl
 	return cap
 }
 
+// GetAffiliateRebateLevels 返回开放的代理层级数，始终落在 [Min, Max]。
+func (s *SettingService) GetAffiliateRebateLevels(ctx context.Context) int {
+	raw, err := s.settingRepo.GetValue(ctx, SettingKeyAffiliateRebateLevels)
+	if err != nil {
+		return AffiliateRebateLevelsDefault
+	}
+	levels, err := strconv.Atoi(strings.TrimSpace(raw))
+	if err != nil {
+		return AffiliateRebateLevelsDefault
+	}
+	return clampAffiliateRebateLevels(levels)
+}
+
+// GetAffiliateRebateRatePercentForLevel 返回指定层级的全局返利比例。
+// 一级沿用 affiliate_rebate_rate；二、三级各有独立设置项；越界层级返回 0。
+func (s *SettingService) GetAffiliateRebateRatePercentForLevel(ctx context.Context, level int) float64 {
+	var key string
+	var fallback float64
+	switch level {
+	case 1:
+		return s.GetAffiliateRebateRatePercent(ctx)
+	case 2:
+		key, fallback = SettingKeyAffiliateRebateRateL2, AffiliateRebateRateL2Default
+	case 3:
+		key, fallback = SettingKeyAffiliateRebateRateL3, AffiliateRebateRateL3Default
+	default:
+		return 0
+	}
+	raw, err := s.settingRepo.GetValue(ctx, key)
+	if err != nil {
+		return fallback
+	}
+	rate, err := strconv.ParseFloat(strings.TrimSpace(raw), 64)
+	if err != nil || math.IsNaN(rate) || math.IsInf(rate, 0) {
+		return fallback
+	}
+	return clampAffiliateRebateRate(rate)
+}
+
 // IsPasswordResetEnabled 检查是否启用密码重置功能
 // 要求：必须同时开启邮件验证
 func (s *SettingService) IsPasswordResetEnabled(ctx context.Context) bool {

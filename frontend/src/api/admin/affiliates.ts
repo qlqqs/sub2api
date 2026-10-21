@@ -63,6 +63,8 @@ export interface AffiliateRebateRecord {
   order_amount: number | null
   pay_amount: number | null
   rebate_amount: number
+  /** Agent level that earned this rebate: 1 = direct inviter, 2/3 = upper levels. Null on legacy rows. */
+  rebate_level: number | null
   payment_type: string
   order_status: string
   created_at: string

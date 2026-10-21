@@ -172,6 +172,9 @@ type SystemSettings struct {
 	AffiliateRebateDurationDays  int                          `json:"affiliate_rebate_duration_days"`
 	AffiliateRebatePerInviteeCap float64                      `json:"affiliate_rebate_per_invitee_cap"`
 	AdminRechargeRebateEnabled   bool                         `json:"affiliate_admin_recharge_enabled"`
+	AffiliateRebateLevels        int                          `json:"affiliate_rebate_levels"`
+	AffiliateRebateRateL2        float64                      `json:"affiliate_rebate_rate_l2"`
+	AffiliateRebateRateL3        float64                      `json:"affiliate_rebate_rate_l3"`
 	DefaultUserRPMLimit          int                          `json:"default_user_rpm_limit"`
 	DefaultSubscriptions         []DefaultSubscriptionSetting `json:"default_subscriptions"`
 

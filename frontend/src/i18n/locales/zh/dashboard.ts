@@ -729,6 +729,9 @@ export default {
     stats: {
       rebateRate: '我的返利比例',
       rebateRateHint: '被邀请用户每次充值后你可获得的返利比例',
+      levelRates: '多级代理分润',
+      levelRatesHint: '下级用户充值时，你按其所在层级获得的比例',
+      levelRateItem: '{n} 级下级：{rate}',
       invitedUsers: '邀请人数',
       availableQuota: '可转返利额度',
       frozenQuota: '冻结中',

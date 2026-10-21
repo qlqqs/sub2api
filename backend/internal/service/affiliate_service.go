@@ -114,15 +114,19 @@ type AffiliateDetail struct {
 	// EffectiveRebateRatePercent 是当前用户作为邀请人时实际生效的返利比例：
 	// 优先用户自己的专属比例（aff_rebate_rate_percent），否则回退到全局比例。
 	// 用于在用户的 /affiliate 页面直观展示「分享后能拿到多少」。
-	EffectiveRebateRatePercent float64            `json:"effective_rebate_rate_percent"`
-	Invitees                   []AffiliateInvitee `json:"invitees"`
+	EffectiveRebateRatePercent float64 `json:"effective_rebate_rate_percent"`
+	// RebateLevels 是管理员开放的代理层级数；LevelRebateRatePercents 按层级
+	// 列出当前用户可获得的比例（下标 0 为直属一级，已套用专属比例）。
+	RebateLevels            int                `json:"rebate_levels"`
+	LevelRebateRatePercents []float64          `json:"level_rebate_rate_percents"`
+	Invitees                []AffiliateInvitee `json:"invitees"`
 }
 
 type AffiliateRepository interface {
 	EnsureUserAffiliate(ctx context.Context, userID int64) (*AffiliateSummary, error)
 	GetAffiliateByCode(ctx context.Context, code string) (*AffiliateSummary, error)
 	BindInviter(ctx context.Context, userID, inviterID int64, binding AffiliateInviterBinding) (*AffiliateInviterBindingResult, bool, error)
-	AccrueQuota(ctx context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, sourceOrderID *int64) (bool, error)
+	AccrueQuota(ctx context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, sourceOrderID *int64, rebateLevel int) (bool, error)
 	GetAccruedRebateFromInvitee(ctx context.Context, inviterID, inviteeUserID int64) (float64, error)
 	ThawFrozenQuota(ctx context.Context, userID int64) (float64, error)
 	TransferQuotaToBalance(ctx context.Context, userID int64) (float64, float64, error)
@@ -196,6 +200,7 @@ type AffiliateRebateRecord struct {
 	OrderAmount     *float64  `json:"order_amount"`
 	PayAmount       *float64  `json:"pay_amount"`
 	RebateAmount    float64   `json:"rebate_amount"`
+	RebateLevel     *int      `json:"rebate_level"`
 	PaymentType     string    `json:"payment_type"`
 	OrderStatus     string    `json:"order_status"`
 	CreatedAt       time.Time `json:"created_at"`
@@ -296,6 +301,11 @@ func (s *AffiliateService) GetAffiliateDetail(ctx context.Context, userID int64)
 	if err != nil {
 		return nil, err
 	}
+	levels := s.rebateLevels(ctx)
+	levelRates := make([]float64, 0, levels)
+	for level := 1; level <= levels; level++ {
+		levelRates = append(levelRates, s.resolveRebateRatePercentForLevel(ctx, summary, level))
+	}
 	return &AffiliateDetail{
 		UserID:                     summary.UserID,
 		AffCode:                    summary.AffCode,
@@ -304,7 +314,9 @@ func (s *AffiliateService) GetAffiliateDetail(ctx context.Context, userID int64)
 		AffQuota:                   summary.AffQuota,
 		AffFrozenQuota:             summary.AffFrozenQuota,
 		AffHistoryQuota:            summary.AffHistoryQuota,
-		EffectiveRebateRatePercent: s.resolveRebateRatePercent(ctx, summary),
+		EffectiveRebateRatePercent: levelRates[0],
+		RebateLevels:               levels,
+		LevelRebateRatePercents:    levelRates,
 		Invitees:                   invitees,
 	}, nil
 }
@@ -416,12 +428,8 @@ func (s *AffiliateService) AccrueInviteRebateForOrder(ctx context.Context, invit
 		return 0, nil
 	}
 
-	// 加载邀请人 profile，优先使用专属比例（覆盖全局）
-	inviterSummary, err := s.repo.EnsureUserAffiliate(ctx, *inviteeSummary.InviterID)
-	if err != nil {
-		return 0, err
-	}
-	// 有效期检查：超过返利有效期后不再产生返利
+	// 有效期检查：超过返利有效期后不再产生返利。以充值用户自己的绑定时间为准，
+	// 对全部层级统一判断。
 	if s.settingService != nil {
 		if durationDays := s.settingService.GetAffiliateRebateDurationDays(ctx); durationDays > 0 {
 			bindingStart := inviteeSummary.CreatedAt
@@ -434,41 +442,72 @@ func (s *AffiliateService) AccrueInviteRebateForOrder(ctx context.Context, invit
 		}
 	}
 
-	rebateRatePercent := s.resolveRebateRatePercent(ctx, inviterSummary)
-	rebate := roundTo(baseRechargeAmount*(rebateRatePercent/100), 8)
-	if rebate <= 0 {
-		return 0, nil
-	}
-
-	// 单人上限检查：精确截断到剩余额度
+	var freezeHours int
+	var perInviteeCap float64
 	if s.settingService != nil {
-		if perInviteeCap := s.settingService.GetAffiliateRebatePerInviteeCap(ctx); perInviteeCap > 0 {
-			existing, err := s.repo.GetAccruedRebateFromInvitee(ctx, *inviteeSummary.InviterID, inviteeUserID)
+		freezeHours = s.settingService.GetAffiliateRebateFreezeHours(ctx)
+		perInviteeCap = s.settingService.GetAffiliateRebatePerInviteeCap(ctx)
+	}
+	levels := s.rebateLevels(ctx)
+
+	// 沿邀请链向上逐级入账：每一级都以充值用户的本次流水为基数。
+	// visited 防止历史数据中出现环时死循环。
+	visited := map[int64]struct{}{inviteeUserID: {}}
+	var total float64
+	beneficiaryID := *inviteeSummary.InviterID
+	for level := 1; level <= levels; level++ {
+		if _, seen := visited[beneficiaryID]; seen {
+			break
+		}
+		visited[beneficiaryID] = struct{}{}
+
+		beneficiary, err := s.repo.EnsureUserAffiliate(ctx, beneficiaryID)
+		if err != nil {
+			// 上级代理账号已被删除时只截断链路，不影响已入账的下级返利。
+			if level > 1 && errors.Is(err, ErrUserNotFound) {
+				break
+			}
+			return total, err
+		}
+
+		rebate := roundTo(baseRechargeAmount*(s.resolveRebateRatePercentForLevel(ctx, beneficiary, level)/100), 8)
+		if rebate > 0 && perInviteeCap > 0 {
+			// 单人上限按「受益人 × 充值用户」独立计算，精确截断到剩余额度
+			existing, err := s.repo.GetAccruedRebateFromInvitee(ctx, beneficiaryID, inviteeUserID)
 			if err != nil {
-				return 0, err
+				return total, err
 			}
 			if existing >= perInviteeCap {
-				return 0, nil
-			}
-			if remaining := perInviteeCap - existing; rebate > remaining {
+				rebate = 0
+			} else if remaining := perInviteeCap - existing; rebate > remaining {
 				rebate = roundTo(remaining, 8)
 			}
 		}
-	}
+		if rebate > 0 {
+			applied, err := s.repo.AccrueQuota(ctx, beneficiaryID, inviteeUserID, rebate, freezeHours, sourceOrderID, level)
+			if err != nil {
+				return total, err
+			}
+			if applied {
+				total = roundTo(total+rebate, 8)
+			}
+		}
 
-	var freezeHours int
-	if s.settingService != nil {
-		freezeHours = s.settingService.GetAffiliateRebateFreezeHours(ctx)
+		if beneficiary.InviterID == nil || *beneficiary.InviterID <= 0 {
+			break
+		}
+		beneficiaryID = *beneficiary.InviterID
 	}
+	return total, nil
+}
 
-	applied, err := s.repo.AccrueQuota(ctx, *inviteeSummary.InviterID, inviteeUserID, rebate, freezeHours, sourceOrderID)
-	if err != nil {
-		return 0, err
+// rebateLevels returns how many agent levels the admin has opened (1 when
+// SettingService is unavailable, matching the single-level legacy behavior).
+func (s *AffiliateService) rebateLevels(ctx context.Context) int {
+	if s == nil || s.settingService == nil {
+		return AffiliateRebateLevelsDefault
 	}
-	if !applied {
-		return 0, nil
-	}
-	return rebate, nil
+	return s.settingService.GetAffiliateRebateLevels(ctx)
 }
 
 // resolveRebateRatePercent returns the inviter's exclusive rate when set,
@@ -482,6 +521,19 @@ func (s *AffiliateService) resolveRebateRatePercent(ctx context.Context, inviter
 		return clampAffiliateRebateRate(v)
 	}
 	return s.globalRebateRatePercent(ctx)
+}
+
+// resolveRebateRatePercentForLevel returns the rate a beneficiary earns at the
+// given level of the invite chain. The per-user exclusive rate only applies to
+// direct (level 1) invitees; upper levels always use the global level rate.
+func (s *AffiliateService) resolveRebateRatePercentForLevel(ctx context.Context, beneficiary *AffiliateSummary, level int) float64 {
+	if level <= 1 {
+		return s.resolveRebateRatePercent(ctx, beneficiary)
+	}
+	if s == nil || s.settingService == nil {
+		return 0
+	}
+	return s.settingService.GetAffiliateRebateRatePercentForLevel(ctx, level)
 }
 
 // globalRebateRatePercent reads the system-wide rebate rate via SettingService,

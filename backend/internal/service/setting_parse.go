@@ -129,6 +129,9 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyAffiliateRebateFreezeHours:                strconv.Itoa(AffiliateRebateFreezeHoursDefault),
 		SettingKeyAffiliateRebateDurationDays:               strconv.Itoa(AffiliateRebateDurationDaysDefault),
 		SettingKeyAffiliateRebatePerInviteeCap:              strconv.FormatFloat(AffiliateRebatePerInviteeCapDefault, 'f', 2, 64),
+		SettingKeyAffiliateRebateLevels:                     strconv.Itoa(AffiliateRebateLevelsDefault),
+		SettingKeyAffiliateRebateRateL2:                     strconv.FormatFloat(AffiliateRebateRateL2Default, 'f', 8, 64),
+		SettingKeyAffiliateRebateRateL3:                     strconv.FormatFloat(AffiliateRebateRateL3Default, 'f', 8, 64),
 		SettingKeyDefaultUserRPMLimit:                       "0",
 		SettingKeyDefaultSubscriptions:                      "[]",
 		SettingKeyAuthSourceDefaultEmailBalance:             "0",
@@ -423,6 +426,18 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 		result.AffiliateRebatePerInviteeCap = perInviteeCap
 	}
 	result.AdminRechargeRebateEnabled = settings[SettingKeyAffiliateAdminRechargeEnabled] == "true"
+	result.AffiliateRebateLevels = AffiliateRebateLevelsDefault
+	if levels, err := strconv.Atoi(settings[SettingKeyAffiliateRebateLevels]); err == nil {
+		result.AffiliateRebateLevels = clampAffiliateRebateLevels(levels)
+	}
+	result.AffiliateRebateRateL2 = AffiliateRebateRateL2Default
+	if rate, err := strconv.ParseFloat(settings[SettingKeyAffiliateRebateRateL2], 64); err == nil {
+		result.AffiliateRebateRateL2 = clampAffiliateRebateRate(rate)
+	}
+	result.AffiliateRebateRateL3 = AffiliateRebateRateL3Default
+	if rate, err := strconv.ParseFloat(settings[SettingKeyAffiliateRebateRateL3], 64); err == nil {
+		result.AffiliateRebateRateL3 = clampAffiliateRebateRate(rate)
+	}
 	result.DefaultSubscriptions = parseDefaultSubscriptions(settings[SettingKeyDefaultSubscriptions])
 
 	// 敏感信息直接返回，方便测试连接时使用
@@ -1018,6 +1033,16 @@ func clampAffiliateRebateRate(value float64) float64 {
 	}
 	if value > AffiliateRebateRateMax {
 		return AffiliateRebateRateMax
+	}
+	return value
+}
+
+func clampAffiliateRebateLevels(value int) int {
+	if value < AffiliateRebateLevelsMin {
+		return AffiliateRebateLevelsMin
+	}
+	if value > AffiliateRebateLevelsMax {
+		return AffiliateRebateLevelsMax
 	}
 	return value
 }

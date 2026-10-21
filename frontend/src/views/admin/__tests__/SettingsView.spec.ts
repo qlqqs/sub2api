@@ -1219,6 +1219,40 @@ describe("admin SettingsView payment visible method controls", () => {
     );
   });
 
+  it("submits multi-level affiliate agent settings and reveals upper-level rates", async () => {
+    getSettings.mockResolvedValueOnce({
+      ...baseSettingsResponse,
+      affiliate_enabled: true,
+      affiliate_rebate_levels: 3,
+      affiliate_rebate_rate: 8,
+      affiliate_rebate_rate_l2: 3,
+      affiliate_rebate_rate_l3: 1,
+    });
+
+    const wrapper = mountView();
+
+    await flushPromises();
+    expect(wrapper.find('[data-test="affiliate-rebate-rate-l2"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="affiliate-rebate-rate-l3"]').exists()).toBe(true);
+
+    await wrapper.find('[data-test="affiliate-rebate-levels"]').setValue("2");
+    await flushPromises();
+    expect(wrapper.find('[data-test="affiliate-rebate-rate-l3"]').exists()).toBe(false);
+
+    await wrapper.find('[data-test="affiliate-rebate-rate-l2"]').setValue("150");
+    await wrapper.find("form").trigger("submit.prevent");
+    await flushPromises();
+
+    expect(updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        affiliate_rebate_levels: 2,
+        affiliate_rebate_rate: 8,
+        affiliate_rebate_rate_l2: 100,
+        affiliate_rebate_rate_l3: 1,
+      }),
+    );
+  });
+
   it("submits Anthropic cache TTL injection gateway setting", async () => {
     getSettings.mockResolvedValueOnce({
       ...baseSettingsResponse,

@@ -177,6 +177,9 @@ type UpdateSettingsRequest struct {
 	AffiliateRebateDurationDays               *int                              `json:"affiliate_rebate_duration_days"`
 	AffiliateRebatePerInviteeCap              *float64                          `json:"affiliate_rebate_per_invitee_cap"`
 	AdminRechargeRebateEnabled                *bool                             `json:"affiliate_admin_recharge_enabled"`
+	AffiliateRebateLevels                     *int                              `json:"affiliate_rebate_levels"`
+	AffiliateRebateRateL2                     *float64                          `json:"affiliate_rebate_rate_l2"`
+	AffiliateRebateRateL3                     *float64                          `json:"affiliate_rebate_rate_l3"`
 	DefaultUserRPMLimit                       int                               `json:"default_user_rpm_limit"`
 	DefaultSubscriptions                      []dto.DefaultSubscriptionSetting  `json:"default_subscriptions"`
 	AuthSourceDefaultEmailBalance             *float64                          `json:"auth_source_default_email_balance"`
@@ -569,16 +572,7 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 	if req.DefaultBalance < 0 {
 		req.DefaultBalance = 0
 	}
-	affiliateRebateRate := previousSettings.AffiliateRebateRate
-	if req.AffiliateRebateRate != nil {
-		affiliateRebateRate = *req.AffiliateRebateRate
-	}
-	if affiliateRebateRate < service.AffiliateRebateRateMin {
-		affiliateRebateRate = service.AffiliateRebateRateMin
-	}
-	if affiliateRebateRate > service.AffiliateRebateRateMax {
-		affiliateRebateRate = service.AffiliateRebateRateMax
-	}
+	affiliateRebateRate := clampAffiliateRateInput(previousSettings.AffiliateRebateRate, req.AffiliateRebateRate)
 	affiliateRebateFreezeHours := previousSettings.AffiliateRebateFreezeHours
 	if req.AffiliateRebateFreezeHours != nil {
 		affiliateRebateFreezeHours = *req.AffiliateRebateFreezeHours
@@ -610,6 +604,18 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 	if req.AdminRechargeRebateEnabled != nil {
 		adminRechargeRebateEnabled = *req.AdminRechargeRebateEnabled
 	}
+	affiliateRebateLevels := previousSettings.AffiliateRebateLevels
+	if req.AffiliateRebateLevels != nil {
+		affiliateRebateLevels = *req.AffiliateRebateLevels
+	}
+	if affiliateRebateLevels < service.AffiliateRebateLevelsMin {
+		affiliateRebateLevels = service.AffiliateRebateLevelsMin
+	}
+	if affiliateRebateLevels > service.AffiliateRebateLevelsMax {
+		affiliateRebateLevels = service.AffiliateRebateLevelsMax
+	}
+	affiliateRebateRateL2 := clampAffiliateRateInput(previousSettings.AffiliateRebateRateL2, req.AffiliateRebateRateL2)
+	affiliateRebateRateL3 := clampAffiliateRateInput(previousSettings.AffiliateRebateRateL3, req.AffiliateRebateRateL3)
 	// 通用表格配置：兼容旧客户端未传字段时保留当前值。
 	if req.TableDefaultPageSize <= 0 {
 		req.TableDefaultPageSize = previousSettings.TableDefaultPageSize
@@ -1662,6 +1668,9 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AffiliateRebateDurationDays:            affiliateRebateDurationDays,
 		AffiliateRebatePerInviteeCap:           affiliateRebatePerInviteeCap,
 		AdminRechargeRebateEnabled:             adminRechargeRebateEnabled,
+		AffiliateRebateLevels:                  affiliateRebateLevels,
+		AffiliateRebateRateL2:                  affiliateRebateRateL2,
+		AffiliateRebateRateL3:                  affiliateRebateRateL3,
 		DefaultUserRPMLimit:                    req.DefaultUserRPMLimit,
 		DefaultSubscriptions:                   defaultSubscriptions,
 		EnableModelFallback:                    req.EnableModelFallback,
@@ -2326,6 +2335,9 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AffiliateRebateDurationDays:                            updatedSettings.AffiliateRebateDurationDays,
 		AffiliateRebatePerInviteeCap:                           updatedSettings.AffiliateRebatePerInviteeCap,
 		AdminRechargeRebateEnabled:                             updatedSettings.AdminRechargeRebateEnabled,
+		AffiliateRebateLevels:                                  updatedSettings.AffiliateRebateLevels,
+		AffiliateRebateRateL2:                                  updatedSettings.AffiliateRebateRateL2,
+		AffiliateRebateRateL3:                                  updatedSettings.AffiliateRebateRateL3,
 		DefaultUserRPMLimit:                                    updatedSettings.DefaultUserRPMLimit,
 		DefaultSubscriptions:                                   updatedDefaultSubscriptions,
 		EnableModelFallback:                                    updatedSettings.EnableModelFallback,
@@ -2553,4 +2565,20 @@ func (h *SettingHandler) ensureUserAttributeDefinition(ctx context.Context, key,
 		return
 	}
 	slog.Info("dingtalk: created user attribute definition", "key", key, "name", name, "type", attrType)
+}
+
+// clampAffiliateRateInput keeps the previous value when the request omits the
+// field and clamps the result into [AffiliateRebateRateMin, AffiliateRebateRateMax].
+func clampAffiliateRateInput(previous float64, requested *float64) float64 {
+	value := previous
+	if requested != nil {
+		value = *requested
+	}
+	if value < service.AffiliateRebateRateMin {
+		return service.AffiliateRebateRateMin
+	}
+	if value > service.AffiliateRebateRateMax {
+		return service.AffiliateRebateRateMax
+	}
+	return value
 }

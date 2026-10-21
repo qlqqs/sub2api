@@ -444,6 +444,8 @@ export default {
         orderAmount: '充值金额',
         payAmount: '支付金额',
         rebateAmount: '返利金额',
+        rebateLevel: '代理层级',
+        rebateLevelValue: '{n} 级',
         paymentType: '支付方式',
         orderStatus: '订单状态',
         transferAmount: '提取金额',

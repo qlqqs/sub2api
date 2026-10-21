@@ -20,6 +20,15 @@
             <p class="mt-1 text-xs text-gray-400 dark:text-dark-500">
               {{ t('affiliate.stats.rebateRateHint') }}
             </p>
+            <ul
+              v-if="levelRates.length > 1"
+              class="mt-2 space-y-0.5 text-xs text-gray-500 dark:text-dark-400"
+              data-test="affiliate-level-rates"
+            >
+              <li v-for="item in levelRates" :key="item.level">
+                {{ t('affiliate.stats.levelRateItem', { n: item.level, rate: `${item.rate}%` }) }}
+              </li>
+            </ul>
           </div>
           <div class="card p-5">
             <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.stats.invitedUsers') }}</p>
@@ -169,11 +178,19 @@ const inviteLink = computed(() => {
 
 // Rebate rate is a percentage in the range [0, 100]; backend already clamps it.
 // We trim trailing zeros (e.g. 20.00 → "20", 12.50 → "12.5") for a cleaner UI.
-const formattedRebateRate = computed(() => {
-  const v = detail.value?.effective_rebate_rate_percent ?? 0
+const formattedRebateRate = computed(() => formatRate(detail.value?.effective_rebate_rate_percent ?? 0))
+
+function formatRate(v: number): string {
   const rounded = Math.round(v * 100) / 100
   return Number.isInteger(rounded) ? String(rounded) : rounded.toString()
-})
+}
+
+const levelRates = computed(() =>
+  (detail.value?.level_rebate_rate_percents ?? []).map((rate, index) => ({
+    level: index + 1,
+    rate: formatRate(rate),
+  })),
+)
 
 function formatCount(value: number): string {
   return value.toLocaleString()

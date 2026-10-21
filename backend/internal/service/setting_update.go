@@ -384,6 +384,12 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 	}
 	updates[SettingKeyAffiliateRebatePerInviteeCap] = strconv.FormatFloat(settings.AffiliateRebatePerInviteeCap, 'f', 8, 64)
 	updates[SettingKeyAffiliateAdminRechargeEnabled] = strconv.FormatBool(settings.AdminRechargeRebateEnabled)
+	settings.AffiliateRebateLevels = clampAffiliateRebateLevels(settings.AffiliateRebateLevels)
+	updates[SettingKeyAffiliateRebateLevels] = strconv.Itoa(settings.AffiliateRebateLevels)
+	settings.AffiliateRebateRateL2 = clampAffiliateRebateRate(settings.AffiliateRebateRateL2)
+	updates[SettingKeyAffiliateRebateRateL2] = strconv.FormatFloat(settings.AffiliateRebateRateL2, 'f', 8, 64)
+	settings.AffiliateRebateRateL3 = clampAffiliateRebateRate(settings.AffiliateRebateRateL3)
+	updates[SettingKeyAffiliateRebateRateL3] = strconv.FormatFloat(settings.AffiliateRebateRateL3, 'f', 8, 64)
 	updates[SettingKeyDefaultUserRPMLimit] = strconv.Itoa(settings.DefaultUserRPMLimit)
 	defaultSubsJSON, err := json.Marshal(settings.DefaultSubscriptions)
 	if err != nil {

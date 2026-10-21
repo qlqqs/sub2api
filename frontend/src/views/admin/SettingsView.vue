@@ -7568,6 +7568,72 @@
               </div>
 
               <div>
+                <label class="input-label" for="affiliate-rebate-levels">
+                  {{ t('admin.settings.features.affiliate.levels') }}
+                </label>
+                <select
+                  id="affiliate-rebate-levels"
+                  v-model.number="form.affiliate_rebate_levels"
+                  class="input w-full sm:w-64"
+                  data-test="affiliate-rebate-levels"
+                >
+                  <option :value="1">{{ t('admin.settings.features.affiliate.levelOption', { n: 1 }) }}</option>
+                  <option :value="2">{{ t('admin.settings.features.affiliate.levelOption', { n: 2 }) }}</option>
+                  <option :value="3">{{ t('admin.settings.features.affiliate.levelOption', { n: 3 }) }}</option>
+                </select>
+                <p class="mt-1 text-xs text-gray-400">
+                  {{ t('admin.settings.features.affiliate.levelsHint') }}
+                </p>
+              </div>
+
+              <div v-if="form.affiliate_rebate_levels >= 2" class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="input-label" for="affiliate-rebate-rate-l2">
+                    {{ t('admin.settings.features.affiliate.rebateRateL2') }}
+                  </label>
+                  <div class="relative">
+                    <input
+                      id="affiliate-rebate-rate-l2"
+                      v-model.number="form.affiliate_rebate_rate_l2"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      class="input pr-8"
+                      placeholder="0"
+                      data-test="affiliate-rebate-rate-l2"
+                    />
+                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">%</span>
+                  </div>
+                  <p class="mt-1 text-xs text-gray-400">
+                    {{ t('admin.settings.features.affiliate.rebateRateL2Hint') }}
+                  </p>
+                </div>
+                <div v-if="form.affiliate_rebate_levels >= 3">
+                  <label class="input-label" for="affiliate-rebate-rate-l3">
+                    {{ t('admin.settings.features.affiliate.rebateRateL3') }}
+                  </label>
+                  <div class="relative">
+                    <input
+                      id="affiliate-rebate-rate-l3"
+                      v-model.number="form.affiliate_rebate_rate_l3"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      class="input pr-8"
+                      placeholder="0"
+                      data-test="affiliate-rebate-rate-l3"
+                    />
+                    <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">%</span>
+                  </div>
+                  <p class="mt-1 text-xs text-gray-400">
+                    {{ t('admin.settings.features.affiliate.rebateRateL3Hint') }}
+                  </p>
+                </div>
+              </div>
+
+              <div>
                 <label class="input-label">
                   {{ t('admin.settings.features.affiliate.freezeHours') }}
                 </label>
@@ -9819,6 +9885,9 @@ const form = reactive<SettingsForm>({
   affiliate_rebate_duration_days: 0,
   affiliate_rebate_per_invitee_cap: 0,
   affiliate_admin_recharge_enabled: false,
+  affiliate_rebate_levels: 1,
+  affiliate_rebate_rate_l2: 0,
+  affiliate_rebate_rate_l3: 0,
   default_concurrency: 1,
   default_subscriptions: [],
   force_email_on_third_party_signup: false,
@@ -11526,6 +11595,9 @@ async function saveSettings() {
       affiliate_rebate_duration_days: Math.max(0, Math.min(3650, Math.floor(Number(form.affiliate_rebate_duration_days) || 0))),
       affiliate_rebate_per_invitee_cap: Math.max(0, Number(form.affiliate_rebate_per_invitee_cap) || 0),
       affiliate_admin_recharge_enabled: form.affiliate_admin_recharge_enabled,
+      affiliate_rebate_levels: Math.min(3, Math.max(1, Math.floor(Number(form.affiliate_rebate_levels) || 1))),
+      affiliate_rebate_rate_l2: Math.min(100, Math.max(0, Number(form.affiliate_rebate_rate_l2) || 0)),
+      affiliate_rebate_rate_l3: Math.min(100, Math.max(0, Number(form.affiliate_rebate_rate_l3) || 0)),
       default_concurrency: form.default_concurrency,
       default_subscriptions: normalizedDefaultSubscriptions,
       force_email_on_third_party_signup: form.force_email_on_third_party_signup,

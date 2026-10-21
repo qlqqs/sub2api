@@ -163,6 +163,10 @@ export interface UserAffiliateDetail {
   aff_history_quota: number
   /** 当前用户作为邀请人时实际生效的返利比例（专属覆盖全局）。0-100。 */
   effective_rebate_rate_percent: number
+  /** 管理员开放的代理层级数（1-3）。 */
+  rebate_levels: number
+  /** 各层级比例，下标 0 为直属一级（已套用专属比例）。 */
+  level_rebate_rate_percents: number[]
   invitees: AffiliateInvitee[]
 }
 

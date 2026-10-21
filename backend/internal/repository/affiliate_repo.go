@@ -141,9 +141,12 @@ RETURNING inviter_bound_at`, inviterID, binding.Source, binding.BoundBy, binding
 	return result, bound, nil
 }
 
-func (r *affiliateRepository) AccrueQuota(ctx context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, sourceOrderID *int64) (bool, error) {
+func (r *affiliateRepository) AccrueQuota(ctx context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, sourceOrderID *int64, rebateLevel int) (bool, error) {
 	if amount <= 0 {
 		return false, nil
+	}
+	if rebateLevel < 1 {
+		rebateLevel = 1
 	}
 
 	var applied bool
@@ -167,15 +170,15 @@ func (r *affiliateRepository) AccrueQuota(ctx context.Context, inviterID, invite
 
 		if freezeHours > 0 {
 			if _, err = txClient.ExecContext(txCtx, `
-INSERT INTO user_affiliate_ledger (user_id, action, amount, source_user_id, source_order_id, frozen_until, created_at, updated_at)
-VALUES ($1, 'accrue', $2, $3, $4, NOW() + make_interval(hours => $5), NOW(), NOW())`,
-				inviterID, amount, inviteeUserID, nullableInt64Arg(sourceOrderID), freezeHours); err != nil {
+INSERT INTO user_affiliate_ledger (user_id, action, amount, source_user_id, source_order_id, rebate_level, frozen_until, created_at, updated_at)
+VALUES ($1, 'accrue', $2, $3, $4, $6, NOW() + make_interval(hours => $5), NOW(), NOW())`,
+				inviterID, amount, inviteeUserID, nullableInt64Arg(sourceOrderID), freezeHours, rebateLevel); err != nil {
 				return fmt.Errorf("insert affiliate accrue ledger: %w", err)
 			}
 		} else {
 			if _, err = txClient.ExecContext(txCtx, `
-INSERT INTO user_affiliate_ledger (user_id, action, amount, source_user_id, source_order_id, created_at, updated_at)
-VALUES ($1, 'accrue', $2, $3, $4, NOW(), NOW())`, inviterID, amount, inviteeUserID, nullableInt64Arg(sourceOrderID)); err != nil {
+INSERT INTO user_affiliate_ledger (user_id, action, amount, source_user_id, source_order_id, rebate_level, created_at, updated_at)
+VALUES ($1, 'accrue', $2, $3, $4, $5, NOW(), NOW())`, inviterID, amount, inviteeUserID, nullableInt64Arg(sourceOrderID), rebateLevel); err != nil {
 				return fmt.Errorf("insert affiliate accrue ledger: %w", err)
 			}
 		}
@@ -682,6 +685,7 @@ WHERE ual.action = 'accrue'`
 		"order_amount":  "po.amount",
 		"pay_amount":    "po.pay_amount",
 		"rebate_amount": "ual.amount",
+		"rebate_level":  "ual.rebate_level",
 		"payment_type":  "po.payment_type",
 		"order_status":  "po.status",
 		"created_at":    "ual.created_at",
@@ -699,6 +703,7 @@ SELECT po.id,
        po.amount::double precision,
        po.pay_amount::double precision,
        ual.amount::double precision,
+       ual.rebate_level,
        COALESCE(po.payment_type, ''),
        COALESCE(po.status, ''),
        ual.created_at
@@ -717,6 +722,7 @@ LIMIT $`+fmt.Sprint(len(args)-1)+` OFFSET $`+fmt.Sprint(len(args)), args...)
 		var inviteeID sql.NullInt64
 		var orderAmount sql.NullFloat64
 		var payAmount sql.NullFloat64
+		var rebateLevel sql.NullInt64
 		if err := rows.Scan(
 			&orderID,
 			&item.OutTradeNo,
@@ -729,6 +735,7 @@ LIMIT $`+fmt.Sprint(len(args)-1)+` OFFSET $`+fmt.Sprint(len(args)), args...)
 			&orderAmount,
 			&payAmount,
 			&item.RebateAmount,
+			&rebateLevel,
 			&item.PaymentType,
 			&item.OrderStatus,
 			&item.CreatedAt,
@@ -737,6 +744,10 @@ LIMIT $`+fmt.Sprint(len(args)-1)+` OFFSET $`+fmt.Sprint(len(args)), args...)
 		}
 		item.OrderID = nullableInt64Ptr(orderID)
 		item.InviteeID = nullableInt64Ptr(inviteeID)
+		if rebateLevel.Valid {
+			level := int(rebateLevel.Int64)
+			item.RebateLevel = &level
+		}
 		item.OrderAmount = nullableFloat64Ptr(orderAmount)
 		item.PayAmount = nullableFloat64Ptr(payAmount)
 		items = append(items, item)

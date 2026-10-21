@@ -391,7 +391,7 @@ func (r *oauthEmailAffiliateRepoStub) BindInviter(_ context.Context, userID, inv
 	return &service.AffiliateInviterBindingResult{InviteeID: userID, InviterID: inviterID}, true, nil
 }
 
-func (r *oauthEmailAffiliateRepoStub) AccrueQuota(context.Context, int64, int64, float64, int, *int64) (bool, error) {
+func (r *oauthEmailAffiliateRepoStub) AccrueQuota(context.Context, int64, int64, float64, int, *int64, int) (bool, error) {
 	panic("unexpected AccrueQuota call")
 }
 

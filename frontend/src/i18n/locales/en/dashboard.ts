@@ -725,6 +725,9 @@ export default {
     stats: {
       rebateRate: 'My Rebate Rate',
       rebateRateHint: 'What you earn each time an invitee recharges',
+      levelRates: 'Multi-level Agent Shares',
+      levelRatesHint: 'What you earn when a downline user at each level recharges',
+      levelRateItem: 'Level {n} downline: {rate}',
       invitedUsers: 'Invited Users',
       availableQuota: 'Available Rebate Quota',
       frozenQuota: 'Frozen',

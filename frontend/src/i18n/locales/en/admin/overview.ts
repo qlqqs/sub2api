@@ -444,6 +444,8 @@ export default {
         orderAmount: 'Top-up Amount',
         payAmount: 'Paid Amount',
         rebateAmount: 'Rebate Amount',
+        rebateLevel: 'Agent Level',
+        rebateLevelValue: 'L{n}',
         paymentType: 'Payment Method',
         orderStatus: 'Order Status',
         transferAmount: 'Transfer Amount',

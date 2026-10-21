@@ -309,3 +309,274 @@ func TestAffiliateService_AdminBindInviterRejectsInvalidAndPreviouslyBound(t *te
 	_, err = svc.AdminBindInviter(context.Background(), 1, 2, 9, "reason")
 	require.ErrorIs(t, err, ErrAffiliateAlreadyBound)
 }
+
+type multiLevelAffiliateRepoStub struct {
+	AffiliateRepository
+	summaries map[int64]*AffiliateSummary
+	accrued   map[int64]float64
+	calls     []multiLevelAccrueCall
+}
+
+type multiLevelAccrueCall struct {
+	beneficiaryID int64
+	inviteeID     int64
+	amount        float64
+	freezeHours   int
+	level         int
+}
+
+func (r *multiLevelAffiliateRepoStub) EnsureUserAffiliate(_ context.Context, userID int64) (*AffiliateSummary, error) {
+	summary, ok := r.summaries[userID]
+	if !ok {
+		return nil, ErrUserNotFound
+	}
+	cp := *summary
+	return &cp, nil
+}
+
+func (r *multiLevelAffiliateRepoStub) ThawFrozenQuota(context.Context, int64) (float64, error) {
+	return 0, nil
+}
+
+func (r *multiLevelAffiliateRepoStub) ListInvitees(context.Context, int64, int) ([]AffiliateInvitee, error) {
+	return nil, nil
+}
+
+func (r *multiLevelAffiliateRepoStub) GetAccruedRebateFromInvitee(_ context.Context, beneficiaryID, _ int64) (float64, error) {
+	return r.accrued[beneficiaryID], nil
+}
+
+func (r *multiLevelAffiliateRepoStub) AccrueQuota(_ context.Context, beneficiaryID, inviteeID int64, amount float64, freezeHours int, _ *int64, level int) (bool, error) {
+	r.calls = append(r.calls, multiLevelAccrueCall{beneficiaryID: beneficiaryID, inviteeID: inviteeID, amount: amount, freezeHours: freezeHours, level: level})
+	return true, nil
+}
+
+type multiLevelSettingRepoStub struct {
+	values map[string]string
+}
+
+func (s *multiLevelSettingRepoStub) Get(context.Context, string) (*Setting, error) {
+	return nil, ErrSettingNotFound
+}
+
+func (s *multiLevelSettingRepoStub) GetValue(_ context.Context, key string) (string, error) {
+	value, ok := s.values[key]
+	if !ok {
+		return "", ErrSettingNotFound
+	}
+	return value, nil
+}
+
+func (s *multiLevelSettingRepoStub) Set(context.Context, string, string) error { return nil }
+func (s *multiLevelSettingRepoStub) GetMultiple(context.Context, []string) (map[string]string, error) {
+	return nil, nil
+}
+func (s *multiLevelSettingRepoStub) SetMultiple(context.Context, map[string]string) error { return nil }
+func (s *multiLevelSettingRepoStub) GetAll(context.Context) (map[string]string, error) {
+	return nil, nil
+}
+func (s *multiLevelSettingRepoStub) Delete(context.Context, string) error { return nil }
+
+// chain: 4 (recharger) -> 3 -> 2 -> 1 -> none
+func newMultiLevelChainRepo() *multiLevelAffiliateRepoStub {
+	return &multiLevelAffiliateRepoStub{
+		summaries: map[int64]*AffiliateSummary{
+			1: {UserID: 1},
+			2: {UserID: 2, InviterID: ptrInt64(1)},
+			3: {UserID: 3, InviterID: ptrInt64(2)},
+			4: {UserID: 4, InviterID: ptrInt64(3)},
+		},
+		accrued: map[int64]float64{},
+	}
+}
+
+func newMultiLevelService(repo AffiliateRepository, values map[string]string) *AffiliateService {
+	base := map[string]string{SettingKeyAffiliateEnabled: "true"}
+	for k, v := range values {
+		base[k] = v
+	}
+	return NewAffiliateService(repo, NewSettingService(&multiLevelSettingRepoStub{values: base}, nil), nil, nil)
+}
+
+func TestAccrueInviteRebate_ThreeLevelChainPaysEachLevelFromRechargerAmount(t *testing.T) {
+	t.Parallel()
+	repo := newMultiLevelChainRepo()
+	svc := newMultiLevelService(repo, map[string]string{
+		SettingKeyAffiliateRebateLevels: "3",
+		SettingKeyAffiliateRebateRate:   "8",
+		SettingKeyAffiliateRebateRateL2: "3",
+		SettingKeyAffiliateRebateRateL3: "1",
+	})
+
+	total, err := svc.AccrueInviteRebate(context.Background(), 4, 100)
+	require.NoError(t, err)
+	require.InDelta(t, 12, total, 1e-9)
+	require.Len(t, repo.calls, 3)
+	require.Equal(t, multiLevelAccrueCall{beneficiaryID: 3, inviteeID: 4, amount: 8, level: 1}, repo.calls[0])
+	require.Equal(t, multiLevelAccrueCall{beneficiaryID: 2, inviteeID: 4, amount: 3, level: 2}, repo.calls[1])
+	require.Equal(t, multiLevelAccrueCall{beneficiaryID: 1, inviteeID: 4, amount: 1, level: 3}, repo.calls[2])
+}
+
+func TestAccrueInviteRebate_DefaultLevelsKeepsSingleLevelBehavior(t *testing.T) {
+	t.Parallel()
+	repo := newMultiLevelChainRepo()
+	svc := newMultiLevelService(repo, map[string]string{
+		SettingKeyAffiliateRebateRate:   "8",
+		SettingKeyAffiliateRebateRateL2: "50",
+	})
+
+	total, err := svc.AccrueInviteRebate(context.Background(), 4, 100)
+	require.NoError(t, err)
+	require.InDelta(t, 8, total, 1e-9)
+	require.Len(t, repo.calls, 1)
+	require.Equal(t, int64(3), repo.calls[0].beneficiaryID)
+	require.Equal(t, 1, repo.calls[0].level)
+}
+
+func TestAccrueInviteRebate_LevelsOpenedButUpperRateZeroSkipsUpperLedger(t *testing.T) {
+	t.Parallel()
+	repo := newMultiLevelChainRepo()
+	svc := newMultiLevelService(repo, map[string]string{
+		SettingKeyAffiliateRebateLevels: "2",
+		SettingKeyAffiliateRebateRate:   "8",
+	})
+
+	total, err := svc.AccrueInviteRebate(context.Background(), 4, 100)
+	require.NoError(t, err)
+	require.InDelta(t, 8, total, 1e-9)
+	require.Len(t, repo.calls, 1)
+}
+
+func TestAccrueInviteRebate_ExclusiveRateOnlyAppliesToDirectLevel(t *testing.T) {
+	t.Parallel()
+	repo := newMultiLevelChainRepo()
+	exclusive := 50.0
+	repo.summaries[3].AffRebateRatePercent = &exclusive
+	repo.summaries[2].AffRebateRatePercent = &exclusive
+	svc := newMultiLevelService(repo, map[string]string{
+		SettingKeyAffiliateRebateLevels: "2",
+		SettingKeyAffiliateRebateRate:   "8",
+		SettingKeyAffiliateRebateRateL2: "3",
+	})
+
+	total, err := svc.AccrueInviteRebate(context.Background(), 4, 100)
+	require.NoError(t, err)
+	require.InDelta(t, 53, total, 1e-9)
+	require.Len(t, repo.calls, 2)
+	require.InDelta(t, 50, repo.calls[0].amount, 1e-9)
+	require.InDelta(t, 3, repo.calls[1].amount, 1e-9)
+}
+
+func TestAccrueInviteRebate_StopsWhenChainEndsEarly(t *testing.T) {
+	t.Parallel()
+	repo := newMultiLevelChainRepo()
+	repo.summaries[3].InviterID = nil
+	svc := newMultiLevelService(repo, map[string]string{
+		SettingKeyAffiliateRebateLevels: "3",
+		SettingKeyAffiliateRebateRate:   "8",
+		SettingKeyAffiliateRebateRateL2: "3",
+		SettingKeyAffiliateRebateRateL3: "1",
+	})
+
+	total, err := svc.AccrueInviteRebate(context.Background(), 4, 100)
+	require.NoError(t, err)
+	require.InDelta(t, 8, total, 1e-9)
+	require.Len(t, repo.calls, 1)
+}
+
+func TestAccrueInviteRebate_DeletedUplineStopsChainWithoutError(t *testing.T) {
+	t.Parallel()
+	repo := newMultiLevelChainRepo()
+	delete(repo.summaries, 2)
+	svc := newMultiLevelService(repo, map[string]string{
+		SettingKeyAffiliateRebateLevels: "3",
+		SettingKeyAffiliateRebateRate:   "8",
+		SettingKeyAffiliateRebateRateL2: "3",
+		SettingKeyAffiliateRebateRateL3: "1",
+	})
+
+	total, err := svc.AccrueInviteRebate(context.Background(), 4, 100)
+	require.NoError(t, err)
+	require.InDelta(t, 8, total, 1e-9)
+	require.Len(t, repo.calls, 1)
+
+	delete(repo.summaries, 3)
+	repo.calls = nil
+	_, err = svc.AccrueInviteRebate(context.Background(), 4, 100)
+	require.ErrorIs(t, err, ErrUserNotFound)
+	require.Empty(t, repo.calls)
+}
+
+func TestAccrueInviteRebate_CycleInChainTerminates(t *testing.T) {
+	t.Parallel()
+	repo := newMultiLevelChainRepo()
+	repo.summaries[1].InviterID = ptrInt64(4)
+	svc := newMultiLevelService(repo, map[string]string{
+		SettingKeyAffiliateRebateLevels: "3",
+		SettingKeyAffiliateRebateRate:   "8",
+		SettingKeyAffiliateRebateRateL2: "3",
+		SettingKeyAffiliateRebateRateL3: "1",
+	})
+
+	total, err := svc.AccrueInviteRebate(context.Background(), 4, 100)
+	require.NoError(t, err)
+	require.InDelta(t, 12, total, 1e-9)
+	require.Len(t, repo.calls, 3)
+}
+
+func TestAccrueInviteRebate_PerInviteeCapAppliesPerBeneficiary(t *testing.T) {
+	t.Parallel()
+	repo := newMultiLevelChainRepo()
+	repo.accrued[3] = 5
+	svc := newMultiLevelService(repo, map[string]string{
+		SettingKeyAffiliateRebateLevels:        "2",
+		SettingKeyAffiliateRebateRate:          "8",
+		SettingKeyAffiliateRebateRateL2:        "3",
+		SettingKeyAffiliateRebatePerInviteeCap: "6",
+	})
+
+	total, err := svc.AccrueInviteRebate(context.Background(), 4, 100)
+	require.NoError(t, err)
+	require.InDelta(t, 4, total, 1e-9)
+	require.Len(t, repo.calls, 2)
+	require.InDelta(t, 1, repo.calls[0].amount, 1e-9)
+	require.InDelta(t, 3, repo.calls[1].amount, 1e-9)
+}
+
+func TestGetAffiliateDetail_ExposesLevelRates(t *testing.T) {
+	t.Parallel()
+	repo := newMultiLevelChainRepo()
+	exclusive := 12.5
+	repo.summaries[2].AffRebateRatePercent = &exclusive
+	svc := newMultiLevelService(repo, map[string]string{
+		SettingKeyAffiliateRebateLevels: "3",
+		SettingKeyAffiliateRebateRate:   "8",
+		SettingKeyAffiliateRebateRateL2: "3",
+		SettingKeyAffiliateRebateRateL3: "1",
+	})
+
+	detail, err := svc.GetAffiliateDetail(context.Background(), 2)
+	require.NoError(t, err)
+	require.Equal(t, 3, detail.RebateLevels)
+	require.Equal(t, []float64{12.5, 3, 1}, detail.LevelRebateRatePercents)
+	require.InDelta(t, 12.5, detail.EffectiveRebateRatePercent, 1e-9)
+}
+
+func TestSettingService_AffiliateRebateLevelsAndLevelRatesClamp(t *testing.T) {
+	t.Parallel()
+	svc := NewSettingService(&multiLevelSettingRepoStub{values: map[string]string{
+		SettingKeyAffiliateRebateLevels: "9",
+		SettingKeyAffiliateRebateRate:   "8",
+		SettingKeyAffiliateRebateRateL2: "150",
+		SettingKeyAffiliateRebateRateL3: "oops",
+	}}, nil)
+	ctx := context.Background()
+	require.Equal(t, AffiliateRebateLevelsMax, svc.GetAffiliateRebateLevels(ctx))
+	require.InDelta(t, 8, svc.GetAffiliateRebateRatePercentForLevel(ctx, 1), 1e-9)
+	require.InDelta(t, AffiliateRebateRateMax, svc.GetAffiliateRebateRatePercentForLevel(ctx, 2), 1e-9)
+	require.InDelta(t, AffiliateRebateRateL3Default, svc.GetAffiliateRebateRatePercentForLevel(ctx, 3), 1e-9)
+	require.InDelta(t, 0, svc.GetAffiliateRebateRatePercentForLevel(ctx, 4), 1e-9)
+
+	empty := NewSettingService(&multiLevelSettingRepoStub{values: map[string]string{}}, nil)
+	require.Equal(t, AffiliateRebateLevelsDefault, empty.GetAffiliateRebateLevels(ctx))
+}
