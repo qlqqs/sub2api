@@ -255,11 +255,14 @@ func TestAffiliateRepository_BindInviterWritesOwnerSnapshotAndResetsWatermark(t 
 	require.NoError(t, err)
 	require.Equal(t, "owner", customers[0].Relation)
 
+	// 邀请记录带出邀请人与被邀请人当前的代理等级。
+	_, err = client.ExecContext(txCtx, "UPDATE user_affiliates SET agent_level = 2 WHERE user_id = $1", agent.ID)
+	require.NoError(t, err)
 	invites, _, err := repo.ListAffiliateInviteRecords(txCtx, service.AffiliateRecordFilter{Search: customer.Email, Page: 1, PageSize: 10})
 	require.NoError(t, err)
 	require.Len(t, invites, 1)
-	require.Equal(t, agent.ID, *invites[0].AgentOwnerID)
-	require.Equal(t, top.Email, invites[0].AgentUplineEmail)
+	require.Equal(t, 2, invites[0].InviterLevel)
+	require.Equal(t, 3, invites[0].InviteeLevel)
 
 	// 软删除上方一级：快照 ID 保留，节点标记为不活跃，列表显示已删除。
 	_, err = client.ExecContext(txCtx, "UPDATE users SET deleted_at = NOW() WHERE id = $1", top.ID)

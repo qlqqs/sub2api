@@ -51,6 +51,7 @@
               :id="row.inviter_id"
               :email="row.inviter_email"
               :username="row.inviter_username"
+              :level="props.type === 'invites' ? row.inviter_level : null"
               :clickable="props.type !== 'transfers'"
               @open="openUserOverview"
             />
@@ -62,6 +63,7 @@
               :id="row.invitee_id"
               :email="row.invitee_email"
               :username="row.invitee_username"
+              :level="props.type === 'invites' ? row.invitee_level : null"
               :clickable="props.type !== 'transfers'"
               @open="openUserOverview"
             />
@@ -84,6 +86,21 @@
               <div class="font-mono text-sm text-gray-900 dark:text-white">#{{ row.order_id }}</div>
               <div class="max-w-56 truncate text-sm text-gray-500 dark:text-dark-400">{{ row.out_trade_no }}</div>
             </div>
+          </template>
+          <template #cell-source="{ row }">
+            <div v-if="row.order_id != null" class="space-y-0.5">
+              <div class="font-mono text-sm text-gray-900 dark:text-white">#{{ row.order_id }}</div>
+              <div class="max-w-56 truncate text-sm text-gray-500 dark:text-dark-400">{{ row.out_trade_no }}</div>
+            </div>
+            <span v-else-if="row.source_usage_until" class="badge badge-gray whitespace-nowrap">{{ t('admin.affiliates.records.sourceConsumption') }}</span>
+            <span v-else class="text-sm text-gray-400 dark:text-dark-500">-</span>
+          </template>
+          <template #cell-base_amount="{ row }">
+            <RebateBaseCell :record="row" />
+          </template>
+          <template #cell-usage_until="{ row }">
+            <span v-if="row.source_usage_until" class="text-sm text-gray-700 dark:text-gray-300">{{ formatDateTime(row.source_usage_until) }}</span>
+            <span v-else class="text-sm text-gray-400 dark:text-dark-500">-</span>
           </template>
           <template #cell-payment_type="{ row }">
             <template v-if="row.payment_type">{{ t('payment.methods.' + row.payment_type, row.payment_type) }}</template>
@@ -111,12 +128,6 @@
             <span v-else :class="['badge whitespace-nowrap', rewardTypeBadgeClass(row.reward_type)]">
               {{ rewardTypeLabel(row.reward_type) }}
             </span>
-          </template>
-          <template #cell-agent_owner="{ row }">
-            <SnapshotUserCell :id="row.agent_owner_id" :email="row.agent_owner_email" :deleted="row.agent_owner_deleted" :level="row.agent_owner_level" />
-          </template>
-          <template #cell-agent_upline="{ row }">
-            <SnapshotUserCell :id="row.agent_upline_id" :email="row.agent_upline_email" :deleted="row.agent_upline_deleted" />
           </template>
           <template #cell-action="{ row }">
             <span :class="['badge whitespace-nowrap', row.action === 'withdraw' ? 'badge-warning' : 'badge-primary']">
@@ -219,12 +230,14 @@ import OrderStatusBadge from '@/components/payment/OrderStatusBadge.vue'
 import AffiliateOfflineWithdrawDialog from './AffiliateOfflineWithdrawDialog.vue'
 import type { Column } from '@/components/common/types'
 import { useAppStore } from '@/stores/app'
+import { settingsAPI } from '@/api/admin/settings'
 import { AFFILIATE_REWARD_TYPES, affiliatesAPI, type AffiliateInviteRecord, type AffiliateRebateRecord, type AffiliateTransferRecord, type AffiliateUserOverview, type ListAffiliateRecordsParams } from '@/api/admin/affiliates'
 import type { PaginatedResponse } from '@/types'
 import { extractI18nErrorMessage } from '@/utils/apiError'
 import { formatDateTime as formatDisplayDateTime } from '@/utils/format'
 
 type RecordType = 'invites' | 'rebates' | 'transfers'
+type RebateBase = 'recharge' | 'consumption'
 type AffiliateRecord = AffiliateInviteRecord | AffiliateRebateRecord | AffiliateTransferRecord
 
 const props = withDefaults(defineProps<{
@@ -245,6 +258,8 @@ const overviewDialog = ref(false)
 const overviewLoading = ref(false)
 const selectedOverview = ref<AffiliateUserOverview | null>(null)
 const withdrawDialog = ref(false)
+// Order columns until the setting is known; the backend also treats a missing base as recharge.
+const rebateBase = ref<RebateBase>('recharge')
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 const columns = computed<Column[]>(() => {
@@ -253,25 +268,12 @@ const columns = computed<Column[]>(() => {
       { key: 'inviter', label: t('admin.affiliates.records.inviter'), sortable: true },
       { key: 'invitee', label: t('admin.affiliates.records.invitee'), sortable: true },
       { key: 'aff_code', label: t('admin.affiliates.records.affCode'), sortable: true },
-      { key: 'agent_owner', label: t('admin.affiliates.records.agentOwner') },
-      { key: 'agent_upline', label: t('admin.affiliates.records.agentUpline') },
       { key: 'total_rebate', label: t('admin.affiliates.records.totalRebate'), sortable: true },
       { key: 'created_at', label: t('admin.affiliates.records.invitedAt'), sortable: true },
     ]
   }
   if (props.type === 'rebates') {
-    return [
-      { key: 'order', label: t('admin.affiliates.records.order'), sortable: true },
-      { key: 'inviter', label: t('admin.affiliates.records.inviter'), sortable: true },
-      { key: 'invitee', label: t('admin.affiliates.records.invitee'), sortable: true },
-      { key: 'order_amount', label: t('admin.affiliates.records.orderAmount'), sortable: true },
-      { key: 'pay_amount', label: t('admin.affiliates.records.payAmount'), sortable: true },
-      { key: 'rebate_amount', label: t('admin.affiliates.records.rebateAmount') },
-      { key: 'reward_type', label: t('admin.affiliates.records.rewardType'), sortable: true },
-      { key: 'payment_type', label: t('admin.affiliates.records.paymentType'), sortable: true },
-      { key: 'order_status', label: t('admin.affiliates.records.orderStatus'), sortable: true },
-      { key: 'created_at', label: t('admin.affiliates.records.rebatedAt'), sortable: true },
-    ]
+    return rebateColumns(rebateBase.value)
   }
   return [
     { key: 'user', label: t('admin.affiliates.records.user'), sortable: true },
@@ -285,6 +287,44 @@ const columns = computed<Column[]>(() => {
   ]
 })
 
+/**
+ * Rebate columns follow the configured rebate base. Recharge-based rebates all come from
+ * payment orders, so the order columns stay. Consumption-based rebates have no order, so the
+ * table shows where each rebate came from, the amount it was computed on and the usage cutoff
+ * instead; order-backed rows (first-recharge rewards, rebates accrued before switching) still
+ * show their top-up amount in the base column.
+ */
+function rebateColumns(base: RebateBase): Column[] {
+  if (base === 'consumption') {
+    return [
+      { key: 'source', label: t('admin.affiliates.records.source') },
+      { key: 'inviter', label: t('admin.affiliates.records.inviter'), sortable: true },
+      { key: 'invitee', label: t('admin.affiliates.records.invitee'), sortable: true },
+      { key: 'base_amount', label: t('admin.affiliates.records.baseAmount'), sortable: true },
+      { key: 'rebate_amount', label: t('admin.affiliates.records.rebateAmount') },
+      { key: 'reward_type', label: t('admin.affiliates.records.rewardType'), sortable: true },
+      { key: 'usage_until', label: t('admin.affiliates.records.usageUntil'), sortable: true },
+      { key: 'created_at', label: t('admin.affiliates.records.rebatedAt'), sortable: true },
+    ]
+  }
+  return [
+    { key: 'order', label: t('admin.affiliates.records.order'), sortable: true },
+    { key: 'inviter', label: t('admin.affiliates.records.inviter'), sortable: true },
+    { key: 'invitee', label: t('admin.affiliates.records.invitee'), sortable: true },
+    { key: 'order_amount', label: t('admin.affiliates.records.orderAmount'), sortable: true },
+    { key: 'pay_amount', label: t('admin.affiliates.records.payAmount'), sortable: true },
+    { key: 'rebate_amount', label: t('admin.affiliates.records.rebateAmount') },
+    { key: 'reward_type', label: t('admin.affiliates.records.rewardType'), sortable: true },
+    { key: 'payment_type', label: t('admin.affiliates.records.paymentType'), sortable: true },
+    { key: 'order_status', label: t('admin.affiliates.records.orderStatus'), sortable: true },
+    { key: 'created_at', label: t('admin.affiliates.records.rebatedAt'), sortable: true },
+  ]
+}
+
+function isSortableKey(cols: Column[], key: string): boolean {
+  return cols.some((column) => column.key === key && column.sortable)
+}
+
 const sortStorageKey = computed(() => `admin-affiliate-${props.type}-table-sort`)
 
 function loadInitialSortState(): { sort_by: string; sort_order: 'asc' | 'desc' } {
@@ -294,7 +334,10 @@ function loadInitialSortState(): { sort_by: string; sort_order: 'asc' | 'desc' }
     if (!raw) return fallback
     const parsed = JSON.parse(raw) as { key?: string; order?: string }
     const key = typeof parsed.key === 'string' ? parsed.key : ''
-    if (!columns.value.some((column) => column.key === key && column.sortable)) return fallback
+    const known = props.type === 'rebates'
+      ? isSortableKey(rebateColumns('recharge'), key) || isSortableKey(rebateColumns('consumption'), key)
+      : isSortableKey(columns.value, key)
+    if (!known) return fallback
     return {
       sort_by: key,
       sort_order: parsed.order === 'asc' ? 'asc' : 'desc',
@@ -456,6 +499,8 @@ const UserCell = defineComponent({
     id: { type: Number, required: true },
     email: { type: String, default: '' },
     username: { type: String, default: '' },
+    /** When set, the last line shows the agent level instead of a "-" placeholder for an empty username. */
+    level: { type: Number as PropType<number | null | undefined>, default: null },
     clickable: { type: Boolean, default: false },
   },
   emits: ['open'],
@@ -469,7 +514,11 @@ const UserCell = defineComponent({
         type: cellProps.clickable ? 'button' : undefined,
         onClick: cellProps.clickable ? () => emit('open', cellProps.id) : undefined,
       }, cellProps.email || '-'),
-      h('div', { class: 'max-w-56 truncate text-sm text-gray-500 dark:text-dark-400' }, cellProps.username || '-'),
+      cellProps.level != null && cellProps.username
+        ? h('div', { class: 'max-w-56 truncate text-sm text-gray-500 dark:text-dark-400' }, cellProps.username)
+        : null,
+      h('div', { class: 'max-w-56 truncate text-sm text-gray-500 dark:text-dark-400' },
+        cellProps.level != null ? levelLabel(cellProps.level) : cellProps.username || '-'),
     ])
   },
 })
@@ -503,25 +552,33 @@ const NullableAmountText = defineComponent({
   },
 })
 
-const SnapshotUserCell = defineComponent({
+/** Base a rebate was computed on: the top-up for order-backed rows, otherwise the settled consumption. */
+const RebateBaseCell = defineComponent({
   props: {
-    id: { type: Number as PropType<number | null | undefined>, default: null },
-    email: { type: String as PropType<string | null | undefined>, default: '' },
-    deleted: { type: Boolean, default: false },
-    level: { type: Number as PropType<number | null | undefined>, default: null },
+    record: { type: Object as PropType<AffiliateRebateRecord>, required: true },
   },
   setup(cellProps) {
     return () => {
-      if (cellProps.id == null) {
-        return h('span', { class: 'text-sm text-gray-400 dark:text-dark-500' }, '-')
+      const row = cellProps.record
+      const muted = 'text-sm text-gray-400 dark:text-dark-500'
+      let label: string
+      let amount: number | null | undefined
+      if (row.order_id != null) {
+        label = t('admin.affiliates.records.baseRecharge')
+        amount = row.order_amount ?? row.base_amount
+      } else if (row.source_usage_until) {
+        label = t('admin.affiliates.records.baseConsumption')
+        amount = row.base_amount
+      } else {
+        return h('span', { class: muted }, '-')
       }
-      if (cellProps.deleted) {
-        return h('span', { class: 'text-sm text-gray-400 dark:text-dark-500' }, t('admin.affiliates.deleted'))
+      if (amount === null || amount === undefined) {
+        return h('span', { class: muted }, '-')
       }
       return h('div', { class: 'space-y-0.5' }, [
-        h('div', { class: 'max-w-56 truncate text-sm text-gray-700 dark:text-gray-300' }, cellProps.email || `#${cellProps.id}`),
-        cellProps.level === 1 || cellProps.level === 2
-          ? h('div', { class: 'text-xs text-gray-400 dark:text-dark-500' }, t(`admin.affiliates.levelShort.${cellProps.level}`))
+        h('div', { class: 'text-sm text-gray-900 dark:text-white whitespace-nowrap' }, `${label} ${BALANCE_SYMBOL}${formatAmount(amount)}`),
+        row.order_id != null && row.pay_amount != null
+          ? h('div', { class: 'text-xs text-gray-500 dark:text-dark-400 whitespace-nowrap' }, `${t('admin.affiliates.records.payAmount')} ¥${formatAmount(row.pay_amount)}`)
           : null,
       ])
     }
@@ -546,7 +603,25 @@ const OverviewStat = defineComponent({
   },
 })
 
-onMounted(() => {
+async function loadRebateBase() {
+  try {
+    const settings = await settingsAPI.getSettings()
+    rebateBase.value = settings.affiliate_rebate_base === 'consumption' ? 'consumption' : 'recharge'
+  } catch {
+    // Fall back to the order columns; the records themselves still load.
+    rebateBase.value = 'recharge'
+  }
+  // A sort saved under the other base may point at a column that is now hidden.
+  if (!isSortableKey(columns.value, sortState.sort_by)) {
+    sortState.sort_by = 'created_at'
+    sortState.sort_order = 'desc'
+  }
+}
+
+onMounted(async () => {
+  if (props.type === 'rebates') {
+    await loadRebateBase()
+  }
   void loadRecords()
 })
 </script>

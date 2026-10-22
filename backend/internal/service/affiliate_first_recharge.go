@@ -83,7 +83,7 @@ func (s *AffiliateService) ApplyFirstRechargeRewards(ctx context.Context, userID
 			return result, err
 		}
 		if nodeActive(nodes, inviterID) {
-			applied, err := s.repo.AccrueQuota(ctx, inviterID, userID, amount, cfg.FreezeHours, AffiliateAccrueSource{OrderID: sourceOrderID}, AffiliateRewardInviteFixed)
+			applied, err := s.repo.AccrueQuota(ctx, inviterID, userID, amount, cfg.FreezeHours, AffiliateAccrueSource{OrderID: sourceOrderID, BaseAmount: &realAmount}, AffiliateRewardInviteFixed)
 			if err != nil {
 				return result, err
 			}

@@ -198,13 +198,13 @@ func (r *affiliateRepository) AccrueQuota(ctx context.Context, beneficiaryID, so
 			freezeHours = 0
 		}
 		rows, err := txClient.QueryContext(txCtx, `
-INSERT INTO user_affiliate_ledger (user_id, action, amount, source_user_id, source_order_id, source_usage_until, reward_type, frozen_until, created_at, updated_at)
-SELECT $1, 'accrue', $2, $3, $4, $5, $6,
+INSERT INTO user_affiliate_ledger (user_id, action, amount, source_user_id, source_order_id, source_usage_until, base_amount, reward_type, frozen_until, created_at, updated_at)
+SELECT $1, 'accrue', $2, $3, $4, $5, $8, $6,
        CASE WHEN $7::int > 0 THEN NOW() + make_interval(hours => $7::int) ELSE NULL END,
        NOW(), NOW()
 WHERE EXISTS (SELECT 1 FROM user_affiliates WHERE user_id = $1)
 ON CONFLICT (source_user_id, reward_type) WHERE reward_type IN ('invite_fixed', 'invitee_bonus') DO NOTHING
-RETURNING id`, beneficiaryID, amount, sourceUserID, nullableInt64Arg(source.OrderID), nullableTimeArg(source.UsageUntil), nullableStringArg(rewardType), freezeHours)
+RETURNING id`, beneficiaryID, amount, sourceUserID, nullableInt64Arg(source.OrderID), nullableTimeArg(source.UsageUntil), nullableStringArg(rewardType), freezeHours, nullableFloat64Arg(source.BaseAmount))
 		if err != nil {
 			return fmt.Errorf("insert affiliate accrue ledger: %w", err)
 		}
@@ -779,11 +779,13 @@ SELECT ua.inviter_id,
              AND ual.source_user_id = ua.user_id
              AND ual.action = 'accrue'
        ), 0)::double precision AS total_rebate,
-       COALESCE(ua.inviter_bound_at, ua.created_at),`+affiliateAgentRefColumns+`
+       COALESCE(ua.inviter_bound_at, ua.created_at),
+       ua.agent_level,
+       inviter_aff.agent_level
 FROM user_affiliates ua
 JOIN users invitee ON invitee.id = ua.user_id
 JOIN users inviter ON inviter.id = ua.inviter_id
-JOIN user_affiliates inviter_aff ON inviter_aff.user_id = ua.inviter_id`+affiliateAgentRefJoins+`
+JOIN user_affiliates inviter_aff ON inviter_aff.user_id = ua.inviter_id
 `+where+`
 `+orderBy+`
 LIMIT $`+fmt.Sprint(len(args)-1)+` OFFSET $`+fmt.Sprint(len(args)), args...)
@@ -795,8 +797,7 @@ LIMIT $`+fmt.Sprint(len(args)-1)+` OFFSET $`+fmt.Sprint(len(args)), args...)
 	items := make([]service.AffiliateInviteRecord, 0)
 	for rows.Next() {
 		var item service.AffiliateInviteRecord
-		var ref agentRefScan
-		targets := append([]any{
+		if err := rows.Scan(
 			&item.InviterID,
 			&item.InviterEmail,
 			&item.InviterUsername,
@@ -806,11 +807,11 @@ LIMIT $`+fmt.Sprint(len(args)-1)+` OFFSET $`+fmt.Sprint(len(args)), args...)
 			&item.AffCode,
 			&item.TotalRebate,
 			&item.CreatedAt,
-		}, ref.targets(&item.AffiliateAgentRef)...)
-		if err := rows.Scan(targets...); err != nil {
+			&item.InviteeLevel,
+			&item.InviterLevel,
+		); err != nil {
 			return nil, 0, err
 		}
-		ref.apply(&item.AffiliateAgentRef)
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
@@ -851,11 +852,13 @@ WHERE ual.action IN ('accrue', 'invitee_bonus')`
 		"inviter":       "inviter.email",
 		"invitee":       "invitee.email",
 		"order_amount":  "po.amount",
+		"base_amount":   "COALESCE(po.amount, ual.base_amount)",
 		"pay_amount":    "po.pay_amount",
 		"rebate_amount": "ual.amount",
 		"reward_type":   "ual.reward_type",
 		"payment_type":  "po.payment_type",
 		"order_status":  "po.status",
+		"usage_until":   "ual.source_usage_until",
 		"created_at":    "ual.created_at",
 	}, "ual.created_at")
 	args = append(args, filter.PageSize, (filter.Page-1)*filter.PageSize)
@@ -874,6 +877,8 @@ SELECT po.id,
        ual.reward_type,
        COALESCE(po.payment_type, ''),
        COALESCE(po.status, ''),
+       ual.base_amount::double precision,
+       ual.source_usage_until,
        ual.created_at
 `+baseJoin+where+`
 `+orderBy+`
@@ -891,6 +896,8 @@ LIMIT $`+fmt.Sprint(len(args)-1)+` OFFSET $`+fmt.Sprint(len(args)), args...)
 		var orderAmount sql.NullFloat64
 		var payAmount sql.NullFloat64
 		var rewardType sql.NullString
+		var baseAmount sql.NullFloat64
+		var usageUntil sql.NullTime
 		if err := rows.Scan(
 			&orderID,
 			&item.OutTradeNo,
@@ -906,11 +913,18 @@ LIMIT $`+fmt.Sprint(len(args)-1)+` OFFSET $`+fmt.Sprint(len(args)), args...)
 			&rewardType,
 			&item.PaymentType,
 			&item.OrderStatus,
+			&baseAmount,
+			&usageUntil,
 			&item.CreatedAt,
 		); err != nil {
 			return nil, 0, err
 		}
 		item.OrderID = nullableInt64Ptr(orderID)
+		item.BaseAmount = nullableFloat64Ptr(baseAmount)
+		if usageUntil.Valid {
+			v := usageUntil.Time
+			item.SourceUsageUntil = &v
+		}
 		item.InviteeID = nullableInt64Ptr(inviteeID)
 		if rewardType.Valid {
 			v := rewardType.String
@@ -1573,6 +1587,13 @@ func scanFloat64(ctx context.Context, client affiliateQueryExecer, query string,
 }
 
 func nullableInt64Arg(v *int64) any {
+	if v == nil {
+		return nil
+	}
+	return *v
+}
+
+func nullableFloat64Arg(v *float64) any {
 	if v == nil {
 		return nil
 	}

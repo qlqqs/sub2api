@@ -3,11 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import AdminAffiliateRecordsTable from '../AdminAffiliateRecordsTable.vue'
 
-const { listInviteRecords, listRebateRecords, listTransferRecords, getUserOverview } = vi.hoisted(() => ({
+const { listInviteRecords, listRebateRecords, listTransferRecords, getUserOverview, getSettings } = vi.hoisted(() => ({
   listInviteRecords: vi.fn(),
   listRebateRecords: vi.fn(),
   listTransferRecords: vi.fn(),
   getUserOverview: vi.fn(),
+  getSettings: vi.fn(),
+}))
+
+vi.mock('@/api/admin/settings', () => ({
+  settingsAPI: { getSettings },
+  default: { getSettings },
 }))
 
 vi.mock('@/api/admin/affiliates', () => {
@@ -80,6 +86,7 @@ describe('AdminAffiliateRecordsTable', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
+    getSettings.mockResolvedValue({ affiliate_rebate_base: 'recharge' })
   })
 
   it('renders non-order rebate accruals with empty order fields', async () => {
@@ -116,6 +123,100 @@ describe('AdminAffiliateRecordsTable', () => {
     expect(row.get('[data-test="cell-reward_type"]').text()).toBe('admin.affiliates.rewardTypes.agent_diff')
     expect(wrapper.find('[data-test="cell-rebate_level"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="affiliate-withdraw-open"]').exists()).toBe(false)
+  })
+
+  it('switches rebate columns to source, base and usage cutoff when the rebate base is consumption', async () => {
+    getSettings.mockResolvedValue({ affiliate_rebate_base: 'consumption' })
+    // A sort saved under the recharge columns must not survive into the consumption columns.
+    localStorage.setItem('admin-affiliate-rebates-table-sort', JSON.stringify({ key: 'payment_type', order: 'asc' }))
+    const base = {
+      out_trade_no: '',
+      inviter_id: 1,
+      inviter_email: 'agent@example.com',
+      inviter_username: 'agent',
+      invitee_id: 2,
+      invitee_email: 'customer@example.com',
+      invitee_username: 'customer',
+      payment_type: '',
+      order_status: '',
+      created_at: '2026-10-22T08:13:18Z',
+    }
+    listRebateRecords.mockResolvedValue(page([
+      {
+        ...base,
+        order_id: null,
+        order_amount: null,
+        pay_amount: null,
+        rebate_amount: 0.19,
+        reward_type: 'agent_direct',
+        base_amount: 1.74,
+        source_usage_until: '2026-10-22T08:11:18Z',
+      },
+      {
+        ...base,
+        order_id: 12,
+        out_trade_no: 'sub2_abc',
+        order_amount: 100,
+        pay_amount: 98,
+        rebate_amount: 1,
+        reward_type: 'invite_fixed',
+        payment_type: 'alipay',
+        order_status: 'COMPLETED',
+        base_amount: 100,
+        source_usage_until: null,
+      },
+      {
+        ...base,
+        order_id: null,
+        order_amount: null,
+        pay_amount: null,
+        rebate_amount: 0.5,
+        reward_type: 'agent_direct',
+        base_amount: null,
+        source_usage_until: '2026-10-21T08:00:00Z',
+      },
+    ]))
+
+    const wrapper = mountTable('rebates')
+    await flushPromises()
+
+    expect(listRebateRecords.mock.calls[0][0]).toMatchObject({ sort_by: 'created_at', sort_order: 'desc' })
+    const keys = wrapper.get('[data-test="row-0"]').findAll('td').map((cell) => cell.attributes('data-test'))
+    expect(keys).toEqual([
+      'cell-source', 'cell-inviter', 'cell-invitee', 'cell-base_amount',
+      'cell-rebate_amount', 'cell-reward_type', 'cell-usage_until', 'cell-created_at',
+    ])
+
+    const usage = wrapper.get('[data-test="row-0"]')
+    expect(usage.get('[data-test="cell-source"]').text()).toBe('admin.affiliates.records.sourceConsumption')
+    expect(usage.get('[data-test="cell-base_amount"]').text()).toBe('admin.affiliates.records.baseConsumption ¥1.74')
+    expect(usage.get('[data-test="cell-usage_until"]').text()).not.toBe('-')
+
+    const order = wrapper.get('[data-test="row-1"]')
+    expect(order.get('[data-test="cell-source"]').text()).toContain('#12')
+    expect(order.get('[data-test="cell-base_amount"]').text()).toContain('admin.affiliates.records.baseRecharge ¥100.00')
+    expect(order.get('[data-test="cell-base_amount"]').text()).toContain('¥98.00')
+    expect(order.get('[data-test="cell-usage_until"]').text()).toBe('-')
+
+    // Settled before the base was recorded: no amount to show.
+    expect(wrapper.get('[data-test="row-2"]').get('[data-test="cell-base_amount"]').text()).toBe('-')
+  })
+
+  it('keeps the order columns when the rebate base setting cannot be loaded', async () => {
+    getSettings.mockRejectedValue(new Error('forbidden'))
+    listRebateRecords.mockResolvedValue(page([{
+      order_id: 3, out_trade_no: 'x', inviter_id: 1, inviter_email: '', inviter_username: '',
+      invitee_id: 2, invitee_email: '', invitee_username: '', order_amount: 10, pay_amount: 10,
+      rebate_amount: 1, reward_type: 'agent_direct', payment_type: 'alipay', order_status: 'COMPLETED',
+      created_at: '2026-10-22T08:00:00Z',
+    }]))
+
+    const wrapper = mountTable('rebates')
+    await flushPromises()
+
+    expect(listRebateRecords).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('[data-test="cell-order_status"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="cell-base_amount"]').exists()).toBe(false)
   })
 
   it('filters rebate records by reward type', async () => {
@@ -155,57 +256,35 @@ describe('AdminAffiliateRecordsTable', () => {
     expect(listRebateRecords.mock.calls[0][0]).toMatchObject({ search: 'agent@example.com' })
   })
 
-  it('shows the bind-time owning agent and level-1 upline on invite records', async () => {
+  it('shows the current agent level under inviter and invitee on invite records', async () => {
     listInviteRecords.mockResolvedValue(page([
       {
         inviter_id: 3,
         inviter_email: 'u1@example.com',
-        inviter_username: 'u1',
+        inviter_username: '',
+        inviter_level: 2,
         invitee_id: 4,
         invitee_email: 'u2@example.com',
         invitee_username: 'u2',
+        invitee_level: 3,
         aff_code: 'U1CODE',
         total_rebate: 5,
         created_at: '2026-10-01T08:00:00Z',
-        agent_owner_id: 2,
-        agent_owner_email: 'a@example.com',
-        agent_owner_level: 2,
-        agent_owner_deleted: false,
-        agent_upline_id: 1,
-        agent_upline_email: '',
-        agent_upline_deleted: true,
-      },
-      {
-        inviter_id: 5,
-        inviter_email: 'x@example.com',
-        inviter_username: 'x',
-        invitee_id: 6,
-        invitee_email: 'y@example.com',
-        invitee_username: 'y',
-        aff_code: 'X',
-        total_rebate: 0,
-        created_at: '2026-10-02T08:00:00Z',
-        agent_owner_id: null,
-        agent_owner_email: '',
-        agent_owner_level: null,
-        agent_owner_deleted: false,
-        agent_upline_id: null,
-        agent_upline_email: '',
-        agent_upline_deleted: false,
       },
     ]))
 
     const wrapper = mountTable('invites')
     await flushPromises()
 
-    const first = wrapper.get('[data-test="row-0"]')
-    expect(first.get('[data-test="cell-agent_owner"]').text()).toContain('a@example.com')
-    expect(first.get('[data-test="cell-agent_owner"]').text()).toContain('admin.affiliates.levelShort.2')
-    expect(first.get('[data-test="cell-agent_upline"]').text()).toBe('admin.affiliates.deleted')
-
-    const second = wrapper.get('[data-test="row-1"]')
-    expect(second.get('[data-test="cell-agent_owner"]').text()).toBe('-')
-    expect(second.get('[data-test="cell-agent_upline"]').text()).toBe('-')
+    expect(wrapper.find('[data-test="cell-agent_owner"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="cell-agent_upline"]').exists()).toBe(false)
+    const row = wrapper.get('[data-test="row-0"]')
+    const inviter = row.get('[data-test="cell-inviter"]').text()
+    expect(inviter).toContain('admin.affiliates.levels.2')
+    expect(inviter).not.toContain('-')
+    const invitee = row.get('[data-test="cell-invitee"]').text()
+    expect(invitee).toContain('u2')
+    expect(invitee).toContain('admin.affiliates.levels.3')
   })
 
   it('lists offline withdrawals next to balance transfers with their type', async () => {

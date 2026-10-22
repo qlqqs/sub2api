@@ -107,13 +107,16 @@ export interface ListAffiliateRecordsParams {
   reward_type?: AffiliateRewardType | ''
 }
 
-export interface AffiliateInviteRecord extends AffiliateAgentSnapshot {
+export interface AffiliateInviteRecord {
   inviter_id: number
   inviter_email: string
   inviter_username: string
+  /** Current agent level (1/2 agents, 3 regular user). */
+  inviter_level: number
   invitee_id: number
   invitee_email: string
   invitee_username: string
+  invitee_level: number
   aff_code: string
   total_rebate: number
   created_at: string
@@ -139,6 +142,10 @@ export interface AffiliateRebateRecord {
   reward_type: AffiliateRewardType | string | null
   payment_type: string
   order_status: string
+  /** Amount the rebate was computed on (top-up or settled consumption); null for rows accrued before it was recorded. */
+  base_amount?: number | null
+  /** Consumption-settled rows only: usage up to this time was covered by the settlement. */
+  source_usage_until?: string | null
   created_at: string
 }
 

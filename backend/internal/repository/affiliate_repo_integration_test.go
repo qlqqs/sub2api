@@ -801,6 +801,42 @@ func TestAffiliateRepository_ListAffiliateRebateRecords_IncludesNonOrderAccruals
 	require.NotNil(t, record.InviteeID)
 	require.Equal(t, invitee.ID, *record.InviteeID)
 	require.InDelta(t, 2.0, record.RebateAmount, 1e-9)
+	require.Nil(t, record.BaseAmount)
+	require.Nil(t, record.SourceUsageUntil)
+}
+
+// TestAffiliateRepository_ListAffiliateRebateRecords_ConsumptionBaseAndUntil 验证消费结算流水
+// 在返利记录中带出计算基数与结算截至时间。
+func TestAffiliateRepository_ListAffiliateRebateRecords_ConsumptionBaseAndUntil(t *testing.T) {
+	ctx := context.Background()
+	tx := testEntTx(t)
+	txCtx := dbent.NewTxContext(ctx, tx)
+	client := tx.Client()
+	repo := NewAffiliateRepository(client, integrationDB)
+
+	inviter := mustCreateAffiliateWithdrawUser(t, client, "inviter")
+	invitee := mustCreateAffiliateWithdrawUser(t, client, "invitee")
+	mustSeedAffiliateQuota(t, txCtx, client, inviter.ID, 0, 0, 0)
+
+	until := time.Now().Add(-2 * time.Minute).Truncate(time.Microsecond)
+	base := 17.5
+	applied, err := repo.AccrueQuota(txCtx, inviter.ID, invitee.ID, 1.925, 0,
+		service.AffiliateAccrueSource{UsageUntil: &until, BaseAmount: &base}, service.AffiliateRewardAgentDirect)
+	require.NoError(t, err)
+	require.True(t, applied)
+
+	records, total, err := repo.ListAffiliateRebateRecords(txCtx, service.AffiliateRecordFilter{
+		Search: invitee.Email, Page: 1, PageSize: 20, SortBy: "base_amount", SortDesc: true,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, 1, total)
+	require.Len(t, records, 1)
+	record := records[0]
+	require.Nil(t, record.OrderID)
+	require.NotNil(t, record.BaseAmount)
+	require.InDelta(t, 17.5, *record.BaseAmount, 1e-9)
+	require.NotNil(t, record.SourceUsageUntil)
+	require.WithinDuration(t, until, *record.SourceUsageUntil, time.Millisecond)
 }
 
 func TestAffiliateRepository_AccrueQuota_PersistsRewardTypeAndFiltersIt(t *testing.T) {

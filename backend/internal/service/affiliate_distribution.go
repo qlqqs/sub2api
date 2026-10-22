@@ -153,6 +153,9 @@ func (s *AffiliateService) distributeRewards(ctx context.Context, consumer *Affi
 	if base <= 0 || math.IsNaN(base) || math.IsInf(base, 0) {
 		return 0, nil
 	}
+	if source.BaseAmount == nil {
+		source.BaseAmount = &base
+	}
 	cfg := s.rewardConfig(ctx)
 	now := time.Now()
 	agentInDuration := withinDuration(consumer, cfg.AgentDurationDays, now)

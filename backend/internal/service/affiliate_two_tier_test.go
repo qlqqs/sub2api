@@ -755,6 +755,10 @@ func TestFirstRecharge_InviterFixedOnlyForNormalInviter(t *testing.T) {
 	require.InDelta(t, 3, res.InviteeBonus, 1e-9)
 	require.InDelta(t, 2, res.InviterReward, 1e-9)
 	require.InDelta(t, 2, repo.rows[userU1].AffQuota, 1e-9)
+	fixed := repo.ledger[len(repo.ledger)-1]
+	require.Equal(t, AffiliateRewardInviteFixed, fixed.rewardType)
+	require.NotNil(t, fixed.source.BaseAmount)
+	require.InDelta(t, 10, *fixed.source.BaseAmount, 1e-9)
 
 	// U1 由二级代理 A 邀请：U1 拿首充奖励，A 不拿邀请人奖励。
 	res, err = svc.ApplyFirstRechargeRewards(ctx, userU1, 10, nil)
@@ -1077,7 +1081,12 @@ func TestSettleConsumptionRebates_DistributesAndAdvancesWatermark(t *testing.T) 
 	require.InDelta(t, 50, result.Consumption, 1e-9)
 	require.Equal(t, map[int64]float64{userA: 10, userB: 5}, rewardsBySource(repo, from, userU2))
 	require.InDelta(t, 50, repo.advances[userU2], 1e-9)
-	require.NotNil(t, repo.ledger[from].source.UsageUntil)
+	for _, entry := range repo.ledger[from:] {
+		require.NotNil(t, entry.source.UsageUntil)
+		// 每条流水都记下计入返利的消费（封顶后的 50），而不是原始消费 80。
+		require.NotNil(t, entry.source.BaseAmount)
+		require.InDelta(t, 50, *entry.source.BaseAmount, 1e-9)
+	}
 }
 
 func TestAdminSetAgentOwner_AffectsNewCustomersAndOwnConsumptionOnly(t *testing.T) {

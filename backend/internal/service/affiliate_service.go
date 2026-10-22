@@ -103,10 +103,11 @@ type AffiliateSummary struct {
 
 // AffiliateAccrueSource 标识一笔返利的来源：充值订单（OrderID）或消费结算
 // （UsageUntil 为本次结算覆盖到的 usage_logs.created_at 上界）。两者都为 nil
-// 时来自兑换码或管理员加款。
+// 时来自兑换码或管理员加款。BaseAmount 是这笔返利的计算基数（充值额或计入返利的消费）。
 type AffiliateAccrueSource struct {
 	OrderID    *int64
 	UsageUntil *time.Time
+	BaseAmount *float64
 }
 
 // AffiliatePendingConsumption 是一个用户待结算的余额消费快照（行锁内读取）。
@@ -377,31 +378,35 @@ type AffiliateInviteRecord struct {
 	InviteeID       int64     `json:"invitee_id"`
 	InviteeEmail    string    `json:"invitee_email"`
 	InviteeUsername string    `json:"invitee_username"`
+	InviteeLevel    int       `json:"invitee_level"`
+	InviterLevel    int       `json:"inviter_level"`
 	AffCode         string    `json:"aff_code"`
 	TotalRebate     float64   `json:"total_rebate"`
 	CreatedAt       time.Time `json:"created_at"`
-	AffiliateAgentRef
 }
 
-// AffiliateRebateRecord 是一笔返利入账流水。非订单来源（兑换码、管理员充值）
+// AffiliateRebateRecord 是一笔返利入账流水。非订单来源（兑换码、管理员充值、消费结算）
 // 的流水没有订单信息，OrderID/OrderAmount/PayAmount 为 nil；被邀请人账号被删除时
-// InviteeID 为 nil。
+// InviteeID 为 nil。BaseAmount 是入账时写下的计算基数（历史流水为 nil）；
+// SourceUsageUntil 仅消费结算流水有值，为本次结算覆盖到的消费时间上界。
 type AffiliateRebateRecord struct {
-	OrderID         *int64    `json:"order_id"`
-	OutTradeNo      string    `json:"out_trade_no"`
-	InviterID       int64     `json:"inviter_id"`
-	InviterEmail    string    `json:"inviter_email"`
-	InviterUsername string    `json:"inviter_username"`
-	InviteeID       *int64    `json:"invitee_id"`
-	InviteeEmail    string    `json:"invitee_email"`
-	InviteeUsername string    `json:"invitee_username"`
-	OrderAmount     *float64  `json:"order_amount"`
-	PayAmount       *float64  `json:"pay_amount"`
-	RebateAmount    float64   `json:"rebate_amount"`
-	RewardType      *string   `json:"reward_type"`
-	PaymentType     string    `json:"payment_type"`
-	OrderStatus     string    `json:"order_status"`
-	CreatedAt       time.Time `json:"created_at"`
+	OrderID          *int64     `json:"order_id"`
+	OutTradeNo       string     `json:"out_trade_no"`
+	InviterID        int64      `json:"inviter_id"`
+	InviterEmail     string     `json:"inviter_email"`
+	InviterUsername  string     `json:"inviter_username"`
+	InviteeID        *int64     `json:"invitee_id"`
+	InviteeEmail     string     `json:"invitee_email"`
+	InviteeUsername  string     `json:"invitee_username"`
+	OrderAmount      *float64   `json:"order_amount"`
+	PayAmount        *float64   `json:"pay_amount"`
+	RebateAmount     float64    `json:"rebate_amount"`
+	RewardType       *string    `json:"reward_type"`
+	PaymentType      string     `json:"payment_type"`
+	OrderStatus      string     `json:"order_status"`
+	BaseAmount       *float64   `json:"base_amount"`
+	SourceUsageUntil *time.Time `json:"source_usage_until"`
+	CreatedAt        time.Time  `json:"created_at"`
 }
 
 // AffiliateTransferRecord 是一笔返利额度流出：Action 为 transfer（用户转入余额）
