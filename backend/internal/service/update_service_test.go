@@ -185,3 +185,43 @@ func TestUpdateServiceRollbackToVersionAcceptsVPrefix(t *testing.T) {
 	require.NotErrorIs(t, err, ErrRollbackVersionNotAllowed)
 	require.Contains(t, err.Error(), "no compatible release found")
 }
+
+// updateServiceNoGitHubClient fails the test if a custom build touches GitHub releases.
+type updateServiceNoGitHubClient struct{ t *testing.T }
+
+func (c updateServiceNoGitHubClient) FetchLatestRelease(context.Context, string) (*GitHubRelease, error) {
+	c.t.Fatal("custom build must not fetch the latest release")
+	return nil, nil
+}
+
+func (c updateServiceNoGitHubClient) FetchRecentReleases(context.Context, string, int) ([]*GitHubRelease, error) {
+	c.t.Fatal("custom build must not fetch recent releases")
+	return nil, nil
+}
+
+func (c updateServiceNoGitHubClient) DownloadFile(context.Context, string, string, int64) error {
+	c.t.Fatal("custom build must not download release assets")
+	return nil
+}
+
+func (c updateServiceNoGitHubClient) FetchChecksumFile(context.Context, string) ([]byte, error) {
+	c.t.Fatal("custom build must not fetch checksums")
+	return nil, nil
+}
+
+func TestUpdateServiceCustomBuildDisablesOnlineUpdate(t *testing.T) {
+	svc := NewUpdateService(&updateServiceCacheStub{}, updateServiceNoGitHubClient{t: t}, "0.2.17", BuildTypeCustom)
+	ctx := context.Background()
+
+	info, err := svc.CheckUpdate(ctx, true)
+	require.NoError(t, err)
+	require.False(t, info.HasUpdate)
+	require.Equal(t, "0.2.17", info.LatestVersion)
+	require.Equal(t, BuildTypeCustom, info.BuildType)
+	require.Nil(t, info.ReleaseInfo)
+
+	require.ErrorIs(t, svc.PerformUpdate(ctx), ErrOnlineUpdateDisabled)
+	_, err = svc.ListRollbackVersions(ctx)
+	require.ErrorIs(t, err, ErrOnlineUpdateDisabled)
+	require.ErrorIs(t, svc.RollbackToVersion(ctx, "0.2.16"), ErrOnlineUpdateDisabled)
+}
