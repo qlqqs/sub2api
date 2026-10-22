@@ -185,6 +185,7 @@ import { useSubscriptionStore } from '@/stores'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import type { UserSubscription } from '@/types'
 import { getExpirationDateRelation } from '@/utils/subscriptionQuota'
+import { BALANCE_SYMBOL } from '@/utils/balanceCurrency'
 
 const { t } = useI18n()
 
@@ -258,7 +259,7 @@ function getProgressWidth(used: number | undefined, limit: number | null | undef
 function formatUsage(used: number | undefined, limit: number | null | undefined): string {
   const usedValue = (used || 0).toFixed(2)
   const limitValue = limit?.toFixed(2) || '∞'
-  return `$${usedValue}/$${limitValue}`
+  return `${BALANCE_SYMBOL}${usedValue}/${BALANCE_SYMBOL}${limitValue}`
 }
 
 function formatDaysRemaining(expiresAt: string): string {

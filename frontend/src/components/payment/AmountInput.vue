@@ -35,7 +35,7 @@
             </span>
           </span>
           <span class="block">{{ amt }}</span>
-          <!-- 配置了优惠阶梯时，所有按钮都显示第二行，保持高度一致：赠金显示到账 USD，折扣显示折后实付 -->
+          <!-- 配置了优惠阶梯时，所有按钮都显示第二行，保持高度一致：赠金显示到账余额（¥），折扣显示折后实付 -->
           <span
             v-if="showSecondLine"
             :class="[
@@ -54,15 +54,16 @@
         {{ t('payment.customAmount') }}
       </label>
       <div class="relative">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-dark-500">
-          $
+        <!-- CUSTOM: 自定义金额按支付币种输入，前缀显示支付币种符号 -->
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-dark-500" data-testid="custom-amount-prefix">
+          {{ paymentSymbol }}
         </span>
         <input
           type="text"
           inputmode="decimal"
           :value="customText"
           :placeholder="placeholderText"
-          class="input w-full py-3 pl-8 pr-4"
+          :class="['input w-full py-3 pr-4', paymentSymbol.length > 1 ? 'pl-14' : 'pl-8']"
           @input="handleInput"
         />
       </div>
@@ -75,7 +76,8 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RechargeBonusTier } from '@/types/payment'
 import { formatRechargeBonusNumber, quoteRechargeBonus, type RechargeBonusMode } from '@/utils/rechargeBonus'
-import { formatPaymentAmount } from './currency'
+import { currencySymbol, formatPaymentAmount } from './currency'
+import { formatBalance } from '@/utils/balanceCurrency'
 
 const props = withDefaults(defineProps<{
   amounts?: number[]
@@ -86,7 +88,7 @@ const props = withDefaults(defineProps<{
   bonusTiers?: RechargeBonusTier[]
   /** 阶梯模式：bonus 赠金 / discount 折扣 */
   bonusMode?: RechargeBonusMode
-  /** 充值倍率（1 支付币种 = multiplier USD），用于计算到账金额 */
+  /** 充值倍率（1 支付币种 = multiplier 余额单位），用于计算到账金额 */
   multiplier?: number
   /** 支付币种（折扣模式第二行实付金额的币种与精度） */
   currency?: string
@@ -143,8 +145,10 @@ function secondLine(amt: number): string {
   if (props.bonusMode === 'discount') {
     return t('payment.rechargeBonus.payShort', { amount: formatPaymentAmount(quote.payBase, props.currency) })
   }
-  return t('payment.rechargeBonus.creditedShort', { amount: '$' + quote.credited.toFixed(2) })
+  return t('payment.rechargeBonus.creditedShort', { amount: formatBalance(quote.credited) })
 }
+
+const paymentSymbol = computed(() => currencySymbol(props.currency))
 
 const placeholderText = computed(() => {
   if (props.min > 0 && props.max > 0) return `${props.min} - ${props.max}`

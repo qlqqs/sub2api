@@ -112,7 +112,7 @@ describe('AdminAffiliateRecordsTable', () => {
     expect(row.get('[data-test="cell-pay_amount"]').text()).toBe('-')
     expect(row.get('[data-test="cell-payment_type"]').text()).toBe('-')
     expect(row.get('[data-test="cell-order_status"]').text()).toBe('-')
-    expect(row.get('[data-test="cell-rebate_amount"]').text()).toBe('$2.00')
+    expect(row.get('[data-test="cell-rebate_amount"]').text()).toBe('¥2.00')
     expect(row.get('[data-test="cell-reward_type"]').text()).toBe('admin.affiliates.rewardTypes.agent_diff')
     expect(wrapper.find('[data-test="cell-rebate_level"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="affiliate-withdraw-open"]').exists()).toBe(false)
@@ -245,7 +245,7 @@ describe('AdminAffiliateRecordsTable', () => {
 
     const withdrawRow = wrapper.get('[data-test="row-0"]')
     expect(withdrawRow.get('[data-test="cell-action"]').text()).toBe('admin.affiliates.outflowTypes.withdraw')
-    expect(withdrawRow.get('[data-test="cell-amount"]').text()).toBe('$12.50')
+    expect(withdrawRow.get('[data-test="cell-amount"]').text()).toBe('¥12.50')
 
     const transferRow = wrapper.get('[data-test="row-1"]')
     expect(transferRow.get('[data-test="cell-action"]').text()).toBe('admin.affiliates.outflowTypes.transfer')

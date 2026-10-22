@@ -1,7 +1,10 @@
 /**
  * Helpers shared by the affiliate views, the recharge page and the register page
- * to describe and quote the invitee first-recharge bonus. Amounts are USD.
+ * to describe and quote the invitee first-recharge bonus. Amounts are in the
+ * site balance unit (shown as ¥, see utils/balanceCurrency.ts).
  */
+
+import { BALANCE_SYMBOL } from './balanceCurrency'
 
 export interface InviteeBonusLike {
   mode: string
@@ -25,12 +28,15 @@ export function formatRatePercent(value: number | null | undefined): string {
   return String(rounded)
 }
 
-/** Formats USD compactly: 10 → "$10", 2.5 → "$2.50", 0.125 → "$0.13". */
+/**
+ * CUSTOM: formats a balance amount compactly with the balance symbol:
+ * 10 → "¥10", 2.5 → "¥2.50", 0.125 → "¥0.13". (Name kept for existing callers.)
+ */
 export function formatUsdShort(value: number | null | undefined): string {
   const n = Math.round(finite(value) * 100) / 100
   const sign = n < 0 ? '-' : ''
   const abs = Math.abs(n)
-  return `${sign}$${Number.isInteger(abs) ? abs.toString() : abs.toFixed(2)}`
+  return `${sign}${BALANCE_SYMBOL}${Number.isInteger(abs) ? abs.toString() : abs.toFixed(2)}`
 }
 
 export function isInviteeBonusActive(bonus: InviteeBonusLike | null | undefined): bonus is InviteeBonusLike {
@@ -52,7 +58,7 @@ export function quoteInviteeBonus(bonus: InviteeBonusLike | null | undefined, cr
   return Math.round(amount * 100) / 100
 }
 
-/** "10%", "10% (up to $20)" or "$2" — the bonus part of a sentence. */
+/** "10%", "10% (up to ¥20)" or "¥2" — the bonus part of a sentence. */
 export function describeInviteeBonusValue(bonus: InviteeBonusLike, t: Translate): string {
   if (bonus.mode === 'fixed') return formatUsdShort(bonus.value)
   const value = formatRatePercent(bonus.value)

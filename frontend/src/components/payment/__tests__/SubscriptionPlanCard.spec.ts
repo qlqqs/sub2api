@@ -148,4 +148,25 @@ describe("SubscriptionPlanCard", () => {
     ]));
     expect(badge?.element.parentElement?.textContent).toContain("/ 30payment.days");
   });
+
+  it("shows the plan group rate as a price ratio and limits in the balance unit", () => {
+    const wrapper = mountPlanCard("openai", { rate_multiplier: 0.5, daily_limit_usd: 20 });
+    const text = wrapper.text();
+
+    expect(text).toContain("¥0.5 = $1");
+    expect(text).not.toContain("×0.5");
+    expect(text).toContain("¥20");
+  });
+
+  it("shows the peak window as the peak-period ratio (plan rate × peak multiplier)", () => {
+    const text = mountPlanCard("openai", {
+      rate_multiplier: 0.5,
+      peak_rate_enabled: true,
+      peak_start: "14:00",
+      peak_end: "18:00",
+      peak_rate_multiplier: 2,
+    }).text();
+
+    expect(text).toContain("14:00-18:00 ¥1 = $1");
+  });
 });

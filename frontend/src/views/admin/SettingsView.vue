@@ -8965,7 +8965,7 @@
                 <div class="relative">
                   <span
                     class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                    >$</span
+                    >{{ BALANCE_SYMBOL }}</span
                   >
                   <input
                     v-model.number="form.balance_low_notify_threshold"
@@ -9229,6 +9229,7 @@ import {
 import TotpStepUpDialog from "@/components/auth/TotpStepUpDialog.vue";
 import { affiliatesAPI } from "@/api/admin/affiliates";
 import { formatUsdShort } from "@/utils/affiliateRewards";
+import { BALANCE_SYMBOL } from "@/utils/balanceCurrency";
 import { extractApiErrorMessage, extractI18nErrorMessage } from "@/utils/apiError";
 import { useAppStore } from "@/stores";
 import { useAdminSettingsStore } from "@/stores/adminSettings";

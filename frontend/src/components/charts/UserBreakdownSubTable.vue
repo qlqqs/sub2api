@@ -23,7 +23,7 @@
             {{ formatTokens(user.total_tokens) }}
           </td>
           <td class="py-1 text-right text-green-600 dark:text-green-400">
-            ${{ formatCost(user.actual_cost) }}
+            {{ BALANCE_SYMBOL }}{{ formatCost(user.actual_cost) }}
           </td>
           <td v-if="showAccountCost" class="py-1 text-right text-orange-500 dark:text-orange-400">
             ${{ formatCost(user.account_cost) }}
@@ -38,6 +38,7 @@
 </template>
 
 <script setup lang="ts">
+import { BALANCE_SYMBOL } from '@/utils/balanceCurrency'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'

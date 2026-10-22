@@ -291,6 +291,12 @@ export default {
     amountLabel: 'Amount',
     paymentAmount: 'Payment Amount',
     creditedBalance: 'Credited Balance',
+    // CUSTOM: "pay ¥100 -> balance ¥100" and the per-group price card
+    creditedSummary: 'Pay {pay} → balance {credited}',
+    groupPrices: {
+      title: 'Group prices',
+      hint: 'Balance deducted per $1 of official price in each group'
+    },
     firstRechargeBonus: {
       notice: 'Recharge {min} or more for the first time to get an extra {bonus}, granted once the payment is credited',
       noticeNoMin: 'Get an extra {bonus} on your first recharge, granted once the payment is credited',
@@ -409,7 +415,6 @@ export default {
     amountTooLow: 'Minimum amount is {min}',
     amountTooHigh: 'Maximum amount is {max}',
     amountNoMethod: 'No payment method available for this amount',
-    rechargeRatePreview: 'Current rate: 1 {currency} = {usd} USD',
     refundReason: 'Refund Reason',
     refundReasonPlaceholder: 'Please describe your refund reason',
     stripeLoadFailed: 'Failed to load payment component. Please refresh and try again.',
@@ -476,8 +481,8 @@ export default {
     selectPlan: 'Select Plan',
     planFeatures: 'Features',
     planCard: {
-      rate: 'Rate',
-      peakRate: 'Peak Rate',
+      priceRatio: 'Price ratio',
+      peakPriceRatio: 'Peak price',
       dailyLimit: 'Daily',
       weeklyLimit: 'Weekly',
       monthlyLimit: 'Monthly',
@@ -545,7 +550,7 @@ export default {
       deductBalanceHint: 'Subtract recharged amount from user balance',
       userBalance: 'User Balance',
       orderAmount: 'Order Amount',
-      insufficientBalance: 'Insufficient balance — will deduct to $0',
+      insufficientBalance: 'Insufficient balance — will deduct to ¥0',
       noDeduction: 'Will NOT deduct user balance',
       forceRefund: 'Force refund (ignore balance check)',
       orderCancelled: 'Order Cancelled',

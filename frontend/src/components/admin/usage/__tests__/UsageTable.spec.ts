@@ -49,6 +49,8 @@ const messages: Record<string, string> = {
   'usage.serviceTierFlex': 'Flex',
   'usage.serviceTierStandard': 'Standard',
   'usage.rate': 'Rate',
+  'usage.priceRatio': 'Price ratio',
+  'usage.officialPriceTitle': 'Official price',
   'usage.accountMultiplier': 'Account rate',
   'usage.original': 'Original',
   'usage.userBilled': 'User billed',
@@ -270,17 +272,17 @@ describe('admin UsageTable tooltip', () => {
   })
 
   it.each([
-    [0, '0.0x'],
-    [0.5, '0.50x'],
-    [undefined, '1.00x'],
-  ])('shows the stored user rate %s in cost details', async (rate, expected) => {
+    [0, '¥0 = $1'],
+    [0.5, '¥0.5 = $1'],
+    [undefined, '¥1 = $1'],
+  ])('shows the stored user rate %s as a price ratio in cost details', async (rate, expected) => {
     const wrapper = mount(UsageTable, {
       props: { data: [{ ...baseImageRow, rate_multiplier: rate }], loading: false, columns: [] },
       global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
     })
     const triggers = wrapper.findAll('.group.relative')
     await triggers[triggers.length - 1].trigger('mouseenter')
-    const rateLabel = wrapper.get('.fixed').findAll('span').find(span => span.text() === 'Rate')!
+    const rateLabel = wrapper.get('.fixed').findAll('span').find(span => span.text() === 'Price ratio')!
     expect(rateLabel.element.parentElement?.textContent).toContain(expected)
     wrapper.unmount()
   })
@@ -324,11 +326,13 @@ describe('admin UsageTable tooltip', () => {
     const text = wrapper.text()
     expect(text).toContain('Service tier')
     expect(text).toContain('Fast')
-    expect(text).toContain('Rate')
-    expect(text).toContain('1.00x')
+    expect(text).toContain('Price ratio')
+    expect(text).toContain('¥1 = $1')
     expect(text).toContain('Account rate')
     expect(text).toContain('User billed')
     expect(text).toContain('Account billed')
+    // 扣费(actual_cost)为余额单位 ¥,官方价(total_cost)与账号计费保持 $
+    expect(text).toContain('¥0.092883')
     expect(text).toContain('$0.092883')
     expect(text).toContain('$5.0000 / 1M tokens')
     expect(text).toContain('$30.0000 / 1M tokens')
@@ -360,7 +364,7 @@ describe('admin UsageTable tooltip', () => {
     const amounts = wrapper.get('.fixed').findAll('span').map(span => span.text())
     expect(amounts).toEqual(expect.arrayContaining([
       '$0.00000001', '$0.00000002', '$0.00000003', '$0.00000004',
-      '$0.00000005', '$0.00000006', '$0.00000022', '$0.00000042', '$0.00000018',
+      '$0.00000005', '$0.00000006', '$0.00000022', '¥0.00000042', '$0.00000018',
     ]))
     if (billingMode === 'image') expect(amounts).toContain('$0.00000011')
     wrapper.unmount()
@@ -377,8 +381,8 @@ describe('admin UsageTable tooltip', () => {
     })
     const triggers = wrapper.findAll('.group.relative')
     await triggers[triggers.length - 1].trigger('mouseenter')
-    const amounts = wrapper.get('.fixed').findAll('span').map(span => span.text()).filter(text => text.startsWith('$'))
-    expect(amounts).toEqual(['$0.00000000', '$0.00000000', '$0.00000000', '$0.00000000'])
+    const amounts = wrapper.get('.fixed').findAll('span').map(span => span.text()).filter(text => /^[$¥]/.test(text) && !text.includes(' = '))
+    expect(amounts).toEqual(['$0.00000000', '$0.00000000', '¥0.00000000', '$0.00000000'])
     wrapper.unmount()
   })
 
@@ -912,5 +916,22 @@ describe('admin UsageTable deleted-user badge', () => {
 
     expect(wrapper.text()).not.toContain('Deleted')
     expect(wrapper.text()).toContain('active@test.com')
+  })
+})
+
+describe('admin UsageTable cost cell', () => {
+  it('shows the deducted cost in ¥ with the official price (total_cost) on hover', () => {
+    const wrapper = mount(UsageTable, {
+      props: {
+        data: [{ ...baseImageRow, actual_cost: 0.05, total_cost: 0.1 }],
+        loading: false,
+        columns: [],
+      },
+      global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
+    })
+    const cost = wrapper.findAll('span').find(span => span.text() === '¥0.050000')
+    expect(cost).toBeDefined()
+    expect(cost!.attributes('title')).toBe('Official price')
+    wrapper.unmount()
   })
 })

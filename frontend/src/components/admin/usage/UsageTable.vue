@@ -208,7 +208,11 @@
         <template #cell-cost="{ row }">
           <div class="text-sm">
             <div class="flex items-center gap-1.5">
-              <span class="font-medium text-green-600 dark:text-green-400">${{ row.actual_cost?.toFixed(6) || '0.000000' }}</span>
+              <!-- CUSTOM: 扣费为站内余额单位 ¥；悬停显示官方价（total_cost，$） -->
+              <span
+                class="font-medium text-green-600 dark:text-green-400"
+                :title="t('usage.officialPriceTitle', { cost: OFFICIAL_SYMBOL + (row.total_cost?.toFixed(6) || '0.000000') })"
+              >{{ BALANCE_SYMBOL }}{{ row.actual_cost?.toFixed(6) || '0.000000' }}</span>
               <span
                 v-if="row.long_context_billing_applied"
                 data-testid="long-context-billing-marker"
@@ -499,8 +503,9 @@
             <span class="font-semibold text-cyan-300">{{ getUsageServiceTierLabel(tooltipData?.service_tier, t) }}</span>
           </div>
           <div class="flex items-center justify-between gap-6">
-            <span class="text-gray-400">{{ t('usage.rate') }}</span>
-            <span class="font-semibold text-blue-400">{{ formatMultiplier(tooltipData?.rate_multiplier ?? 1) }}x</span>
+            <span class="text-gray-400">{{ t('usage.priceRatio') }}</span>
+            <!-- CUSTOM: 本次请求的价格比例「¥x = $1」 -->
+            <span class="font-semibold text-blue-400">{{ formatRateRatio(tooltipData?.rate_multiplier ?? 1) }}</span>
           </div>
           <div class="flex items-center justify-between gap-6">
             <span class="text-gray-400">{{ t('usage.original') }}</span>
@@ -508,7 +513,7 @@
           </div>
           <div class="flex items-center justify-between gap-6">
             <span class="text-gray-400">{{ t('usage.userBilled') }}</span>
-            <span class="font-semibold text-green-400">${{ tooltipData?.actual_cost?.toFixed(8) || '0.00000000' }}</span>
+            <span class="font-semibold text-green-400">{{ BALANCE_SYMBOL }}{{ tooltipData?.actual_cost?.toFixed(8) || '0.00000000' }}</span>
           </div>
           <!-- Account billing (separated from user billing) -->
           <template v-if="showAccountBilling">
@@ -541,6 +546,7 @@ import { useAppStore } from '@/stores/app'
 import { formatDateTime, formatReasoningEffort, reasoningEffortValuesEqual } from '@/utils/format'
 import { formatCacheTokens, formatMultiplier } from '@/utils/formatters'
 import { formatTokenPricePerMillion } from '@/utils/usagePricing'
+import { BALANCE_SYMBOL, OFFICIAL_SYMBOL, formatRateRatio } from '@/utils/balanceCurrency'
 import { getUsageServiceTierLabel } from '@/utils/usageServiceTier'
 import { resolveUsageRequestType } from '@/utils/usageRequestType'
 import {

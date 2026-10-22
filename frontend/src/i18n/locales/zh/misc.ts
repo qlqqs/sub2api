@@ -315,6 +315,12 @@ export default {
     amountLabel: '充值金额',
     paymentAmount: '支付金额',
     creditedBalance: '到账余额',
+    // CUSTOM: 「充 ¥100 → 余额 ¥100」与各分组价格卡片
+    creditedSummary: '充 {pay} → 余额 {credited}',
+    groupPrices: {
+      title: '各分组价格',
+      hint: '按官方价 $1 计，各分组实际扣除的余额'
+    },
     firstRechargeBonus: {
       notice: '首次充值满 {min} 额外赠送 {bonus}，到账后发放',
       noticeNoMin: '首次充值额外赠送 {bonus}，到账后发放',
@@ -433,7 +439,6 @@ export default {
     amountTooLow: '最低金额为 {min}',
     amountTooHigh: '最高金额为 {max}',
     amountNoMethod: '该金额没有可用的支付方式',
-    rechargeRatePreview: '当前倍率：1 {currency} = {usd} USD',
     refundReason: '退款原因',
     refundReasonPlaceholder: '请描述您的退款原因',
     stripeLoadFailed: '支付组件加载失败，请刷新页面重试',
@@ -500,8 +505,8 @@ export default {
     selectPlan: '选择套餐',
     planFeatures: '功能特性',
     planCard: {
-      rate: '倍率',
-      peakRate: '高峰倍率',
+      priceRatio: '价格比例',
+      peakPriceRatio: '高峰价格',
       dailyLimit: '日限额',
       weeklyLimit: '周限额',
       monthlyLimit: '月限额',
@@ -569,7 +574,7 @@ export default {
       deductBalanceHint: '从用户余额中扣回充值金额',
       userBalance: '用户余额',
       orderAmount: '订单金额',
-      insufficientBalance: '余额不足，将扣至 $0',
+      insufficientBalance: '余额不足，将扣至 ¥0',
       noDeduction: '将不扣除用户余额',
       forceRefund: '强制退款（忽略余额检查）',
       orderCancelled: '订单已取消',

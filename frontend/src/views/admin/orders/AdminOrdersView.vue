@@ -132,6 +132,7 @@ import AdminRefundDialog from '@/components/admin/payment/AdminRefundDialog.vue'
 import OrderStatusBadge from '@/components/payment/OrderStatusBadge.vue'
 import OrderTable from '@/components/payment/OrderTable.vue'
 import { currencySymbol } from '@/components/payment/currency'
+import { BALANCE_SYMBOL } from '@/utils/balanceCurrency'
 
 interface AuditLog {
   id: number
@@ -157,7 +158,8 @@ const refundRequireForce = ref(false)
 const refundWarning = ref('')
 const refundQueryingIds = ref(new Set<number>())
 const orderAuditLogs = ref<AuditLog[]>([])
-const creditedAmountSymbol = currencySymbol('USD')
+// CUSTOM: 到账/退款/用户余额是站内余额单位，不是支付货币
+const creditedAmountSymbol = BALANCE_SYMBOL
 
 function paymentAmountSymbol(order: PaymentOrder | null | undefined): string {
   return currencySymbol(order?.currency)

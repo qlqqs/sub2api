@@ -38,6 +38,7 @@
       <p
         v-if="peakNote"
         class="mt-1.5 inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400"
+        :title="peakNoteTitle"
       >
         <Icon name="clock" size="xs" class="h-3 w-3" />
         {{ peakNote }}
@@ -82,7 +83,8 @@ import PlazaModelPricingTable from './PlazaModelPricingTable.vue'
 import type { ModelPlazaGroup } from '@/api/modelPlaza'
 import type { GroupPlatform, SubscriptionType } from '@/types'
 import { platformBorderStrongClass } from '@/utils/platformColors'
-import { hasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
+import { hasPeakRate, formatPeakRateWindow, formatPeakTimeWindow, serverTimezoneLabel } from '@/utils/peak-rate'
+import { effectiveRate } from '@/utils/balanceCurrency'
 import { useAppStore } from '@/stores/app'
 
 const props = defineProps<{
@@ -92,21 +94,32 @@ const props = defineProps<{
 const { t } = useI18n()
 const appStore = useAppStore()
 
-/** 高峰窗口描述(含倍率与服务器时区标注);分组未启用高峰为空串。 */
+const tzLabel = computed(() => serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset))
+
+/**
+ * 高峰时间窗口(含服务器时区标注,不含比例);分组未启用高峰为空串。
+ * 传给价格表用于分时时段行 tooltip,那里另行说明高峰倍率。
+ */
 const peakWindow = computed(() => {
   if (!hasPeakRate(props.group)) return ''
-  return formatPeakRateWindow(
-    props.group,
-    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset)
-  )
+  return formatPeakTimeWindow(props.group, tzLabel.value)
 })
 
+/** CUSTOM: 高峰提示展示该时段的价格比例「¥x = $1」(生效倍率 × 高峰倍率),高峰倍率放悬停提示。 */
 const peakNote = computed(() => {
   if (!peakWindow.value) return ''
-  return t('modelPlaza.detail.peakNote', {
-    window: peakWindow.value,
-    multiplier: props.group.peak_rate_multiplier
+  return t('modelPlaza.detail.peakRatioNote', {
+    window: formatPeakRateWindow(
+      props.group,
+      tzLabel.value,
+      effectiveRate(props.group.rate_multiplier, props.group.user_rate_multiplier)
+    )
   })
+})
+
+const peakNoteTitle = computed(() => {
+  if (!peakWindow.value) return undefined
+  return t('modelPlaza.detail.peakRatioHint', { multiplier: props.group.peak_rate_multiplier ?? 1 })
 })
 
 /**

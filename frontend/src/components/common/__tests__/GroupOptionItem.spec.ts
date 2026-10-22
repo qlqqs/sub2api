@@ -42,3 +42,30 @@ describe('GroupOptionItem description layout', () => {
     expect(wrapper.find('[title]').attributes('title')).toBe(description)
   })
 })
+
+describe('GroupOptionItem price ratio', () => {
+  it('shows "¥x = $1" ratios and strikes through the group ratio when an exclusive rate exists', () => {
+    const wrapper = mount(GroupOptionItem, {
+      props: {
+        name: 'Example group',
+        platform: 'openai',
+        rateMultiplier: 0.5,
+        userRateMultiplier: 0.25,
+      },
+      global: { stubs: { GroupBadge: true } },
+    })
+
+    expect(wrapper.find('.line-through').text()).toBe('¥0.5 = $1')
+    expect(wrapper.text()).toContain('¥0.25 = $1')
+    expect(wrapper.text()).not.toMatch(/\d+x/)
+  })
+
+  it('shows the group ratio when there is no exclusive rate', () => {
+    const wrapper = mount(GroupOptionItem, {
+      props: { name: 'Example group', platform: 'openai', rateMultiplier: 1 },
+      global: { stubs: { GroupBadge: true } },
+    })
+
+    expect(wrapper.text()).toContain('¥1 = $1')
+  })
+})

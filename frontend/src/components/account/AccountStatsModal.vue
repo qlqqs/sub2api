@@ -74,7 +74,7 @@
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
               {{ t('admin.accounts.stats.accumulatedCost') }}
               <span class="text-gray-400 dark:text-gray-500">
-                ({{ t('usage.userBilled') }}: ${{ formatCost(stats.summary.total_user_cost) }} ·
+                ({{ t('usage.userBilled') }}: {{ BALANCE_SYMBOL }}{{ formatCost(stats.summary.total_user_cost) }} ·
                 {{ t('admin.accounts.stats.standardCost') }}: ${{
                   formatCost(stats.summary.total_standard_cost)
                 }})
@@ -129,7 +129,7 @@
                 })
               }}
               <span class="text-gray-400 dark:text-gray-500">
-                ({{ t('usage.userBilled') }}: ${{ formatCost(stats.summary.avg_daily_user_cost) }})
+                ({{ t('usage.userBilled') }}: {{ BALANCE_SYMBOL }}{{ formatCost(stats.summary.avg_daily_user_cost) }})
               </span>
             </p>
           </div>
@@ -201,7 +201,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('usage.userBilled') }}</span>
                 <span class="text-sm font-semibold text-gray-900 dark:text-white"
-                  >${{ formatCost(stats.summary.today?.user_cost || 0) }}</span
+                  >{{ BALANCE_SYMBOL }}{{ formatCost(stats.summary.today?.user_cost || 0) }}</span
                 >
               </div>
               <div class="flex items-center justify-between">
@@ -256,7 +256,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('usage.userBilled') }}</span>
                 <span class="text-sm font-semibold text-gray-900 dark:text-white"
-                  >${{ formatCost(stats.summary.highest_cost_day?.user_cost || 0) }}</span
+                  >{{ BALANCE_SYMBOL }}{{ formatCost(stats.summary.highest_cost_day?.user_cost || 0) }}</span
                 >
               </div>
               <div class="flex items-center justify-between">
@@ -311,7 +311,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('usage.userBilled') }}</span>
                 <span class="text-sm font-semibold text-gray-900 dark:text-white"
-                  >${{ formatCost(stats.summary.highest_request_day?.user_cost || 0) }}</span
+                  >{{ BALANCE_SYMBOL }}{{ formatCost(stats.summary.highest_request_day?.user_cost || 0) }}</span
                 >
               </div>
             </div>
@@ -421,7 +421,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('usage.userBilled') }}</span>
                 <span class="text-sm font-semibold text-gray-900 dark:text-white"
-                  >${{ formatCost(stats.summary.today?.user_cost || 0) }}</span
+                  >{{ BALANCE_SYMBOL }}{{ formatCost(stats.summary.today?.user_cost || 0) }}</span
                 >
               </div>
             </div>
@@ -484,6 +484,7 @@
 </template>
 
 <script setup lang="ts">
+import { BALANCE_SYMBOL } from '@/utils/balanceCurrency'
 import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -559,7 +560,7 @@ const trendChartData = computed(() => {
         yAxisID: 'y'
       },
       {
-        label: t('usage.userBilled') + ' (USD)',
+        label: t('usage.userBilled') + ` (${BALANCE_SYMBOL})`,
         data: stats.value.history.map((h) => h.user_cost),
         borderColor: '#10b981',
         backgroundColor: 'rgba(16, 185, 129, 0.08)',
@@ -609,6 +610,10 @@ const lineChartOptions = computed(() => ({
           const value = context.raw
           if (label.includes('USD')) {
             return `${label}: $${formatCost(value)}`
+          }
+          // CUSTOM: 用户计费（实扣）用站内余额单位
+          if (label.includes(`(${BALANCE_SYMBOL})`)) {
+            return `${label}: ${BALANCE_SYMBOL}${formatCost(value)}`
           }
           return `${label}: ${formatNumber(value)}`
         }

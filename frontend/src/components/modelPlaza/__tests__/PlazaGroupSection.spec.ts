@@ -137,9 +137,29 @@ describe('PlazaGroupSection 高峰配置传递', () => {
       })
     )
     const table = wrapper.findComponent(PlazaModelPricingTable)
-    // appStore mock 无 server_utc_offset,窗口描述不带时区标注
-    expect(table.props('peakWindow')).toBe('14:00-18:00 ×1.5')
+    // appStore mock 无 server_utc_offset,窗口描述不带时区标注;传给价格表的只是时间窗口(倍率另行说明)
+    expect(table.props('peakWindow')).toBe('14:00-18:00')
     expect(table.props('peakRateMultiplier')).toBe(1.5)
+  })
+
+  it('高峰提示按 生效倍率 × 高峰倍率 展示价格比例', () => {
+    const g = group({
+      rate_multiplier: 1,
+      user_rate_multiplier: 0.4,
+      peak_rate_enabled: true,
+      peak_start: '14:00',
+      peak_end: '18:00',
+      peak_rate_multiplier: 1.5
+    })
+    // 不 stub GroupBadge,验证徽章上的高峰比例
+    const wrapper = mount(PlazaGroupSection, {
+      props: { group: g },
+      global: { stubs: { Icon: true, PlatformIcon: true, PlazaModelPricingTable: true } }
+    })
+    // 0.4 × 1.5 = 0.6(分组徽章的高峰标签);提示文案挂高峰倍率说明
+    expect(wrapper.text()).toContain('14:00-18:00 ¥0.6 = $1')
+    expect(wrapper.text()).toContain('modelPlaza.detail.peakRatioNote')
+    expect(wrapper.find('[title="modelPlaza.detail.peakRatioHint"]').exists()).toBe(true)
   })
 
   it('分组未启用高峰时窗口描述为空串', () => {

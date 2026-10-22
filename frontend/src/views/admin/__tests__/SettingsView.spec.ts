@@ -1323,7 +1323,7 @@ describe("admin SettingsView payment visible method controls", () => {
     await flushPromises();
 
     expect(wrapper.get('[data-test="affiliate-profit-example-split"]').text()).toBe(
-      "二级代理 $20 · 一级代理 $10 · 平台 $0",
+      "二级代理 ¥20 · 一级代理 ¥10 · 平台 ¥0",
     );
     expect(wrapper.find('[data-test="affiliate-level2-rate-error"]').exists()).toBe(false);
 
@@ -1346,7 +1346,7 @@ describe("admin SettingsView payment visible method controls", () => {
     await flushPromises();
     expect(wrapper.find('[data-test="affiliate-level2-rate-error"]').exists()).toBe(false);
     expect(wrapper.get('[data-test="affiliate-profit-example-split"]').text()).toBe(
-      "二级代理 $35 · 一级代理 $5 · 平台 $0",
+      "二级代理 ¥35 · 一级代理 ¥5 · 平台 ¥0",
     );
 
     await wrapper.find("form").trigger("submit.prevent");

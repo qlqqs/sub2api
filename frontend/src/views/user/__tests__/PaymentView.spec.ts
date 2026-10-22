@@ -25,6 +25,8 @@ const showInfo = vi.hoisted(() => vi.fn())
 const showWarning = vi.hoisted(() => vi.fn())
 const getCheckoutInfo = vi.hoisted(() => vi.fn())
 const getAffiliateDetail = vi.hoisted(() => vi.fn())
+const getAvailableGroups = vi.hoisted(() => vi.fn().mockResolvedValue([]))
+const getUserGroupRates = vi.hoisted(() => vi.fn().mockResolvedValue({}))
 const bridgeInvoke = vi.hoisted(() => vi.fn())
 const translate = vi.hoisted(() => vi.fn((key: string) => key))
 // Public settings live in a reactive holder so tests can flip feature flags after mount
@@ -106,6 +108,13 @@ vi.mock('@/api/payment', () => ({
 vi.mock('@/api/user', () => ({
   default: {
     getAffiliateDetail,
+  },
+}))
+
+vi.mock('@/api/groups', () => ({
+  userGroupsAPI: {
+    getAvailable: getAvailableGroups,
+    getUserGroupRates,
   },
 }))
 
@@ -381,8 +390,8 @@ describe('PaymentView subscription plan grid', () => {
   })
 })
 
-describe('PaymentView recharge rate preview', () => {
-  it('uses the selected payment method currency in both locale templates', async () => {
+describe('PaymentView recharge credited summary', () => {
+  it('shows "pay → balance ¥" with the balance unit and no longer renders the rate preview', async () => {
     translate.mockClear()
     routeState.path = '/purchase'
     routeState.query = {}
@@ -409,12 +418,109 @@ describe('PaymentView recharge rate preview', () => {
     wrapper.getComponent(AmountInput).vm.$emit('update:modelValue', 10)
     await flushPromises()
 
-    expect(translate).toHaveBeenCalledWith('payment.rechargeRatePreview', {
-      currency: 'USD',
-      usd: '0.50',
+    expect(wrapper.find('[data-testid="recharge-credited-row"]').exists()).toBe(true)
+    expect(translate).toHaveBeenCalledWith('payment.creditedSummary', {
+      pay: formatPaymentAmount(10, 'USD'),
+      credited: '¥5.00',
     })
-    expect(en.payment.rechargeRatePreview).toBe('Current rate: 1 {currency} = {usd} USD')
-    expect(zh.payment.rechargeRatePreview).toBe('当前倍率：1 {currency} = {usd} USD')
+    expect(translate).not.toHaveBeenCalledWith('payment.rechargeRatePreview', expect.anything())
+    expect(en.payment.creditedSummary).toBe('Pay {pay} → balance {credited}')
+    expect(zh.payment.creditedSummary).toBe('充 {pay} → 余额 {credited}')
+  })
+
+  it('shows the credited row with multiplier 1 too', async () => {
+    translate.mockClear()
+    routeState.path = '/purchase'
+    routeState.query = {}
+    getCheckoutInfo.mockReset().mockResolvedValue(checkoutInfoFixture())
+
+    const wrapper = shallowMount(PaymentView, {
+      global: {
+        stubs: {
+          AppLayout: { template: '<div><slot /></div>' },
+          Teleport: true,
+          Transition: false,
+        },
+      },
+    })
+    await flushPromises()
+    wrapper.getComponent(AmountInput).vm.$emit('update:modelValue', 100)
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="recharge-credited-row"]').exists()).toBe(true)
+    expect(translate).toHaveBeenCalledWith('payment.creditedSummary', {
+      pay: formatPaymentAmount(100, 'CNY'),
+      credited: '¥100.00',
+    })
+  })
+})
+
+describe('PaymentView group price card', () => {
+  afterEach(() => {
+    getAvailableGroups.mockReset().mockResolvedValue([])
+    getUserGroupRates.mockReset().mockResolvedValue({})
+  })
+
+  async function mountRechargePage() {
+    translate.mockClear()
+    routeState.path = '/purchase'
+    routeState.query = {}
+    getCheckoutInfo.mockReset().mockResolvedValue(checkoutInfoFixture())
+    const wrapper = shallowMount(PaymentView, {
+      global: {
+        stubs: {
+          AppLayout: { template: '<div><slot /></div>' },
+          Teleport: true,
+          Transition: false,
+        },
+      },
+    })
+    await flushPromises()
+    return wrapper
+  }
+
+  it('lists balance groups as "¥x = $1" sorted ascending by the effective (exclusive ?? group) rate', async () => {
+    getAvailableGroups.mockReset().mockResolvedValue([
+      { id: 1, name: 'Standard', rate_multiplier: 1, subscription_type: 'standard' },
+      { id: 2, name: 'Discount', rate_multiplier: 0.5, subscription_type: 'standard' },
+      { id: 3, name: 'VIP', rate_multiplier: 0.8, subscription_type: 'standard' },
+      { id: 4, name: 'Monthly plan', rate_multiplier: 0.1, subscription_type: 'subscription' },
+    ])
+    // 用户在 VIP 上有专属倍率 0.3
+    getUserGroupRates.mockReset().mockResolvedValue({ 3: 0.3 })
+
+    const wrapper = await mountRechargePage()
+
+    const card = wrapper.get('[data-testid="group-price-card"]')
+    const rows = card.findAll('[data-testid="group-price-row"]').map(row =>
+      row.findAll('span').map(span => span.text()),
+    )
+    expect(rows).toEqual([
+      ['VIP', '¥0.3 = $1'],
+      ['Discount', '¥0.5 = $1'],
+      ['Standard', '¥1 = $1'],
+    ])
+    expect(card.text()).toContain('payment.groupPrices.title')
+  })
+
+  it('hides the card when loading fails, without blocking checkout', async () => {
+    getAvailableGroups.mockReset().mockRejectedValue(new Error('boom'))
+
+    const wrapper = await mountRechargePage()
+
+    expect(wrapper.find('[data-testid="group-price-card"]').exists()).toBe(false)
+    expect(wrapper.findComponent(AmountInput).exists()).toBe(true)
+    expect(showError).not.toHaveBeenCalledWith(expect.stringContaining('boom'))
+  })
+
+  it('hides the card when there are no balance groups', async () => {
+    getAvailableGroups.mockReset().mockResolvedValue([
+      { id: 4, name: 'Monthly plan', rate_multiplier: 0.1, subscription_type: 'subscription' },
+    ])
+
+    const wrapper = await mountRechargePage()
+
+    expect(wrapper.find('[data-testid="group-price-card"]').exists()).toBe(false)
   })
 })
 
@@ -936,9 +1042,9 @@ describe('PaymentView first-recharge bonus prompt', () => {
 
     expect(getAffiliateDetail).toHaveBeenCalledTimes(1)
     expect(wrapper.find('[data-testid="first-recharge-bonus-notice"]').exists()).toBe(true)
-    expect(translate).toHaveBeenCalledWith('affiliate.bonusValuePercentMax', { value: '10', max: '$20' })
+    expect(translate).toHaveBeenCalledWith('affiliate.bonusValuePercentMax', { value: '10', max: '¥20' })
     expect(translate).toHaveBeenCalledWith('payment.firstRechargeBonus.notice', {
-      min: '$10',
+      min: '¥10',
       bonus: 'affiliate.bonusValuePercentMax',
     })
 
@@ -946,14 +1052,14 @@ describe('PaymentView first-recharge bonus prompt', () => {
     await flushPromises()
     expect(wrapper.find('[data-testid="first-recharge-bonus-row"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="first-recharge-bonus-shortfall"]').exists()).toBe(true)
-    expect(translate).toHaveBeenCalledWith('payment.firstRechargeBonus.shortfall', { amount: '$6' })
+    expect(translate).toHaveBeenCalledWith('payment.firstRechargeBonus.shortfall', { amount: '¥6' })
 
     // 500 × 10% = 50, capped at 20.
     wrapper.getComponent(AmountInput).vm.$emit('update:modelValue', 500)
     await flushPromises()
     expect(wrapper.find('[data-testid="first-recharge-bonus-shortfall"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="first-recharge-bonus-row"]').exists()).toBe(true)
-    expect(translate).toHaveBeenCalledWith('payment.firstRechargeBonus.rowValue', { amount: '$20' })
+    expect(translate).toHaveBeenCalledWith('payment.firstRechargeBonus.rowValue', { amount: '¥20' })
   })
 
   it('stays silent when the affiliate feature is off or no bonus is available', async () => {

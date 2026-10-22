@@ -76,7 +76,7 @@
 
           <template #cell-bonus_amount="{ value }">
             <span class="text-sm font-medium text-gray-900 dark:text-white">
-              ${{ value.toFixed(2) }}
+              {{ BALANCE_SYMBOL }}{{ value.toFixed(2) }}
             </span>
           </template>
 
@@ -347,7 +347,7 @@
           </div>
           <div class="text-right">
             <span class="text-sm font-medium text-green-600 dark:text-green-400">
-              +${{ usage.bonus_amount.toFixed(2) }}
+              +{{ BALANCE_SYMBOL }}{{ usage.bonus_amount.toFixed(2) }}
             </span>
           </div>
         </div>
@@ -386,6 +386,7 @@
 </template>
 
 <script setup lang="ts">
+import { BALANCE_SYMBOL } from '@/utils/balanceCurrency'
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

@@ -204,7 +204,8 @@ import type { AffiliateInvitee, UserAffiliateDetail } from '@/types'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 import { useClipboard } from '@/composables/useClipboard'
-import { formatCurrency, formatDateTime } from '@/utils/format'
+import { formatDateTime } from '@/utils/format'
+import { formatBalance } from '@/utils/balanceCurrency'
 import { extractApiErrorMessage, extractI18nErrorMessage } from '@/utils/apiError'
 import {
   describeInviteeBonusValue,
@@ -217,6 +218,12 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const authStore = useAuthStore()
 const { copyToClipboard } = useClipboard()
+
+// CUSTOM: affiliate rebates are balance units -> ¥ (same decimals/grouping as utils/format formatCurrency)
+function formatCurrency(amount: number | null | undefined): string {
+  const n = amount ?? 0
+  return formatBalance(n, { decimals: n > 0 && n < 0.01 ? 6 : 2, grouping: true })
+}
 
 const loading = ref(true)
 const transferring = ref(false)
@@ -267,7 +274,7 @@ const upgradeProgressText = computed(() => {
   return isAgent.value ? t('affiliate.agent.progress', params) : t('affiliate.becomeAgent.progress', params)
 })
 
-// 「好友首充满 $10，你得 $2；好友首充额外送 10%」— generated from the enabled rewards.
+// 「好友首充满 ¥10，你得 ¥2；好友首充额外送 10%」— generated from the enabled rewards.
 // Agents only earn profit share, so their card never shows the inviter reward.
 const inviteText = computed(() => {
   const d = detail.value

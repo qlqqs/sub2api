@@ -174,7 +174,7 @@ describe('AdminAffiliateAgentsView', () => {
     expect(first.get('[data-test="cell-owner"]').text()).toContain('a@x.com')
     expect(first.get('[data-test="cell-aff_count"]').text()).toBe('8')
     expect(first.get('[data-test="cell-owned_customer_count"]').text()).toBe('15')
-    expect(first.get('[data-test="cell-agent_profit_total"]').text()).toBe('$96.00')
+    expect(first.get('[data-test="cell-agent_profit_total"]').text()).toBe('¥96.00')
     expect(first.get('[data-test="cell-custom_rate"]').text()).toBe('25%')
 
     const second = wrapper.get('[data-test="row-1"]')
@@ -248,7 +248,7 @@ describe('AdminAffiliateAgentsView', () => {
     expect(listUserCustomers).toHaveBeenCalledWith(2, { page: 1, page_size: 20 })
     const table = wrapper.get('[data-test="agent-customers-table"]')
     expect(table.text()).toContain('admin.affiliates.agents.customers.relationUpline')
-    expect(table.text()).toContain('$3.00')
+    expect(table.text()).toContain('¥3.00')
 
     await wrapper.get('[data-test="agent-more"]').trigger('click')
     await wrapper.get('[data-test="agent-menu-rebates"]').trigger('click')

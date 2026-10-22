@@ -159,7 +159,7 @@ describe('AffiliateView', () => {
     expect(wrapper.find('[data-test="affiliate-agent-card"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="affiliate-agent-rate"]').exists()).toBe(false)
     const inviteText = wrapper.get('[data-test="affiliate-invite-text"]').text()
-    expect(inviteText).toContain('affiliate.invite.rewardFirstRecharge{"min":"$10","amount":"$2"}')
+    expect(inviteText).toContain('affiliate.invite.rewardFirstRecharge{"min":"¥10","amount":"¥2"}')
     expect(inviteText).toContain('affiliate.invite.separator')
     expect(inviteText).toContain('affiliate.invite.inviteeBonus{"bonus":"10%"}')
 

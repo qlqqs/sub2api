@@ -54,7 +54,7 @@
     <!-- 三级:倍率(当前组合下不存在的置灰) -->
     <div class="flex items-start gap-2">
       <span class="w-10 shrink-0 pt-2 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-dark-500">
-        {{ t('modelPlaza.filters.rateLabel') }}
+        {{ t('modelPlaza.filters.priceRatioLabel') }}
       </span>
       <div class="flex flex-wrap items-center gap-2">
         <button
@@ -72,9 +72,10 @@
           class="rounded-lg px-3 py-1.5 font-mono text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 disabled:grayscale"
           :class="chipClass(rate === r)"
           :disabled="!rateEnabled(r)"
+          :title="t('common.rateRatioTitle', { rate: formatRateValue(r) })"
           @click="$emit('update:rate', r)"
         >
-          {{ r }}x
+          {{ formatRateRatio(r) }}
         </button>
       </div>
     </div>
@@ -115,6 +116,7 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import PlatformIcon from '@/components/common/PlatformIcon.vue'
 import { platformAccentColor } from '@/utils/platformColors'
+import { formatRateRatio, formatRateValue } from '@/utils/balanceCurrency'
 import type { GroupPlatform } from '@/types'
 
 const props = defineProps<{

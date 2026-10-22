@@ -24,7 +24,7 @@
           <th colspan="3" class="pz-bg pt-2 text-center">
             <div class="pz-title border-b pb-2 font-semibold">
               {{ t('modelPlaza.table.paidPrice') }}
-              <span class="pz-unit ml-1 normal-case font-normal">{{ t('modelPlaza.table.unitPerMillion') }}</span>
+              <span class="pz-unit ml-1 normal-case font-normal">{{ t('modelPlaza.table.paidUnitPerMillion', { symbol: BALANCE_SYMBOL }) }}</span>
             </div>
           </th>
           <th
@@ -33,14 +33,14 @@
           >
             <div class="border-b border-gray-200 pb-2 text-gray-400 dark:border-dark-600 dark:text-dark-500">
               {{ t('modelPlaza.table.officialPrice') }}
-              <span class="ml-1 normal-case font-normal text-gray-400 dark:text-dark-500">{{ t('modelPlaza.table.unitPerMillion') }}</span>
+              <span class="ml-1 normal-case font-normal text-gray-400 dark:text-dark-500">{{ t('modelPlaza.table.officialUnitPerMillion', { symbol: OFFICIAL_SYMBOL }) }}</span>
             </div>
           </th>
           <th
             rowspan="2"
             class="border-l border-gray-100 py-2.5 pl-3 pr-5 text-right align-middle dark:border-dark-700/60"
           >
-            {{ t('modelPlaza.table.rate') }}
+            {{ t('modelPlaza.table.priceRatio') }}
           </th>
         </tr>
         <tr
@@ -278,26 +278,36 @@
             <span v-else class="text-gray-400 dark:text-dark-500">-</span>
           </td>
 
-          <!-- 折扣倍率(分时时段行展示 生效倍率×时段倍率;生图独立倍率行展示独立倍率;专属倍率划线展示原倍率) -->
+          <!-- CUSTOM: 价格比例「¥x = $1」(分时时段行用 生效倍率×时段倍率;生图/视频独立倍率行用独立倍率;
+               专属倍率划线展示原分组比例);原倍率放悬停提示 -->
           <td
-            class="border-l border-gray-100 py-2.5 pl-3 pr-5 text-right align-middle font-mono text-xs dark:border-dark-700/60"
+            class="whitespace-nowrap border-l border-gray-100 py-2.5 pl-3 pr-5 text-right align-middle font-mono text-xs dark:border-dark-700/60"
           >
             <span
               v-if="period"
               class="font-bold text-primary-600 dark:text-primary-400"
               :title="t('modelPlaza.table.timePricingRateHint', { rate: effectiveRate, multiplier: period.multiplier })"
-              >{{ periodRate(period) }}x</span
+              >{{ formatRateRatio(periodRate(period)) }}</span
             >
             <span
               v-else-if="usesIndependentMediaRate(m)"
               class="font-bold text-gray-700 dark:text-gray-300"
-              >{{ requestRate(m) }}x</span
+              :title="t('common.rateRatioTitle', { rate: formatRateValue(requestRate(m)) })"
+              >{{ formatRateRatio(requestRate(m)) }}</span
             >
-            <template v-else-if="hasCustomRate">
-              <span class="mr-1 text-gray-400 line-through dark:text-dark-500">{{ rateMultiplier }}x</span>
-              <span class="font-bold text-primary-600 dark:text-primary-400">{{ effectiveRate }}x</span>
-            </template>
-            <span v-else class="font-bold text-gray-700 dark:text-gray-300">{{ effectiveRate }}x</span>
+            <span
+              v-else-if="hasCustomRate"
+              :title="t('common.rateRatioTitleCustom', { group: formatRateValue(rateMultiplier), user: formatRateValue(effectiveRate) })"
+            >
+              <span class="mr-1 text-gray-400 line-through dark:text-dark-500">{{ formatRateRatio(rateMultiplier) }}</span>
+              <span class="font-bold text-primary-600 dark:text-primary-400">{{ formatRateRatio(effectiveRate) }}</span>
+            </span>
+            <span
+              v-else
+              class="font-bold text-gray-700 dark:text-gray-300"
+              :title="t('common.rateRatioTitle', { rate: formatRateValue(effectiveRate) })"
+              >{{ formatRateRatio(effectiveRate) }}</span
+            >
           </td>
         </tr>
       </tbody>
@@ -309,6 +319,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatScaled, resolveIntervalPrices } from '@/utils/pricing'
+import { BALANCE_SYMBOL, OFFICIAL_SYMBOL, effectiveRate as resolveEffectiveRate, formatRateRatio, formatRateValue } from '@/utils/balanceCurrency'
 import { platformAccentColor, platformBadgeLightClass, platformLabel } from '@/utils/platformColors'
 import {
   BILLING_MODE_TOKEN,
@@ -380,7 +391,7 @@ const sortedModels = computed(() => {
   })
 })
 
-const effectiveRate = computed(() => props.userRateMultiplier ?? props.rateMultiplier)
+const effectiveRate = computed(() => resolveEffectiveRate(props.rateMultiplier, props.userRateMultiplier) ?? props.rateMultiplier)
 const hasCustomRate = computed(
   () => props.userRateMultiplier != null && props.userRateMultiplier !== props.rateMultiplier
 )
@@ -422,11 +433,11 @@ function periodRate(period: PlazaTimePricingPeriod): number {
   return Math.round(effectiveRate.value * period.multiplier * 1000) / 1000
 }
 
-/** 实付价 = 渠道单价 × 生效倍率(时段行再乘时段倍率),按 $/1M token 展示。 */
+/** 实付价(本站价) = 渠道单价 × 生效倍率(时段行再乘时段倍率),按 ¥/1M token 展示(CUSTOM: 余额单位)。 */
 function paidPerMillion(value: number | null | undefined, period: PlazaTimePricingPeriod | null = null): string {
   if (value == null) return '-'
   const rate = period ? periodRate(period) : effectiveRate.value
-  return formatScaled(value * rate, PER_MILLION, MIN_DECIMALS)
+  return formatScaled(value * rate, PER_MILLION, MIN_DECIMALS, BALANCE_SYMBOL)
 }
 
 /** 图片和视频分别使用对应的独立倍率开关。 */
@@ -448,13 +459,13 @@ function requestRate(m: PlazaModel): number {
 /** 非 token 单价乘该行生效倍率，不换算为每百万 token。 */
 function paidRequestPrice(m: PlazaModel, value: number | null | undefined): string {
   if (value == null) return '-'
-  return formatScaled(value * requestRate(m), 1, MIN_DECIMALS)
+  return formatScaled(value * requestRate(m), 1, MIN_DECIMALS, BALANCE_SYMBOL)
 }
 
-/** 官方参考价不乘倍率。 */
+/** 官方参考价不乘倍率,保持 $。 */
 function official(value: number | null | undefined): string {
   if (value == null) return '-'
-  return formatScaled(value, PER_MILLION, MIN_DECIMALS)
+  return formatScaled(value, PER_MILLION, MIN_DECIMALS, OFFICIAL_SYMBOL)
 }
 
 /** 非 token 计费的单位后缀:按图片 → “/ 张”,按次 → “/ 次”。 */

@@ -114,7 +114,7 @@
           </template>
           <template #cell-agent_profit_total="{ row }">
             <span v-if="!row.agent_profit_total" class="text-sm text-gray-400 dark:text-dark-500">—</span>
-            <span v-else class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">${{ formatAmount(row.agent_profit_total) }}</span>
+            <span v-else class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ BALANCE_SYMBOL }}{{ formatAmount(row.agent_profit_total) }}</span>
           </template>
           <template #cell-custom_rate="{ row }">
             <span v-if="row.aff_rebate_rate_percent == null" class="text-sm text-gray-400 dark:text-dark-500">—</span>
@@ -334,7 +334,7 @@
                 </span>
               </td>
               <td class="px-3 py-2 text-gray-700 dark:text-gray-300">{{ item.bound_at ? formatDateTime(item.bound_at) : '-' }}</td>
-              <td class="px-3 py-2 text-right font-medium text-emerald-600 dark:text-emerald-400">${{ formatAmount(item.contribution) }}</td>
+              <td class="px-3 py-2 text-right font-medium text-emerald-600 dark:text-emerald-400">{{ BALANCE_SYMBOL }}{{ formatAmount(item.contribution) }}</td>
             </tr>
           </tbody>
         </table>
@@ -364,6 +364,7 @@
 </template>
 
 <script setup lang="ts">
+import { BALANCE_SYMBOL } from '@/utils/balanceCurrency'
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

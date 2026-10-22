@@ -26,13 +26,18 @@
     <div class="flex shrink-0 items-center gap-2 pt-0.5">
       <div class="flex shrink-0 flex-col items-end gap-1">
         <!-- Rate pill (platform color) -->
-        <span v-if="rateMultiplier !== undefined" :class="['inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold', ratePillClass]">
+        <span
+          v-if="rateMultiplier !== undefined"
+          :class="['inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold', ratePillClass]"
+          :title="rateTitle"
+        >
+          <!-- CUSTOM: 倍率展示为「¥x = $1」比例，原倍率放悬停提示 -->
           <template v-if="hasCustomRate">
-            <span class="mr-1 line-through opacity-50">{{ rateMultiplier }}x</span>
-            <span class="font-bold">{{ userRateMultiplier }}x</span>
+            <span class="mr-1 line-through opacity-50">{{ formatRateRatio(rateMultiplier) }}</span>
+            <span class="font-bold">{{ formatRateRatio(userRateMultiplier) }}</span>
           </template>
           <template v-else>
-            {{ rateMultiplier }}x {{ t('admin.groups.rateLabel') }}
+            {{ formatRateRatio(rateMultiplier) }}
           </template>
         </span>
         <span
@@ -65,6 +70,7 @@ import GroupBadge from './GroupBadge.vue'
 import type { SubscriptionType, GroupPlatform } from '@/types'
 import { useAppStore } from '@/stores/app'
 import { formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
+import { effectiveRate, formatRateRatio, formatRateValue } from '@/utils/balanceCurrency'
 
 const { t } = useI18n()
 
@@ -115,8 +121,20 @@ const peakRateText = computed(() => {
       peak_end: props.peakEnd,
       peak_rate_multiplier: props.peakRateMultiplier
     },
-    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset)
+    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset),
+    effectiveRate(props.rateMultiplier, props.userRateMultiplier)
   )
+})
+
+const rateTitle = computed(() => {
+  if (props.rateMultiplier === undefined) return undefined
+  if (hasCustomRate.value && props.userRateMultiplier != null) {
+    return t('common.rateRatioTitleCustom', {
+      group: formatRateValue(props.rateMultiplier),
+      user: formatRateValue(props.userRateMultiplier)
+    })
+  }
+  return t('common.rateRatioTitle', { rate: formatRateValue(props.rateMultiplier) })
 })
 
 const peakRateTitle = computed(() => {

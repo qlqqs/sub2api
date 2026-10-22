@@ -265,6 +265,7 @@ import { sanitizeUrl } from '@/utils/url'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { resolveRouteMetaKeys } from '@/router/title'
 import { resolveSiteBillingMode } from '@/utils/siteBillingMode'
+import { formatBalance } from '@/utils/balanceCurrency'
 
 const router = useRouter()
 const route = useRoute()
@@ -374,8 +375,7 @@ function handleReplayGuide() {
 }
 
 function formatHeaderMoney(value: number) {
-  if (!Number.isFinite(value)) return '$0.00'
-  return `$${value.toFixed(2)}`
+  return formatBalance(value)
 }
 
 function handleClickOutside(event: MouseEvent) {

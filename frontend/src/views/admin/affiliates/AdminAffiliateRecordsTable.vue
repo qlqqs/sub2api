@@ -194,11 +194,11 @@
           <OverviewStat :label="t('admin.affiliates.overview.ownedCustomerCount')" :value="String(selectedOverview.owned_customer_count ?? 0)" />
           <OverviewStat :label="t('admin.affiliates.overview.invitedCount')" :value="String(selectedOverview.invited_count)" />
           <OverviewStat :label="t('admin.affiliates.overview.rebatedInviteeCount')" :value="String(selectedOverview.rebated_invitee_count)" />
-          <OverviewStat :label="t('admin.affiliates.overview.availableQuota')" :value="'$' + formatAmount(selectedOverview.available_quota)" />
-          <OverviewStat :label="t('admin.affiliates.overview.historyQuota')" :value="'$' + formatAmount(selectedOverview.history_quota)" />
-          <OverviewStat :label="t('admin.affiliates.overview.rewardAgent')" :value="'$' + formatAmount(selectedOverview.reward_totals?.agent)" />
-          <OverviewStat :label="t('admin.affiliates.overview.rewardInvite')" :value="'$' + formatAmount(selectedOverview.reward_totals?.invite)" />
-          <OverviewStat :label="t('admin.affiliates.overview.rewardInviteeBonus')" :value="'$' + formatAmount(selectedOverview.reward_totals?.invitee_bonus)" />
+          <OverviewStat :label="t('admin.affiliates.overview.availableQuota')" :value="BALANCE_SYMBOL + formatAmount(selectedOverview.available_quota)" />
+          <OverviewStat :label="t('admin.affiliates.overview.historyQuota')" :value="BALANCE_SYMBOL + formatAmount(selectedOverview.history_quota)" />
+          <OverviewStat :label="t('admin.affiliates.overview.rewardAgent')" :value="BALANCE_SYMBOL + formatAmount(selectedOverview.reward_totals?.agent)" />
+          <OverviewStat :label="t('admin.affiliates.overview.rewardInvite')" :value="BALANCE_SYMBOL + formatAmount(selectedOverview.reward_totals?.invite)" />
+          <OverviewStat :label="t('admin.affiliates.overview.rewardInviteeBonus')" :value="BALANCE_SYMBOL + formatAmount(selectedOverview.reward_totals?.invitee_bonus)" />
         </div>
       </div>
     </BaseDialog>
@@ -206,6 +206,7 @@
 </template>
 
 <script setup lang="ts">
+import { BALANCE_SYMBOL } from '@/utils/balanceCurrency'
 import { computed, defineComponent, h, onMounted, reactive, ref, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/components/layout/AppLayout.vue'
@@ -483,7 +484,7 @@ const AmountText = defineComponent({
       class: amountProps.strong
         ? 'text-sm font-semibold text-emerald-600 dark:text-emerald-400'
         : 'text-sm text-gray-900 dark:text-white',
-    }, `$${formatAmount(amountProps.value)}`)
+    }, `${BALANCE_SYMBOL}${formatAmount(amountProps.value)}`)
   },
 })
 

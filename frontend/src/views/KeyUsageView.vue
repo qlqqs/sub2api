@@ -425,6 +425,7 @@ import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { buildGatewayUrl } from '@/api/client'
 import { formatDateLocalInput } from '@/utils/format'
+import { formatBalance } from '@/utils/balanceCurrency'
 import { sanitizeUrl } from '@/utils/url'
 
 const { t, locale } = useI18n()
@@ -833,9 +834,10 @@ const showDailyUsage = computed(() => Boolean(resultData.value && Array.isArray(
 
 // ==================== Utility Functions ====================
 
+// CUSTOM: all amounts on this page are balance units (actual cost, quotas, limits, wallet balance) -> ¥
 function usd(value: number | null | undefined): string {
   if (value == null || value < 0) return '-'
-  return '$' + Number(value).toFixed(2)
+  return formatBalance(value)
 }
 
 function fmtNum(val: number | null | undefined): string {

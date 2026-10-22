@@ -10,11 +10,11 @@
     <!-- Group name -->
     <span :class="truncate ? 'truncate' : 'min-w-0 whitespace-normal [overflow-wrap:anywhere]'">{{ name }}</span>
     <!-- Right side label -->
-    <span v-if="showLabel" :class="labelClass">
+    <span v-if="showLabel" :class="labelClass" :title="rateTitle">
       <template v-if="hasCustomRate">
-        <!-- 原倍率删除线 + 专属倍率高亮 -->
-        <span class="line-through opacity-50 mr-0.5">{{ rateMultiplier }}x</span>
-        <span class="font-bold">{{ userRateMultiplier }}x</span>
+        <!-- CUSTOM: 原分组比例删除线 + 专属比例高亮（「¥x = $1」） -->
+        <span class="line-through opacity-50 mr-0.5">{{ formatRateRatio(rateMultiplier) }}</span>
+        <span class="font-bold">{{ formatRateRatio(userRateMultiplier) }}</span>
       </template>
       <template v-else>
         {{ labelText }}
@@ -32,6 +32,7 @@ import { useI18n } from 'vue-i18n'
 import type { SubscriptionType, GroupPlatform } from '@/types'
 import { useAppStore } from '@/stores/app'
 import { formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
+import { effectiveRate, formatRateRatio, formatRateValue } from '@/utils/balanceCurrency'
 import PlatformIcon from './PlatformIcon.vue'
 
 interface Props {
@@ -94,7 +95,8 @@ const peakRateText = computed(() => {
       peak_end: props.peakEnd,
       peak_rate_multiplier: props.peakRateMultiplier
     },
-    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset)
+    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset),
+    effectiveRate(props.rateMultiplier, props.userRateMultiplier)
   )
 })
 
@@ -111,10 +113,26 @@ const showLabel = computed(() => {
   return props.rateMultiplier !== undefined || hasCustomRate.value
 })
 
+// 右侧标签是否在展示倍率（而非订阅天数 / "订阅"）
+const showsRate = computed(() => !isSubscription.value || props.alwaysShowRate)
+
+// CUSTOM: 悬停显示原倍率
+const rateTitle = computed(() => {
+  if ((!showsRate.value && !hasCustomRate.value) || props.rateMultiplier === undefined) return undefined
+  if (hasCustomRate.value && props.userRateMultiplier != null) {
+    return t('common.rateRatioTitleCustom', {
+      group: formatRateValue(props.rateMultiplier),
+      user: formatRateValue(props.userRateMultiplier)
+    })
+  }
+  return t('common.rateRatioTitle', { rate: formatRateValue(props.rateMultiplier) })
+})
+
 // Label text
 const labelText = computed(() => {
-  const rateLabel = props.rateMultiplier !== undefined ? `${props.rateMultiplier}x` : ''
-  if (isSubscription.value && !props.alwaysShowRate) {
+  // CUSTOM: 倍率展示为「¥x = $1」比例
+  const rateLabel = props.rateMultiplier !== undefined ? formatRateRatio(props.rateMultiplier) : ''
+  if (!showsRate.value) {
     // 如果有剩余天数，显示天数
     if (props.daysRemaining !== null && props.daysRemaining !== undefined) {
       if (props.daysRemaining <= 0) {

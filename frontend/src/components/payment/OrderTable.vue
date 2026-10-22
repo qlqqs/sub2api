@@ -49,6 +49,7 @@ import type { Column } from '@/components/common/types'
 import DataTable from '@/components/common/DataTable.vue'
 import OrderStatusBadge from '@/components/payment/OrderStatusBadge.vue'
 import { currencySymbol } from '@/components/payment/currency'
+import { BALANCE_SYMBOL } from '@/utils/balanceCurrency'
 
 const { t } = useI18n()
 
@@ -60,7 +61,8 @@ const props = defineProps<{
 
 function formatDate(dateStr: string) { return new Date(dateStr).toLocaleString() }
 
-const creditedAmountSymbol = currencySymbol('USD')
+// CUSTOM: credited amount is in balance units (¥), not the payment currency
+const creditedAmountSymbol = BALANCE_SYMBOL
 
 function paymentAmountSymbol(order: PaymentOrder): string {
   return currencySymbol(order.currency)

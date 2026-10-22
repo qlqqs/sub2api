@@ -142,7 +142,9 @@ describe('AvailableChannelsTable responsive surfaces', () => {
     expect(mobile.get('[data-icon="clock"]')).toBeTruthy()
     expect(mobile.text()).toContain('08:00')
     expect(mobile.text()).toContain('10:00')
-    expect(mobile.text()).toContain('×1.5')
+    // 高峰比例 = 专属倍率 0.8 × 高峰倍率 1.5
+    expect(mobile.text()).toContain('¥1.2 = $1')
+    expect(mobile.text()).not.toContain('×1.5')
     expect(mobile.get('[data-model-chip]').text()).toBe('claude-test:No pricing')
     expect(mobile.findAll('.max-w-full')).not.toHaveLength(0)
   })

@@ -330,6 +330,7 @@ import type { GroupPlatform, SubscriptionType } from '@/types'
 import { platformBadgeClass } from '@/utils/platformColors'
 import { useAppStore } from '@/stores/app'
 import { hasPeakRate as groupHasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
+import { effectiveRate } from '@/utils/balanceCurrency'
 
 const props = defineProps<{
   columns: {
@@ -370,7 +371,12 @@ function hasPeakRate(group: UserAvailableGroup): boolean {
 }
 
 function peakRateLabel(group: UserAvailableGroup): string {
-  return formatPeakRateWindow(group, serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset))
+  // CUSTOM: 高峰比例按该用户的生效倍率（专属 ?? 分组）× 高峰倍率
+  return formatPeakRateWindow(
+    group,
+    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset),
+    effectiveRate(group.rate_multiplier, props.userGroupRates[group.id])
+  )
 }
 
 function peakRateTitle(group: UserAvailableGroup): string {

@@ -124,6 +124,7 @@ import BaseDialog from '@/components/common/BaseDialog.vue'
 import type { PaymentOrder } from '@/types/payment'
 import { statusBadgeClass, canRefund as canRefundStatus, formatOrderDateTime } from '@/components/payment/orderUtils'
 import { currencySymbol } from '@/components/payment/currency'
+import { BALANCE_SYMBOL } from '@/utils/balanceCurrency'
 
 const { t } = useI18n()
 
@@ -132,7 +133,8 @@ const props = defineProps<{
   order: PaymentOrder | null
 }>()
 
-const creditedAmountSymbol = currencySymbol('USD')
+// CUSTOM: 到账/退款/用户余额是站内余额单位，不是支付货币
+const creditedAmountSymbol = BALANCE_SYMBOL
 
 const paymentAmountSymbol = computed(() => currencySymbol(props.order?.currency))
 

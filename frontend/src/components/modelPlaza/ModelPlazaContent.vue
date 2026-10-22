@@ -71,6 +71,7 @@ import Icon from '@/components/icons/Icon.vue'
 import PlazaFilterBar from './PlazaFilterBar.vue'
 import PlazaGroupSection from './PlazaGroupSection.vue'
 import type { ModelPlazaGroup, ModelPlazaResponse } from '@/api/modelPlaza'
+import { effectiveRate as resolveEffectiveRate } from '@/utils/balanceCurrency'
 import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps<{
@@ -100,7 +101,7 @@ const descriptionHtml = computed(() => {
 
 /** 生效倍率 = 用户专属倍率 ?? 分组默认倍率。 */
 function effectiveRate(g: ModelPlazaGroup): number {
-  return g.user_rate_multiplier ?? g.rate_multiplier
+  return resolveEffectiveRate(g.rate_multiplier, g.user_rate_multiplier) ?? g.rate_multiplier
 }
 
 const platforms = computed(() =>

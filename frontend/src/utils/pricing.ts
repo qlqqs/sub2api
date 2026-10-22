@@ -9,8 +9,15 @@
  *
  * Uses toPrecision(10) then strips trailing zeros to avoid IEEE 754 display noise.
  * `minFractionDigits` pads the result back up to a minimum number of decimals.
+ * CUSTOM: `symbol` defaults to the official-price `$`; prices already multiplied by
+ * the group rate (actual deduction) pass BALANCE_SYMBOL instead.
  */
-export function formatScaled(value: number | null, scale: number, minFractionDigits = 0): string {
+export function formatScaled(
+  value: number | null,
+  scale: number,
+  minFractionDigits = 0,
+  symbol: string = OFFICIAL_SYMBOL
+): string {
   if (value == null) return '-'
   let s = Number((value * scale).toPrecision(10)).toString()
   if (minFractionDigits > 0 && !s.includes('e')) {
@@ -20,10 +27,11 @@ export function formatScaled(value: number | null, scale: number, minFractionDig
       s = (dot === -1 ? `${s}.` : s) + '0'.repeat(minFractionDigits - digits)
     }
   }
-  return `$${s}`
+  return `${symbol}${s}`
 }
 
 import type { UserPricingInterval } from '@/api/channels'
+import { OFFICIAL_SYMBOL } from './balanceCurrency'
 
 type TokenPrices = Pick<UserPricingInterval, 'input_price' | 'output_price' | 'cache_write_price' | 'cache_write_1h_price' | 'cache_read_price'>
 

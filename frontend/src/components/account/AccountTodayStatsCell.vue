@@ -42,8 +42,9 @@
       <!-- Cost (User/API Key) -->
       <div v-if="props.stats.user_cost != null" class="flex items-center gap-1">
         <span class="text-gray-500 dark:text-gray-400">{{ t('usage.userBilled') }}:</span>
+        <!-- CUSTOM: 用户计费为站内余额单位 ¥；账号计费保持上游官方口径 $ -->
         <span class="font-medium text-gray-700 dark:text-gray-300">{{
-          formatCurrency(props.stats.user_cost)
+          formatUserCost(props.stats.user_cost)
         }}</span>
       </div>
     </div>
@@ -57,6 +58,7 @@
 import { useI18n } from 'vue-i18n'
 import type { WindowStats } from '@/types'
 import { formatNumber, formatCurrency } from '@/utils/format'
+import { formatBalance } from '@/utils/balanceCurrency'
 
 const props = withDefaults(
   defineProps<{
@@ -72,6 +74,10 @@ const props = withDefaults(
 )
 
 const { t } = useI18n()
+
+// 与 formatCurrency 保持一致的小数位（极小金额显示 6 位）与千分位，只换余额符号
+const formatUserCost = (amount: number): string =>
+  formatBalance(amount, { decimals: amount > 0 && amount < 0.01 ? 6 : 2, grouping: true })
 
 // Format large token numbers (e.g., 1234567 -> 1.23M)
 const formatTokens = (tokens: number): string => {

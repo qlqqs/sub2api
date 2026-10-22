@@ -43,7 +43,7 @@
             <div class="card p-5">
               <p class="text-xs font-medium text-gray-400 dark:text-gray-500">{{ t('payment.rechargeAccount') }}</p>
               <p class="mt-1 text-base font-semibold text-gray-900 dark:text-white">{{ user?.username || '' }}</p>
-              <p class="mt-0.5 text-sm font-medium text-green-600 dark:text-green-400">{{ t('payment.currentBalance') }}: {{ user?.balance?.toFixed(2) || '0.00' }}</p>
+              <p class="mt-0.5 text-sm font-medium text-green-600 dark:text-green-400">{{ t('payment.currentBalance') }}: {{ formatBalance(user?.balance) }}</p>
             </div>
             <div v-if="enabledMethods.length === 0" class="card py-16 text-center">
               <p class="text-gray-500 dark:text-gray-400">{{ t('payment.notAvailable') }}</p>
@@ -103,11 +103,12 @@
                 </div>
                 <div v-if="showBonusRow" class="flex justify-between" :class="{ 'border-t border-gray-200 pt-2 dark:border-dark-600': !showActualPay }" data-testid="recharge-bonus-row">
                   <span class="text-gray-500 dark:text-gray-400">{{ t('payment.rechargeBonus.amountLabelWithPercent', { percent: formatRechargeBonusNumber(bonusQuote.percent) }) }}</span>
-                  <span class="font-medium text-red-600 dark:text-red-400">+${{ bonusQuote.bonus.toFixed(2) }}</span>
+                  <span class="font-medium text-red-600 dark:text-red-400">{{ formatBalance(bonusQuote.bonus, { signed: true }) }}</span>
                 </div>
                 <div v-if="showCreditedBalance" class="flex justify-between" :class="{ 'border-t border-gray-200 pt-2 dark:border-dark-600': !showActualPay && !showBonusRow }" data-testid="recharge-credited-row">
                   <span class="text-gray-500 dark:text-gray-400">{{ t('payment.creditedBalance') }}</span>
-                  <span :class="bonusQuote.percent > 0 ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'">${{ creditedAmount.toFixed(2) }}</span>
+                  <!-- CUSTOM: 「充 ¥100 → 余额 ¥100」，到账为站内余额单位 -->
+                  <span :class="bonusQuote.percent > 0 ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'">{{ t('payment.creditedSummary', { pay: formatSelectedPaymentAmount(validAmount), credited: formatBalance(creditedAmount) }) }}</span>
                 </div>
                 <div v-if="firstRechargeBonusAmount > 0" class="flex justify-between" data-testid="first-recharge-bonus-row">
                   <span class="text-gray-500 dark:text-gray-400">{{ t('payment.firstRechargeBonus.rowLabel') }}</span>
@@ -115,9 +116,6 @@
                 </div>
                 <p v-else-if="firstRechargeShortfall" class="text-xs text-emerald-700 dark:text-emerald-300" data-testid="first-recharge-bonus-shortfall">
                   {{ t('payment.firstRechargeBonus.shortfall', { amount: firstRechargeShortfall }) }}
-                </p>
-                <p v-if="balanceRechargeMultiplier !== 1" class="border-t border-gray-200 pt-2 text-xs text-gray-500 dark:border-dark-600 dark:text-gray-400">
-                  {{ t('payment.rechargeRatePreview', { currency: selectedCurrency, usd: balanceRechargeMultiplier.toFixed(2) }) }}
                 </p>
               </div>
             </div>
@@ -128,6 +126,25 @@
               </span>
               <span v-else>{{ t('payment.createOrder') }} {{ formatSelectedPaymentAmount(totalAmount) }}</span>
             </button>
+            <!-- CUSTOM: 各分组价格「¥x = $1」（按用户生效倍率升序）；加载失败或为空时整块隐藏，不影响充值 -->
+            <div v-if="groupPrices.length > 0" class="card p-5" data-testid="group-price-card">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('payment.groupPrices.title') }}</p>
+              <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{{ t('payment.groupPrices.hint') }}</p>
+              <ul class="mt-3 divide-y divide-gray-100 text-sm dark:divide-dark-700">
+                <li
+                  v-for="item in groupPrices"
+                  :key="item.id"
+                  class="flex items-center justify-between gap-3 py-1.5"
+                  data-testid="group-price-row"
+                >
+                  <span class="min-w-0 truncate text-gray-600 dark:text-gray-300" :title="item.name">{{ item.name }}</span>
+                  <span
+                    class="shrink-0 font-mono font-semibold text-gray-900 dark:text-white"
+                    :title="t('common.rateRatioTitle', { rate: formatRateValue(item.rate) })"
+                  >{{ formatRateRatio(item.rate) }}</span>
+                </li>
+              </ul>
+            </div>
             </template>
           </template>
           <!-- Subscribe Tab -->
@@ -157,28 +174,31 @@
                 <!-- Rate + Limits grid -->
                 <div class="mt-3 grid grid-cols-2 gap-3">
                   <div>
-                    <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.rate') }}</span>
+                    <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.priceRatio') }}</span>
                     <div class="flex items-baseline">
-                      <span :class="['text-lg font-bold', planTextClass]">×{{ selectedPlan.rate_multiplier ?? 1 }}</span>
+                      <span
+                        :class="['text-lg font-bold', planTextClass]"
+                        :title="t('common.rateRatioTitle', { rate: formatRateValue(selectedPlan.rate_multiplier ?? 1) })"
+                      >{{ formatRateRatio(selectedPlan.rate_multiplier ?? 1) }}</span>
                     </div>
                   </div>
                   <div v-if="planHasPeakRate(selectedPlan)">
-                    <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.peakRate') }}</span>
+                    <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.peakPriceRatio') }}</span>
                     <div class="text-sm font-semibold text-amber-700 dark:text-amber-300">
                       {{ planPeakRateLabel(selectedPlan) }}
                     </div>
                   </div>
                   <div v-if="selectedPlan.daily_limit_usd != null">
                     <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.dailyLimit') }}</span>
-                    <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">${{ selectedPlan.daily_limit_usd }}</div>
+                    <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ BALANCE_SYMBOL }}{{ selectedPlan.daily_limit_usd }}</div>
                   </div>
                   <div v-if="selectedPlan.weekly_limit_usd != null">
                     <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.weeklyLimit') }}</span>
-                    <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">${{ selectedPlan.weekly_limit_usd }}</div>
+                    <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ BALANCE_SYMBOL }}{{ selectedPlan.weekly_limit_usd }}</div>
                   </div>
                   <div v-if="selectedPlan.monthly_limit_usd != null">
                     <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.monthlyLimit') }}</span>
-                    <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">${{ selectedPlan.monthly_limit_usd }}</div>
+                    <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ BALANCE_SYMBOL }}{{ selectedPlan.monthly_limit_usd }}</div>
                   </div>
                   <div v-if="selectedPlan.daily_limit_usd == null && selectedPlan.weekly_limit_usd == null && selectedPlan.monthly_limit_usd == null">
                     <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.quota') }}</span>
@@ -240,8 +260,8 @@
                         <span :class="['shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium', platformBadgeLightClass(sub.group?.platform || '')]">{{ platformLabel(sub.group?.platform || '') }}</span>
                       </div>
                       <div class="flex flex-wrap gap-x-3 text-[11px] text-gray-400 dark:text-gray-500">
-                        <span>{{ t('payment.planCard.rate') }}: ×{{ sub.group?.rate_multiplier ?? 1 }}</span>
-                        <span v-if="subscriptionHasPeakRate(sub)">{{ t('payment.planCard.peakRate') }}: {{ subscriptionPeakRateLabel(sub) }}</span>
+                        <span :title="t('common.rateRatioTitle', { rate: formatRateValue(sub.group?.rate_multiplier ?? 1) })">{{ t('payment.planCard.priceRatio') }}: {{ formatRateRatio(sub.group?.rate_multiplier ?? 1) }}</span>
+                        <span v-if="subscriptionHasPeakRate(sub)">{{ t('payment.planCard.peakPriceRatio') }}: {{ subscriptionPeakRateLabel(sub) }}</span>
                         <span v-if="sub.group?.daily_limit_usd == null && sub.group?.weekly_limit_usd == null && sub.group?.monthly_limit_usd == null">{{ t('payment.planCard.quota') }}: {{ t('payment.planCard.unlimited') }}</span>
                         <span v-if="sub.expires_at">{{ t('userSubscriptions.daysRemaining', { days: getDaysRemaining(sub.expires_at) }) }}</span>
                         <span v-else>{{ t('userSubscriptions.noExpiration') }}</span>
@@ -311,6 +331,8 @@ import { hasPeakRate, formatPeakRateWindow, serverTimezoneLabel, type PeakRateFi
 import type { SubscriptionPlan, CheckoutInfoResponse, CreateOrderResult, OrderType } from '@/types/payment'
 import { formatRechargeBonusNumber, normalizeRechargeBonusMode, normalizeRechargeBonusTiers, quoteRechargeBonus } from '@/utils/rechargeBonus'
 import userAPI from '@/api/user'
+import { userGroupsAPI } from '@/api/groups'
+import { BALANCE_SYMBOL, effectiveRate, formatBalance, formatRateRatio, formatRateValue } from '@/utils/balanceCurrency'
 import { describeInviteeBonusValue, formatUsdShort, isInviteeBonusActive, quoteInviteeBonus, type InviteeBonusLike } from '@/utils/affiliateRewards'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AmountInput from '@/components/payment/AmountInput.vue'
@@ -358,8 +380,12 @@ function subscriptionHasPeakRate(sub: { group?: PeakRateFields | null }): boolea
   return hasPeakRate(sub.group)
 }
 
-function subscriptionPeakRateLabel(sub: { group?: PeakRateFields | null }): string {
-  return formatPeakRateWindow(sub.group, serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset))
+function subscriptionPeakRateLabel(sub: { group?: (PeakRateFields & { rate_multiplier?: number }) | null }): string {
+  return formatPeakRateWindow(
+    sub.group,
+    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset),
+    sub.group?.rate_multiplier ?? 1
+  )
 }
 
 const loading = ref(true)
@@ -687,7 +713,8 @@ const payBaseAmount = computed(() => bonusQuote.value.payBase)
 const discountAmount = computed(() => roundPaymentAmount(validAmount.value - payBaseAmount.value, selectedCurrency.value))
 const creditedAmount = computed(() => bonusQuote.value.credited)
 const showBonusRow = computed(() => bonusQuote.value.mode !== 'discount' && bonusQuote.value.bonus > 0)
-const showCreditedBalance = computed(() => balanceRechargeMultiplier.value !== 1 || bonusQuote.value.percent > 0)
+// CUSTOM: 到账余额行常显（「充 ¥100 → 余额 ¥100」），让用户看清余额单位
+const showCreditedBalance = computed(() => validAmount.value > 0)
 
 // 被邀请人首充奖励：只对余额充值展示；资格来自 /user/aff 的 first_recharge_bonus（有邀请人、未发放、已开启）。
 // 门槛按实际到账基数（输入 × 倍率，不含充值优惠赠送）判断，与后端 amount − bonus_amount 口径一致。
@@ -709,6 +736,35 @@ const firstRechargeShortfall = computed(() => {
   if (balanceRechargeMultiplier.value === 1) return formatUsdShort(missingUsd)
   return formatSelectedPaymentAmount(ceilPaymentAmount(missingUsd / balanceRechargeMultiplier.value, selectedCurrency.value))
 })
+
+// CUSTOM: 各分组价格卡片。只列按余额计费的分组（订阅分组走订阅额度，不消耗余额）；
+// 比例按用户生效倍率（专属 ?? 分组）升序。任何失败都只隐藏卡片，不影响充值流程。
+interface GroupPriceItem {
+  id: number
+  name: string
+  rate: number
+}
+const groupPrices = ref<GroupPriceItem[]>([])
+
+async function loadGroupPrices() {
+  try {
+    const [groups, userRates] = await Promise.all([
+      userGroupsAPI.getAvailable(),
+      userGroupsAPI.getUserGroupRates(),
+    ])
+    groupPrices.value = (Array.isArray(groups) ? groups : [])
+      .filter(group => group.subscription_type !== 'subscription')
+      .map(group => ({
+        id: group.id,
+        name: group.name,
+        rate: effectiveRate(group.rate_multiplier, userRates?.[group.id]) ?? 0,
+      }))
+      .filter(item => Number.isFinite(item.rate) && item.rate > 0)
+      .sort((a, b) => a.rate - b.rate || a.name.localeCompare(b.name))
+  } catch {
+    groupPrices.value = []
+  }
+}
 
 async function loadFirstRechargeBonus() {
   if (!resolveFeatureFlag(appStore.cachedPublicSettings, FeatureFlags.affiliate)) return
@@ -849,7 +905,11 @@ function planHasPeakRate(plan: SubscriptionPlan): boolean {
 }
 
 function planPeakRateLabel(plan: SubscriptionPlan): string {
-  return formatPeakRateWindow(plan, serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset))
+  return formatPeakRateWindow(
+    plan,
+    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset),
+    plan.rate_multiplier ?? 1
+  )
 }
 
 function selectPlan(plan: SubscriptionPlan) {
@@ -1211,6 +1271,7 @@ async function resumeWechatPaymentFromQuery() {
 
 onMounted(async () => {
   void loadFirstRechargeBonus()
+  void loadGroupPrices()
   try {
     const res = await paymentAPI.getCheckoutInfo()
     checkout.value = res.data

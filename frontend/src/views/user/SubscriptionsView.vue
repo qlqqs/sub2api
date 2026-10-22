@@ -50,9 +50,9 @@
                   {{ subscription.group.description }}
                 </p>
                 <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400 dark:text-gray-500">
-                  <span>{{ t('payment.planCard.rate') }}: ×{{ subscription.group?.rate_multiplier ?? 1 }}</span>
+                  <span :title="t('common.rateRatioTitle', { rate: formatRateValue(subscription.group?.rate_multiplier ?? 1) })">{{ t('payment.planCard.priceRatio') }}: {{ formatRateRatio(subscription.group?.rate_multiplier ?? 1) }}</span>
                   <span v-if="subscriptionHasPeakRate(subscription)" class="text-amber-700 dark:text-amber-300">
-                    {{ t('payment.planCard.peakRate') }}: {{ subscriptionPeakRateLabel(subscription) }}
+                    {{ t('payment.planCard.peakPriceRatio') }}: {{ subscriptionPeakRateLabel(subscription) }}
                   </span>
                 </div>
               </div>
@@ -107,8 +107,8 @@
                   {{ t('userSubscriptions.daily') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
-                  ${{ (subscription.daily_usage_usd || 0).toFixed(2) }} / ${{
-                    subscription.group.daily_limit_usd.toFixed(2)
+                  {{ formatBalance(subscription.daily_usage_usd || 0) }} / {{
+                    formatBalance(subscription.group.daily_limit_usd)
                   }}
                 </span>
               </div>
@@ -144,8 +144,8 @@
                   {{ t('userSubscriptions.weekly') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
-                  ${{ (subscription.weekly_usage_usd || 0).toFixed(2) }} / ${{
-                    subscription.group.weekly_limit_usd.toFixed(2)
+                  {{ formatBalance(subscription.weekly_usage_usd || 0) }} / {{
+                    formatBalance(subscription.group.weekly_limit_usd)
                   }}
                 </span>
               </div>
@@ -185,8 +185,8 @@
                   {{ t('userSubscriptions.monthly') }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-dark-400">
-                  ${{ (subscription.monthly_usage_usd || 0).toFixed(2) }} / ${{
-                    subscription.group.monthly_limit_usd.toFixed(2)
+                  {{ formatBalance(subscription.monthly_usage_usd || 0) }} / {{
+                    formatBalance(subscription.group.monthly_limit_usd)
                   }}
                 </span>
               </div>
@@ -258,6 +258,7 @@ import AppLayout from '@/components/layout/AppLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { formatDateTimeToMinute } from '@/utils/format'
 import { hasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
+import { formatBalance, formatRateRatio, formatRateValue } from '@/utils/balanceCurrency'
 import { platformBorderClass, platformBadgeClass, platformButtonClass, platformLabel } from '@/utils/platformColors'
 import {
   getExpirationDateRelation,
@@ -288,7 +289,11 @@ function subscriptionHasPeakRate(subscription: UserSubscription): boolean {
 }
 
 function subscriptionPeakRateLabel(subscription: UserSubscription): string {
-  return formatPeakRateWindow(subscription.group, serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset))
+  return formatPeakRateWindow(
+    subscription.group,
+    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset),
+    subscription.group?.rate_multiplier ?? 1
+  )
 }
 
 async function loadSubscriptions() {

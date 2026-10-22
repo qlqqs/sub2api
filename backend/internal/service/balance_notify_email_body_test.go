@@ -22,8 +22,8 @@ func TestBuildBalanceLowEmailBody_ContainsRequiredFields(t *testing.T) {
 	// All substituted values should appear in the output.
 	require.Contains(t, body, "MySite")
 	require.Contains(t, body, "Alice")
-	require.Contains(t, body, "$3.14")
-	require.Contains(t, body, "$10.00")
+	require.Contains(t, body, "¥3.14")
+	require.Contains(t, body, "¥10.00")
 
 	// No fmt.Sprintf format error markers.
 	require.NotContains(t, body, "%!")
