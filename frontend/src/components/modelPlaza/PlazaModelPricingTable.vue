@@ -3,9 +3,11 @@
     <table class="w-full min-w-[1000px] table-auto border-collapse text-sm tabular-nums">
       <colgroup>
         <col class="w-[25%]" />
+        <col v-if="hasPaidContext" />
         <col class="w-[11%]" />
         <col class="w-[9%]" />
         <col class="w-[14%]" />
+        <col v-if="hasOfficialContext" />
         <col class="w-[11%]" />
         <col class="w-[8%]" />
         <col class="w-[14%]" />
@@ -21,14 +23,14 @@
           >
             {{ t('modelPlaza.table.model') }}
           </th>
-          <th colspan="3" class="pz-bg pt-2 text-center">
+          <th :colspan="hasPaidContext ? 4 : 3" class="pz-bg pt-2 text-center">
             <div class="pz-title border-b pb-2 font-semibold">
               {{ t('modelPlaza.table.paidPrice') }}
               <span class="pz-unit ml-1 normal-case font-normal">{{ t('modelPlaza.table.paidUnitPerMillion', { symbol: BALANCE_SYMBOL }) }}</span>
             </div>
           </th>
           <th
-            colspan="3"
+            :colspan="hasOfficialContext ? 4 : 3"
             class="border-l border-gray-100 pt-2 text-center dark:border-dark-700/60"
           >
             <div class="border-b border-gray-200 pb-2 text-gray-400 dark:border-dark-600 dark:text-dark-500">
@@ -46,10 +48,12 @@
         <tr
           class="border-b border-gray-200 text-left text-[11px] font-medium uppercase leading-4 tracking-wide text-gray-400 dark:border-dark-700 dark:text-dark-500"
         >
-          <th scope="col" class="pz-bg px-3 py-2 text-right font-medium">{{ t('modelPlaza.table.input') }}</th>
+          <th v-if="hasPaidContext" class="pz-context pz-bg" aria-hidden="true"></th>
+          <th scope="col" class="pz-bg px-3 py-2 text-left font-medium">{{ t('modelPlaza.table.input') }}</th>
           <th class="pz-bg px-3 py-2 font-medium">{{ t('modelPlaza.table.output') }}</th>
           <th class="pz-bg px-3 py-2 font-medium">{{ t('modelPlaza.table.cache') }}</th>
-          <th scope="col" class="border-l border-gray-100 px-3 py-2 text-right font-medium dark:border-dark-700/60">
+          <th v-if="hasOfficialContext" class="pz-context border-l border-gray-100 dark:border-dark-700/60" aria-hidden="true"></th>
+          <th scope="col" class="px-3 py-2 text-left font-medium" :class="{ 'border-l border-gray-100 dark:border-dark-700/60': !hasOfficialContext }">
             {{ t('modelPlaza.table.input') }}
           </th>
           <th class="px-3 py-2 font-medium">{{ t('modelPlaza.table.output') }}</th>
@@ -111,16 +115,20 @@
             </div>
           </td>
 
-          <!-- token 计费:输入 / 输出 / 缓存(写/读),有阶梯时每档一行;档位标签只放输入列,其余列按行对齐 -->
+          <!-- token 计费:输入 / 输出 / 缓存(写/读),有阶梯时每档一行;档位标签独立成列,价格列按行对齐 -->
           <template v-if="billingMode(m) === BILLING_MODE_TOKEN">
-            <td class="pz-cell px-3 py-2.5 text-right align-middle font-mono font-semibold text-gray-900 dark:text-gray-50">
+            <td v-if="hasPaidContext" class="pz-context pz-cell py-2.5 pl-3 align-middle">
+              <div v-for="(iv, idx) in tokenIntervals(m)" :key="idx" class="whitespace-nowrap text-xs leading-5">
+                <span class="font-sans text-gray-400 dark:text-dark-500" :title="tierHint(m)">{{ tierLabel(iv) }}</span>
+              </div>
+            </td>
+            <td class="pz-cell px-3 py-2.5 text-left align-middle font-mono font-semibold text-gray-900 dark:text-gray-50">
               <template v-if="tokenIntervals(m).length">
                 <div
                   v-for="(iv, idx) in tokenIntervals(m)"
                   :key="idx"
-                  class="flex items-baseline justify-between gap-2 whitespace-nowrap text-xs leading-5"
+                  class="whitespace-nowrap text-xs leading-5"
                 >
-                  <span class="font-sans font-normal text-gray-400 dark:text-dark-500" :title="tierHint(m)">{{ tierLabel(iv) }}</span>
                   <span>{{ paidPerMillion(iv.input_price, period) }}</span>
                 </div>
               </template>
@@ -183,7 +191,7 @@
 
           <!-- 按次 / 按图片计费:实付区整体合并,阶梯芯片或单一按次价 -->
           <template v-else>
-            <td colspan="3" class="pz-cell px-3 py-2.5 align-middle">
+            <td :colspan="hasPaidContext ? 4 : 3" class="pz-cell px-3 py-2.5 align-middle">
               <div
                 v-if="requestIntervals(m).length"
                 class="flex flex-wrap items-center gap-1.5"
@@ -209,16 +217,21 @@
           </template>
 
           <!-- 官方价格(参考价,不乘倍率;官方有阶梯时每档一行) -->
+          <td v-if="hasOfficialContext" class="pz-context border-l border-gray-100 py-2.5 pl-3 align-middle dark:border-dark-700/60">
+            <div v-for="(iv, idx) in officialIntervals(m)" :key="idx" class="whitespace-nowrap text-xs leading-5">
+              <span class="font-sans text-gray-400 dark:text-dark-500" :title="t('modelPlaza.table.tierHint')">{{ tierLabel(iv) }}</span>
+            </div>
+          </td>
           <td
-            class="border-l border-gray-100 px-3 py-2.5 text-right align-middle font-mono text-xs text-gray-500 dark:border-dark-700/60 dark:text-dark-400"
+            class="px-3 py-2.5 text-left align-middle font-mono text-xs text-gray-500 dark:text-dark-400"
+            :class="{ 'border-l border-gray-100 dark:border-dark-700/60': !hasOfficialContext }"
           >
             <template v-if="officialIntervals(m).length">
               <div
                 v-for="(iv, idx) in officialIntervals(m)"
                 :key="idx"
-                class="flex items-baseline justify-between gap-2 whitespace-nowrap leading-5"
+                class="whitespace-nowrap leading-5"
               >
-                <span class="font-sans text-gray-400 dark:text-dark-500" :title="t('modelPlaza.table.tierHint')">{{ tierLabel(iv) }}</span>
                 <span>{{ official(iv.input_price) }}</span>
               </div>
             </template>
@@ -365,6 +378,10 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+// 上下文标签独立成列，由原生表格统一列宽；表头及所有输入价格保持左对齐。
+const hasPaidContext = computed(() => props.models.some(m => billingMode(m) === BILLING_MODE_TOKEN && tokenIntervals(m).length > 0))
+const hasOfficialContext = computed(() => props.models.some(m => officialIntervals(m).length > 0))
 
 /** 实付分区只从平台拿一个主色,浅底/标题/下划线全部由 scoped CSS 用 color-mix 派生。 */
 const accentStyle = computed(() => ({ '--plaza-accent': platformAccentColor(props.platform ?? '') }))

@@ -273,7 +273,7 @@ describe('PlazaModelPricingTable', () => {
     expect(text).toContain('modelPlaza.table.paidPrice')
     expect(text).toContain('modelPlaza.table.officialPrice')
     // token 行:模型 + 实付 3 列 + 官方 3 列 + 倍率
-    expect(wrapper.findAll('tbody td')).toHaveLength(8)
+    expect(wrapper.findAll('tbody td:not(.pz-context)')).toHaveLength(8)
   })
 
   it('官方价包含 1h 缓存写入价;official_pricing 为 null 时官方三列显示 -', () => {
@@ -282,7 +282,7 @@ describe('PlazaModelPricingTable', () => {
     expect(withOfficial.text()).toContain('(1h')
 
     const withoutOfficial = mountTable([tokenModel({ official_pricing: null })], 1)
-    const cells = withoutOfficial.findAll('tbody td')
+    const cells = withoutOfficial.findAll('tbody td:not(.pz-context)')
     // 官方 输入/输出/缓存 三列均为 -
     expect(cells[4].text().trim()).toBe('-')
     expect(cells[5].text().trim()).toBe('-')
@@ -410,7 +410,7 @@ describe('PlazaModelPricingTable', () => {
       ...model.pricing!.intervals[0], min_tokens: 0, max_tokens: 272000,
       tier_label: '<=272K', cache_write_multiplier: null, cache_read_multiplier: null
     })
-    const cells = mountTable([model], 1).findAll('tbody td')
+    const cells = mountTable([model], 1).findAll('tbody td:not(.pz-context)')
     expect(cells[3].text()).toContain('¥12.50')
     expect(cells[3].text()).toContain('¥2.00')
     expect(cells[3].text()).toContain('¥25.00')
@@ -606,33 +606,61 @@ describe('PlazaModelPricingTable 长上下文阶梯', () => {
     })
   }
 
-  it.each([false, true])('输入表头与价格右对齐，阶梯标签保持左侧（阶梯=%s）', (tiered) => {
+  it.each([false, true])('输入表头与价格左对齐，上下文使用独立列（阶梯=%s）', (tiered) => {
     const wrapper = mountTable([tiered ? ladderModel() : tokenModel()], 0.5)
-    const headers = wrapper.findAll('thead tr')[1].findAll('th')
-    const cells = wrapper.findAll('tbody td')
+    const headers = wrapper.findAll('thead tr')[1].findAll('th:not(.pz-context)')
+    const cells = wrapper.findAll('tbody td:not(.pz-context)')
     for (const [headerIndex, cellIndex] of [[0, 1], [3, 4]]) {
       expect(headers[headerIndex].text()).toBe('modelPlaza.table.input')
       expect(headers[headerIndex].attributes('scope')).toBe('col')
-      expect(headers[headerIndex].classes()).toContain('text-right')
-      expect(cells[cellIndex].classes()).toContain('text-right')
-      if (tiered) {
-        const tiers = cells[cellIndex].findAll('.leading-5')
-        expect(tiers).toHaveLength(2)
-        for (const tier of tiers) {
-          expect(tier.classes()).toEqual(expect.arrayContaining(['flex', 'justify-between', 'gap-2']))
-          const parts = tier.findAll('span')
-          expect(parts).toHaveLength(2)
-          expect(parts[0].text()).toMatch(/[≤>]272K/)
-          expect(parts[1].text()).toMatch(/^[¥$]\d/)
-        }
-      }
+      expect(headers[headerIndex].classes()).toContain('text-left')
+      expect(cells[cellIndex].classes()).toContain('text-left')
+      expect(cells[cellIndex].text()).not.toContain('272K')
     }
+    expect(wrapper.findAll('tbody .pz-context')).toHaveLength(tiered ? 2 : 0)
+    for (const context of wrapper.findAll('tbody .pz-context')) {
+      expect(context.text()).toContain('≤272K')
+      expect(context.text()).toContain('>272K')
+      expect(context.text()).not.toMatch(/[¥$]/)
+    }
+    expect(wrapper.findAll('thead tr')[0].findAll('th').slice(1, 3).map(h => h.attributes('colspan'))).toEqual(tiered ? ['4', '4'] : ['3', '3'])
     wrapper.unmount()
   })
 
-  it('实付缓存列按档分行并乘倍率,每档一行与输入/输出列对齐;档位标签只在输入列', () => {
+  it.each(['paid', 'official', 'both'])('仅有 %s 阶梯时，混合模型的表头和合并单元格保持列数一致', (side) => {
+    const ladder = ladderModel()
+    if (side === 'paid') ladder.official_pricing = tokenModel().official_pricing
+    if (side === 'official') ladder.pricing = tokenModel().pricing
+    const request = tokenModel({
+      name: 'search-tool',
+      pricing: { ...tokenModel().pricing!, billing_mode: 'per_request', per_request_price: 0.04 },
+      official_pricing: null
+    })
+    const wrapper = mountTable([ladder, tokenModel(), request], 0.5)
+    const expectedColumns = side === 'both' ? 10 : 9
+    expect(wrapper.findAll('col')).toHaveLength(expectedColumns)
+    for (const row of wrapper.findAll('tbody tr')) {
+      expect(row.findAll('td').reduce((sum, cell) => sum + Number(cell.attributes('colspan') || 1), 0)).toBe(expectedColumns)
+    }
+    const requestRow = wrapper.findAll('tbody tr').find(row => row.text().includes('search-tool'))!
+    expect(requestRow.find('td[colspan]').attributes('colspan')).toBe(side === 'official' ? '3' : '4')
+    const flatRow = wrapper.findAll('tbody tr').find(row => row.text().includes('claude-sonnet'))!
+    expect(flatRow.findAll('.pz-context').every(cell => cell.text() === '')).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('切换到无阶梯模型后移除上下文列，不遗留表头缩进', async () => {
+    const wrapper = mountTable([ladderModel()], 1)
+    expect(wrapper.findAll('col')).toHaveLength(10)
+    await wrapper.setProps({ models: [tokenModel()] })
+    expect(wrapper.findAll('col')).toHaveLength(8)
+    expect(wrapper.findAll('.pz-context')).toHaveLength(0)
+    wrapper.unmount()
+  })
+
+  it('实付缓存列按档分行并乘倍率,每档一行与输入/输出列对齐;档位标签独立成列', () => {
     const wrapper = mountTable([ladderModel()], 0.5)
-    const cells = wrapper.findAll('tbody td')
+    const cells = wrapper.findAll('tbody td:not(.pz-context)')
     const cacheCell = cells[3]
     const rows = cacheCell.findAll('.leading-5')
     expect(rows).toHaveLength(2)
@@ -642,9 +670,9 @@ describe('PlazaModelPricingTable 长上下文阶梯', () => {
     expect(rows[0].text()).toContain('¥0.25')
     expect(rows[1].text()).toContain('¥6.25')
     expect(rows[1].text()).toContain('¥0.50')
-    // 输入列带标签,输出/缓存列只按行对齐不重复标签
-    expect(cells[1].text()).toContain('≤272K')
-    expect(cells[1].text()).toContain('>272K')
+    // 上下文独立成列,输入/输出/缓存只显示价格并按行对齐
+    expect(wrapper.findAll('tbody .pz-context')[0].text()).toContain('≤272K')
+    expect(wrapper.findAll('tbody .pz-context')[0].text()).toContain('>272K')
     expect(cells[2].text()).not.toContain('272K')
     expect(cacheCell.text()).not.toContain('272K')
     expect(cells[1].findAll('.leading-5')).toHaveLength(2)
@@ -653,10 +681,10 @@ describe('PlazaModelPricingTable 长上下文阶梯', () => {
 
   it('官方三列按 official_pricing.intervals 分档且不乘倍率,不内联 1h', () => {
     const wrapper = mountTable([ladderModel()], 0.5)
-    const cells = wrapper.findAll('tbody td')
-    expect(cells[4].text()).toContain('≤272K')
+    const cells = wrapper.findAll('tbody td:not(.pz-context)')
+    expect(wrapper.findAll('tbody .pz-context')[1].text()).toContain('≤272K')
     expect(cells[4].text()).toContain('$5.00')
-    expect(cells[4].text()).toContain('>272K')
+    expect(wrapper.findAll('tbody .pz-context')[1].text()).toContain('>272K')
     expect(cells[4].text()).toContain('$10.00')
     expect(cells[5].text()).toContain('$30.00')
     expect(cells[5].text()).toContain('$45.00')
@@ -675,7 +703,7 @@ describe('PlazaModelPricingTable 长上下文阶梯', () => {
     const marginal = mountTable([ladderModel({ long_context_basis: 'marginal' })], 1)
     const marginalLabels = marginal.findAll('tbody td span[title="modelPlaza.table.tierHintMarginal"]')
     expect(marginalLabels.length).toBeGreaterThan(0)
-    expect(marginal.findAll('tbody td')[0].text()).toContain('modelPlaza.table.marginalBadge')
+    expect(marginal.findAll('tbody td:not(.pz-context)')[0].text()).toContain('modelPlaza.table.marginalBadge')
   })
 
   it('无标签的多档按区间生成统一形态(≤上限 / >下限),并按下限升序展示', () => {
@@ -691,13 +719,13 @@ describe('PlazaModelPricingTable 长上下文阶梯', () => {
         ]
       }
     })
-    const rows = mountTable([model], 1).findAll('tbody td')[1].findAll('.leading-5')
+    const rows = mountTable([model], 1).find('tbody .pz-context').findAll('.leading-5')
     expect(rows.map((r) => r.find('span[title]').text())).toEqual(['≤100K', '≤200K', '≤1M', '>1M'])
   })
 
   it('官方无 intervals 字段(旧响应)时官方列保持平价,实付无阶梯时缓存列保持两行', () => {
     const wrapper = mountTable([tokenModel()], 1)
-    const cells = wrapper.findAll('tbody td')
+    const cells = wrapper.findAll('tbody td:not(.pz-context)')
     expect(cells[3].text()).toContain('modelPlaza.table.cacheWrite')
     expect(cells[3].text()).toContain('modelPlaza.table.cacheRead')
     expect(cells[3].findAll('.leading-5')).toHaveLength(0)
