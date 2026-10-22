@@ -107,16 +107,18 @@ WHERE user_id = ANY($2)`, locked, pq.Array(userIDs))
 	})
 }
 
+// ListInviterIDs 按 ID 升序分页列出仍有效（未删除）的邀请人，供重新评估等级使用。
 func (r *affiliateRepository) ListInviterIDs(ctx context.Context, afterUserID int64, limit int) ([]int64, error) {
 	if limit <= 0 {
 		limit = 500
 	}
 	client := clientFromContext(ctx, r.client)
 	rows, err := client.QueryContext(ctx, `
-SELECT DISTINCT inviter_id
-FROM user_affiliates
-WHERE inviter_id IS NOT NULL AND inviter_id > $1
-ORDER BY inviter_id
+SELECT DISTINCT ua.inviter_id
+FROM user_affiliates ua
+JOIN users u ON u.id = ua.inviter_id AND u.deleted_at IS NULL
+WHERE ua.inviter_id > $1
+ORDER BY ua.inviter_id
 LIMIT $2`, afterUserID, limit)
 	if err != nil {
 		return nil, fmt.Errorf("list inviter ids: %w", err)

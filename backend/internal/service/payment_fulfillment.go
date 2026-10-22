@@ -440,7 +440,7 @@ func (s *PaymentService) doBalance(ctx context.Context, o *dbent.PaymentOrder, l
 		}
 		s.applyFirstRechargeRewards(ctx, o)
 		// Code already created and redeemed — just mark completed
-		return s.markCompleted(ctx, o, lease, "RECHARGE_SUCCESS")
+		return s.completeBalanceOrder(ctx, o, lease)
 	case redeemActionCreate:
 		rc := &RedeemCode{Code: o.RechargeCode, Type: RedeemTypeBalance, Value: o.Amount, Status: StatusUnused}
 		if err := s.redeemService.CreateCode(ctx, rc); err != nil {
@@ -456,7 +456,19 @@ func (s *PaymentService) doBalance(ctx context.Context, o *dbent.PaymentOrder, l
 		return err
 	}
 	s.applyFirstRechargeRewards(ctx, o)
-	return s.markCompleted(ctx, o, lease, "RECHARGE_SUCCESS")
+	return s.completeBalanceOrder(ctx, o, lease)
+}
+
+// completeBalanceOrder 把余额订单标记为完成，之后再评估邀请人的自动升级：
+// 「仅充值过」口径只统计已完成的订单，必须在本单进入 COMPLETED 之后评估。
+func (s *PaymentService) completeBalanceOrder(ctx context.Context, o *dbent.PaymentOrder, lease *paymentFulfillmentLease) error {
+	if err := s.markCompleted(ctx, o, lease, "RECHARGE_SUCCESS"); err != nil {
+		return err
+	}
+	if s.affiliateService != nil && paymentOrderAmountWithoutBonus(o) > 0 {
+		s.affiliateService.EvaluateInviterAfterRecharge(ctx, o.UserID)
+	}
+	return nil
 }
 
 func (s *PaymentService) markCompleted(ctx context.Context, o *dbent.PaymentOrder, lease *paymentFulfillmentLease, auditAction string) error {

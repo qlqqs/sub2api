@@ -46,7 +46,7 @@ func inviterFixedRewardAmount(cfg AffiliateRewardConfig, consumer *AffiliateSumm
 // realAmount 是到账金额扣除充值赠送后的部分。「首充」指第一笔达到门槛的充值：未达门槛的
 // 订单不消耗资格；是否已发以流水为准，并发由唯一索引兜底。被邀请人奖励直接进余额；
 // 邀请人固定奖励只在绑定时邀请人是普通用户时发放，进返利额度（受冻结期影响）。
-// 人数口径为「仅充值过」时，同时评估邀请人的自动升级。
+// 邀请人的自动升级不在这里评估，见 EvaluateInviterAfterRecharge。
 func (s *AffiliateService) ApplyFirstRechargeRewards(ctx context.Context, userID int64, realAmount float64, sourceOrderID *int64) (*AffiliateFirstRechargeResult, error) {
 	result := &AffiliateFirstRechargeResult{}
 	if s == nil || s.repo == nil || userID <= 0 || realAmount <= 0 || math.IsNaN(realAmount) || math.IsInf(realAmount, 0) {
@@ -92,9 +92,22 @@ func (s *AffiliateService) ApplyFirstRechargeRewards(ctx context.Context, userID
 			}
 		}
 	}
-
-	if s.agentCountMode(ctx) == AffiliateAgentCountModeRecharged {
-		s.tryAutoUpgradeAgentLevel(ctx, inviterID)
-	}
 	return result, nil
+}
+
+// EvaluateInviterAfterRecharge 在余额订单标记为 COMPLETED 之后调用：人数口径为「仅充值过」时
+// 评估该用户邀请人的自动升级。必须在订单完成之后调用，否则本单还处于 RECHARGING，
+// 不计入合格人数，最后一名达标的直属首充时邀请人不会升级。
+func (s *AffiliateService) EvaluateInviterAfterRecharge(ctx context.Context, userID int64) {
+	if s == nil || s.repo == nil || userID <= 0 || !s.IsEnabled(ctx) {
+		return
+	}
+	if s.agentCountMode(ctx) != AffiliateAgentCountModeRecharged {
+		return
+	}
+	summary, err := s.repo.EnsureUserAffiliate(ctx, userID)
+	if err != nil || summary.InviterID == nil || *summary.InviterID <= 0 {
+		return
+	}
+	s.tryAutoUpgradeAgentLevel(ctx, *summary.InviterID)
 }

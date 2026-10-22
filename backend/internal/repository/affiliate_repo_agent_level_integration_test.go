@@ -122,6 +122,13 @@ func TestAffiliateRepository_CountQualifiedInviteesAndListInviterIDs(t *testing.
 	ids, err = repo.ListInviterIDs(txCtx, inviter.ID, 10)
 	require.NoError(t, err)
 	require.NotContains(t, ids, inviter.ID)
+
+	// 已删除的邀请人不再参与重新评估。
+	_, err = client.ExecContext(txCtx, "UPDATE users SET deleted_at = NOW() WHERE id = $1", inviter.ID)
+	require.NoError(t, err)
+	ids, err = repo.ListInviterIDs(txCtx, inviter.ID-1, 10)
+	require.NoError(t, err)
+	require.NotContains(t, ids, inviter.ID)
 }
 
 func TestAffiliateRepository_ConsumptionSettlementWatermarkAndCap(t *testing.T) {

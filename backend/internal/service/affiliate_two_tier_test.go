@@ -35,6 +35,8 @@ type fakeAffiliateRepo struct {
 	countCalls        int
 	lastRechargedOnly bool
 
+	inviterIDs []int64 // ListInviterIDs 的返回值（不过滤已删除用户，用于验证服务层跳过）
+
 	pendingUsers []int64
 	pending      map[int64]*AffiliatePendingConsumption
 	advances     map[int64]float64
@@ -316,7 +318,15 @@ func (r *fakeAffiliateRepo) CountAgentAppointments(_ context.Context, appointerI
 	return n, nil
 }
 
-func (r *fakeAffiliateRepo) ListInviterIDs(context.Context, int64, int) ([]int64, error) { return nil, nil }
+func (r *fakeAffiliateRepo) ListInviterIDs(_ context.Context, after int64, limit int) ([]int64, error) {
+	var out []int64
+	for _, id := range r.inviterIDs {
+		if id > after && len(out) < limit {
+			out = append(out, id)
+		}
+	}
+	return out, nil
+}
 func (r *fakeAffiliateRepo) WithTx(ctx context.Context, fn func(context.Context) error) error {
 	return fn(ctx)
 }
@@ -785,11 +795,57 @@ func TestFirstRecharge_RechargedCountModeEvaluatesInviter(t *testing.T) {
 		SettingKeyAffiliateAgentLevel2Threshold: "1",
 	})
 	bind(t, svc, 2, 1)
-	repo.rows[1].AgentLevel = 3 // 绑定时 count=1 已触发升级，复位后验证首充同样触发评估
+	repo.rows[1].AgentLevel = 3 // 绑定时 count=1 已触发升级，复位后验证到账后同样触发评估
+	// 首充奖励在订单完成前发放，此时不评估（本单尚未计入合格人数）。
+	repo.countCalls = 0
 	_, err := svc.ApplyFirstRechargeRewards(context.Background(), 2, 10, nil)
 	require.NoError(t, err)
+	require.Zero(t, repo.countCalls)
+	require.Equal(t, AffiliateAgentLevelDefault, repo.rows[1].AgentLevel)
+
+	svc.EvaluateInviterAfterRecharge(context.Background(), 2)
 	require.Equal(t, AffiliateAgentLevel2, repo.rows[1].AgentLevel)
 	require.True(t, repo.lastRechargedOnly)
+}
+
+func TestEvaluateInviterAfterRecharge_OnlyInRechargedCountMode(t *testing.T) {
+	t.Parallel()
+	repo := newFakeAffiliateRepo()
+	repo.row(1)
+	repo.row(2)
+	repo.inviteeCount = 1
+	svc, _ := newTwoTierService(repo, map[string]string{
+		SettingKeyAffiliateAgentUpgradeMode:     AffiliateAgentUpgradeModeAuto,
+		SettingKeyAffiliateAgentCountMode:       AffiliateAgentCountModeAll,
+		SettingKeyAffiliateAgentLevel2Threshold: "2",
+	})
+	bind(t, svc, 2, 1)
+	repo.countCalls = 0
+	svc.EvaluateInviterAfterRecharge(context.Background(), 2)
+	require.Zero(t, repo.countCalls, "「全部直属」口径下充值不改变人数，不必评估")
+	svc.EvaluateInviterAfterRecharge(context.Background(), 1) // 没有邀请人
+	require.Zero(t, repo.countCalls)
+}
+
+func TestReevaluateAllAgentLevels_SkipsDeletedInviters(t *testing.T) {
+	t.Parallel()
+	repo := newFakeAffiliateRepo()
+	for _, id := range []int64{1, 2, 3} {
+		repo.row(id)
+	}
+	repo.inviterIDs = []int64{1, 2, 3}
+	repo.deleted[2] = true
+	repo.inviteeCount = 5
+	svc, _ := newTwoTierService(repo, map[string]string{
+		SettingKeyAffiliateAgentUpgradeMode:     AffiliateAgentUpgradeModeAuto,
+		SettingKeyAffiliateAgentLevel2Threshold: "5",
+	})
+	evaluated, promoted, err := svc.ReevaluateAllAgentLevels(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, 2, evaluated)
+	require.Equal(t, 2, promoted)
+	require.Equal(t, AffiliateAgentLevel2, repo.rows[1].AgentLevel)
+	require.Equal(t, AffiliateAgentLevel2, repo.rows[3].AgentLevel, "已删除的邀请人之后的用户仍要评估")
 }
 
 func TestFirstRecharge_AmountHelpers(t *testing.T) {

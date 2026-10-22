@@ -99,6 +99,9 @@ type paymentFulfillmentAffiliateRepoStub struct {
 	inviteeSummary *AffiliateSummary
 	inviterSummary *AffiliateSummary
 	accrueCalls    []paymentFulfillmentAffiliateAccrueCall
+	// countQualified / promoted 用于验证到账后的自动升级评估；未设置时调用视为意外。
+	countQualified func(ctx context.Context, inviterID int64, rechargedOnly bool) (int, error)
+	promoted       map[int64]int
 }
 
 func (r *paymentFulfillmentAffiliateRepoStub) EnsureUserAffiliate(_ context.Context, userID int64) (*AffiliateSummary, error) {
@@ -122,12 +125,19 @@ func (r *paymentFulfillmentAffiliateRepoStub) BindInviter(context.Context, int64
 	panic("unexpected BindInviter call")
 }
 
-func (r *paymentFulfillmentAffiliateRepoStub) CountQualifiedInvitees(context.Context, int64, bool) (int, error) {
-	panic("unexpected CountQualifiedInvitees call")
+func (r *paymentFulfillmentAffiliateRepoStub) CountQualifiedInvitees(ctx context.Context, inviterID int64, rechargedOnly bool) (int, error) {
+	if r.countQualified == nil {
+		panic("unexpected CountQualifiedInvitees call")
+	}
+	return r.countQualified(ctx, inviterID, rechargedOnly)
 }
 
-func (r *paymentFulfillmentAffiliateRepoStub) PromoteAgentLevelAuto(context.Context, int64, int) (bool, error) {
-	panic("unexpected PromoteAgentLevelAuto call")
+func (r *paymentFulfillmentAffiliateRepoStub) PromoteAgentLevelAuto(_ context.Context, userID int64, level int) (bool, error) {
+	if r.promoted == nil {
+		panic("unexpected PromoteAgentLevelAuto call")
+	}
+	r.promoted[userID] = level
+	return true, nil
 }
 
 func (r *paymentFulfillmentAffiliateRepoStub) SetAgentLevelManual(context.Context, []int64, int, int64) error {
@@ -948,6 +958,61 @@ func TestExecuteBalanceFulfillmentBypassesUserRedeemRateLimit(t *testing.T) {
 	reloaded, err := client.PaymentOrder.Get(ctx, order.ID)
 	require.NoError(t, err)
 	require.Equal(t, OrderStatusCompleted, reloaded.Status)
+}
+
+// 「仅充值过」口径下，被邀请人首充到账后评估邀请人等级时，本单必须已是 COMPLETED，
+// 否则合格人数漏算本单，最后一名达标的直属首充时邀请人不会升级。
+func TestExecuteBalanceFulfillmentEvaluatesInviterAfterOrderCompleted(t *testing.T) {
+	ctx := context.Background()
+	client := newPaymentConfigServiceTestClient(t)
+	ensurePaymentAuditOrderActionUniqueIndex(t, ctx, client)
+	order := createPaymentFulfillmentSubscriptionOrder(t, ctx, client, OrderStatusPaid, time.Now())
+	order, err := client.PaymentOrder.UpdateOneID(order.ID).
+		SetOrderType(payment.OrderTypeBalance).
+		ClearPlanID().
+		ClearSubscriptionGroupID().
+		ClearSubscriptionDays().
+		Save(ctx)
+	require.NoError(t, err)
+
+	inviterID := int64(9101)
+	var statusAtCount string
+	affiliateRepo := &paymentFulfillmentAffiliateRepoStub{
+		inviteeSummary: &AffiliateSummary{UserID: order.UserID, AffCode: "INVITEE", InviterID: &inviterID, CreatedAt: time.Now().Add(-time.Hour)},
+		inviterSummary: &AffiliateSummary{UserID: inviterID, AffCode: "INVITER", AgentLevel: AffiliateAgentLevelDefault, CreatedAt: time.Now().Add(-time.Hour)},
+		countQualified: func(ctx context.Context, id int64, rechargedOnly bool) (int, error) {
+			require.Equal(t, inviterID, id)
+			require.True(t, rechargedOnly)
+			current, err := client.PaymentOrder.Get(ctx, order.ID)
+			require.NoError(t, err)
+			statusAtCount = current.Status
+			if current.Status != OrderStatusCompleted {
+				return 0, nil
+			}
+			return 1, nil
+		},
+		promoted: map[int64]int{},
+	}
+	settingSvc := NewSettingService(&paymentFulfillmentSettingRepoStub{values: map[string]string{
+		SettingKeyAffiliateEnabled:              "true",
+		SettingKeyAffiliateRebateBase:           AffiliateRebateBaseConsumption,
+		SettingKeyAffiliateAgentUpgradeMode:     AffiliateAgentUpgradeModeAuto,
+		SettingKeyAffiliateAgentCountMode:       AffiliateAgentCountModeRecharged,
+		SettingKeyAffiliateAgentLevel2Threshold: "1",
+	}}, nil)
+	userRepo := &mockUserRepo{getByIDUser: &User{ID: order.UserID, Balance: 0}}
+	userRepo.updateBalanceFn = func(context.Context, int64, float64) error { return nil }
+	redeemService := NewRedeemService(&paymentFulfillmentRedeemRepo{}, userRepo, nil, &paymentFulfillmentRedeemCacheStub{}, nil, client, nil, nil)
+	svc := &PaymentService{
+		entClient:        client,
+		redeemService:    redeemService,
+		userRepo:         userRepo,
+		affiliateService: NewAffiliateService(affiliateRepo, settingSvc, nil, nil),
+	}
+
+	require.NoError(t, svc.ExecuteBalanceFulfillment(ctx, order.ID))
+	require.Equal(t, OrderStatusCompleted, statusAtCount)
+	require.Equal(t, map[int64]int{inviterID: AffiliateAgentLevel2}, affiliateRepo.promoted)
 }
 
 func TestExecuteBalanceFulfillmentRecoversAfterRedeemWithoutCreditingAgain(t *testing.T) {

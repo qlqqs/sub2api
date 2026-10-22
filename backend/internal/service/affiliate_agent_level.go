@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
@@ -136,15 +137,19 @@ func (s *AffiliateService) ReevaluateAllAgentLevels(ctx context.Context) (evalua
 			if err := ctx.Err(); err != nil {
 				return evaluated, promoted, err
 			}
+			after = id
 			_, up, err := s.EvaluateAgentLevel(ctx, id)
 			if err != nil {
+				// 已删除的邀请人跳过，不中断其余用户的评估。
+				if errors.Is(err, ErrUserNotFound) {
+					continue
+				}
 				return evaluated, promoted, err
 			}
 			evaluated++
 			if up {
 				promoted++
 			}
-			after = id
 		}
 		if len(ids) < batch {
 			return evaluated, promoted, nil
