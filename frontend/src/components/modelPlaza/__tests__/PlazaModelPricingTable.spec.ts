@@ -606,6 +606,30 @@ describe('PlazaModelPricingTable 长上下文阶梯', () => {
     })
   }
 
+  it.each([false, true])('输入表头与价格右对齐，阶梯标签保持左侧（阶梯=%s）', (tiered) => {
+    const wrapper = mountTable([tiered ? ladderModel() : tokenModel()], 0.5)
+    const headers = wrapper.findAll('thead tr')[1].findAll('th')
+    const cells = wrapper.findAll('tbody td')
+    for (const [headerIndex, cellIndex] of [[0, 1], [3, 4]]) {
+      expect(headers[headerIndex].text()).toBe('modelPlaza.table.input')
+      expect(headers[headerIndex].attributes('scope')).toBe('col')
+      expect(headers[headerIndex].classes()).toContain('text-right')
+      expect(cells[cellIndex].classes()).toContain('text-right')
+      if (tiered) {
+        const tiers = cells[cellIndex].findAll('.leading-5')
+        expect(tiers).toHaveLength(2)
+        for (const tier of tiers) {
+          expect(tier.classes()).toEqual(expect.arrayContaining(['flex', 'justify-between', 'gap-2']))
+          const parts = tier.findAll('span')
+          expect(parts).toHaveLength(2)
+          expect(parts[0].text()).toMatch(/[≤>]272K/)
+          expect(parts[1].text()).toMatch(/^[¥$]\d/)
+        }
+      }
+    }
+    wrapper.unmount()
+  })
+
   it('实付缓存列按档分行并乘倍率,每档一行与输入/输出列对齐;档位标签只在输入列', () => {
     const wrapper = mountTable([ladderModel()], 0.5)
     const cells = wrapper.findAll('tbody td')
@@ -668,7 +692,7 @@ describe('PlazaModelPricingTable 长上下文阶梯', () => {
       }
     })
     const rows = mountTable([model], 1).findAll('tbody td')[1].findAll('.leading-5')
-    expect(rows.map((r) => r.text().split(/\s+/)[0])).toEqual(['≤100K', '≤200K', '≤1M', '>1M'])
+    expect(rows.map((r) => r.find('span[title]').text())).toEqual(['≤100K', '≤200K', '≤1M', '>1M'])
   })
 
   it('官方无 intervals 字段(旧响应)时官方列保持平价,实付无阶梯时缓存列保持两行', () => {

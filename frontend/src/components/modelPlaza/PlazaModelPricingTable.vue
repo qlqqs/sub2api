@@ -46,10 +46,10 @@
         <tr
           class="border-b border-gray-200 text-left text-[11px] font-medium uppercase leading-4 tracking-wide text-gray-400 dark:border-dark-700 dark:text-dark-500"
         >
-          <th class="pz-bg px-3 py-2 font-medium">{{ t('modelPlaza.table.input') }}</th>
+          <th scope="col" class="pz-bg px-3 py-2 text-right font-medium">{{ t('modelPlaza.table.input') }}</th>
           <th class="pz-bg px-3 py-2 font-medium">{{ t('modelPlaza.table.output') }}</th>
           <th class="pz-bg px-3 py-2 font-medium">{{ t('modelPlaza.table.cache') }}</th>
-          <th class="border-l border-gray-100 px-3 py-2 font-medium dark:border-dark-700/60">
+          <th scope="col" class="border-l border-gray-100 px-3 py-2 text-right font-medium dark:border-dark-700/60">
             {{ t('modelPlaza.table.input') }}
           </th>
           <th class="px-3 py-2 font-medium">{{ t('modelPlaza.table.output') }}</th>
@@ -113,15 +113,15 @@
 
           <!-- token 计费:输入 / 输出 / 缓存(写/读),有阶梯时每档一行;档位标签只放输入列,其余列按行对齐 -->
           <template v-if="billingMode(m) === BILLING_MODE_TOKEN">
-            <td class="pz-cell px-3 py-2.5 align-middle font-mono font-semibold text-gray-900 dark:text-gray-50">
+            <td class="pz-cell px-3 py-2.5 text-right align-middle font-mono font-semibold text-gray-900 dark:text-gray-50">
               <template v-if="tokenIntervals(m).length">
                 <div
                   v-for="(iv, idx) in tokenIntervals(m)"
                   :key="idx"
-                  class="whitespace-nowrap text-xs leading-5"
+                  class="flex items-baseline justify-between gap-2 whitespace-nowrap text-xs leading-5"
                 >
-                  <span class="mr-1 font-sans font-normal text-gray-400 dark:text-dark-500" :title="tierHint(m)">{{ tierLabel(iv) }}</span>
-                  {{ paidPerMillion(iv.input_price, period) }}
+                  <span class="font-sans font-normal text-gray-400 dark:text-dark-500" :title="tierHint(m)">{{ tierLabel(iv) }}</span>
+                  <span>{{ paidPerMillion(iv.input_price, period) }}</span>
                 </div>
               </template>
               <template v-else>{{ paidPerMillion(m.pricing?.input_price, period) }}</template>
@@ -210,16 +210,16 @@
 
           <!-- 官方价格(参考价,不乘倍率;官方有阶梯时每档一行) -->
           <td
-            class="border-l border-gray-100 px-3 py-2.5 align-middle font-mono text-xs text-gray-500 dark:border-dark-700/60 dark:text-dark-400"
+            class="border-l border-gray-100 px-3 py-2.5 text-right align-middle font-mono text-xs text-gray-500 dark:border-dark-700/60 dark:text-dark-400"
           >
             <template v-if="officialIntervals(m).length">
               <div
                 v-for="(iv, idx) in officialIntervals(m)"
                 :key="idx"
-                class="whitespace-nowrap leading-5"
+                class="flex items-baseline justify-between gap-2 whitespace-nowrap leading-5"
               >
-                <span class="mr-1 font-sans text-gray-400 dark:text-dark-500" :title="t('modelPlaza.table.tierHint')">{{ tierLabel(iv) }}</span>
-                {{ official(iv.input_price) }}
+                <span class="font-sans text-gray-400 dark:text-dark-500" :title="t('modelPlaza.table.tierHint')">{{ tierLabel(iv) }}</span>
+                <span>{{ official(iv.input_price) }}</span>
               </div>
             </template>
             <template v-else>{{ official(m.official_pricing?.input_price) }}</template>
