@@ -193,7 +193,12 @@ describe('AdminAffiliateRecordsTable', () => {
     expect(usage.get('[data-test="cell-usage_until"]').text()).not.toBe('-')
 
     const order = wrapper.get('[data-test="row-1"]')
-    expect(order.get('[data-test="cell-source"]').text()).toContain('#12')
+    const orderSource = order.get('[data-test="cell-source"]')
+    expect(orderSource.text()).toContain('admin.affiliates.records.sourceOrder')
+    expect(orderSource.text()).toContain('#12')
+    // 订单号只放在悬停提示里，不占列宽。
+    expect(orderSource.text()).not.toContain('sub2_abc')
+    expect(orderSource.find('[title="sub2_abc"]').exists()).toBe(true)
     expect(order.get('[data-test="cell-base_amount"]').text()).toContain('admin.affiliates.records.baseRecharge ¥100.00')
     expect(order.get('[data-test="cell-base_amount"]').text()).toContain('¥98.00')
     expect(order.get('[data-test="cell-usage_until"]').text()).toBe('-')

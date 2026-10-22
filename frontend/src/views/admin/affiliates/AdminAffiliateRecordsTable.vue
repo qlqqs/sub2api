@@ -88,10 +88,11 @@
             </div>
           </template>
           <template #cell-source="{ row }">
-            <div v-if="row.order_id != null" class="space-y-0.5">
-              <div class="font-mono text-sm text-gray-900 dark:text-white">#{{ row.order_id }}</div>
-              <div class="max-w-56 truncate text-sm text-gray-500 dark:text-dark-400">{{ row.out_trade_no }}</div>
-            </div>
+            <!-- 一行展示，避免订单号把整列撑宽；完整订单号放在悬停提示里 -->
+            <span v-if="row.order_id != null" class="inline-flex items-center gap-1.5 whitespace-nowrap" :title="row.out_trade_no">
+              <span class="badge badge-gray">{{ t('admin.affiliates.records.sourceOrder') }}</span>
+              <span class="font-mono text-sm text-gray-900 dark:text-white">#{{ row.order_id }}</span>
+            </span>
             <span v-else-if="row.source_usage_until" class="badge badge-gray whitespace-nowrap">{{ t('admin.affiliates.records.sourceConsumption') }}</span>
             <span v-else class="text-sm text-gray-400 dark:text-dark-500">-</span>
           </template>

@@ -457,6 +457,7 @@ export default {
         orderStatus: 'Order Status',
         source: 'Source',
         sourceConsumption: 'Usage settlement',
+        sourceOrder: 'Top-up order',
         baseAmount: 'Rebate Base',
         baseRecharge: 'Top-up',
         baseConsumption: 'Usage',

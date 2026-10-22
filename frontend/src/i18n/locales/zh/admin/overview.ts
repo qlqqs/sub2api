@@ -457,6 +457,7 @@ export default {
         orderStatus: '订单状态',
         source: '来源',
         sourceConsumption: '消费结算',
+        sourceOrder: '充值订单',
         baseAmount: '返利基数',
         baseRecharge: '充值',
         baseConsumption: '消费',
