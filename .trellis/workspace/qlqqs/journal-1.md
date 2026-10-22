@@ -96,3 +96,26 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Next Steps
 
 - 用户确认后提交并归档任务
+
+
+## Session 8: 人民币显示与代理上级提交、CI 与一号机更新
+<!-- trellis-session: v=2 fp=b3a0319b0c4fbf9c -->
+
+**Date**: 2026-10-22
+**Task**: 人民币显示与代理上级提交、CI 与一号机更新
+**Branch**: `sub2api-custom`
+
+### Summary
+
+两项功能分别提交并推送，任务归档。GitHub Custom Image 39737339650 四个任务全部通过；部署镜像 custom-673303a 到一号机，仅重建 custom 应用容器。部署前备份数据库至 /root/sub2api-custom-backups；迁移249两个新列存在，容器 healthy，内外网 /health 返回 ok。正式 sub2api 和 sub2api-adv 未改动。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `017854fff` | feat(ui): show balance in CNY with per-group ¥/$ ratio |
+| `9b62c73b2` | feat(affiliate): allow admins to set level-two agent upline |
+
+### Status
+
+[OK] **Completed**
