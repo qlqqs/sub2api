@@ -9,6 +9,17 @@
           </div>
           <input v-model="filters.start_at" type="date" class="input w-full sm:w-44" :title="t('admin.affiliates.records.startAt')" @change="reloadFromFirstPage" />
           <input v-model="filters.end_at" type="date" class="input w-full sm:w-44" :title="t('admin.affiliates.records.endAt')" @change="reloadFromFirstPage" />
+          <select
+            v-if="props.type === 'rebates'"
+            v-model="filters.reward_type"
+            class="input w-full sm:w-48"
+            :aria-label="t('admin.affiliates.records.rewardType')"
+            data-test="affiliate-reward-type-filter"
+            @change="reloadFromFirstPage"
+          >
+            <option value="">{{ t('admin.affiliates.records.rewardTypeAll') }}</option>
+            <option v-for="type in AFFILIATE_REWARD_TYPES" :key="type" :value="type">{{ rewardTypeLabel(type) }}</option>
+          </select>
           <button class="btn btn-secondary px-2 md:px-3" :disabled="loading" :title="t('common.refresh')" @click="loadRecords">
             <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
           </button>
@@ -95,11 +106,17 @@
           <template #cell-rebate_amount="{ row }">
             <AmountText :value="row.rebate_amount" strong />
           </template>
-          <template #cell-rebate_level="{ row }">
-            <span v-if="row.rebate_level == null" class="text-sm text-gray-400 dark:text-dark-500">-</span>
-            <span v-else :class="['badge whitespace-nowrap', row.rebate_level === 1 ? 'badge-primary' : 'badge-warning']">
-              {{ t('admin.affiliates.records.rebateLevelValue', { n: row.rebate_level }) }}
+          <template #cell-reward_type="{ row }">
+            <span v-if="!row.reward_type" class="text-sm text-gray-400 dark:text-dark-500">-</span>
+            <span v-else :class="['badge whitespace-nowrap', rewardTypeBadgeClass(row.reward_type)]">
+              {{ rewardTypeLabel(row.reward_type) }}
             </span>
+          </template>
+          <template #cell-agent_owner="{ row }">
+            <SnapshotUserCell :id="row.agent_owner_id" :email="row.agent_owner_email" :deleted="row.agent_owner_deleted" :level="row.agent_owner_level" />
+          </template>
+          <template #cell-agent_upline="{ row }">
+            <SnapshotUserCell :id="row.agent_upline_id" :email="row.agent_upline_email" :deleted="row.agent_upline_deleted" />
           </template>
           <template #cell-action="{ row }">
             <span :class="['badge whitespace-nowrap', row.action === 'withdraw' ? 'badge-warning' : 'badge-primary']">
@@ -161,17 +178,27 @@
           <div class="mt-1 text-sm font-medium text-gray-900 dark:text-white">{{ selectedOverview.email || '-' }}</div>
           <div class="mt-0.5 text-sm text-gray-500 dark:text-dark-400">{{ selectedOverview.username || '-' }}</div>
         </div>
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-3 sm:grid-cols-2" data-test="affiliate-overview-stats">
+          <OverviewStat
+            :label="t('admin.affiliates.overview.agentLevel')"
+            :value="levelLabel(selectedOverview.agent_level) + (selectedOverview.agent_level_locked ? ' · ' + t('admin.affiliates.overview.agentLevelLocked') : '')"
+          />
+          <OverviewStat
+            v-if="isAgentLevel(selectedOverview.agent_level) && selectedOverview.agent_rate_percent != null"
+            :label="t('admin.affiliates.overview.agentRate')"
+            :value="formatPercent(selectedOverview.agent_rate_percent)"
+          />
+          <OverviewStat :label="t('admin.affiliates.overview.agentOwner')" :value="snapshotText(selectedOverview.agent_owner_id, selectedOverview.agent_owner_email, selectedOverview.agent_owner_deleted, selectedOverview.agent_owner_level)" />
+          <OverviewStat :label="t('admin.affiliates.overview.agentUpline')" :value="snapshotText(selectedOverview.agent_upline_id, selectedOverview.agent_upline_email, selectedOverview.agent_upline_deleted)" />
           <OverviewStat :label="t('admin.affiliates.overview.affCode')" :value="selectedOverview.aff_code || '-'" mono />
-          <OverviewStat :label="t('admin.affiliates.overview.rebateRate')" :value="formatPercent(selectedOverview.rebate_rate_percent)" />
+          <OverviewStat :label="t('admin.affiliates.overview.ownedCustomerCount')" :value="String(selectedOverview.owned_customer_count ?? 0)" />
           <OverviewStat :label="t('admin.affiliates.overview.invitedCount')" :value="String(selectedOverview.invited_count)" />
           <OverviewStat :label="t('admin.affiliates.overview.rebatedInviteeCount')" :value="String(selectedOverview.rebated_invitee_count)" />
           <OverviewStat :label="t('admin.affiliates.overview.availableQuota')" :value="'$' + formatAmount(selectedOverview.available_quota)" />
           <OverviewStat :label="t('admin.affiliates.overview.historyQuota')" :value="'$' + formatAmount(selectedOverview.history_quota)" />
-          <OverviewStat
-            :label="t('admin.affiliates.overview.agentLevel')"
-            :value="t('admin.affiliates.overview.agentLevelValue', { n: selectedOverview.agent_level }) + (selectedOverview.agent_level_locked ? ' · ' + t('admin.affiliates.overview.agentLevelLocked') : '')"
-          />
+          <OverviewStat :label="t('admin.affiliates.overview.rewardAgent')" :value="'$' + formatAmount(selectedOverview.reward_totals?.agent)" />
+          <OverviewStat :label="t('admin.affiliates.overview.rewardInvite')" :value="'$' + formatAmount(selectedOverview.reward_totals?.invite)" />
+          <OverviewStat :label="t('admin.affiliates.overview.rewardInviteeBonus')" :value="'$' + formatAmount(selectedOverview.reward_totals?.invitee_bonus)" />
         </div>
       </div>
     </BaseDialog>
@@ -191,7 +218,7 @@ import OrderStatusBadge from '@/components/payment/OrderStatusBadge.vue'
 import AffiliateOfflineWithdrawDialog from './AffiliateOfflineWithdrawDialog.vue'
 import type { Column } from '@/components/common/types'
 import { useAppStore } from '@/stores/app'
-import { affiliatesAPI, type AffiliateInviteRecord, type AffiliateRebateRecord, type AffiliateTransferRecord, type AffiliateUserOverview, type ListAffiliateRecordsParams } from '@/api/admin/affiliates'
+import { AFFILIATE_REWARD_TYPES, affiliatesAPI, type AffiliateInviteRecord, type AffiliateRebateRecord, type AffiliateTransferRecord, type AffiliateUserOverview, type ListAffiliateRecordsParams } from '@/api/admin/affiliates'
 import type { PaginatedResponse } from '@/types'
 import { extractI18nErrorMessage } from '@/utils/apiError'
 import { formatDateTime as formatDisplayDateTime } from '@/utils/format'
@@ -199,15 +226,19 @@ import { formatDateTime as formatDisplayDateTime } from '@/utils/format'
 type RecordType = 'invites' | 'rebates' | 'transfers'
 type AffiliateRecord = AffiliateInviteRecord | AffiliateRebateRecord | AffiliateTransferRecord
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   type: RecordType
-}>()
+  /** Prefills the search box, e.g. when opened from the agent management page. */
+  initialSearch?: string
+}>(), {
+  initialSearch: '',
+})
 
 const { t } = useI18n()
 const appStore = useAppStore()
 const loading = ref(false)
 const records = ref<AffiliateRecord[]>([])
-const filters = reactive({ search: '', start_at: '', end_at: '' })
+const filters = reactive({ search: props.initialSearch, start_at: '', end_at: '', reward_type: '' })
 const pagination = reactive({ page: 1, page_size: 20, total: 0 })
 const overviewDialog = ref(false)
 const overviewLoading = ref(false)
@@ -221,6 +252,8 @@ const columns = computed<Column[]>(() => {
       { key: 'inviter', label: t('admin.affiliates.records.inviter'), sortable: true },
       { key: 'invitee', label: t('admin.affiliates.records.invitee'), sortable: true },
       { key: 'aff_code', label: t('admin.affiliates.records.affCode'), sortable: true },
+      { key: 'agent_owner', label: t('admin.affiliates.records.agentOwner') },
+      { key: 'agent_upline', label: t('admin.affiliates.records.agentUpline') },
       { key: 'total_rebate', label: t('admin.affiliates.records.totalRebate'), sortable: true },
       { key: 'created_at', label: t('admin.affiliates.records.invitedAt'), sortable: true },
     ]
@@ -233,7 +266,7 @@ const columns = computed<Column[]>(() => {
       { key: 'order_amount', label: t('admin.affiliates.records.orderAmount'), sortable: true },
       { key: 'pay_amount', label: t('admin.affiliates.records.payAmount'), sortable: true },
       { key: 'rebate_amount', label: t('admin.affiliates.records.rebateAmount') },
-      { key: 'rebate_level', label: t('admin.affiliates.records.rebateLevel'), sortable: true },
+      { key: 'reward_type', label: t('admin.affiliates.records.rewardType'), sortable: true },
       { key: 'payment_type', label: t('admin.affiliates.records.paymentType'), sortable: true },
       { key: 'order_status', label: t('admin.affiliates.records.orderStatus'), sortable: true },
       { key: 'created_at', label: t('admin.affiliates.records.rebatedAt'), sortable: true },
@@ -290,6 +323,7 @@ function buildParams(): ListAffiliateRecordsParams {
     sort_by: sortState.sort_by,
     sort_order: sortState.sort_order,
     timezone: userTimezone(),
+    reward_type: props.type === 'rebates' ? (filters.reward_type as ListAffiliateRecordsParams['reward_type']) || undefined : undefined,
   }
 }
 
@@ -353,6 +387,39 @@ function outflowTypeLabel(action: string | null | undefined): string {
   return action === 'withdraw'
     ? t('admin.affiliates.outflowTypes.withdraw')
     : t('admin.affiliates.outflowTypes.transfer')
+}
+
+function rewardTypeLabel(type: string): string {
+  return (AFFILIATE_REWARD_TYPES as readonly string[]).includes(type)
+    ? t(`admin.affiliates.rewardTypes.${type}`)
+    : type
+}
+
+function rewardTypeBadgeClass(type: string): string {
+  if (type === 'agent_direct') return 'badge-primary'
+  if (type === 'agent_diff') return 'badge-warning'
+  return 'badge-success'
+}
+
+function levelLabel(level: number | null | undefined): string {
+  return t(`admin.affiliates.levels.${level === 1 || level === 2 ? level : 3}`)
+}
+
+function isAgentLevel(level: number | null | undefined): boolean {
+  return level === 1 || level === 2
+}
+
+/** Text for a bind-time ownership snapshot: email (level), 已删除, or a dash when absent. */
+function snapshotText(
+  id: number | null | undefined,
+  email: string | null | undefined,
+  deleted: boolean | null | undefined,
+  level?: number | null,
+): string {
+  if (id == null) return '-'
+  if (deleted) return t('admin.affiliates.deleted')
+  const name = email || `#${id}`
+  return level === 1 || level === 2 ? `${name} (${t(`admin.affiliates.levelShort.${level}`)})` : name
 }
 
 function formatAmount(value: number | null | undefined): string {
@@ -431,6 +498,31 @@ const NullableAmountText = defineComponent({
         return h('span', { class: 'text-sm text-gray-400 dark:text-dark-500' }, '-')
       }
       return h(AmountText, { value })
+    }
+  },
+})
+
+const SnapshotUserCell = defineComponent({
+  props: {
+    id: { type: Number as PropType<number | null | undefined>, default: null },
+    email: { type: String as PropType<string | null | undefined>, default: '' },
+    deleted: { type: Boolean, default: false },
+    level: { type: Number as PropType<number | null | undefined>, default: null },
+  },
+  setup(cellProps) {
+    return () => {
+      if (cellProps.id == null) {
+        return h('span', { class: 'text-sm text-gray-400 dark:text-dark-500' }, '-')
+      }
+      if (cellProps.deleted) {
+        return h('span', { class: 'text-sm text-gray-400 dark:text-dark-500' }, t('admin.affiliates.deleted'))
+      }
+      return h('div', { class: 'space-y-0.5' }, [
+        h('div', { class: 'max-w-56 truncate text-sm text-gray-700 dark:text-gray-300' }, cellProps.email || `#${cellProps.id}`),
+        cellProps.level === 1 || cellProps.level === 2
+          ? h('div', { class: 'text-xs text-gray-400 dark:text-dark-500' }, t(`admin.affiliates.levelShort.${cellProps.level}`))
+          : null,
+      ])
     }
   },
 })

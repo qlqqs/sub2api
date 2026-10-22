@@ -22,8 +22,8 @@ type AffiliateSettleResult struct {
 }
 
 // SettleConsumptionRebates 按余额消费结算返利：对每个有邀请人且产生了新消费的用户，
-// 在行锁内汇总水位之后的余额消费，受「真实充值总额 − 已计入消费」上限约束后沿
-// 邀请链入账，并推进水位。基数不是「消费」或功能关闭时直接返回。
+// 在行锁内汇总水位之后的余额消费，受「真实充值总额 − 已计入消费」上限约束后按
+// 两级代理规则入账，并推进水位。基数不是「消费」或功能关闭时直接返回。
 func (s *AffiliateService) SettleConsumptionRebates(ctx context.Context) (*AffiliateSettleResult, error) {
 	result := &AffiliateSettleResult{}
 	if s == nil || s.repo == nil || s.settingService == nil {
@@ -75,7 +75,7 @@ func (s *AffiliateService) settleUserConsumption(ctx context.Context, userID int
 				return err
 			}
 			until := pending.UntilAt
-			rebate, err = s.accrueRebateUpChain(txCtx, source, eligible, AffiliateAccrueSource{UsageUntil: &until})
+			rebate, err = s.distributeRewards(txCtx, source, eligible, AffiliateAccrueSource{UsageUntil: &until})
 			if err != nil {
 				return err
 			}

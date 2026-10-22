@@ -47,7 +47,7 @@ func TestAffiliateRepository_AgentLevelDefaultsAndManualLockRules(t *testing.T) 
 	require.False(t, summary.RebateSettledAt.IsZero())
 
 	// Manual promotion: not locked.
-	require.NoError(t, repo.SetAgentLevelManual(txCtx, []int64{u.ID}, 1))
+	require.NoError(t, repo.SetAgentLevelManual(txCtx, []int64{u.ID}, 1, 0))
 	summary, err = repo.EnsureUserAffiliate(txCtx, u.ID)
 	require.NoError(t, err)
 	require.Equal(t, 1, summary.AgentLevel)
@@ -56,7 +56,7 @@ func TestAffiliateRepository_AgentLevelDefaultsAndManualLockRules(t *testing.T) 
 	require.NotNil(t, summary.AgentLevelUpdatedAt)
 
 	// Manual demotion: locked, auto promotion refused.
-	require.NoError(t, repo.SetAgentLevelManual(txCtx, []int64{u.ID}, 3))
+	require.NoError(t, repo.SetAgentLevelManual(txCtx, []int64{u.ID}, 3, 0))
 	summary, err = repo.EnsureUserAffiliate(txCtx, u.ID)
 	require.NoError(t, err)
 	require.Equal(t, 3, summary.AgentLevel)
@@ -167,7 +167,7 @@ func TestAffiliateRepository_ConsumptionSettlementWatermarkAndCap(t *testing.T) 
 	require.True(t, pending.UntilAt.After(pending.SettledAt))
 
 	until := pending.UntilAt
-	applied, err := repo.AccrueQuota(txCtx, inviter.ID, consumer.ID, 4, 0, service.AffiliateAccrueSource{UsageUntil: &until}, 1)
+	applied, err := repo.AccrueQuota(txCtx, inviter.ID, consumer.ID, 4, 0, service.AffiliateAccrueSource{UsageUntil: &until}, service.AffiliateRewardAgentDirect)
 	require.NoError(t, err)
 	require.True(t, applied)
 	require.NoError(t, repo.AdvanceConsumptionWatermark(txCtx, consumer.ID, until, 50))
@@ -199,4 +199,114 @@ func TestAffiliateRepository_ConsumptionSettlementWatermarkAndCap(t *testing.T) 
 
 	_, err = repo.LockPendingConsumption(txCtx, 0, time.Minute)
 	require.ErrorIs(t, err, service.ErrUserNotFound)
+}
+
+// TestAffiliateRepository_BindInviterWritesOwnerSnapshotAndResetsWatermark 验证绑定时写入
+// 分润结构快照并把消费水位重置为绑定时刻（补绑老用户时不结算绑定前的消费）。
+func TestAffiliateRepository_BindInviterWritesOwnerSnapshotAndResetsWatermark(t *testing.T) {
+	ctx := context.Background()
+	tx := testEntTx(t)
+	txCtx := dbent.NewTxContext(ctx, tx)
+	client := tx.Client()
+	repo := NewAffiliateRepository(client, integrationDB)
+
+	top := mustCreateAffiliateWithdrawUser(t, client, "snap-top")
+	agent := mustCreateAffiliateWithdrawUser(t, client, "snap-agent")
+	customer := mustCreateAffiliateWithdrawUser(t, client, "snap-customer")
+	_, err := repo.EnsureUserAffiliate(txCtx, customer.ID)
+	require.NoError(t, err)
+	_, err = client.ExecContext(txCtx, "UPDATE user_affiliates SET rebate_settled_at = NOW() - interval '30 days' WHERE user_id = $1", customer.ID)
+	require.NoError(t, err)
+
+	level := 2
+	_, bound, err := repo.BindInviter(txCtx, customer.ID, agent.ID, service.AffiliateInviterBinding{
+		Source: "registration",
+		Owner:  service.AffiliateOwnerSnapshot{OwnerID: &agent.ID, OwnerLevel: &level, UplineID: &top.ID},
+	})
+	require.NoError(t, err)
+	require.True(t, bound)
+
+	summary, err := repo.EnsureUserAffiliate(txCtx, customer.ID)
+	require.NoError(t, err)
+	require.Equal(t, agent.ID, *summary.AgentOwnerID)
+	require.Equal(t, 2, *summary.AgentOwnerLevel)
+	require.Equal(t, top.ID, *summary.AgentUplineID)
+	require.NotNil(t, summary.AgentOwnerBoundAt)
+	require.WithinDuration(t, time.Now(), summary.RebateSettledAt, time.Minute)
+
+	count, err := repo.CountOwnedCustomers(txCtx, agent.ID)
+	require.NoError(t, err)
+	require.Equal(t, 1, count)
+
+	// 代理管理：按归属代理筛选，带出快照邮箱；客户列表区分 owner / upline。
+	entries, total, err := repo.ListUsersWithCustomSettings(txCtx, service.AffiliateAdminFilter{OwnerID: agent.ID, Page: 1, PageSize: 10})
+	require.NoError(t, err)
+	require.EqualValues(t, 1, total)
+	require.Equal(t, customer.ID, entries[0].UserID)
+	require.Equal(t, agent.Email, entries[0].AgentOwnerEmail)
+	require.Equal(t, top.Email, entries[0].AgentUplineEmail)
+	require.False(t, entries[0].AgentOwnerDeleted)
+
+	customers, total, err := repo.ListAgentCustomers(txCtx, top.ID, 1, 10)
+	require.NoError(t, err)
+	require.EqualValues(t, 1, total)
+	require.Equal(t, "upline", customers[0].Relation)
+	customers, _, err = repo.ListAgentCustomers(txCtx, agent.ID, 1, 10)
+	require.NoError(t, err)
+	require.Equal(t, "owner", customers[0].Relation)
+
+	invites, _, err := repo.ListAffiliateInviteRecords(txCtx, service.AffiliateRecordFilter{Search: customer.Email, Page: 1, PageSize: 10})
+	require.NoError(t, err)
+	require.Len(t, invites, 1)
+	require.Equal(t, agent.ID, *invites[0].AgentOwnerID)
+	require.Equal(t, top.Email, invites[0].AgentUplineEmail)
+
+	// 软删除上方一级：快照 ID 保留，节点标记为不活跃，列表显示已删除。
+	_, err = client.ExecContext(txCtx, "UPDATE users SET deleted_at = NOW() WHERE id = $1", top.ID)
+	require.NoError(t, err)
+	nodes, err := repo.GetAffiliateNodes(txCtx, []int64{agent.ID, top.ID})
+	require.NoError(t, err)
+	require.True(t, nodes[agent.ID].Active)
+	require.False(t, nodes[top.ID].Active)
+	overview, err := repo.GetAffiliateUserOverview(txCtx, customer.ID)
+	require.NoError(t, err)
+	require.Equal(t, top.ID, *overview.AgentUplineID)
+	require.True(t, overview.AgentUplineDeleted)
+}
+
+func TestAffiliateRepository_AgentAppointmentsAndLevelFilter(t *testing.T) {
+	ctx := context.Background()
+	tx := testEntTx(t)
+	txCtx := dbent.NewTxContext(ctx, tx)
+	client := tx.Client()
+	repo := NewAffiliateRepository(client, integrationDB)
+
+	appointer := mustCreateAffiliateWithdrawUser(t, client, "appointer")
+	target := mustCreateAffiliateWithdrawUser(t, client, "appointee")
+	_, err := repo.GetAffiliateForUpdate(txCtx, target.ID)
+	require.NoError(t, err)
+
+	require.NoError(t, repo.SetAgentLevelByAgent(txCtx, target.ID, 2, appointer.ID, false))
+	n, err := repo.CountAgentAppointments(txCtx, appointer.ID)
+	require.NoError(t, err)
+	require.Equal(t, 1, n)
+
+	entries, _, err := repo.ListUsersWithCustomSettings(txCtx, service.AffiliateAdminFilter{Search: target.Email, AgentLevel: 2, Page: 1, PageSize: 10})
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
+	require.Equal(t, service.AffiliateAgentLevelSourceAgent, entries[0].AgentLevelSource)
+	require.Equal(t, appointer.Email, entries[0].AgentLevelUpdatedByEmail)
+
+	// 管理员覆盖：来源变为 manual，任命计数归零。
+	require.NoError(t, repo.SetAgentLevelManual(txCtx, []int64{target.ID}, 2, appointer.ID+1000))
+	n, err = repo.CountAgentAppointments(txCtx, appointer.ID)
+	require.NoError(t, err)
+	require.Zero(t, n)
+
+	require.NoError(t, repo.SetAgentLevelByAgent(txCtx, target.ID, 3, appointer.ID, true))
+	summary, err := repo.EnsureUserAffiliate(txCtx, target.ID)
+	require.NoError(t, err)
+	require.Equal(t, 3, summary.AgentLevel)
+	require.True(t, summary.AgentLevelLocked)
+	require.Equal(t, appointer.ID, *summary.AgentLevelUpdatedBy)
 }

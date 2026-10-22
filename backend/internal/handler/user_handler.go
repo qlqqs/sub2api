@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"strconv"
+
 	"context"
 	"strings"
 	"time"
@@ -209,6 +211,37 @@ func (h *UserHandler) GetAffiliate(c *gin.Context) {
 		return
 	}
 	response.Success(c, detail)
+}
+
+// SetInviteeAgentLevelRequest is the body for a level-1 agent appointing (2) or
+// revoking (3) a level-2 agent among their direct, self-owned invitees.
+type SetInviteeAgentLevelRequest struct {
+	AgentLevel int `json:"agent_level" binding:"required"`
+}
+
+// SetInviteeAgentLevel lets a level-1 agent appoint or revoke a level-2 agent.
+// POST /api/v1/user/aff/invitees/:user_id/agent-level
+func (h *UserHandler) SetInviteeAgentLevel(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not authenticated")
+		return
+	}
+	targetID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if err != nil || targetID <= 0 {
+		response.BadRequest(c, "Invalid user_id")
+		return
+	}
+	var req SetInviteeAgentLevelRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request: "+err.Error())
+		return
+	}
+	if err := h.affiliateService.AppointAgentLevel(c.Request.Context(), subject.UserID, targetID, req.AgentLevel); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"user_id": targetID, "agent_level": req.AgentLevel})
 }
 
 // TransferAffiliateQuota transfers all available affiliate quota into current balance.

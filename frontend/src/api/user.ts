@@ -16,6 +16,7 @@ import type {
   UserAuthProvider,
   UserAffiliateDetail,
   AffiliateTransferResponse,
+  SetInviteeAgentLevelResponse,
   PlatformQuotasResponse,
 } from '@/types'
 
@@ -187,6 +188,20 @@ export async function transferAffiliateQuota(): Promise<AffiliateTransferRespons
 }
 
 /**
+ * 一级代理任命 / 取消直属用户为二级代理。agent_level: 2 = 设为二级，3 = 取消。
+ */
+export async function setInviteeAgentLevel(
+  inviteeId: number,
+  agentLevel: 2 | 3,
+): Promise<SetInviteeAgentLevelResponse> {
+  const { data } = await apiClient.post<SetInviteeAgentLevelResponse>(
+    `/user/aff/invitees/${inviteeId}/agent-level`,
+    { agent_level: agentLevel },
+  )
+  return data
+}
+
+/**
  * 获取当前用户的平台限额 + 用量。
  */
 export async function getMyPlatformQuotas(): Promise<PlatformQuotasResponse> {
@@ -209,6 +224,7 @@ export const userAPI = {
   startOAuthBinding,
   getAffiliateDetail,
   transferAffiliateQuota,
+  setInviteeAgentLevel,
   getMyPlatformQuotas,
 }
 

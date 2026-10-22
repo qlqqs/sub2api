@@ -818,7 +818,7 @@ SELECT id,
        created_at
 FROM user_affiliate_ledger
 WHERE user_id = $1
-  AND action = 'transfer'
+  AND action IN ('transfer', 'invitee_bonus')
 ORDER BY created_at DESC, id DESC
 OFFSET $2
 LIMIT $3`, userID, params.Offset(), params.Limit())
@@ -864,7 +864,7 @@ func countAffiliateBalanceHistory(ctx context.Context, client *dbent.Client, use
 SELECT COUNT(*)
 FROM user_affiliate_ledger
 WHERE user_id = $1
-  AND action = 'transfer'`, userID)
+  AND action IN ('transfer', 'invitee_bonus')`, userID)
 	if err != nil {
 		return 0, err
 	}

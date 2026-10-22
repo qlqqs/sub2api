@@ -177,8 +177,20 @@ type UpdateSettingsRequest struct {
 	AffiliateRebateDurationDays               *int                              `json:"affiliate_rebate_duration_days"`
 	AffiliateRebatePerInviteeCap              *float64                          `json:"affiliate_rebate_per_invitee_cap"`
 	AdminRechargeRebateEnabled                *bool                             `json:"affiliate_admin_recharge_enabled"`
-	AffiliateRebateLevels                     *int                              `json:"affiliate_rebate_levels"`
-	AffiliateRebateRateL2                     *float64                          `json:"affiliate_rebate_rate_l2"`
+	AffiliateAgentLevel2Rate                  *float64                          `json:"affiliate_agent_level2_rate"`
+	AffiliateAgentCustomRateEnabled           *bool                             `json:"affiliate_agent_custom_rate_enabled"`
+	AffiliateAgentAppointEnabled              *bool                             `json:"affiliate_agent_appoint_enabled"`
+	AffiliateAgentAppointMax                  *int                              `json:"affiliate_agent_appoint_max"`
+	AffiliateInviteRewardMode                 *string                           `json:"affiliate_invite_reward_mode"`
+	AffiliateInviteRewardRate                 *float64                          `json:"affiliate_invite_reward_rate"`
+	AffiliateInviteRewardDurationDays         *int                              `json:"affiliate_invite_reward_duration_days"`
+	AffiliateInviteRewardPerInviteeCap        *float64                          `json:"affiliate_invite_reward_per_invitee_cap"`
+	AffiliateInviteRewardFixedAmount          *float64                          `json:"affiliate_invite_reward_fixed_amount"`
+	AffiliateInviteRewardMinRecharge          *float64                          `json:"affiliate_invite_reward_min_recharge"`
+	AffiliateInviteeBonusMode                 *string                           `json:"affiliate_invitee_bonus_mode"`
+	AffiliateInviteeBonusValue                *float64                          `json:"affiliate_invitee_bonus_value"`
+	AffiliateInviteeBonusMinRecharge          *float64                          `json:"affiliate_invitee_bonus_min_recharge"`
+	AffiliateInviteeBonusMax                  *float64                          `json:"affiliate_invitee_bonus_max"`
 	AffiliateRebateBase                       *string                           `json:"affiliate_rebate_base"`
 	AffiliateAgentUpgradeMode                 *string                           `json:"affiliate_agent_upgrade_mode"`
 	AffiliateAgentLevel2Threshold             *int                              `json:"affiliate_agent_level2_threshold"`
@@ -609,17 +621,63 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 	if req.AdminRechargeRebateEnabled != nil {
 		adminRechargeRebateEnabled = *req.AdminRechargeRebateEnabled
 	}
-	affiliateRebateLevels := previousSettings.AffiliateRebateLevels
-	if req.AffiliateRebateLevels != nil {
-		affiliateRebateLevels = *req.AffiliateRebateLevels
+	affiliateAgentLevel2Rate := clampAffiliateRateInput(previousSettings.AffiliateAgentLevel2Rate, req.AffiliateAgentLevel2Rate)
+	if affiliateAgentLevel2Rate > affiliateRebateRate {
+		response.ErrorFrom(c, service.ErrAffiliateLevel2RateExceedsPool)
+		return
 	}
-	if affiliateRebateLevels < service.AffiliateRebateLevelsMin {
-		affiliateRebateLevels = service.AffiliateRebateLevelsMin
+	affiliateAgentCustomRateEnabled := previousSettings.AffiliateAgentCustomRateEnabled
+	if req.AffiliateAgentCustomRateEnabled != nil {
+		affiliateAgentCustomRateEnabled = *req.AffiliateAgentCustomRateEnabled
 	}
-	if affiliateRebateLevels > service.AffiliateRebateLevelsMax {
-		affiliateRebateLevels = service.AffiliateRebateLevelsMax
+	affiliateAgentAppointEnabled := previousSettings.AffiliateAgentAppointEnabled
+	if req.AffiliateAgentAppointEnabled != nil {
+		affiliateAgentAppointEnabled = *req.AffiliateAgentAppointEnabled
 	}
-	affiliateRebateRateL2 := clampAffiliateRateInput(previousSettings.AffiliateRebateRateL2, req.AffiliateRebateRateL2)
+	affiliateAgentAppointMax := previousSettings.AffiliateAgentAppointMax
+	if req.AffiliateAgentAppointMax != nil {
+		affiliateAgentAppointMax = *req.AffiliateAgentAppointMax
+	}
+	affiliateInviteRewardMode := previousSettings.AffiliateInviteRewardMode
+	if req.AffiliateInviteRewardMode != nil {
+		affiliateInviteRewardMode = *req.AffiliateInviteRewardMode
+	}
+	affiliateInviteRewardRate := previousSettings.AffiliateInviteRewardRate
+	if req.AffiliateInviteRewardRate != nil {
+		affiliateInviteRewardRate = *req.AffiliateInviteRewardRate
+	}
+	affiliateInviteRewardDurationDays := previousSettings.AffiliateInviteRewardDurationDays
+	if req.AffiliateInviteRewardDurationDays != nil {
+		affiliateInviteRewardDurationDays = *req.AffiliateInviteRewardDurationDays
+	}
+	affiliateInviteRewardPerInviteeCap := previousSettings.AffiliateInviteRewardPerInviteeCap
+	if req.AffiliateInviteRewardPerInviteeCap != nil {
+		affiliateInviteRewardPerInviteeCap = *req.AffiliateInviteRewardPerInviteeCap
+	}
+	affiliateInviteRewardFixedAmount := previousSettings.AffiliateInviteRewardFixedAmount
+	if req.AffiliateInviteRewardFixedAmount != nil {
+		affiliateInviteRewardFixedAmount = *req.AffiliateInviteRewardFixedAmount
+	}
+	affiliateInviteRewardMinRecharge := previousSettings.AffiliateInviteRewardMinRecharge
+	if req.AffiliateInviteRewardMinRecharge != nil {
+		affiliateInviteRewardMinRecharge = *req.AffiliateInviteRewardMinRecharge
+	}
+	affiliateInviteeBonusMode := previousSettings.AffiliateInviteeBonusMode
+	if req.AffiliateInviteeBonusMode != nil {
+		affiliateInviteeBonusMode = *req.AffiliateInviteeBonusMode
+	}
+	affiliateInviteeBonusValue := previousSettings.AffiliateInviteeBonusValue
+	if req.AffiliateInviteeBonusValue != nil {
+		affiliateInviteeBonusValue = *req.AffiliateInviteeBonusValue
+	}
+	affiliateInviteeBonusMinRecharge := previousSettings.AffiliateInviteeBonusMinRecharge
+	if req.AffiliateInviteeBonusMinRecharge != nil {
+		affiliateInviteeBonusMinRecharge = *req.AffiliateInviteeBonusMinRecharge
+	}
+	affiliateInviteeBonusMax := previousSettings.AffiliateInviteeBonusMax
+	if req.AffiliateInviteeBonusMax != nil {
+		affiliateInviteeBonusMax = *req.AffiliateInviteeBonusMax
+	}
 	affiliateRebateBase := previousSettings.AffiliateRebateBase
 	if req.AffiliateRebateBase != nil {
 		affiliateRebateBase = *req.AffiliateRebateBase
@@ -1696,8 +1754,20 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AffiliateRebateDurationDays:            affiliateRebateDurationDays,
 		AffiliateRebatePerInviteeCap:           affiliateRebatePerInviteeCap,
 		AdminRechargeRebateEnabled:             adminRechargeRebateEnabled,
-		AffiliateRebateLevels:                  affiliateRebateLevels,
-		AffiliateRebateRateL2:                  affiliateRebateRateL2,
+		AffiliateAgentLevel2Rate:               affiliateAgentLevel2Rate,
+		AffiliateAgentCustomRateEnabled:        affiliateAgentCustomRateEnabled,
+		AffiliateAgentAppointEnabled:           affiliateAgentAppointEnabled,
+		AffiliateAgentAppointMax:               affiliateAgentAppointMax,
+		AffiliateInviteRewardMode:              affiliateInviteRewardMode,
+		AffiliateInviteRewardRate:              affiliateInviteRewardRate,
+		AffiliateInviteRewardDurationDays:      affiliateInviteRewardDurationDays,
+		AffiliateInviteRewardPerInviteeCap:     affiliateInviteRewardPerInviteeCap,
+		AffiliateInviteRewardFixedAmount:       affiliateInviteRewardFixedAmount,
+		AffiliateInviteRewardMinRecharge:       affiliateInviteRewardMinRecharge,
+		AffiliateInviteeBonusMode:              affiliateInviteeBonusMode,
+		AffiliateInviteeBonusValue:             affiliateInviteeBonusValue,
+		AffiliateInviteeBonusMinRecharge:       affiliateInviteeBonusMinRecharge,
+		AffiliateInviteeBonusMax:               affiliateInviteeBonusMax,
 		AffiliateRebateBase:                    affiliateRebateBase,
 		AffiliateAgentUpgradeMode:              affiliateAgentUpgradeMode,
 		AffiliateAgentLevel2Threshold:          affiliateAgentLevel2Threshold,
@@ -2368,8 +2438,20 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AffiliateRebateDurationDays:                            updatedSettings.AffiliateRebateDurationDays,
 		AffiliateRebatePerInviteeCap:                           updatedSettings.AffiliateRebatePerInviteeCap,
 		AdminRechargeRebateEnabled:                             updatedSettings.AdminRechargeRebateEnabled,
-		AffiliateRebateLevels:                                  updatedSettings.AffiliateRebateLevels,
-		AffiliateRebateRateL2:                                  updatedSettings.AffiliateRebateRateL2,
+		AffiliateAgentLevel2Rate:                               updatedSettings.AffiliateAgentLevel2Rate,
+		AffiliateAgentCustomRateEnabled:                        updatedSettings.AffiliateAgentCustomRateEnabled,
+		AffiliateAgentAppointEnabled:                           updatedSettings.AffiliateAgentAppointEnabled,
+		AffiliateAgentAppointMax:                               updatedSettings.AffiliateAgentAppointMax,
+		AffiliateInviteRewardMode:                              updatedSettings.AffiliateInviteRewardMode,
+		AffiliateInviteRewardRate:                              updatedSettings.AffiliateInviteRewardRate,
+		AffiliateInviteRewardDurationDays:                      updatedSettings.AffiliateInviteRewardDurationDays,
+		AffiliateInviteRewardPerInviteeCap:                     updatedSettings.AffiliateInviteRewardPerInviteeCap,
+		AffiliateInviteRewardFixedAmount:                       updatedSettings.AffiliateInviteRewardFixedAmount,
+		AffiliateInviteRewardMinRecharge:                       updatedSettings.AffiliateInviteRewardMinRecharge,
+		AffiliateInviteeBonusMode:                              updatedSettings.AffiliateInviteeBonusMode,
+		AffiliateInviteeBonusValue:                             updatedSettings.AffiliateInviteeBonusValue,
+		AffiliateInviteeBonusMinRecharge:                       updatedSettings.AffiliateInviteeBonusMinRecharge,
+		AffiliateInviteeBonusMax:                               updatedSettings.AffiliateInviteeBonusMax,
 		AffiliateRebateBase:                                    updatedSettings.AffiliateRebateBase,
 		AffiliateAgentUpgradeMode:                              updatedSettings.AffiliateAgentUpgradeMode,
 		AffiliateAgentLevel2Threshold:                          updatedSettings.AffiliateAgentLevel2Threshold,

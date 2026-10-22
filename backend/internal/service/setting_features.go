@@ -161,40 +161,6 @@ func (s *SettingService) GetAffiliateRebatePerInviteeCap(ctx context.Context) fl
 	return cap
 }
 
-// GetAffiliateRebateLevels 返回开放的代理层级数，始终落在 [Min, Max]。
-func (s *SettingService) GetAffiliateRebateLevels(ctx context.Context) int {
-	raw, err := s.settingRepo.GetValue(ctx, SettingKeyAffiliateRebateLevels)
-	if err != nil {
-		return AffiliateRebateLevelsDefault
-	}
-	levels, err := strconv.Atoi(strings.TrimSpace(raw))
-	if err != nil {
-		return AffiliateRebateLevelsDefault
-	}
-	return clampAffiliateRebateLevels(levels)
-}
-
-// GetAffiliateRebateRatePercentForLevel 返回指定层级的全局返利比例。
-// 第一层沿用 affiliate_rebate_rate；第二层有独立设置项；越界层级返回 0。
-func (s *SettingService) GetAffiliateRebateRatePercentForLevel(ctx context.Context, level int) float64 {
-	switch level {
-	case 1:
-		return s.GetAffiliateRebateRatePercent(ctx)
-	case 2:
-	default:
-		return 0
-	}
-	raw, err := s.settingRepo.GetValue(ctx, SettingKeyAffiliateRebateRateL2)
-	if err != nil {
-		return AffiliateRebateRateL2Default
-	}
-	rate, err := strconv.ParseFloat(strings.TrimSpace(raw), 64)
-	if err != nil || math.IsNaN(rate) || math.IsInf(rate, 0) {
-		return AffiliateRebateRateL2Default
-	}
-	return clampAffiliateRebateRate(rate)
-}
-
 // GetAffiliateRebateBase 返回返利基数：recharge（按充值即时入账）或 consumption（按余额消费定时结算）。
 func (s *SettingService) GetAffiliateRebateBase(ctx context.Context) string {
 	raw, err := s.settingRepo.GetValue(ctx, SettingKeyAffiliateRebateBase)

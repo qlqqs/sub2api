@@ -712,8 +712,8 @@ export default {
   },
 
   affiliate: {
-    title: 'Affiliate Rebates',
-    description: 'Invite new users and convert your rebate quota into account balance',
+    title: 'Affiliate Rewards',
+    description: 'Invite friends to sign up and move your earnings into your balance at any time',
     yourCode: 'Your Affiliate Code',
     inviteLink: 'Invite Link',
     copyCode: 'Copy Code',
@@ -722,53 +722,93 @@ export default {
     linkCopied: 'Invite link copied',
     loadFailed: 'Failed to load affiliate data',
     transferFailed: 'Failed to transfer affiliate quota',
+    levels: {
+      1: 'Level-1 Agent',
+      2: 'Level-2 Agent',
+      3: 'Regular User'
+    },
+    levelShort: {
+      1: 'Level 1',
+      2: 'Level 2',
+      3: 'Regular'
+    },
+    bonusValuePercentMax: '{value}% (up to {max})',
+    invite: {
+      title: 'Invite Friends',
+      separator: '; ',
+      noReward: 'Share your code or link to invite friends',
+      rewardPercent: 'You earn {rate}% of each friend {base}',
+      rewardPercentDays: ' (for {days} days after binding)',
+      rewardPercentCap: ' (up to {cap} per friend)',
+      rewardFirstRecharge: 'You earn {amount} when a friend first recharges {min} or more',
+      rewardFirstRechargeNoMin: 'You earn {amount} on a friend\'s first recharge',
+      baseConsumption: 'spend',
+      baseRecharge: 'recharge',
+      inviteeBonus: 'Friends get an extra {bonus} on their first recharge',
+      inviteeBonusWithMin: 'Friends get an extra {bonus} on a first recharge of {min} or more'
+    },
+    becomeAgent: {
+      title: 'Become an Agent',
+      progress: 'Invite {remaining} more to become a {level} ({count}/{threshold})',
+      adminOnly: 'Agent status is granted by the administrator'
+    },
+    agent: {
+      rateConsumption: '{rate}% of customer spend',
+      rateRecharge: '{rate}% of customer recharges',
+      customers: '{n} customers',
+      progress: 'Invite {remaining} more to become a {level} ({count}/{threshold})'
+    },
     stats: {
-      rebateRate: 'My Rebate Rate',
-      rebateRateHint: 'What you earn on a direct invitee\'s flow',
-      levelRates: 'Multi-layer Shares',
-      levelRatesHint: 'What you earn when a downline user at each layer generates flow',
-      levelRateItem: 'Layer {n} downline: {rate}',
-      levelRateLocked: 'locked',
-      agentLevel: 'My Agent Level',
-      agentLevelValue: 'Level {n} agent',
-      agentLevelLocked: 'locked',
-      unlockedLayers: '{n} rebate layer unlocked | {n} rebate layers unlocked',
-      noUnlockedLayers: 'No rebates at this level yet; upgrade to start earning',
-      upgradeProgress: 'Invite {remaining} more to reach level {n} ({count}/{threshold})',
-      upgradeMaxed: 'Highest level reached',
-      upgradeManual: 'Agent level is assigned by the administrator',
-      rebateBaseConsumption: 'Rebates are settled periodically on invitees\' consumption',
-      rebateBaseRecharge: 'Rebates are credited immediately on invitees\' recharges',
-      invitedUsers: 'Invited Users',
-      availableQuota: 'Available Rebate Quota',
+      availableQuota: 'Rebate Balance',
+      totalQuota: 'Total Earnings',
       frozenQuota: 'Frozen',
-      frozenQuotaHint: 'Recently earned rebates pending release',
-      totalQuota: 'Historical Rebate Quota'
+      totalBreakdown: 'Agent profit {agent} + invite rewards {invite}',
+      invitedUsers: 'Invited Users'
     },
     transfer: {
-      title: 'Transfer Rebate Quota',
-      description: 'Move available rebate quota into your account balance',
+      title: 'Transfer Rebate Balance',
+      description: 'Move the available rebate balance into your account balance',
       button: 'Transfer to Balance',
       transferring: 'Transferring...',
-      empty: 'No available rebate quota',
+      empty: 'No available rebate balance',
       success: '{amount} has been transferred to your balance'
     },
     invitees: {
-      title: 'Invited Users',
+      title: 'Invited Friends',
       empty: 'No invited users yet',
       columns: {
-        email: 'Email',
-        username: 'Username',
-        rebate: 'Rebate',
-        joinedAt: 'Joined At'
-      }
+        email: 'Friend',
+        joinedAt: 'Joined At',
+        ownership: 'Ownership',
+        rebate: 'Earned For You',
+        agentRole: 'Agent Role'
+      },
+      ownedByMe: 'My customer',
+      ownedByOther: 'Another agent\'s customer',
+      appointSummary: 'Appointed level-2 agents {used} / {max}',
+      unlimited: 'unlimited',
+      appoint: 'Make Level 2',
+      revoke: 'Revoke',
+      notAppointable: 'Not eligible',
+      limitReached: 'Appointment limit reached',
+      appointTitle: 'Make Level-2 Agent',
+      appointConfirm: 'Once they become a level-2 agent, users they invite afterwards belong to them and you earn the difference; existing users are unchanged.',
+      revokeTitle: 'Revoke Level-2 Agent',
+      revokeConfirm: 'After revoking, users they invite afterwards belong to you; profit from their existing customers is unchanged.',
+      appointSuccess: 'Appointed as level-2 agent',
+      revokeSuccess: 'Level-2 appointment revoked'
+    },
+    errors: {
+      AFFILIATE_APPOINT_FORBIDDEN: 'You cannot appoint level-2 agents right now',
+      AFFILIATE_APPOINT_TARGET_INVALID: 'This user cannot be appointed or revoked',
+      AFFILIATE_APPOINT_LIMIT_REACHED: 'Appointment limit reached',
+      AFFILIATE_APPOINT_NOT_OWNER: 'You can only revoke agents you appointed'
     },
     tips: {
       title: 'How It Works',
-      line1: 'Share your affiliate code or invite link with new users.',
-      line2: 'When invitees recharge, you receive {rate} of the recharge as rebate quota.',
-      line3: 'Transfer rebate quota to balance at any time.',
-      line4: 'Newly earned rebates may have a waiting period before they can be transferred.'
+      line1: 'Share your affiliate code or invite link with friends.',
+      line2: 'Earnings go to your rebate balance and can be moved into your account balance at any time.',
+      line3: 'Newly earned rewards have a freeze period before they can be transferred.'
     }
   },
 

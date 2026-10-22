@@ -130,7 +130,7 @@ func (r *paymentFulfillmentAffiliateRepoStub) PromoteAgentLevelAuto(context.Cont
 	panic("unexpected PromoteAgentLevelAuto call")
 }
 
-func (r *paymentFulfillmentAffiliateRepoStub) SetAgentLevelManual(context.Context, []int64, int) error {
+func (r *paymentFulfillmentAffiliateRepoStub) SetAgentLevelManual(context.Context, []int64, int, int64) error {
 	panic("unexpected SetAgentLevelManual call")
 }
 
@@ -158,7 +158,7 @@ func (r *paymentFulfillmentAffiliateRepoStub) AdvanceConsumptionWatermark(contex
 	panic("unexpected AdvanceConsumptionWatermark call")
 }
 
-func (r *paymentFulfillmentAffiliateRepoStub) AccrueQuota(_ context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, source AffiliateAccrueSource, _ int) (bool, error) {
+func (r *paymentFulfillmentAffiliateRepoStub) AccrueQuota(_ context.Context, inviterID, inviteeUserID int64, amount float64, freezeHours int, source AffiliateAccrueSource, _ string) (bool, error) {
 	var sourceCopy *int64
 	if source.OrderID != nil {
 		v := *source.OrderID
@@ -174,7 +174,7 @@ func (r *paymentFulfillmentAffiliateRepoStub) AccrueQuota(_ context.Context, inv
 	return true, nil
 }
 
-func (r *paymentFulfillmentAffiliateRepoStub) GetAccruedRebateFromInvitee(context.Context, int64, int64) (float64, error) {
+func (r *paymentFulfillmentAffiliateRepoStub) GetAccruedRebateFromInvitee(context.Context, int64, int64, []string) (float64, error) {
 	return 0, nil
 }
 
@@ -228,6 +228,55 @@ func (r *paymentFulfillmentAffiliateRepoStub) ListAffiliateTransferRecords(conte
 
 func (r *paymentFulfillmentAffiliateRepoStub) GetAffiliateUserOverview(context.Context, int64) (*AffiliateUserOverview, error) {
 	panic("unexpected GetAffiliateUserOverview call")
+}
+
+// GetAffiliateNodes 返回桩里已知用户的节点（均视为账号仍存在）。
+func (r *paymentFulfillmentAffiliateRepoStub) GetAffiliateNodes(_ context.Context, userIDs []int64) (map[int64]AffiliateNode, error) {
+	out := map[int64]AffiliateNode{}
+	for _, summary := range []*AffiliateSummary{r.inviteeSummary, r.inviterSummary} {
+		if summary == nil {
+			continue
+		}
+		for _, id := range userIDs {
+			if id == summary.UserID {
+				out[id] = AffiliateNode{UserID: id, AgentLevel: summary.AgentLevel, AgentOwnerID: summary.AgentOwnerID,
+					InviterID: summary.InviterID, CustomRate: summary.AffRebateRatePercent, Active: true}
+			}
+		}
+	}
+	return out, nil
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) CreditInviteeBonus(context.Context, int64, float64, *int64) (bool, error) {
+	return false, nil
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) HasRewardForSource(context.Context, int64, string) (bool, error) {
+	return false, nil
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) CountOwnedCustomers(context.Context, int64) (int, error) {
+	panic("unexpected CountOwnedCustomers call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) SumRewardTotals(context.Context, int64) (AffiliateRewardTotals, error) {
+	panic("unexpected SumRewardTotals call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) GetAffiliateForUpdate(context.Context, int64) (*AffiliateSummary, error) {
+	panic("unexpected GetAffiliateForUpdate call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) SetAgentLevelByAgent(context.Context, int64, int, int64, bool) error {
+	panic("unexpected SetAgentLevelByAgent call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) CountAgentAppointments(context.Context, int64) (int, error) {
+	panic("unexpected CountAgentAppointments call")
+}
+
+func (r *paymentFulfillmentAffiliateRepoStub) ListAgentCustomers(context.Context, int64, int, int) ([]AffiliateAgentCustomer, int64, error) {
+	panic("unexpected ListAgentCustomers call")
 }
 
 type paymentFulfillmentSettingRepoStub struct {
@@ -1154,7 +1203,9 @@ func assertPaymentSubscriptionExpiry(t *testing.T, repo *subscriptionUserSubRepo
 	require.True(t, sub.ExpiresAt.Equal(expected), "subscription expiry changed from %s to %s", expected, sub.ExpiresAt)
 }
 
-func TestExecuteSubscriptionFulfillmentAppliesAffiliateRebate(t *testing.T) {
+// TestExecuteSubscriptionFulfillmentSkipsAffiliateRebate 订阅订单不进任何奖励口径：
+// 即使邀请人是归属代理，履约也不产生分润。
+func TestExecuteSubscriptionFulfillmentSkipsAffiliateRebate(t *testing.T) {
 	ctx := context.Background()
 	client := newPaymentConfigServiceTestClient(t)
 	ensurePaymentAuditOrderActionUniqueIndex(t, ctx, client)
@@ -1191,15 +1242,17 @@ func TestExecuteSubscriptionFulfillmentAppliesAffiliateRebate(t *testing.T) {
 	inviterID := int64(9001)
 	affiliateRepo := &paymentFulfillmentAffiliateRepoStub{
 		inviteeSummary: &AffiliateSummary{
-			UserID:    user.ID,
-			AffCode:   "INVITEE",
-			InviterID: &inviterID,
-			CreatedAt: time.Now().Add(-24 * time.Hour),
+			UserID:          user.ID,
+			AffCode:         "INVITEE",
+			InviterID:       &inviterID,
+			AgentOwnerID:    &inviterID,
+			AgentOwnerLevel: ptrIntValue(AffiliateAgentLevelTop),
+			CreatedAt:       time.Now().Add(-24 * time.Hour),
 		},
 		inviterSummary: &AffiliateSummary{
 			UserID:     inviterID,
 			AffCode:    "INVITER",
-			AgentLevel: 2,
+			AgentLevel: AffiliateAgentLevelTop,
 			CreatedAt:  time.Now().Add(-48 * time.Hour),
 		},
 	}
@@ -1226,20 +1279,14 @@ func TestExecuteSubscriptionFulfillmentAppliesAffiliateRebate(t *testing.T) {
 	reloaded, err := client.PaymentOrder.Get(ctx, order.ID)
 	require.NoError(t, err)
 	require.Equal(t, OrderStatusCompleted, reloaded.Status)
-	require.Len(t, affiliateRepo.accrueCalls, 1)
-	require.Equal(t, inviterID, affiliateRepo.accrueCalls[0].inviterID)
-	require.Equal(t, user.ID, affiliateRepo.accrueCalls[0].inviteeUserID)
-	require.InDelta(t, 1.4985, affiliateRepo.accrueCalls[0].amount, 0.00000001)
-	require.NotNil(t, affiliateRepo.accrueCalls[0].sourceOrderID)
-	require.Equal(t, order.ID, *affiliateRepo.accrueCalls[0].sourceOrderID)
+	require.Empty(t, affiliateRepo.accrueCalls)
 	require.Equal(t, 1, subRepo.createCalls)
 
 	applied, err := client.PaymentAuditLog.Query().
 		Where(paymentauditlog.OrderIDEQ(strconv.FormatInt(order.ID, 10)), paymentauditlog.ActionEQ("AFFILIATE_REBATE_APPLIED")).
-		Only(ctx)
+		Count(ctx)
 	require.NoError(t, err)
-	require.Contains(t, applied.Detail, `"baseAmount":9.99`)
-	require.Contains(t, applied.Detail, `"rebateAmount":1.4985`)
+	require.Zero(t, applied)
 }
 
 func TestExecuteSubscriptionFulfillmentDoesNotDuplicateWorkAfterLegacySuccessAudit(t *testing.T) {
@@ -1332,4 +1379,6 @@ func TestExecuteSubscriptionFulfillmentDoesNotDuplicateWorkAfterLegacySuccessAud
 }
 
 var _ AffiliateRepository = (*paymentFulfillmentAffiliateRepoStub)(nil)
+
+func ptrIntValue(v int) *int { return &v }
 var _ SettingRepository = (*paymentFulfillmentSettingRepoStub)(nil)

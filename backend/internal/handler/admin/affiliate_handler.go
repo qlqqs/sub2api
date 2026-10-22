@@ -29,17 +29,43 @@ func NewAffiliateHandler(affiliateService *service.AffiliateService, adminServic
 	}
 }
 
-// ListUsers returns paginated users with custom affiliate settings.
+// adminIDFromContext returns the authenticated admin's user ID (0 when absent).
+func adminIDFromContext(c *gin.Context) int64 {
+	subject, ok := middleware.GetAuthSubjectFromContext(c)
+	if !ok {
+		return 0
+	}
+	return subject.UserID
+}
+
+// ListUsers returns the agent management list: agents and users with custom
+// settings by default, or any user matching search / agent_level / owner_id.
 // GET /api/v1/admin/affiliates/users
 func (h *AffiliateHandler) ListUsers(c *gin.Context) {
 	page, pageSize := response.ParsePagination(c)
-	search := c.Query("search")
-
-	entries, total, err := h.affiliateService.AdminListCustomUsers(c.Request.Context(), service.AffiliateAdminFilter{
-		Search:   search,
+	filter := service.AffiliateAdminFilter{
+		Search:   c.Query("search"),
 		Page:     page,
 		PageSize: pageSize,
-	})
+	}
+	if raw := strings.TrimSpace(c.Query("agent_level")); raw != "" {
+		level, err := strconv.Atoi(raw)
+		if err != nil || level < service.AffiliateAgentLevelTop || level > service.AffiliateAgentLevelMax {
+			response.BadRequest(c, "Invalid agent_level")
+			return
+		}
+		filter.AgentLevel = level
+	}
+	if raw := strings.TrimSpace(c.Query("owner_id")); raw != "" {
+		ownerID, err := strconv.ParseInt(raw, 10, 64)
+		if err != nil || ownerID <= 0 {
+			response.BadRequest(c, "Invalid owner_id")
+			return
+		}
+		filter.OwnerID = ownerID
+	}
+
+	entries, total, err := h.affiliateService.AdminListCustomUsers(c.Request.Context(), filter)
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return
@@ -57,8 +83,9 @@ type UpdateAffiliateUserRequest struct {
 	// ClearRebateRate explicitly clears the per-user rate (sets it to NULL).
 	// Used to disambiguate from "field not provided".
 	ClearRebateRate bool `json:"clear_rebate_rate"`
-	// AgentLevel sets the fixed agent level (1 highest … 3 default). A demotion
-	// locks the user out of auto-upgrade; a promotion unlocks.
+	// AgentLevel sets the agent level (1 一级代理, 2 二级代理, 3 普通用户). A demotion
+	// locks the user out of auto-upgrade; a promotion unlocks. Overrides an
+	// appointment made by a level-1 agent.
 	AgentLevel *int `json:"agent_level"`
 	// AgentLevelLocked explicitly locks/unlocks auto-upgrade, applied after AgentLevel.
 	AgentLevelLocked *bool `json:"agent_level_locked"`
@@ -97,7 +124,7 @@ func (h *AffiliateHandler) UpdateUserSettings(c *gin.Context) {
 	}
 
 	if req.AgentLevel != nil {
-		if err := h.affiliateService.AdminSetAgentLevel(c.Request.Context(), []int64{userID}, *req.AgentLevel); err != nil {
+		if err := h.affiliateService.AdminSetAgentLevel(c.Request.Context(), []int64{userID}, *req.AgentLevel, adminIDFromContext(c)); err != nil {
 			response.ErrorFrom(c, err)
 			return
 		}
@@ -134,7 +161,7 @@ func (h *AffiliateHandler) ClearUserSettings(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
-	if err := h.affiliateService.AdminSetAgentLevel(c.Request.Context(), []int64{userID}, service.AffiliateAgentLevelDefault); err != nil {
+	if err := h.affiliateService.AdminSetAgentLevel(c.Request.Context(), []int64{userID}, service.AffiliateAgentLevelDefault, adminIDFromContext(c)); err != nil {
 		response.ErrorFrom(c, err)
 		return
 	}
@@ -163,7 +190,7 @@ func (h *AffiliateHandler) BatchSetAgentLevel(c *gin.Context) {
 		response.BadRequest(c, "user_ids cannot be empty")
 		return
 	}
-	if err := h.affiliateService.AdminSetAgentLevel(c.Request.Context(), req.UserIDs, req.AgentLevel); err != nil {
+	if err := h.affiliateService.AdminSetAgentLevel(c.Request.Context(), req.UserIDs, req.AgentLevel, adminIDFromContext(c)); err != nil {
 		response.ErrorFrom(c, err)
 		return
 	}
@@ -281,6 +308,46 @@ func (h *AffiliateHandler) BindInviter(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// ListAgentCustomers lists customers owned by the agent (relation=owner) or
+// whose level-1 upline is the agent (relation=upline), with contribution.
+// GET /api/v1/admin/affiliates/users/:user_id/customers
+func (h *AffiliateHandler) ListAgentCustomers(c *gin.Context) {
+	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if err != nil || userID <= 0 {
+		response.BadRequest(c, "Invalid user_id")
+		return
+	}
+	page, pageSize := response.ParsePagination(c)
+	items, total, err := h.affiliateService.AdminListAgentCustomers(c.Request.Context(), userID, page, pageSize)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Paginated(c, items, total, page, pageSize)
+}
+
+// PreviewInviterBinding returns the owner snapshot that binding inviter_id to
+// the user would write, applying the same validation as BindInviter.
+// GET /api/v1/admin/affiliates/users/:user_id/inviter/preview?inviter_id=
+func (h *AffiliateHandler) PreviewInviterBinding(c *gin.Context) {
+	inviteeID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if err != nil || inviteeID <= 0 {
+		response.BadRequest(c, "Invalid user_id")
+		return
+	}
+	inviterID, err := strconv.ParseInt(strings.TrimSpace(c.Query("inviter_id")), 10, 64)
+	if err != nil || inviterID <= 0 {
+		response.BadRequest(c, "Invalid inviter_id")
+		return
+	}
+	preview, err := h.affiliateService.AdminPreviewInviterBinding(c.Request.Context(), inviteeID, inviterID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, preview)
+}
+
 // GetUserOverview returns one user's affiliate overview.
 // GET /api/v1/admin/affiliates/users/:user_id/overview
 func (h *AffiliateHandler) GetUserOverview(c *gin.Context) {
@@ -376,11 +443,12 @@ func (h *AffiliateHandler) ListTransferRecords(c *gin.Context) {
 
 func parseAffiliateRecordFilter(c *gin.Context, page, pageSize int) service.AffiliateRecordFilter {
 	filter := service.AffiliateRecordFilter{
-		Search:   c.Query("search"),
-		Page:     page,
-		PageSize: pageSize,
-		SortBy:   c.Query("sort_by"),
-		SortDesc: c.Query("sort_order") != "asc",
+		Search:     c.Query("search"),
+		Page:       page,
+		PageSize:   pageSize,
+		SortBy:     c.Query("sort_by"),
+		SortDesc:   c.Query("sort_order") != "asc",
+		RewardType: c.Query("reward_type"),
 	}
 	if filter.PageSize > 100 {
 		filter.PageSize = 100

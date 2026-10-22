@@ -238,6 +238,7 @@ vi.mock("vue-i18n", async () => {
     "admin.settings.security.passkeyDeploymentHint":
       "请由服务器运维在部署配置中将 webauthn.enabled 设为 true，填写 webauthn.rp_id（仅域名）与 webauthn.rp_origins（完整 HTTPS 来源），然后重启服务。",
     "admin.settings.site.uploadImage": "上传图片",
+    "admin.settings.features.affiliate.profit.exampleSplit": "二级代理 {level2} · 一级代理 {level1} · 平台 {platform}",
     "admin.settings.site.remove": "移除",
     "admin.settings.platformQuota.platform": "平台",
     "admin.settings.platformQuota.daily": "日限额 (USD)",
@@ -563,6 +564,7 @@ function mountView() {
         ProxySelector: true,
         ImageUpload: ImageUploadStub,
         BackupSettings: true,
+        RouterLink: { template: "<a><slot /></a>" },
       },
     },
   });
@@ -1219,56 +1221,138 @@ describe("admin SettingsView payment visible method controls", () => {
     );
   });
 
-  it("submits two-layer affiliate rates, rebate base and agent-level settings", async () => {
+  it("hides auto-upgrade-only fields in manual mode and submits the four affiliate rule blocks", async () => {
     getSettings.mockResolvedValueOnce({
       ...baseSettingsResponse,
       affiliate_enabled: true,
-      affiliate_rebate_levels: 2,
-      affiliate_rebate_rate: 8,
-      affiliate_rebate_rate_l2: 3,
+      affiliate_rebate_rate: 30,
+      affiliate_agent_level2_rate: 20,
       affiliate_rebate_base: "consumption",
       affiliate_settle_interval_minutes: 30,
       affiliate_agent_upgrade_mode: "manual",
       affiliate_agent_level2_threshold: 0,
       affiliate_agent_level1_threshold: 0,
       affiliate_agent_count_mode: "all",
+      affiliate_agent_appoint_enabled: true,
+      affiliate_agent_appoint_max: 0,
+      affiliate_invite_reward_mode: "off",
+      affiliate_invitee_bonus_mode: "off",
     });
 
     const wrapper = mountView();
-
     await flushPromises();
-    expect(wrapper.find('[data-test="affiliate-rebate-rate-l2"]').exists()).toBe(true);
-    expect(wrapper.find('[data-test="affiliate-settle-interval"]').exists()).toBe(true);
+
+    for (const block of ["profit", "upgrade", "invite-reward", "invitee-bonus"]) {
+      expect(wrapper.find(`[data-test="affiliate-block-${block}"]`).exists()).toBe(true);
+    }
+    // Old layered-rebate controls and the custom-user list are gone from settings.
+    expect(wrapper.find('[data-test="affiliate-rebate-levels"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="affiliate-batch-level-open"]').exists()).toBe(false);
+
+    // Manual mode (default): auto-only fields are hidden; the appoint switch stays.
+    expect(wrapper.find('[data-test="affiliate-agent-count-mode-all"]').exists()).toBe(false);
     expect(wrapper.find('[data-test="affiliate-agent-level2-threshold"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="affiliate-agent-reevaluate"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="affiliate-appoint-max"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="affiliate-settle-interval"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="affiliate-invite-reward-percent"]').exists()).toBe(false);
+    expect(wrapper.find('[data-test="affiliate-invitee-bonus-fields"]').exists()).toBe(false);
 
-    await wrapper.find('[data-test="affiliate-rebate-levels"]').setValue("1");
-    await flushPromises();
-    expect(wrapper.find('[data-test="affiliate-rebate-rate-l2"]').exists()).toBe(false);
-
-    await wrapper.find('[data-test="affiliate-rebate-base"]').setValue("recharge");
+    await wrapper.find('[data-test="affiliate-rebate-base-recharge"]').setValue();
     await flushPromises();
     expect(wrapper.find('[data-test="affiliate-settle-interval"]').exists()).toBe(false);
 
-    await wrapper.find('[data-test="affiliate-agent-upgrade-mode"]').setValue("auto");
+    await wrapper.find('[data-test="affiliate-agent-upgrade-mode-auto"]').setValue();
     await flushPromises();
-    await wrapper.find('[data-test="affiliate-agent-count-mode"]').setValue("recharged");
+    expect(wrapper.find('[data-test="affiliate-agent-reevaluate"]').exists()).toBe(true);
+    await wrapper.find('[data-test="affiliate-agent-count-mode-recharged"]').setValue();
     await wrapper.find('[data-test="affiliate-agent-level2-threshold"]').setValue("5");
     await wrapper.find('[data-test="affiliate-agent-level1-threshold"]').setValue("-3");
+    await wrapper.find('[data-test="affiliate-appoint-max"]').setValue("3");
+
+    await wrapper.find('[data-test="affiliate-invite-reward-mode-first_recharge"]').setValue();
+    await flushPromises();
+    expect(wrapper.find('[data-test="affiliate-invite-reward-percent"]').exists()).toBe(false);
+    await wrapper.find('[data-test="affiliate-invite-reward-min"]').setValue("10");
+    await wrapper.find('[data-test="affiliate-invite-reward-fixed"]').setValue("2");
+
+    await wrapper.find('[data-test="affiliate-invitee-bonus-mode-percent"]').setValue();
+    await flushPromises();
+    await wrapper.find('[data-test="affiliate-invitee-bonus-min"]').setValue("10");
+    await wrapper.find('[data-test="affiliate-invitee-bonus-value"]').setValue("10");
+    await wrapper.find('[data-test="affiliate-invitee-bonus-max"]').setValue("20");
+
     await wrapper.find("form").trigger("submit.prevent");
     await flushPromises();
 
     expect(updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
-        affiliate_rebate_levels: 1,
-        affiliate_rebate_rate: 8,
-        affiliate_rebate_rate_l2: 3,
+        affiliate_rebate_rate: 30,
+        affiliate_agent_level2_rate: 20,
         affiliate_rebate_base: "recharge",
         affiliate_settle_interval_minutes: 30,
         affiliate_agent_upgrade_mode: "auto",
         affiliate_agent_count_mode: "recharged",
         affiliate_agent_level2_threshold: 5,
         affiliate_agent_level1_threshold: 0,
+        affiliate_agent_appoint_enabled: true,
+        affiliate_agent_appoint_max: 3,
+        affiliate_invite_reward_mode: "first_recharge",
+        affiliate_invite_reward_min_recharge: 10,
+        affiliate_invite_reward_fixed_amount: 2,
+        affiliate_invitee_bonus_mode: "percent",
+        affiliate_invitee_bonus_min_recharge: 10,
+        affiliate_invitee_bonus_value: 10,
+        affiliate_invitee_bonus_max: 20,
       }),
+    );
+    const payload = updateSettings.mock.calls[0]?.[0] ?? {};
+    expect(payload).not.toHaveProperty("affiliate_rebate_levels");
+    expect(payload).not.toHaveProperty("affiliate_rebate_rate_l2");
+  });
+
+  it("refreshes the profit example live and blocks saving when the level-2 rate exceeds the pool", async () => {
+    getSettings.mockResolvedValueOnce({
+      ...baseSettingsResponse,
+      affiliate_enabled: true,
+      affiliate_rebate_rate: 30,
+      affiliate_agent_level2_rate: 20,
+    });
+
+    const wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.get('[data-test="affiliate-profit-example-split"]').text()).toBe(
+      "二级代理 $20 · 一级代理 $10 · 平台 $0",
+    );
+    expect(wrapper.find('[data-test="affiliate-level2-rate-error"]').exists()).toBe(false);
+
+    await wrapper.find('[data-test="affiliate-level2-rate"]').setValue("35");
+    await flushPromises();
+
+    const input = wrapper.get('[data-test="affiliate-level2-rate"]');
+    expect(input.classes()).toContain("border-red-500");
+    expect(input.attributes("aria-invalid")).toBe("true");
+    expect(wrapper.find('[data-test="affiliate-level2-rate-error"]').exists()).toBe(true);
+    expect(wrapper.find('[data-test="affiliate-save-blocked"]').exists()).toBe(true);
+    expect(wrapper.get('button[type="submit"]').attributes("disabled")).toBeDefined();
+
+    await wrapper.find("form").trigger("submit.prevent");
+    await flushPromises();
+    expect(updateSettings).not.toHaveBeenCalled();
+    expect(showError).toHaveBeenCalledWith("admin.settings.features.affiliate.profit.level2RateExceeds");
+
+    await wrapper.find('[data-test="affiliate-pool-rate"]').setValue("40");
+    await flushPromises();
+    expect(wrapper.find('[data-test="affiliate-level2-rate-error"]').exists()).toBe(false);
+    expect(wrapper.get('[data-test="affiliate-profit-example-split"]').text()).toBe(
+      "二级代理 $35 · 一级代理 $5 · 平台 $0",
+    );
+
+    await wrapper.find("form").trigger("submit.prevent");
+    await flushPromises();
+    expect(updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({ affiliate_rebate_rate: 40, affiliate_agent_level2_rate: 35 }),
     );
   });
 
@@ -1418,6 +1502,7 @@ describe("admin SettingsView payment visible method controls", () => {
           ProxySelector: true,
           ImageUpload: ImageUploadStub,
           BackupSettings: true,
+          RouterLink: { template: "<a><slot /></a>" },
         },
       },
     });
@@ -1764,6 +1849,7 @@ describe("admin SettingsView payment visible method controls", () => {
           ProxySelector: true,
           ImageUpload: ImageUploadStub,
           BackupSettings: true,
+          RouterLink: { template: "<a><slot /></a>" },
         },
       },
     });

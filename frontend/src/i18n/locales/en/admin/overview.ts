@@ -422,10 +422,14 @@ export default {
     },
 
     affiliates: {
+      agentsDescription: 'Manage agents, levels, ownership and exclusive settings',
       invitesDescription: 'View site-wide inviter and invitee relationships',
       rebatesDescription: 'View every affiliate rebate accrual from recharge orders, redeem codes, and admin recharges',
       transfersDescription: 'View affiliate quota transfers into balance and offline withdrawals',
       errors: {
+        AFFILIATE_LEVEL2_RATE_EXCEEDS_POOL: 'The level-2 rate cannot exceed the profit pool',
+        AFFILIATE_CYCLE: 'This binding would create an invite cycle',
+        AFFILIATE_ALREADY_BOUND: 'This user already has an inviter',
         loadFailed: 'Failed to load affiliate records',
         AFFILIATE_QUOTA_INSUFFICIENT: 'Insufficient available affiliate quota',
         AFFILIATE_WITHDRAW_AMOUNT_INVALID: 'Invalid withdrawal amount'
@@ -444,8 +448,10 @@ export default {
         orderAmount: 'Top-up Amount',
         payAmount: 'Paid Amount',
         rebateAmount: 'Rebate Amount',
-        rebateLevel: 'Agent Level',
-        rebateLevelValue: 'L{n}',
+        rewardType: 'Reward Type',
+        rewardTypeAll: 'All reward types',
+        agentOwner: 'Owning Agent',
+        agentUpline: 'Level-1 Above',
         paymentType: 'Payment Method',
         orderStatus: 'Order Status',
         transferAmount: 'Transfer Amount',
@@ -483,17 +489,122 @@ export default {
         amountRequired: 'Enter an amount greater than 0',
         amountExceeds: 'Amount cannot exceed the available quota'
       },
+      levels: {
+        1: 'Level-1 Agent',
+        2: 'Level-2 Agent',
+        3: 'Regular User'
+      },
+      levelShort: {
+        1: 'Level 1',
+        2: 'Level 2',
+        3: 'Regular'
+      },
+      deleted: 'Deleted',
+      rewardTypes: {
+        agent_direct: 'Agent (direct)',
+        agent_diff: 'Level-1 difference',
+        invite_percent: 'Invite (percentage)',
+        invite_fixed: 'First recharge (inviter)',
+        invitee_bonus: 'First recharge (invitee)'
+      },
       overview: {
         title: 'Affiliate User Overview',
         affCode: 'Invite Code',
-        rebateRate: 'Rebate Rate',
+        agentRate: 'Agent Rate',
         invitedCount: 'Invited Users',
         rebatedInviteeCount: 'Rebated Invitees',
         availableQuota: 'Available Quota',
         historyQuota: 'Historical Rebate',
-        agentLevel: 'Agent Level',
-        agentLevelValue: 'Level {n}',
-        agentLevelLocked: 'locked'
+        agentLevel: 'Level',
+        agentLevelLocked: 'locked',
+        agentOwner: 'Owning Agent',
+        agentUpline: 'Level-1 Above',
+        ownedCustomerCount: 'Owned Customers',
+        rewardAgent: 'Agent Profit Total',
+        rewardInvite: 'Invite Reward Total',
+        rewardInviteeBonus: 'First-Recharge Bonus Total'
+      },
+      agents: {
+        searchPlaceholder: 'Search email, username or user ID',
+        levelFilter: 'Level',
+        levelFilterAll: 'Level: all',
+        ownerFilter: 'Upline agent',
+        ownerFilterAll: 'Upline agent: any',
+        ownerFilterPlaceholder: 'Search upline agent',
+        addAgent: 'Set Agent',
+        batchLevel: 'Batch Set Level',
+        scopeHint: 'By default only agents and users with exclusive settings are listed; search or filter to find any user.',
+        empty: 'No agents yet',
+        selectAll: 'Select all on this page',
+        selectRow: 'Select this user',
+        col: {
+          user: 'User',
+          level: 'Level',
+          owner: 'Owning Agent',
+          inviteCount: 'Direct Invites',
+          customerCount: 'Customers',
+          profitTotal: 'Total Profit',
+          customRate: 'Exclusive Rate',
+          actions: 'Actions'
+        },
+        source: {
+          default: 'Default',
+          auto: 'Auto upgrade',
+          manual: 'Set by admin',
+          agent: 'Appointed by {email}',
+          agentUnknown: 'Appointed by a level-1 agent'
+        },
+        locked: 'Auto-upgrade locked',
+        customCode: 'Exclusive invite code',
+        adjust: 'Adjust',
+        more: 'More actions',
+        viewCustomers: 'View customers',
+        viewRebates: 'View rebate records',
+        clearSettings: 'Clear exclusive settings',
+        clearTitle: 'Clear Exclusive Settings',
+        clearMessage: 'Clear all exclusive settings of {email}? The exclusive rate is removed, the invite code is regenerated (shared invite links stop working), and the level returns to regular user with the lock removed.',
+        demoteTitle: 'Confirm Demotion',
+        demoteMessage: 'Demotion locks auto-upgrade. Profit from their existing customers is unchanged, but users bound afterwards will no longer belong to them.',
+        adjustDialog: {
+          title: 'Adjust Agent',
+          user: 'User',
+          level: 'Level',
+          customRate: 'Exclusive rate',
+          customRatePlaceholder: 'Empty = use tier rate',
+          customRateHint: '0-100%; only effective when exclusive rates are enabled in settings. Leave empty to clear.',
+          inviteCode: 'Exclusive invite code',
+          inviteCodePlaceholder: 'e.g. VIP2026',
+          inviteCodeHint: '4-32 chars of uppercase letters, digits, underscore or hyphen; empty keeps the current code. Input is uppercased.',
+          unlock: 'Unlock auto-upgrade',
+          levelHint: 'Demotion locks auto-upgrade; promotion does not. Level changes only affect relationships bound afterwards.',
+          errorBadRate: 'Enter a rate between 0 and 100',
+          noChanges: 'Nothing to save'
+        },
+        addDialog: {
+          title: 'Set Agent',
+          user: 'User',
+          userPlaceholder: 'Search by email or username',
+          noUserFound: 'No matching users',
+          changeUser: 'Change user',
+          level: 'Agent level',
+          hint: 'Takes effect immediately and only affects users bound afterwards.',
+          submit: 'Confirm'
+        },
+        batchDialog: {
+          title: 'Batch Set Level ({count} users selected)',
+          hint: 'Demotion locks auto-upgrade; promotion does not.'
+        },
+        customers: {
+          title: 'Customers of {email}',
+          user: 'Customer',
+          level: 'Level',
+          relation: 'Relation',
+          relationOwner: 'Owned',
+          relationUpline: 'Difference',
+          boundAt: 'Bound At',
+          contribution: 'Contribution',
+          empty: 'No customers yet'
+        }
       }
     },
 

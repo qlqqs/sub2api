@@ -7,7 +7,14 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
 )
 
-var ErrAffiliateAgentLevelInvalid = infraerrors.BadRequest("INVALID_AGENT_LEVEL", "invalid agent level")
+var (
+	ErrAffiliateAgentLevelInvalid = infraerrors.BadRequest("INVALID_AGENT_LEVEL", "invalid agent level")
+
+	ErrAffiliateAppointForbidden     = infraerrors.Forbidden("AFFILIATE_APPOINT_FORBIDDEN", "only level-1 agents can appoint level-2 agents")
+	ErrAffiliateAppointTargetInvalid = infraerrors.BadRequest("AFFILIATE_APPOINT_TARGET_INVALID", "this user cannot be appointed or revoked")
+	ErrAffiliateAppointLimitReached  = infraerrors.Conflict("AFFILIATE_APPOINT_LIMIT_REACHED", "appointment limit reached")
+	ErrAffiliateAppointNotOwner      = infraerrors.Forbidden("AFFILIATE_APPOINT_NOT_OWNER", "only the appointing agent can revoke this level-2 agent")
+)
 
 // normalizeAgentLevel 把持久化前/后的等级值收敛到 [Top, Max]，0 或越界按默认等级处理。
 func normalizeAgentLevel(level int) int {
@@ -15,16 +22,6 @@ func normalizeAgentLevel(level int) int {
 		return AffiliateAgentLevelDefault
 	}
 	return level
-}
-
-// agentLevelAllowedLayers 返回该等级能获得的返利层数：3 级 0 层，2 级 1 层，1 级 2 层。
-func agentLevelAllowedLayers(level int) int {
-	return AffiliateAgentLevelMax - normalizeAgentLevel(level)
-}
-
-// agentLevelAllowsLayer 判断 level 等级的受益人能否获得第 layer 层返利。
-func agentLevelAllowsLayer(level, layer int) bool {
-	return layer >= 1 && layer <= agentLevelAllowedLayers(level)
 }
 
 func validateAgentLevel(level int) error {
@@ -156,8 +153,8 @@ func (s *AffiliateService) ReevaluateAllAgentLevels(ctx context.Context) (evalua
 }
 
 // AdminSetAgentLevel 管理员为一批用户设置代理等级。降级会锁定（不再自动升级），
-// 升级不锁定。
-func (s *AffiliateService) AdminSetAgentLevel(ctx context.Context, userIDs []int64, level int) error {
+// 升级不锁定；来源记为 manual（可覆盖一级代理的任命）。等级变动只影响之后新绑定的关系。
+func (s *AffiliateService) AdminSetAgentLevel(ctx context.Context, userIDs []int64, level int, adminID int64) error {
 	if s == nil || s.repo == nil {
 		return infraerrors.ServiceUnavailable("SERVICE_UNAVAILABLE", "affiliate service unavailable")
 	}
@@ -168,7 +165,7 @@ func (s *AffiliateService) AdminSetAgentLevel(ctx context.Context, userIDs []int
 	if len(cleaned) == 0 {
 		return nil
 	}
-	return s.repo.SetAgentLevelManual(ctx, cleaned, level)
+	return s.repo.SetAgentLevelManual(ctx, cleaned, level, adminID)
 }
 
 // AdminSetAgentLevelLocked 解除或恢复手动锁定，锁定的用户不参与自动升级。
@@ -191,4 +188,93 @@ func cleanUserIDs(userIDs []int64) []int64 {
 		}
 	}
 	return cleaned
+}
+
+// appointableByAgent 判断目标是否为任命人「直属且归属自己」的用户。
+func appointableByAgent(target *AffiliateSummary, appointerID int64) bool {
+	return target != nil &&
+		target.InviterID != nil && *target.InviterID == appointerID &&
+		target.AgentOwnerID != nil && *target.AgentOwnerID == appointerID
+}
+
+// appointedBy 判断目标是否是 appointerID 任命的二级代理。
+func appointedBy(level int, source string, updatedBy *int64, appointerID int64) bool {
+	return normalizeAgentLevel(level) == AffiliateAgentLevel2 &&
+		source == AffiliateAgentLevelSourceAgent &&
+		updatedBy != nil && *updatedBy == appointerID
+}
+
+// lockedByAdmin 判断目标等级是否由管理员手动锁定（一级代理不能改动）。
+func lockedByAdmin(locked bool, source string) bool {
+	return locked && source != AffiliateAgentLevelSourceAgent
+}
+
+// AppointAgentLevel 一级代理把直属且归属自己的普通用户设为二级（level=2），或取消自己
+// 任命的二级（level=3，视同手动降级并锁定自动升级）。在事务内锁行校验，只影响目标之后
+// 新绑定的关系。
+func (s *AffiliateService) AppointAgentLevel(ctx context.Context, appointerID, targetID int64, level int) error {
+	if s == nil || s.repo == nil {
+		return errAffiliateUnavailable()
+	}
+	if appointerID <= 0 || targetID <= 0 || appointerID == targetID {
+		return ErrAffiliateAppointTargetInvalid
+	}
+	if level != AffiliateAgentLevel2 && level != AffiliateAgentLevelDefault {
+		return ErrAffiliateAgentLevelInvalid
+	}
+	if !s.IsEnabled(ctx) {
+		return ErrAffiliateAppointForbidden
+	}
+	cfg := s.rewardConfig(ctx)
+	if !cfg.AppointEnabled {
+		return ErrAffiliateAppointForbidden
+	}
+	return s.repo.WithTx(ctx, func(txCtx context.Context) error {
+		// 按 user_id 顺序加锁，避免与反向操作死锁。
+		first, second := appointerID, targetID
+		if first > second {
+			first, second = second, first
+		}
+		locked := map[int64]*AffiliateSummary{}
+		for _, id := range []int64{first, second} {
+			row, err := s.repo.GetAffiliateForUpdate(txCtx, id)
+			if err != nil {
+				return err
+			}
+			locked[id] = row
+		}
+		appointer, target := locked[appointerID], locked[targetID]
+		if normalizeAgentLevel(appointer.AgentLevel) != AffiliateAgentLevelTop {
+			return ErrAffiliateAppointForbidden
+		}
+		if !appointableByAgent(target, appointerID) {
+			return ErrAffiliateAppointTargetInvalid
+		}
+		current := normalizeAgentLevel(target.AgentLevel)
+		if level == AffiliateAgentLevel2 {
+			if appointedBy(current, target.AgentLevelSource, target.AgentLevelUpdatedBy, appointerID) {
+				return nil
+			}
+			if current != AffiliateAgentLevelDefault || lockedByAdmin(target.AgentLevelLocked, target.AgentLevelSource) {
+				return ErrAffiliateAppointTargetInvalid
+			}
+			if cfg.AppointMax > 0 {
+				used, err := s.repo.CountAgentAppointments(txCtx, appointerID)
+				if err != nil {
+					return err
+				}
+				if used >= cfg.AppointMax {
+					return ErrAffiliateAppointLimitReached
+				}
+			}
+			return s.repo.SetAgentLevelByAgent(txCtx, targetID, AffiliateAgentLevel2, appointerID, false)
+		}
+		if current == AffiliateAgentLevelDefault {
+			return nil
+		}
+		if !appointedBy(current, target.AgentLevelSource, target.AgentLevelUpdatedBy, appointerID) {
+			return ErrAffiliateAppointNotOwner
+		}
+		return s.repo.SetAgentLevelByAgent(txCtx, targetID, AffiliateAgentLevelDefault, appointerID, true)
+	})
 }

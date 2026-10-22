@@ -150,7 +150,7 @@ func TestAffiliateRepository_AccrueQuota_ReusesOuterTransaction(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, bound, "invitee must bind to inviter")
 
-	applied, err := repo.AccrueQuota(txCtx, inviter.ID, invitee.ID, 3.5, 0, service.AffiliateAccrueSource{}, 1)
+	applied, err := repo.AccrueQuota(txCtx, inviter.ID, invitee.ID, 3.5, 0, service.AffiliateAccrueSource{}, service.AffiliateRewardAgentDirect)
 	require.NoError(t, err)
 	require.True(t, applied, "AccrueQuota must report applied=true")
 
@@ -779,7 +779,7 @@ func TestAffiliateRepository_ListAffiliateRebateRecords_IncludesNonOrderAccruals
 	invitee := mustCreateAffiliateWithdrawUser(t, client, "invitee")
 	mustSeedAffiliateQuota(t, txCtx, client, inviter.ID, 0, 0, 0)
 
-	applied, err := repo.AccrueQuota(txCtx, inviter.ID, invitee.ID, 2, 0, service.AffiliateAccrueSource{}, 1)
+	applied, err := repo.AccrueQuota(txCtx, inviter.ID, invitee.ID, 2, 0, service.AffiliateAccrueSource{}, service.AffiliateRewardAgentDirect)
 	require.NoError(t, err)
 	require.True(t, applied)
 
@@ -803,7 +803,7 @@ func TestAffiliateRepository_ListAffiliateRebateRecords_IncludesNonOrderAccruals
 	require.InDelta(t, 2.0, record.RebateAmount, 1e-9)
 }
 
-func TestAffiliateRepository_AccrueQuota_PersistsRebateLevelAndListsIt(t *testing.T) {
+func TestAffiliateRepository_AccrueQuota_PersistsRewardTypeAndFiltersIt(t *testing.T) {
 	ctx := context.Background()
 	tx := testEntTx(t)
 	txCtx := dbent.NewTxContext(ctx, tx)
@@ -816,34 +816,93 @@ func TestAffiliateRepository_AccrueQuota_PersistsRebateLevelAndListsIt(t *testin
 	mustSeedAffiliateQuota(t, txCtx, client, direct.ID, 0, 0, 0)
 	mustSeedAffiliateQuota(t, txCtx, client, upper.ID, 0, 0, 0)
 
-	applied, err := repo.AccrueQuota(txCtx, direct.ID, invitee.ID, 8, 0, service.AffiliateAccrueSource{}, 1)
+	applied, err := repo.AccrueQuota(txCtx, direct.ID, invitee.ID, 8, 0, service.AffiliateAccrueSource{}, service.AffiliateRewardAgentDirect)
 	require.NoError(t, err)
 	require.True(t, applied)
-	applied, err = repo.AccrueQuota(txCtx, upper.ID, invitee.ID, 3, 24, service.AffiliateAccrueSource{}, 2)
+	applied, err = repo.AccrueQuota(txCtx, upper.ID, invitee.ID, 3, 24, service.AffiliateAccrueSource{}, service.AffiliateRewardAgentDiff)
 	require.NoError(t, err)
 	require.True(t, applied)
+	require.InDelta(t, 3.0, querySingleFloat(t, txCtx, client,
+		"SELECT aff_frozen_quota::double precision FROM user_affiliates WHERE user_id = $1", upper.ID), 1e-9)
 
-	require.Equal(t, 1, querySingleInt(t, txCtx, client,
-		"SELECT rebate_level FROM user_affiliate_ledger WHERE user_id = $1 AND source_user_id = $2 AND action = 'accrue'", direct.ID, invitee.ID))
-	require.Equal(t, 2, querySingleInt(t, txCtx, client,
-		"SELECT rebate_level FROM user_affiliate_ledger WHERE user_id = $1 AND source_user_id = $2 AND action = 'accrue'", upper.ID, invitee.ID))
+	require.Zero(t, querySingleInt(t, txCtx, client,
+		"SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'user_affiliate_ledger' AND column_name = 'rebate_level'"))
 
 	records, total, err := repo.ListAffiliateRebateRecords(txCtx, service.AffiliateRecordFilter{
-		Search:   invitee.Email,
-		Page:     1,
-		PageSize: 20,
-		SortBy:   "rebate_level",
-		SortDesc: true,
+		Search: invitee.Email, Page: 1, PageSize: 20, SortBy: "reward_type", SortDesc: true,
 	})
 	require.NoError(t, err)
 	require.EqualValues(t, 2, total)
 	require.Len(t, records, 2)
-	require.NotNil(t, records[0].RebateLevel)
-	require.Equal(t, 2, *records[0].RebateLevel)
+	require.Equal(t, service.AffiliateRewardAgentDirect, *records[0].RewardType)
+	require.Equal(t, service.AffiliateRewardAgentDiff, *records[1].RewardType)
+
+	records, total, err = repo.ListAffiliateRebateRecords(txCtx, service.AffiliateRecordFilter{
+		Search: invitee.Email, Page: 1, PageSize: 20, RewardType: service.AffiliateRewardAgentDiff,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, 1, total)
 	require.Equal(t, upper.ID, records[0].InviterID)
-	require.NotNil(t, records[1].RebateLevel)
-	require.Equal(t, 1, *records[1].RebateLevel)
-	require.Equal(t, direct.ID, records[1].InviterID)
+
+	agentTotal, err := repo.GetAccruedRebateFromInvitee(txCtx, direct.ID, invitee.ID, []string{service.AffiliateRewardAgentDirect, service.AffiliateRewardAgentDiff})
+	require.NoError(t, err)
+	require.InDelta(t, 8, agentTotal, 1e-9)
+	inviteTotal, err := repo.GetAccruedRebateFromInvitee(txCtx, direct.ID, invitee.ID, []string{service.AffiliateRewardInvitePercent})
+	require.NoError(t, err)
+	require.Zero(t, inviteTotal)
+}
+
+// TestAffiliateRepository_FirstRechargeRewardsAreUnique 验证首充类奖励每个被邀请人只入账一次：
+// 唯一部分索引命中时不加额度 / 余额，其它类型不受影响。
+func TestAffiliateRepository_FirstRechargeRewardsAreUnique(t *testing.T) {
+	ctx := context.Background()
+	tx := testEntTx(t)
+	txCtx := dbent.NewTxContext(ctx, tx)
+	client := tx.Client()
+	repo := NewAffiliateRepository(client, integrationDB)
+
+	inviter := mustCreateAffiliateWithdrawUser(t, client, "fr-inviter")
+	invitee := mustCreateAffiliateWithdrawUser(t, client, "fr-invitee")
+	mustSeedAffiliateQuota(t, txCtx, client, inviter.ID, 0, 0, 0)
+	balanceBefore := querySingleFloat(t, txCtx, client, "SELECT balance::double precision FROM users WHERE id = $1", invitee.ID)
+
+	for i := 0; i < 2; i++ {
+		applied, err := repo.AccrueQuota(txCtx, inviter.ID, invitee.ID, 2, 0, service.AffiliateAccrueSource{}, service.AffiliateRewardInviteFixed)
+		require.NoError(t, err)
+		require.Equal(t, i == 0, applied)
+		credited, err := repo.CreditInviteeBonus(txCtx, invitee.ID, 5, nil)
+		require.NoError(t, err)
+		require.Equal(t, i == 0, credited)
+	}
+	require.InDelta(t, 2, querySingleFloat(t, txCtx, client,
+		"SELECT aff_quota::double precision FROM user_affiliates WHERE user_id = $1", inviter.ID), 1e-9)
+	require.InDelta(t, balanceBefore+5, querySingleFloat(t, txCtx, client,
+		"SELECT balance::double precision FROM users WHERE id = $1", invitee.ID), 1e-9)
+
+	has, err := repo.HasRewardForSource(txCtx, invitee.ID, service.AffiliateRewardInviteeBonus)
+	require.NoError(t, err)
+	require.True(t, has)
+	totals, err := repo.SumRewardTotals(txCtx, invitee.ID)
+	require.NoError(t, err)
+	require.InDelta(t, 5, totals.InviteeBonus, 1e-9)
+	totals, err = repo.SumRewardTotals(txCtx, inviter.ID)
+	require.NoError(t, err)
+	require.InDelta(t, 2, totals.Invite, 1e-9)
+
+	// 被邀请人首充奖励出现在返利记录里，按类型可筛选。
+	records, total, err := repo.ListAffiliateRebateRecords(txCtx, service.AffiliateRecordFilter{
+		Search: invitee.Email, Page: 1, PageSize: 20, RewardType: service.AffiliateRewardInviteeBonus,
+	})
+	require.NoError(t, err)
+	require.EqualValues(t, 1, total)
+	require.Equal(t, invitee.ID, records[0].InviterID)
+
+	// 普通分润可多次入账。
+	for i := 0; i < 2; i++ {
+		applied, err := repo.AccrueQuota(txCtx, inviter.ID, invitee.ID, 1, 0, service.AffiliateAccrueSource{}, service.AffiliateRewardInvitePercent)
+		require.NoError(t, err)
+		require.True(t, applied)
+	}
 }
 
 func TestAffiliateRepository_BindInviterPersistsMetadataAndOnlyIncrementsOnce(t *testing.T) {

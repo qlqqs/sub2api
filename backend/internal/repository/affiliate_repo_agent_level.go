@@ -38,6 +38,7 @@ UPDATE user_affiliates
 SET agent_level = $2,
     agent_level_source = $3,
     agent_level_updated_at = NOW(),
+    agent_level_updated_by = NULL,
     updated_at = NOW()
 WHERE user_id = $1
   AND agent_level_locked = FALSE
@@ -54,7 +55,7 @@ WHERE user_id = $1
 
 // SetAgentLevelManual 管理员设置等级。等级数字越大越低：目标等级数字更大是降级，
 // 锁定后不再自动升级；目标更小是升级，解除锁定；相同等级只更新来源。
-func (r *affiliateRepository) SetAgentLevelManual(ctx context.Context, userIDs []int64, level int) error {
+func (r *affiliateRepository) SetAgentLevelManual(ctx context.Context, userIDs []int64, level int, operatorID int64) error {
 	if len(userIDs) == 0 {
 		return nil
 	}
@@ -74,8 +75,9 @@ SET agent_level_locked = CASE
     agent_level = $1,
     agent_level_source = $2,
     agent_level_updated_at = NOW(),
+    agent_level_updated_by = $4,
     updated_at = NOW()
-WHERE user_id = ANY($3)`, level, service.AffiliateAgentLevelSourceManual, pq.Array(userIDs))
+WHERE user_id = ANY($3)`, level, service.AffiliateAgentLevelSourceManual, pq.Array(userIDs), nullableOperatorArg(operatorID))
 		if err != nil {
 			return fmt.Errorf("set agent level: %w", err)
 		}
@@ -237,4 +239,57 @@ WHERE user_id = $1`, userID, until, settledConsumption)
 		return service.ErrUserNotFound
 	}
 	return nil
+}
+
+func nullableOperatorArg(id int64) any {
+	if id <= 0 {
+		return nil
+	}
+	return id
+}
+
+// GetAffiliateForUpdate 在调用方事务内锁定并读取用户的 user_affiliates 行（不存在时先创建）。
+func (r *affiliateRepository) GetAffiliateForUpdate(ctx context.Context, userID int64) (*service.AffiliateSummary, error) {
+	client := clientFromContext(ctx, r.client)
+	if _, err := ensureUserAffiliateWithClient(ctx, client, userID); err != nil {
+		return nil, err
+	}
+	return queryAffiliateSummary(ctx, client, "SELECT"+affiliateSummaryColumns+" FROM user_affiliates WHERE user_id = $1 FOR UPDATE", userID)
+}
+
+// SetAgentLevelByAgent 记录一级代理的任命或取消：来源为 agent，操作人为任命人。
+func (r *affiliateRepository) SetAgentLevelByAgent(ctx context.Context, targetID int64, level int, appointerID int64, locked bool) error {
+	client := clientFromContext(ctx, r.client)
+	res, err := client.ExecContext(ctx, `
+UPDATE user_affiliates
+SET agent_level = $2,
+    agent_level_source = $3,
+    agent_level_locked = $4,
+    agent_level_updated_at = NOW(),
+    agent_level_updated_by = $5,
+    updated_at = NOW()
+WHERE user_id = $1`, targetID, level, service.AffiliateAgentLevelSourceAgent, locked, appointerID)
+	if err != nil {
+		return fmt.Errorf("set agent level by agent: %w", err)
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("read set agent level by agent result: %w", err)
+	}
+	if affected == 0 {
+		return service.ErrUserNotFound
+	}
+	return nil
+}
+
+// CountAgentAppointments 统计某一级代理当前任命且仍为二级的人数。
+func (r *affiliateRepository) CountAgentAppointments(ctx context.Context, appointerID int64) (int, error) {
+	client := clientFromContext(ctx, r.client)
+	n, err := scanInt64(ctx, client, `
+SELECT COUNT(*)
+FROM user_affiliates
+WHERE agent_level = 2
+  AND agent_level_source = $2
+  AND agent_level_updated_by = $1`, appointerID, service.AffiliateAgentLevelSourceAgent)
+	return int(n), err
 }

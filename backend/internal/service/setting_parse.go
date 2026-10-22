@@ -129,8 +129,12 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyAffiliateRebateFreezeHours:                strconv.Itoa(AffiliateRebateFreezeHoursDefault),
 		SettingKeyAffiliateRebateDurationDays:               strconv.Itoa(AffiliateRebateDurationDaysDefault),
 		SettingKeyAffiliateRebatePerInviteeCap:              strconv.FormatFloat(AffiliateRebatePerInviteeCapDefault, 'f', 2, 64),
-		SettingKeyAffiliateRebateLevels:                     strconv.Itoa(AffiliateRebateLevelsDefault),
-		SettingKeyAffiliateRebateRateL2:                     strconv.FormatFloat(AffiliateRebateRateL2Default, 'f', 8, 64),
+		SettingKeyAffiliateAgentLevel2Rate:                  strconv.FormatFloat(AffiliateAgentLevel2RateDefault, 'f', 8, 64),
+		SettingKeyAffiliateAgentCustomRateEnabled:           strconv.FormatBool(AffiliateAgentCustomRateEnabledDefault),
+		SettingKeyAffiliateAgentAppointEnabled:              strconv.FormatBool(AffiliateAgentAppointEnabledDefault),
+		SettingKeyAffiliateAgentAppointMax:                  strconv.Itoa(AffiliateAgentAppointMaxDefault),
+		SettingKeyAffiliateInviteRewardMode:                 AffiliateInviteRewardModeOff,
+		SettingKeyAffiliateInviteeBonusMode:                 AffiliateInviteeBonusModeOff,
 		SettingKeyAffiliateRebateBase:                       AffiliateRebateBaseDefault,
 		SettingKeyAffiliateAgentUpgradeMode:                 AffiliateAgentUpgradeModeDefault,
 		SettingKeyAffiliateAgentLevel2Threshold:             strconv.Itoa(AffiliateAgentThresholdDefault),
@@ -431,14 +435,8 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 		result.AffiliateRebatePerInviteeCap = perInviteeCap
 	}
 	result.AdminRechargeRebateEnabled = settings[SettingKeyAffiliateAdminRechargeEnabled] == "true"
-	result.AffiliateRebateLevels = AffiliateRebateLevelsDefault
-	if levels, err := strconv.Atoi(settings[SettingKeyAffiliateRebateLevels]); err == nil {
-		result.AffiliateRebateLevels = clampAffiliateRebateLevels(levels)
-	}
-	result.AffiliateRebateRateL2 = AffiliateRebateRateL2Default
-	if rate, err := strconv.ParseFloat(settings[SettingKeyAffiliateRebateRateL2], 64); err == nil {
-		result.AffiliateRebateRateL2 = clampAffiliateRebateRate(rate)
-	}
+	// 奖励配置与运行时共用解析；利润池等沿用的旧键也以它为准（含 R2 ≤ P 约束）。
+	parseAffiliateRewardConfig(settings).applyToSettings(result)
 	result.AffiliateRebateBase = normalizeAffiliateRebateBase(settings[SettingKeyAffiliateRebateBase])
 	result.AffiliateAgentUpgradeMode = normalizeAffiliateAgentUpgradeMode(settings[SettingKeyAffiliateAgentUpgradeMode])
 	result.AffiliateAgentLevel2Threshold = parseAffiliateAgentThreshold(settings[SettingKeyAffiliateAgentLevel2Threshold])
@@ -1043,16 +1041,6 @@ func clampAffiliateRebateRate(value float64) float64 {
 	}
 	if value > AffiliateRebateRateMax {
 		return AffiliateRebateRateMax
-	}
-	return value
-}
-
-func clampAffiliateRebateLevels(value int) int {
-	if value < AffiliateRebateLevelsMin {
-		return AffiliateRebateLevelsMin
-	}
-	if value > AffiliateRebateLevelsMax {
-		return AffiliateRebateLevelsMax
 	}
 	return value
 }

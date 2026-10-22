@@ -717,7 +717,7 @@ export default {
 
   affiliate: {
     title: '邀请返利',
-    description: '邀请新用户注册，并将返利额度转入账户余额',
+    description: '邀请好友注册，收益可随时转入账户余额',
     yourCode: '我的邀请码',
     inviteLink: '邀请链接',
     copyCode: '复制邀请码',
@@ -726,53 +726,93 @@ export default {
     linkCopied: '邀请链接已复制',
     loadFailed: '加载邀请返利数据失败',
     transferFailed: '转入余额失败',
+    levels: {
+      1: '一级代理',
+      2: '二级代理',
+      3: '普通用户'
+    },
+    levelShort: {
+      1: '一级',
+      2: '二级',
+      3: '普通'
+    },
+    bonusValuePercentMax: '{value}%（最多 {max}）',
+    invite: {
+      title: '邀请好友',
+      separator: '；',
+      noReward: '分享邀请码或链接，邀请好友注册',
+      rewardPercent: '好友每笔{base}，你得 {rate}%',
+      rewardPercentDays: '（绑定后 {days} 天内）',
+      rewardPercentCap: '（每位好友最多 {cap}）',
+      rewardFirstRecharge: '好友首充满 {min}，你得 {amount}',
+      rewardFirstRechargeNoMin: '好友首次充值，你得 {amount}',
+      baseConsumption: '消费',
+      baseRecharge: '充值',
+      inviteeBonus: '好友首充额外送 {bonus}',
+      inviteeBonusWithMin: '好友首充满 {min} 额外送 {bonus}'
+    },
+    becomeAgent: {
+      title: '成为代理',
+      progress: '再邀请 {remaining} 人升为{level}（{count}/{threshold}）',
+      adminOnly: '代理资格由管理员开通'
+    },
+    agent: {
+      rateConsumption: '客户消费的 {rate}%',
+      rateRecharge: '客户充值的 {rate}%',
+      customers: '归属客户 {n} 人',
+      progress: '再邀请 {remaining} 人升为{level}（{count}/{threshold}）'
+    },
     stats: {
-      rebateRate: '我的返利比例',
-      rebateRateHint: '直属用户产生流水时你可获得的返利比例',
-      levelRates: '多层分润',
-      levelRatesHint: '下级用户产生流水时，你按其所在层级获得的比例',
-      levelRateItem: '第 {n} 层下级：{rate}',
-      levelRateLocked: '未解锁',
-      agentLevel: '我的代理等级',
-      agentLevelValue: '{n} 级代理',
-      agentLevelLocked: '已锁定',
-      unlockedLayers: '已解锁 {n} 层返利',
-      noUnlockedLayers: '当前等级暂无返利，升级后可获得',
-      upgradeProgress: '再邀请 {remaining} 人升级为 {n} 级代理（{count}/{threshold}）',
-      upgradeMaxed: '已是最高等级',
-      upgradeManual: '代理等级由管理员设置',
-      rebateBaseConsumption: '返利按下级用户的消费流水定时结算',
-      rebateBaseRecharge: '返利按下级用户的充值流水即时入账',
-      invitedUsers: '邀请人数',
-      availableQuota: '可转返利额度',
-      frozenQuota: '冻结中',
-      frozenQuotaHint: '新产生的返利正在冻结期中',
-      totalQuota: '历史返利额度'
+      availableQuota: '返利余额',
+      totalQuota: '累计收益',
+      frozenQuota: '冻结',
+      totalBreakdown: '代理分润 {agent} + 邀请奖励 {invite}',
+      invitedUsers: '邀请人数'
     },
     transfer: {
-      title: '返利额度转余额',
-      description: '将当前可用返利额度一键转入账户余额',
+      title: '返利余额转入账户余额',
+      description: '将当前可用返利余额一键转入账户余额',
       button: '转入余额',
       transferring: '转入中...',
       empty: '当前没有可转入额度',
       success: '已转入余额：{amount}'
     },
     invitees: {
-      title: '已邀请用户',
+      title: '邀请列表',
       empty: '暂无邀请记录',
       columns: {
-        email: '邮箱',
-        username: '用户名',
-        rebate: '返利明细',
-        joinedAt: '注册时间'
-      }
+        email: '好友',
+        joinedAt: '注册时间',
+        ownership: '归属',
+        rebate: '为你带来的收益',
+        agentRole: '代理身份'
+      },
+      ownedByMe: '我的客户',
+      ownedByOther: '其他代理的客户',
+      appointSummary: '已任命二级代理 {used} / {max}',
+      unlimited: '不限',
+      appoint: '设为二级',
+      revoke: '取消',
+      notAppointable: '不可任命',
+      limitReached: '已达任命上限，无法再任命',
+      appointTitle: '设为二级代理',
+      appointConfirm: '设为二级代理后，TA 之后邀请的用户归 TA，你拿差额；已有用户不变',
+      revokeTitle: '取消二级代理',
+      revokeConfirm: '取消后 TA 之后邀请的用户归你；TA 已有客户的分润不变',
+      appointSuccess: '已设为二级代理',
+      revokeSuccess: '已取消二级代理'
+    },
+    errors: {
+      AFFILIATE_APPOINT_FORBIDDEN: '当前不能任命二级代理',
+      AFFILIATE_APPOINT_TARGET_INVALID: '该用户当前不能被任命或取消',
+      AFFILIATE_APPOINT_LIMIT_REACHED: '已达任命上限',
+      AFFILIATE_APPOINT_NOT_OWNER: '只能取消自己任命的二级代理'
     },
     tips: {
       title: '使用说明',
-      line1: '将邀请码或邀请链接分享给新用户。',
-      line2: '被邀请用户充值后，你可获得 {rate} 的返利额度。',
-      line3: '返利额度可随时转入账户余额。',
-      line4: '新产生的返利需要经过冻结期后才能提现。'
+      line1: '将邀请码或邀请链接分享给好友注册。',
+      line2: '收益进入返利余额，可随时转入账户余额。',
+      line3: '新产生的收益需要经过冻结期后才能转出。'
     }
   },
 

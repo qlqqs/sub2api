@@ -165,28 +165,41 @@ type SystemSettings struct {
 	CustomMenuItems             string // JSON array of custom menu items
 	CustomEndpoints             string // JSON array of custom endpoints
 
-	DefaultConcurrency             int
-	DefaultBalance                 float64
-	RiskControlEnabled             bool
-	CyberSessionBlockEnabled       bool
-	CyberPolicyUserAllowlist       string
-	CyberSessionBlockTTLSeconds    int
-	AffiliateEnabled               bool
-	AffiliateRebateRate            float64
-	AffiliateRebateFreezeHours     int
-	AffiliateRebateDurationDays    int
-	AffiliateRebatePerInviteeCap   float64
-	AdminRechargeRebateEnabled     bool
-	AffiliateRebateLevels          int
-	AffiliateRebateRateL2          float64
-	AffiliateRebateBase            string
-	AffiliateAgentUpgradeMode      string
-	AffiliateAgentLevel2Threshold  int
-	AffiliateAgentLevel1Threshold  int
-	AffiliateAgentCountMode        string
-	AffiliateSettleIntervalMinutes int
-	DefaultUserRPMLimit            int
-	DefaultSubscriptions           []DefaultSubscriptionSetting
+	DefaultConcurrency           int
+	DefaultBalance               float64
+	RiskControlEnabled           bool
+	CyberSessionBlockEnabled     bool
+	CyberPolicyUserAllowlist     string
+	CyberSessionBlockTTLSeconds  int
+	AffiliateEnabled             bool
+	AffiliateRebateRate          float64
+	AffiliateRebateFreezeHours   int
+	AffiliateRebateDurationDays  int
+	AffiliateRebatePerInviteeCap float64
+	AdminRechargeRebateEnabled   bool
+	AffiliateRebateBase          string
+	// 两级代理分润与邀请奖励（AffiliateRebateRate 即利润池 P）
+	AffiliateAgentLevel2Rate           float64
+	AffiliateAgentCustomRateEnabled    bool
+	AffiliateAgentAppointEnabled       bool
+	AffiliateAgentAppointMax           int
+	AffiliateInviteRewardMode          string
+	AffiliateInviteRewardRate          float64
+	AffiliateInviteRewardDurationDays  int
+	AffiliateInviteRewardPerInviteeCap float64
+	AffiliateInviteRewardFixedAmount   float64
+	AffiliateInviteRewardMinRecharge   float64
+	AffiliateInviteeBonusMode          string
+	AffiliateInviteeBonusValue         float64
+	AffiliateInviteeBonusMinRecharge   float64
+	AffiliateInviteeBonusMax           float64
+	AffiliateAgentUpgradeMode          string
+	AffiliateAgentLevel2Threshold      int
+	AffiliateAgentLevel1Threshold      int
+	AffiliateAgentCountMode            string
+	AffiliateSettleIntervalMinutes     int
+	DefaultUserRPMLimit                int
+	DefaultSubscriptions               []DefaultSubscriptionSetting
 
 	// Model fallback configuration
 	EnableModelFallback      bool   `json:"enable_model_fallback"`
@@ -422,6 +435,11 @@ type PublicSettings struct {
 
 	// Affiliate (邀请返利) feature toggle
 	AffiliateEnabled bool `json:"affiliate_enabled"`
+	// 被邀请人首充奖励（注册页 / 充值页展示用）；邀请返利关闭时 mode 恒为 off。
+	AffiliateInviteeBonusMode        string  `json:"affiliate_invitee_bonus_mode"`
+	AffiliateInviteeBonusValue       float64 `json:"affiliate_invitee_bonus_value"`
+	AffiliateInviteeBonusMinRecharge float64 `json:"affiliate_invitee_bonus_min_recharge"`
+	AffiliateInviteeBonusMax         float64 `json:"affiliate_invitee_bonus_max"`
 
 	// 风控中心功能开关
 	RiskControlEnabled bool `json:"risk_control_enabled"`

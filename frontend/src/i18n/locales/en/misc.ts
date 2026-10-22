@@ -291,6 +291,13 @@ export default {
     amountLabel: 'Amount',
     paymentAmount: 'Payment Amount',
     creditedBalance: 'Credited Balance',
+    firstRechargeBonus: {
+      notice: 'Recharge {min} or more for the first time to get an extra {bonus}, granted once the payment is credited',
+      noticeNoMin: 'Get an extra {bonus} on your first recharge, granted once the payment is credited',
+      rowLabel: 'First-recharge bonus',
+      rowValue: '+{amount} (after crediting)',
+      shortfall: 'Add {amount} more to get the first-recharge bonus'
+    },
     rechargeBonus: {
       creditedShort: 'Get {amount}',
       payShort: 'Pay {amount}',

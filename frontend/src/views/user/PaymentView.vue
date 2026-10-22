@@ -57,6 +57,13 @@
                 data-testid="recharge-bonus-notice"
                 v-html="renderedBonusNotice"
               ></div>
+              <p
+                v-if="firstRechargeNotice"
+                class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
+                data-testid="first-recharge-bonus-notice"
+              >
+                {{ firstRechargeNotice }}
+              </p>
               <AmountInput
                 v-model="amount"
                 :amounts="[10, 20, 50, 100, 200, 500, 1000, 2000, 5000]"
@@ -102,6 +109,13 @@
                   <span class="text-gray-500 dark:text-gray-400">{{ t('payment.creditedBalance') }}</span>
                   <span :class="bonusQuote.percent > 0 ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'">${{ creditedAmount.toFixed(2) }}</span>
                 </div>
+                <div v-if="firstRechargeBonusAmount > 0" class="flex justify-between" data-testid="first-recharge-bonus-row">
+                  <span class="text-gray-500 dark:text-gray-400">{{ t('payment.firstRechargeBonus.rowLabel') }}</span>
+                  <span class="font-medium text-emerald-600 dark:text-emerald-400">{{ t('payment.firstRechargeBonus.rowValue', { amount: formatUsdShort(firstRechargeBonusAmount) }) }}</span>
+                </div>
+                <p v-else-if="firstRechargeShortfall" class="text-xs text-emerald-700 dark:text-emerald-300" data-testid="first-recharge-bonus-shortfall">
+                  {{ t('payment.firstRechargeBonus.shortfall', { amount: firstRechargeShortfall }) }}
+                </p>
                 <p v-if="balanceRechargeMultiplier !== 1" class="border-t border-gray-200 pt-2 text-xs text-gray-500 dark:border-dark-600 dark:text-gray-400">
                   {{ t('payment.rechargeRatePreview', { currency: selectedCurrency, usd: balanceRechargeMultiplier.toFixed(2) }) }}
                 </p>
@@ -296,6 +310,8 @@ import { isMobileDevice } from '@/utils/device'
 import { hasPeakRate, formatPeakRateWindow, serverTimezoneLabel, type PeakRateFields } from '@/utils/peak-rate'
 import type { SubscriptionPlan, CheckoutInfoResponse, CreateOrderResult, OrderType } from '@/types/payment'
 import { formatRechargeBonusNumber, normalizeRechargeBonusMode, normalizeRechargeBonusTiers, quoteRechargeBonus } from '@/utils/rechargeBonus'
+import userAPI from '@/api/user'
+import { describeInviteeBonusValue, formatUsdShort, isInviteeBonusActive, quoteInviteeBonus, type InviteeBonusLike } from '@/utils/affiliateRewards'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AmountInput from '@/components/payment/AmountInput.vue'
 import PaymentMethodSelector from '@/components/payment/PaymentMethodSelector.vue'
@@ -672,6 +688,37 @@ const discountAmount = computed(() => roundPaymentAmount(validAmount.value - pay
 const creditedAmount = computed(() => bonusQuote.value.credited)
 const showBonusRow = computed(() => bonusQuote.value.mode !== 'discount' && bonusQuote.value.bonus > 0)
 const showCreditedBalance = computed(() => balanceRechargeMultiplier.value !== 1 || bonusQuote.value.percent > 0)
+
+// 被邀请人首充奖励：只对余额充值展示；资格来自 /user/aff 的 first_recharge_bonus（有邀请人、未发放、已开启）。
+// 门槛按实际到账基数（输入 × 倍率，不含充值优惠赠送）判断，与后端 amount − bonus_amount 口径一致。
+const firstRechargeBonus = ref<InviteeBonusLike | null>(null)
+const firstRechargeNotice = computed(() => {
+  const bonus = firstRechargeBonus.value
+  if (!isInviteeBonusActive(bonus)) return ''
+  const value = describeInviteeBonusValue(bonus, t)
+  return bonus.min_recharge > 0
+    ? t('payment.firstRechargeBonus.notice', { min: formatUsdShort(bonus.min_recharge), bonus: value })
+    : t('payment.firstRechargeBonus.noticeNoMin', { bonus: value })
+})
+const firstRechargeBonusAmount = computed(() => quoteInviteeBonus(firstRechargeBonus.value, bonusQuote.value.base))
+const firstRechargeShortfall = computed(() => {
+  const bonus = firstRechargeBonus.value
+  if (!isInviteeBonusActive(bonus) || validAmount.value <= 0) return ''
+  const missingUsd = bonus.min_recharge - bonusQuote.value.base
+  if (missingUsd <= 0) return ''
+  if (balanceRechargeMultiplier.value === 1) return formatUsdShort(missingUsd)
+  return formatSelectedPaymentAmount(ceilPaymentAmount(missingUsd / balanceRechargeMultiplier.value, selectedCurrency.value))
+})
+
+async function loadFirstRechargeBonus() {
+  if (!resolveFeatureFlag(appStore.cachedPublicSettings, FeatureFlags.affiliate)) return
+  try {
+    const detail = await userAPI.getAffiliateDetail()
+    firstRechargeBonus.value = detail.first_recharge_bonus ?? null
+  } catch {
+    firstRechargeBonus.value = null
+  }
+}
 
 const methodOptions = computed<PaymentMethodOption[]>(() =>
   enabledMethods.value.map((type) => {
@@ -1163,6 +1210,7 @@ async function resumeWechatPaymentFromQuery() {
 }
 
 onMounted(async () => {
+  void loadFirstRechargeBonus()
   try {
     const res = await paymentAPI.getCheckoutInfo()
     checkout.value = res.data

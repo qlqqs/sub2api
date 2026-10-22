@@ -7,7 +7,27 @@
 import { apiClient } from '../client'
 import type { PaginatedResponse } from '@/types'
 
-export interface AffiliateAdminEntry {
+/** 1 = 一级代理, 2 = 二级代理, 3 = 普通用户. */
+export type AgentLevel = 1 | 2 | 3
+
+/** default | auto | manual | agent (appointed by a level-1 agent). */
+export type AgentLevelSource = 'default' | 'auto' | 'manual' | 'agent'
+
+/**
+ * Agent ownership snapshot frozen when the invite relation was bound.
+ * `*_deleted` is true when the referenced account no longer exists.
+ */
+export interface AffiliateAgentSnapshot {
+  agent_owner_id: number | null
+  agent_owner_email: string
+  agent_owner_level: number | null
+  agent_owner_deleted: boolean
+  agent_upline_id: number | null
+  agent_upline_email: string
+  agent_upline_deleted: boolean
+}
+
+export interface AffiliateAdminEntry extends AffiliateAgentSnapshot {
   user_id: number
   email: string
   username: string
@@ -15,17 +35,59 @@ export interface AffiliateAdminEntry {
   aff_code_custom: boolean
   aff_rebate_rate_percent?: number | null
   aff_count: number
-  /** Fixed agent level: 1 highest, 3 default. */
   agent_level: number
   agent_level_locked: boolean
-  agent_level_source: 'default' | 'auto' | 'manual' | string
+  agent_level_source: AgentLevelSource | string
+  agent_level_updated_by: number | null
+  agent_level_updated_by_email: string
+  owned_customer_count: number
+  /** agent_direct + agent_diff received as beneficiary. */
+  agent_profit_total: number
 }
 
 export interface ListAffiliateUsersParams {
   page?: number
   page_size?: number
   search?: string
+  agent_level?: AgentLevel | null
+  /** Filter by owning (upline) agent id. */
+  owner_id?: number | null
 }
+
+/** One customer of an agent: owner = the agent owns the customer, upline = the agent earns the diff. */
+export interface AffiliateAgentCustomer {
+  user_id: number
+  email: string
+  username: string
+  agent_level: number
+  relation: 'owner' | 'upline'
+  bound_at: string
+  contribution: number
+}
+
+/** Ownership snapshot that a bind would write. Ids are null when there is no owner / upline. */
+export interface AffiliateInviterPreview {
+  agent_owner_id: number | null
+  agent_owner_email: string
+  agent_owner_level: number | null
+  agent_upline_id: number | null
+  agent_upline_email: string
+}
+
+export type AffiliateRewardType =
+  | 'agent_direct'
+  | 'agent_diff'
+  | 'invite_percent'
+  | 'invite_fixed'
+  | 'invitee_bonus'
+
+export const AFFILIATE_REWARD_TYPES: readonly AffiliateRewardType[] = [
+  'agent_direct',
+  'agent_diff',
+  'invite_percent',
+  'invite_fixed',
+  'invitee_bonus',
+]
 
 export interface ListAffiliateRecordsParams {
   page?: number
@@ -36,9 +98,11 @@ export interface ListAffiliateRecordsParams {
   sort_by?: string
   sort_order?: 'asc' | 'desc'
   timezone?: string
+  /** Rebate records only. */
+  reward_type?: AffiliateRewardType | ''
 }
 
-export interface AffiliateInviteRecord {
+export interface AffiliateInviteRecord extends AffiliateAgentSnapshot {
   inviter_id: number
   inviter_email: string
   inviter_username: string
@@ -67,8 +131,7 @@ export interface AffiliateRebateRecord {
   order_amount: number | null
   pay_amount: number | null
   rebate_amount: number
-  /** Agent level that earned this rebate: 1 = direct inviter, 2/3 = upper levels. Null on legacy rows. */
-  rebate_level: number | null
+  reward_type: AffiliateRewardType | string | null
   payment_type: string
   order_status: string
   created_at: string
@@ -113,12 +176,15 @@ export interface AffiliateWithdrawResponse {
   replayed: boolean
 }
 
-export interface AffiliateUserOverview {
+export interface AffiliateUserOverview extends Partial<AffiliateAgentSnapshot> {
   user_id: number
   email: string
   username: string
   aff_code: string
-  rebate_rate_percent: number
+  /** Only for agents (level 1/2); null otherwise. */
+  agent_rate_percent?: number | null
+  owned_customer_count?: number
+  reward_totals?: { agent: number; invite: number; invitee_bonus: number } | null
   invited_count: number
   rebated_invitee_count: number
   available_quota: number
@@ -184,8 +250,33 @@ export async function listUsers(
         page: params.page ?? 1,
         page_size: params.page_size ?? 20,
         search: params.search ?? '',
+        agent_level: params.agent_level || undefined,
+        owner_id: params.owner_id || undefined,
       },
     },
+  )
+  return data
+}
+
+export async function listUserCustomers(
+  userId: number,
+  params: { page?: number; page_size?: number } = {},
+): Promise<PaginatedResponse<AffiliateAgentCustomer>> {
+  const { data } = await apiClient.get<PaginatedResponse<AffiliateAgentCustomer>>(
+    `/admin/affiliates/users/${userId}/customers`,
+    { params: { page: params.page ?? 1, page_size: params.page_size ?? 20 } },
+  )
+  return data
+}
+
+export async function previewInviter(
+  inviteeId: number,
+  inviterId: number,
+  options: { signal?: AbortSignal } = {},
+): Promise<AffiliateInviterPreview> {
+  const { data } = await apiClient.get<AffiliateInviterPreview>(
+    `/admin/affiliates/users/${inviteeId}/inviter/preview`,
+    { params: { inviter_id: inviterId }, signal: options.signal },
   )
   return data
 }
@@ -269,6 +360,7 @@ function recordParams(params: ListAffiliateRecordsParams = {}) {
     sort_by: params.sort_by || undefined,
     sort_order: params.sort_order || undefined,
     timezone: params.timezone || undefined,
+    reward_type: params.reward_type || undefined,
   }
 }
 
@@ -334,6 +426,8 @@ export async function withdrawUserQuota(
 
 export const affiliatesAPI = {
   listUsers,
+  listUserCustomers,
+  previewInviter,
   lookupUsers,
   bindInviter,
   updateUserSettings,

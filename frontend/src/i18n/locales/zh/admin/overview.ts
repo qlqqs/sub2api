@@ -422,10 +422,14 @@ export default {
     },
 
     affiliates: {
+      agentsDescription: '管理代理名单、等级、归属关系与专属设置',
       invitesDescription: '查看全站邀请关系和被邀请用户累计返利',
       rebatesDescription: '查看每一笔返利入账，包括充值订单、兑换码和管理员充值产生的返利',
       transfersDescription: '查看返利额度转入余额与线下提现的流水',
       errors: {
+        AFFILIATE_LEVEL2_RATE_EXCEEDS_POOL: '二级代理比例不能大于利润池',
+        AFFILIATE_CYCLE: '绑定会形成循环邀请关系',
+        AFFILIATE_ALREADY_BOUND: '该用户已绑定邀请人',
         loadFailed: '加载邀请返利记录失败',
         AFFILIATE_QUOTA_INSUFFICIENT: '可提取返利额度不足',
         AFFILIATE_WITHDRAW_AMOUNT_INVALID: '提现金额无效'
@@ -444,8 +448,10 @@ export default {
         orderAmount: '充值金额',
         payAmount: '支付金额',
         rebateAmount: '返利金额',
-        rebateLevel: '代理层级',
-        rebateLevelValue: '{n} 级',
+        rewardType: '奖励类型',
+        rewardTypeAll: '全部奖励类型',
+        agentOwner: '归属代理',
+        agentUpline: '上方一级',
         paymentType: '支付方式',
         orderStatus: '订单状态',
         transferAmount: '提取金额',
@@ -483,17 +489,122 @@ export default {
         amountRequired: '请输入大于 0 的金额',
         amountExceeds: '提现金额不能超过当前可提取额度'
       },
+      levels: {
+        1: '一级代理',
+        2: '二级代理',
+        3: '普通用户'
+      },
+      levelShort: {
+        1: '一级',
+        2: '二级',
+        3: '普通'
+      },
+      deleted: '已删除',
+      rewardTypes: {
+        agent_direct: '代理直属',
+        agent_diff: '一级差额',
+        invite_percent: '普通邀请',
+        invite_fixed: '首充-邀请人',
+        invitee_bonus: '首充-被邀请人'
+      },
       overview: {
         title: '用户返利概览',
         affCode: '邀请码',
-        rebateRate: '返利比例',
+        agentRate: '代理比例',
         invitedCount: '邀请人数',
         rebatedInviteeCount: '已产生返利人数',
         availableQuota: '可提余额',
         historyQuota: '历史返利',
-        agentLevel: '代理等级',
-        agentLevelValue: '{n} 级',
-        agentLevelLocked: '已锁定'
+        agentLevel: '等级',
+        agentLevelLocked: '已锁定',
+        agentOwner: '归属代理',
+        agentUpline: '上方一级',
+        ownedCustomerCount: '归属客户数',
+        rewardAgent: '代理分润合计',
+        rewardInvite: '邀请奖励合计',
+        rewardInviteeBonus: '首充奖励合计'
+      },
+      agents: {
+        searchPlaceholder: '搜索邮箱、用户名或用户 ID',
+        levelFilter: '等级',
+        levelFilterAll: '等级：全部',
+        ownerFilter: '上级代理',
+        ownerFilterAll: '上级代理：不限',
+        ownerFilterPlaceholder: '搜索上级代理',
+        addAgent: '设置代理',
+        batchLevel: '批量设等级',
+        scopeHint: '默认只列出代理与有专属设置的用户；搜索或筛选时可查任意用户。',
+        empty: '暂无代理',
+        selectAll: '全选当前页',
+        selectRow: '选择该用户',
+        col: {
+          user: '用户',
+          level: '等级',
+          owner: '归属代理',
+          inviteCount: '直属邀请',
+          customerCount: '归属客户',
+          profitTotal: '累计分润',
+          customRate: '专属比例',
+          actions: '操作'
+        },
+        source: {
+          default: '默认',
+          auto: '自动升级',
+          manual: '管理员设置',
+          agent: '由 {email} 任命',
+          agentUnknown: '由一级代理任命'
+        },
+        locked: '已锁定自动升级',
+        customCode: '专属邀请码',
+        adjust: '调整',
+        more: '更多操作',
+        viewCustomers: '查看客户',
+        viewRebates: '查看返利记录',
+        clearSettings: '清除专属设置',
+        clearTitle: '清除专属设置',
+        clearMessage: '确认清除 {email} 的专属设置？专属比例将清除，邀请码重新生成为系统随机码（已分发的邀请链接将失效），等级恢复为普通用户并解除锁定。',
+        demoteTitle: '确认降级',
+        demoteMessage: '降级后将锁定自动升级；TA 已有客户的分润不变，之后新绑定的用户不再归 TA',
+        adjustDialog: {
+          title: '调整代理设置',
+          user: '用户',
+          level: '等级',
+          customRate: '专属比例',
+          customRatePlaceholder: '留空沿用本档比例',
+          customRateHint: '0-100%；需在系统设置中开启专属比例后才生效。留空表示清除专属比例。',
+          inviteCode: '专属邀请码',
+          inviteCodePlaceholder: '例如 VIP2026',
+          inviteCodeHint: '4-32 位，仅大写字母、数字、下划线、连字符；留空不修改，输入自动转大写。',
+          unlock: '解锁自动升级',
+          levelHint: '降级会锁定自动升级，升级不锁定。等级变动只影响之后新绑定的关系。',
+          errorBadRate: '请输入 0-100 之间的比例',
+          noChanges: '没有需要保存的修改'
+        },
+        addDialog: {
+          title: '设置代理',
+          user: '用户',
+          userPlaceholder: '搜索邮箱或用户名',
+          noUserFound: '未找到匹配的用户',
+          changeUser: '更换用户',
+          level: '代理等级',
+          hint: '设置后立即生效，只影响之后新绑定的用户。',
+          submit: '确认设置'
+        },
+        batchDialog: {
+          title: '批量设置等级（已选 {count} 个用户）',
+          hint: '降级会锁定自动升级，升级不锁定。'
+        },
+        customers: {
+          title: '客户列表：{email}',
+          user: '客户',
+          level: '等级',
+          relation: '关系',
+          relationOwner: '归属客户',
+          relationUpline: '差额客户',
+          boundAt: '绑定时间',
+          contribution: '贡献分润',
+          empty: '暂无客户'
+        }
       }
     },
 

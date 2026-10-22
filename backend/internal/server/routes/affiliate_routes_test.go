@@ -41,6 +41,8 @@ func TestAffiliateRoutesBindingAndWithdrawalCoexist(t *testing.T) {
 		{http.MethodPost, "/inviter"},
 		{http.MethodPost, "/withdraw"},
 		{http.MethodGet, "/overview"},
+		{http.MethodGet, "/customers"},
+		{http.MethodGet, "/inviter/preview"},
 		{http.MethodPut, ""},
 		{http.MethodDelete, ""},
 	} {

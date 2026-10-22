@@ -26,6 +26,18 @@ func (r *affiliateBindHandlerRepo) EnsureUserAffiliate(_ context.Context, userID
 	return &service.AffiliateSummary{UserID: userID}, nil
 }
 
+func (r *affiliateBindHandlerRepo) WithTx(ctx context.Context, fn func(context.Context) error) error {
+	return fn(ctx)
+}
+
+func (r *affiliateBindHandlerRepo) GetAffiliateNodes(_ context.Context, ids []int64) (map[int64]service.AffiliateNode, error) {
+	out := map[int64]service.AffiliateNode{}
+	for _, id := range ids {
+		out[id] = service.AffiliateNode{UserID: id, AgentLevel: service.AffiliateAgentLevelDefault, Active: true}
+	}
+	return out, nil
+}
+
 func (r *affiliateBindHandlerRepo) BindInviter(_ context.Context, inviteeID, inviterID int64, binding service.AffiliateInviterBinding) (*service.AffiliateInviterBindingResult, bool, error) {
 	return &service.AffiliateInviterBindingResult{InviteeID: inviteeID, InviterID: inviterID, BoundAt: r.boundAt, Source: binding.Source}, true, nil
 }

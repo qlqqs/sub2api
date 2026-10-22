@@ -12,7 +12,8 @@ const { listInviteRecords, listRebateRecords, listTransferRecords, getUserOvervi
 
 vi.mock('@/api/admin/affiliates', () => {
   const affiliatesAPI = { listInviteRecords, listRebateRecords, listTransferRecords, getUserOverview }
-  return { affiliatesAPI, default: affiliatesAPI }
+  const AFFILIATE_REWARD_TYPES = ['agent_direct', 'agent_diff', 'invite_percent', 'invite_fixed', 'invitee_bonus']
+  return { affiliatesAPI, AFFILIATE_REWARD_TYPES, default: affiliatesAPI }
 })
 
 vi.mock('@/stores/app', () => ({
@@ -95,7 +96,7 @@ describe('AdminAffiliateRecordsTable', () => {
         order_amount: null,
         pay_amount: null,
         rebate_amount: 2,
-        rebate_level: 2,
+        reward_type: 'agent_diff',
         payment_type: '',
         order_status: '',
         created_at: '2026-09-17T08:00:00Z',
@@ -112,8 +113,99 @@ describe('AdminAffiliateRecordsTable', () => {
     expect(row.get('[data-test="cell-payment_type"]').text()).toBe('-')
     expect(row.get('[data-test="cell-order_status"]').text()).toBe('-')
     expect(row.get('[data-test="cell-rebate_amount"]').text()).toBe('$2.00')
-    expect(row.get('[data-test="cell-rebate_level"]').text()).toBe('admin.affiliates.records.rebateLevelValue')
+    expect(row.get('[data-test="cell-reward_type"]').text()).toBe('admin.affiliates.rewardTypes.agent_diff')
+    expect(wrapper.find('[data-test="cell-rebate_level"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="affiliate-withdraw-open"]').exists()).toBe(false)
+  })
+
+  it('filters rebate records by reward type', async () => {
+    listRebateRecords.mockResolvedValue(page([]))
+
+    const wrapper = mountTable('rebates')
+    await flushPromises()
+    expect(listRebateRecords).toHaveBeenCalledTimes(1)
+    expect(listRebateRecords.mock.calls[0][0]).toMatchObject({ reward_type: undefined })
+
+    await wrapper.get('[data-test="affiliate-reward-type-filter"]').setValue('invitee_bonus')
+    await flushPromises()
+
+    expect(listRebateRecords).toHaveBeenCalledTimes(2)
+    expect(listRebateRecords.mock.calls[1][0]).toMatchObject({ page: 1, reward_type: 'invitee_bonus' })
+  })
+
+  it('prefills the search box from initialSearch', async () => {
+    listRebateRecords.mockResolvedValue(page([]))
+
+    mount(AdminAffiliateRecordsTable, {
+      props: { type: 'rebates', initialSearch: 'agent@example.com' },
+      global: {
+        stubs: {
+          AppLayout: { template: '<main><slot /></main>' },
+          TablePageLayout: TablePageLayoutStub,
+          DataTable: DataTableStub,
+          Pagination: true,
+          Icon: true,
+          OrderStatusBadge: true,
+          BaseDialog: true,
+        },
+      },
+    })
+    await flushPromises()
+
+    expect(listRebateRecords.mock.calls[0][0]).toMatchObject({ search: 'agent@example.com' })
+  })
+
+  it('shows the bind-time owning agent and level-1 upline on invite records', async () => {
+    listInviteRecords.mockResolvedValue(page([
+      {
+        inviter_id: 3,
+        inviter_email: 'u1@example.com',
+        inviter_username: 'u1',
+        invitee_id: 4,
+        invitee_email: 'u2@example.com',
+        invitee_username: 'u2',
+        aff_code: 'U1CODE',
+        total_rebate: 5,
+        created_at: '2026-10-01T08:00:00Z',
+        agent_owner_id: 2,
+        agent_owner_email: 'a@example.com',
+        agent_owner_level: 2,
+        agent_owner_deleted: false,
+        agent_upline_id: 1,
+        agent_upline_email: '',
+        agent_upline_deleted: true,
+      },
+      {
+        inviter_id: 5,
+        inviter_email: 'x@example.com',
+        inviter_username: 'x',
+        invitee_id: 6,
+        invitee_email: 'y@example.com',
+        invitee_username: 'y',
+        aff_code: 'X',
+        total_rebate: 0,
+        created_at: '2026-10-02T08:00:00Z',
+        agent_owner_id: null,
+        agent_owner_email: '',
+        agent_owner_level: null,
+        agent_owner_deleted: false,
+        agent_upline_id: null,
+        agent_upline_email: '',
+        agent_upline_deleted: false,
+      },
+    ]))
+
+    const wrapper = mountTable('invites')
+    await flushPromises()
+
+    const first = wrapper.get('[data-test="row-0"]')
+    expect(first.get('[data-test="cell-agent_owner"]').text()).toContain('a@example.com')
+    expect(first.get('[data-test="cell-agent_owner"]').text()).toContain('admin.affiliates.levelShort.2')
+    expect(first.get('[data-test="cell-agent_upline"]').text()).toBe('admin.affiliates.deleted')
+
+    const second = wrapper.get('[data-test="row-1"]')
+    expect(second.get('[data-test="cell-agent_owner"]').text()).toBe('-')
+    expect(second.get('[data-test="cell-agent_upline"]').text()).toBe('-')
   })
 
   it('lists offline withdrawals next to balance transfers with their type', async () => {

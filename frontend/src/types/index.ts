@@ -147,10 +147,45 @@ export interface RegisterRequest {
 
 export interface AffiliateInvitee {
   user_id: number
+  /** 代理只能看到脱敏邮箱。 */
   email: string
   username: string
   created_at?: string
+  /** 该好友为我带来的全部收益。 */
   total_rebate: number
+  /** 该好友的归属代理是我。 */
+  owned_by_me?: boolean
+  agent_level?: number
+  /** 由我任命的二级代理。 */
+  appointed_by_me?: boolean
+  /** 我可以把 TA「设为二级」。 */
+  appointable?: boolean
+}
+
+/** 普通用户邀请好友时，邀请人可获得的奖励。 */
+export interface AffiliateInviteRewardInfo {
+  mode: 'percent' | 'first_recharge' | string
+  rate_percent: number
+  duration_days: number
+  per_invitee_cap: number
+  fixed_amount: number
+  min_recharge: number
+}
+
+/** 被邀请人首充奖励（比例或固定金额）。 */
+export interface AffiliateInviteeBonusInfo {
+  mode: 'percent' | 'fixed' | string
+  /** percent 模式为比例（0-100），fixed 模式为金额（USD）。 */
+  value: number
+  min_recharge: number
+  /** percent 模式封顶，0 = 不封顶。 */
+  max: number
+}
+
+export interface AffiliateRewardTotals {
+  agent: number
+  invite: number
+  invitee_bonus: number
 }
 
 export interface UserAffiliateDetail {
@@ -161,23 +196,32 @@ export interface UserAffiliateDetail {
   aff_quota: number
   aff_frozen_quota: number
   aff_history_quota: number
-  /** 当前用户作为邀请人时实际生效的返利比例（专属覆盖全局）。0-100。 */
-  effective_rebate_rate_percent: number
-  /** 管理员开放的返利层数（1-2）。 */
-  rebate_levels: number
-  /** 各层比例，下标 0 为直属一层（已套用专属比例）。 */
-  level_rebate_rate_percents: number[]
-  /** 当前代理等级实际解锁的层数（0-2）。 */
-  unlocked_layers: number
   rebate_base: 'recharge' | 'consumption' | string
-  /** 代理等级：1 最高，3 默认。 */
+  /** 1 一级代理 / 2 二级代理 / 3 普通用户。 */
   agent_level: number
   agent_level_locked: boolean
   agent_upgrade_mode: 'manual' | 'auto' | string
   next_agent_level?: number | null
   next_level_threshold?: number | null
   current_invite_count: number
+  /** 仅代理（1/2）出现：已套专属比例的本档比例。 */
+  agent_rate_percent?: number | null
+  owned_customer_count?: number
+  /** 仅普通用户且模式非 off 时出现。 */
+  invite_reward?: AffiliateInviteRewardInfo | null
+  /** 模式非 off 时出现：好友首充能得什么。 */
+  invitee_bonus?: AffiliateInviteeBonusInfo | null
+  /** 我自己可领的首充奖励（有邀请人、未发放、模式非 off）。 */
+  first_recharge_bonus?: AffiliateInviteeBonusInfo | null
+  reward_totals?: AffiliateRewardTotals | null
+  /** 仅一级代理且任命开关开启时出现；max = 0 不限。 */
+  appoint?: { max: number; used: number } | null
   invitees: AffiliateInvitee[]
+}
+
+export interface SetInviteeAgentLevelResponse {
+  user_id: number
+  agent_level: number
 }
 
 export interface AffiliateTransferResponse {
@@ -300,6 +344,11 @@ export interface PublicSettings {
   plugin_management_enabled: boolean
   service_quota_enabled: boolean
   affiliate_enabled: boolean
+  /** 被邀请人首充奖励；邀请返利总开关关闭时恒为 off。 */
+  affiliate_invitee_bonus_mode?: 'off' | 'percent' | 'fixed' | string
+  affiliate_invitee_bonus_value?: number
+  affiliate_invitee_bonus_min_recharge?: number
+  affiliate_invitee_bonus_max?: number
   allow_user_view_error_requests?: boolean
 }
 

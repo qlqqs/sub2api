@@ -365,6 +365,48 @@ func diffSettings(before *service.SystemSettings, after *service.SystemSettings,
 	if before.AdminRechargeRebateEnabled != after.AdminRechargeRebateEnabled {
 		changed = append(changed, "affiliate_admin_recharge_enabled")
 	}
+	if before.AffiliateAgentLevel2Rate != after.AffiliateAgentLevel2Rate {
+		changed = append(changed, "affiliate_agent_level2_rate")
+	}
+	if before.AffiliateAgentCustomRateEnabled != after.AffiliateAgentCustomRateEnabled {
+		changed = append(changed, "affiliate_agent_custom_rate_enabled")
+	}
+	if before.AffiliateAgentAppointEnabled != after.AffiliateAgentAppointEnabled {
+		changed = append(changed, "affiliate_agent_appoint_enabled")
+	}
+	if before.AffiliateAgentAppointMax != after.AffiliateAgentAppointMax {
+		changed = append(changed, "affiliate_agent_appoint_max")
+	}
+	if before.AffiliateInviteRewardMode != after.AffiliateInviteRewardMode {
+		changed = append(changed, "affiliate_invite_reward_mode")
+	}
+	if before.AffiliateInviteRewardRate != after.AffiliateInviteRewardRate {
+		changed = append(changed, "affiliate_invite_reward_rate")
+	}
+	if before.AffiliateInviteRewardDurationDays != after.AffiliateInviteRewardDurationDays {
+		changed = append(changed, "affiliate_invite_reward_duration_days")
+	}
+	if before.AffiliateInviteRewardPerInviteeCap != after.AffiliateInviteRewardPerInviteeCap {
+		changed = append(changed, "affiliate_invite_reward_per_invitee_cap")
+	}
+	if before.AffiliateInviteRewardFixedAmount != after.AffiliateInviteRewardFixedAmount {
+		changed = append(changed, "affiliate_invite_reward_fixed_amount")
+	}
+	if before.AffiliateInviteRewardMinRecharge != after.AffiliateInviteRewardMinRecharge {
+		changed = append(changed, "affiliate_invite_reward_min_recharge")
+	}
+	if before.AffiliateInviteeBonusMode != after.AffiliateInviteeBonusMode {
+		changed = append(changed, "affiliate_invitee_bonus_mode")
+	}
+	if before.AffiliateInviteeBonusValue != after.AffiliateInviteeBonusValue {
+		changed = append(changed, "affiliate_invitee_bonus_value")
+	}
+	if before.AffiliateInviteeBonusMinRecharge != after.AffiliateInviteeBonusMinRecharge {
+		changed = append(changed, "affiliate_invitee_bonus_min_recharge")
+	}
+	if before.AffiliateInviteeBonusMax != after.AffiliateInviteeBonusMax {
+		changed = append(changed, "affiliate_invitee_bonus_max")
+	}
 	if !equalDefaultSubscriptions(before.DefaultSubscriptions, after.DefaultSubscriptions) {
 		changed = append(changed, "default_subscriptions")
 	}

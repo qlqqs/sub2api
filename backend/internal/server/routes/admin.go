@@ -817,7 +817,7 @@ func registerChannelMonitorRoutes(admin *gin.RouterGroup, h *handler.Handlers, s
 	}
 }
 
-// registerAffiliateRoutes 注册邀请返利的管理端路由（专属用户配置）
+// registerAffiliateRoutes 注册邀请返利的管理端路由（代理管理、记录、补绑）
 func registerAffiliateRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 	affiliates := admin.Group("/affiliates")
 	{
@@ -833,6 +833,8 @@ func registerAffiliateRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 			users.POST("/batch-rate", h.Admin.Affiliate.BatchSetRate)
 			users.POST("/batch-agent-level", h.Admin.Affiliate.BatchSetAgentLevel)
 			users.GET("/:user_id/overview", h.Admin.Affiliate.GetUserOverview)
+			users.GET("/:user_id/customers", h.Admin.Affiliate.ListAgentCustomers)
+			users.GET("/:user_id/inviter/preview", h.Admin.Affiliate.PreviewInviterBinding)
 			users.POST("/:user_id/inviter", h.Admin.Affiliate.BindInviter)
 			users.POST("/:user_id/withdraw", h.Admin.Affiliate.WithdrawQuota)
 			users.PUT("/:user_id", h.Admin.Affiliate.UpdateUserSettings)

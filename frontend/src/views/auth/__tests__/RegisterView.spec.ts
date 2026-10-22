@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import RegisterView from '@/views/auth/RegisterView.vue'
+import { clearAffiliateReferralCode } from '@/utils/oauthAffiliate'
 
 const {
   getPublicSettingsMock,
@@ -40,9 +41,11 @@ const publicSettings = {
   google_oauth_enabled: false
 }
 
+const routeMock = vi.hoisted(() => ({ query: {} as Record<string, unknown> }))
+
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: pushMock }),
-  useRoute: () => ({ query: {} })
+  useRoute: () => routeMock
 }))
 
 vi.mock('vue-i18n', () => ({
@@ -103,6 +106,8 @@ describe('RegisterView', () => {
     pushMock.mockReset()
     verifyActionMock.mockReset()
     appStoreMock.cachedPublicSettings = null
+    routeMock.query = {}
+    clearAffiliateReferralCode()
     sessionStorage.removeItem('register_data')
     verifyActionMock.mockResolvedValue({ token: 'ticket', randstr: 'randstr' })
     getPublicSettingsMock.mockResolvedValue(publicSettings)
@@ -221,6 +226,42 @@ describe('RegisterView', () => {
       invitationField.element.compareDocumentPosition(turnstile.element) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
+  })
+
+  it('describes the invitee first-recharge bonus when opened from an invite link', async () => {
+    routeMock.query = { aff: 'INVITE1' }
+    getPublicSettingsMock.mockResolvedValueOnce({
+      ...publicSettings,
+      affiliate_invitee_bonus_mode: 'fixed',
+      affiliate_invitee_bonus_value: 2,
+      affiliate_invitee_bonus_min_recharge: 10,
+      affiliate_invitee_bonus_max: 0
+    })
+
+    const wrapper = mountRegister()
+    await flushPromises()
+
+    expect(wrapper.get('[data-testid="register-invitee-bonus-hint"]').text()).toBe('auth.inviteeBonusHintWithMin')
+  })
+
+  it('hides the invitee bonus hint without an invite link or when the bonus is off', async () => {
+    getPublicSettingsMock.mockResolvedValueOnce({
+      ...publicSettings,
+      affiliate_invitee_bonus_mode: 'percent',
+      affiliate_invitee_bonus_value: 10
+    })
+    const withoutLink = mountRegister()
+    await flushPromises()
+    expect(withoutLink.find('[data-testid="register-invitee-bonus-hint"]').exists()).toBe(false)
+
+    routeMock.query = { aff: 'INVITE1' }
+    getPublicSettingsMock.mockResolvedValueOnce({
+      ...publicSettings,
+      affiliate_invitee_bonus_mode: 'off'
+    })
+    const bonusOff = mountRegister()
+    await flushPromises()
+    expect(bonusOff.find('[data-testid="register-invitee-bonus-hint"]').exists()).toBe(false)
   })
 
   it('uses the mandatory invitation field without duplicating the affiliate field', async () => {

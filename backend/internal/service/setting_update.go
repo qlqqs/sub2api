@@ -384,10 +384,11 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 	}
 	updates[SettingKeyAffiliateRebatePerInviteeCap] = strconv.FormatFloat(settings.AffiliateRebatePerInviteeCap, 'f', 8, 64)
 	updates[SettingKeyAffiliateAdminRechargeEnabled] = strconv.FormatBool(settings.AdminRechargeRebateEnabled)
-	settings.AffiliateRebateLevels = clampAffiliateRebateLevels(settings.AffiliateRebateLevels)
-	updates[SettingKeyAffiliateRebateLevels] = strconv.Itoa(settings.AffiliateRebateLevels)
-	settings.AffiliateRebateRateL2 = clampAffiliateRebateRate(settings.AffiliateRebateRateL2)
-	updates[SettingKeyAffiliateRebateRateL2] = strconv.FormatFloat(settings.AffiliateRebateRateL2, 'f', 8, 64)
+	rewardCfg := affiliateRewardConfigFromSettings(settings).Normalized()
+	rewardCfg.applyToSettings(settings)
+	for key, value := range rewardCfg.settingUpdates() {
+		updates[key] = value
+	}
 	settings.AffiliateRebateBase = normalizeAffiliateRebateBase(settings.AffiliateRebateBase)
 	updates[SettingKeyAffiliateRebateBase] = settings.AffiliateRebateBase
 	settings.AffiliateAgentUpgradeMode = normalizeAffiliateAgentUpgradeMode(settings.AffiliateAgentUpgradeMode)

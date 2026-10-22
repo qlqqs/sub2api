@@ -391,11 +391,11 @@ func (r *oauthEmailAffiliateRepoStub) BindInviter(_ context.Context, userID, inv
 	return &service.AffiliateInviterBindingResult{InviteeID: userID, InviterID: inviterID}, true, nil
 }
 
-func (r *oauthEmailAffiliateRepoStub) AccrueQuota(context.Context, int64, int64, float64, int, service.AffiliateAccrueSource, int) (bool, error) {
+func (r *oauthEmailAffiliateRepoStub) AccrueQuota(context.Context, int64, int64, float64, int, service.AffiliateAccrueSource, string) (bool, error) {
 	panic("unexpected AccrueQuota call")
 }
 
-func (r *oauthEmailAffiliateRepoStub) GetAccruedRebateFromInvitee(context.Context, int64, int64) (float64, error) {
+func (r *oauthEmailAffiliateRepoStub) GetAccruedRebateFromInvitee(context.Context, int64, int64, []string) (float64, error) {
 	panic("unexpected GetAccruedRebateFromInvitee call")
 }
 
@@ -443,7 +443,7 @@ func (r *oauthEmailAffiliateRepoStub) PromoteAgentLevelAuto(context.Context, int
 	panic("unexpected PromoteAgentLevelAuto call")
 }
 
-func (r *oauthEmailAffiliateRepoStub) SetAgentLevelManual(context.Context, []int64, int) error {
+func (r *oauthEmailAffiliateRepoStub) SetAgentLevelManual(context.Context, []int64, int, int64) error {
 	panic("unexpected SetAgentLevelManual call")
 }
 
@@ -455,8 +455,49 @@ func (r *oauthEmailAffiliateRepoStub) ListInviterIDs(context.Context, int64, int
 	panic("unexpected ListInviterIDs call")
 }
 
-func (r *oauthEmailAffiliateRepoStub) WithTx(context.Context, func(context.Context) error) error {
-	panic("unexpected WithTx call")
+func (r *oauthEmailAffiliateRepoStub) WithTx(ctx context.Context, fn func(context.Context) error) error {
+	return fn(ctx)
+}
+
+// GetAffiliateNodes 绑定时解析归属链会读取邀请人；桩里所有用户都是仍存在的普通用户。
+func (r *oauthEmailAffiliateRepoStub) GetAffiliateNodes(_ context.Context, userIDs []int64) (map[int64]service.AffiliateNode, error) {
+	out := make(map[int64]service.AffiliateNode, len(userIDs))
+	for _, id := range userIDs {
+		out[id] = service.AffiliateNode{UserID: id, AgentLevel: service.AffiliateAgentLevelDefault, Active: true}
+	}
+	return out, nil
+}
+
+func (r *oauthEmailAffiliateRepoStub) CreditInviteeBonus(context.Context, int64, float64, *int64) (bool, error) {
+	panic("unexpected CreditInviteeBonus call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) HasRewardForSource(context.Context, int64, string) (bool, error) {
+	panic("unexpected HasRewardForSource call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) CountOwnedCustomers(context.Context, int64) (int, error) {
+	panic("unexpected CountOwnedCustomers call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) SumRewardTotals(context.Context, int64) (service.AffiliateRewardTotals, error) {
+	panic("unexpected SumRewardTotals call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) GetAffiliateForUpdate(context.Context, int64) (*service.AffiliateSummary, error) {
+	panic("unexpected GetAffiliateForUpdate call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) SetAgentLevelByAgent(context.Context, int64, int, int64, bool) error {
+	panic("unexpected SetAgentLevelByAgent call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) CountAgentAppointments(context.Context, int64) (int, error) {
+	panic("unexpected CountAgentAppointments call")
+}
+
+func (r *oauthEmailAffiliateRepoStub) ListAgentCustomers(context.Context, int64, int, int) ([]service.AffiliateAgentCustomer, int64, error) {
+	panic("unexpected ListAgentCustomers call")
 }
 
 func (r *oauthEmailAffiliateRepoStub) ListUsersWithPendingConsumption(context.Context, time.Duration, int) ([]int64, error) {

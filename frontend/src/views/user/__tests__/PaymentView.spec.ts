@@ -24,6 +24,7 @@ const showError = vi.hoisted(() => vi.fn())
 const showInfo = vi.hoisted(() => vi.fn())
 const showWarning = vi.hoisted(() => vi.fn())
 const getCheckoutInfo = vi.hoisted(() => vi.fn())
+const getAffiliateDetail = vi.hoisted(() => vi.fn())
 const bridgeInvoke = vi.hoisted(() => vi.fn())
 const translate = vi.hoisted(() => vi.fn((key: string) => key))
 // Public settings live in a reactive holder so tests can flip feature flags after mount
@@ -99,6 +100,12 @@ vi.mock('@/stores', async () => {
 vi.mock('@/api/payment', () => ({
   paymentAPI: {
     getCheckoutInfo,
+  },
+}))
+
+vi.mock('@/api/user', () => ({
+  default: {
+    getAffiliateDetail,
   },
 }))
 
@@ -885,5 +892,81 @@ describe('PaymentView subscription feature flag', () => {
     expect(wrapper.text()).not.toContain('payment.rechargeAccount')
     expect(wrapper.findAllComponents(SubscriptionPlanCard).length).toBeGreaterThan(0)
     wrapper.unmount()
+  })
+})
+
+describe('PaymentView first-recharge bonus prompt', () => {
+  afterEach(() => {
+    appStoreState.setPublicSettings(undefined)
+    getAffiliateDetail.mockReset()
+  })
+
+  async function mountRecharge() {
+    translate.mockClear()
+    routeState.path = '/purchase'
+    routeState.query = {}
+    getCheckoutInfo.mockReset().mockResolvedValue(checkoutInfoFixture({
+      methods: {
+        stripe: {
+          ...checkoutInfoFixture().data.methods.wxpay,
+          currency: 'USD',
+        },
+      },
+    }))
+    const wrapper = shallowMount(PaymentView, {
+      global: {
+        stubs: {
+          AppLayout: { template: '<div><slot /></div>' },
+          Teleport: true,
+          Transition: false,
+        },
+      },
+    })
+    await flushPromises()
+    return wrapper
+  }
+
+  it('shows the notice, a shortfall hint below the threshold and the bonus row at or above it', async () => {
+    appStoreState.setPublicSettings({ affiliate_enabled: true })
+    getAffiliateDetail.mockResolvedValue({
+      first_recharge_bonus: { mode: 'percent', value: 10, min_recharge: 10, max: 20 },
+    })
+
+    const wrapper = await mountRecharge()
+
+    expect(getAffiliateDetail).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('[data-testid="first-recharge-bonus-notice"]').exists()).toBe(true)
+    expect(translate).toHaveBeenCalledWith('affiliate.bonusValuePercentMax', { value: '10', max: '$20' })
+    expect(translate).toHaveBeenCalledWith('payment.firstRechargeBonus.notice', {
+      min: '$10',
+      bonus: 'affiliate.bonusValuePercentMax',
+    })
+
+    wrapper.getComponent(AmountInput).vm.$emit('update:modelValue', 4)
+    await flushPromises()
+    expect(wrapper.find('[data-testid="first-recharge-bonus-row"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="first-recharge-bonus-shortfall"]').exists()).toBe(true)
+    expect(translate).toHaveBeenCalledWith('payment.firstRechargeBonus.shortfall', { amount: '$6' })
+
+    // 500 × 10% = 50, capped at 20.
+    wrapper.getComponent(AmountInput).vm.$emit('update:modelValue', 500)
+    await flushPromises()
+    expect(wrapper.find('[data-testid="first-recharge-bonus-shortfall"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="first-recharge-bonus-row"]').exists()).toBe(true)
+    expect(translate).toHaveBeenCalledWith('payment.firstRechargeBonus.rowValue', { amount: '$20' })
+  })
+
+  it('stays silent when the affiliate feature is off or no bonus is available', async () => {
+    const wrapper = await mountRecharge()
+    expect(getAffiliateDetail).not.toHaveBeenCalled()
+    expect(wrapper.find('[data-testid="first-recharge-bonus-notice"]').exists()).toBe(false)
+
+    appStoreState.setPublicSettings({ affiliate_enabled: true })
+    getAffiliateDetail.mockResolvedValue({})
+    const second = await mountRecharge()
+    second.getComponent(AmountInput).vm.$emit('update:modelValue', 50)
+    await flushPromises()
+    expect(second.find('[data-testid="first-recharge-bonus-notice"]').exists()).toBe(false)
+    expect(second.find('[data-testid="first-recharge-bonus-row"]').exists()).toBe(false)
   })
 })

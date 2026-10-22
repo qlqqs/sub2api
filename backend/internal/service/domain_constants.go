@@ -34,19 +34,45 @@ const (
 	AffiliateRebateDurationDaysMax      = 3650  // ~10 年
 	AffiliateRebatePerInviteeCapDefault = 0.0   // 0 = 无上限
 	AdminRechargeRebateEnabledDefault   = false // 管理员充值默认不产生返利
-	AffiliateRebateLevelsDefault        = 1     // 默认只有直属邀请人（第一层）产生返利
-	AffiliateRebateLevelsMin            = 1
-	AffiliateRebateLevelsMax            = 2
-	AffiliateRebateRateL2Default        = 0.0 // 第二层默认不分润
 
-	// 代理等级：1 最高，3 最低（新用户默认）。等级 L 可获得的层数 = AffiliateAgentLevelMax - L。
+	// 代理等级：1 一级代理，2 二级代理，3 普通用户（新用户默认）。
 	AffiliateAgentLevelTop     = 1
+	AffiliateAgentLevel2       = 2
 	AffiliateAgentLevelDefault = 3
 	AffiliateAgentLevelMax     = 3
 
 	AffiliateAgentLevelSourceDefault = "default"
 	AffiliateAgentLevelSourceAuto    = "auto"
 	AffiliateAgentLevelSourceManual  = "manual"
+	AffiliateAgentLevelSourceAgent   = "agent" // 由一级代理任命
+
+	// 二级比例 R2，必须 ≤ 利润池（affiliate_rebate_rate）。
+	AffiliateAgentLevel2RateDefault = 10.0
+
+	AffiliateAgentCustomRateEnabledDefault = false
+	AffiliateAgentAppointEnabledDefault    = true
+	AffiliateAgentAppointMaxDefault        = 0 // 0 = 不限
+	AffiliateAgentAppointMaxMax            = 100000
+
+	// 普通用户邀请奖励模式
+	AffiliateInviteRewardModeOff           = "off"
+	AffiliateInviteRewardModePercent       = "percent"
+	AffiliateInviteRewardModeFirstRecharge = "first_recharge"
+
+	// 被邀请人首充奖励模式
+	AffiliateInviteeBonusModeOff     = "off"
+	AffiliateInviteeBonusModePercent = "percent"
+	AffiliateInviteeBonusModeFixed   = "fixed"
+
+	// 奖励流水类型（user_affiliate_ledger.reward_type）
+	AffiliateRewardAgentDirect   = "agent_direct"
+	AffiliateRewardAgentDiff     = "agent_diff"
+	AffiliateRewardInvitePercent = "invite_percent"
+	AffiliateRewardInviteFixed   = "invite_fixed"
+	AffiliateRewardInviteeBonus  = "invitee_bonus"
+
+	// 金额类设置的上限，防止误填天文数字。
+	AffiliateRewardAmountMax = 1000000.0
 
 	AffiliateRebateBaseRecharge    = "recharge"
 	AffiliateRebateBaseConsumption = "consumption"
@@ -255,33 +281,45 @@ const (
 	// 白名单非空时，是否放行非白名单域名按主域名限量注册（每域名 1 个账户）。
 	// 默认 false：非白名单域名直接拒绝（白名单严格模式）。
 	SettingKeyRegistrationEmailDomainQuotaEnabled = "registration_email_domain_quota_enabled"
-	SettingKeyPromoCodeEnabled                    = "promo_code_enabled"                // 是否启用优惠码功能
-	SettingKeyPasswordResetEnabled                = "password_reset_enabled"            // 是否启用忘记密码功能（需要先开启邮件验证）
-	SettingKeyFrontendURL                         = "frontend_url"                      // 前端基础URL，用于生成邮件中的重置密码链接
-	SettingKeyInvitationCodeEnabled               = "invitation_code_enabled"           // 是否启用邀请码注册
-	SettingKeyAffiliateEnabled                    = "affiliate_enabled"                 // 邀请返利功能总开关
-	SettingKeyAffiliateRebateRate                 = "affiliate_rebate_rate"             // 邀请返利比例（百分比，0-100）
-	SettingKeyAffiliateRebateFreezeHours          = "affiliate_rebate_freeze_hours"     // 返利冻结期（小时，0=不冻结）
-	SettingKeyAffiliateRebateDurationDays         = "affiliate_rebate_duration_days"    // 返利有效期（天，0=永久）
-	SettingKeyAffiliateRebatePerInviteeCap        = "affiliate_rebate_per_invitee_cap"  // 单人返利上限（0=无上限）
-	SettingKeyAffiliateAdminRechargeEnabled       = "affiliate_admin_recharge_enabled"  // 管理员充值是否产生返利
-	SettingKeyAffiliateRebateLevels               = "affiliate_rebate_levels"           // 开放的返利层数（1-2）
-	SettingKeyAffiliateRebateRateL2               = "affiliate_rebate_rate_l2"          // 第二层返利比例（百分比，0-100）
-	SettingKeyAffiliateRebateBase                 = "affiliate_rebate_base"             // 返利基数：recharge（充值）/ consumption（消费）
-	SettingKeyAffiliateAgentUpgradeMode           = "affiliate_agent_upgrade_mode"      // 代理升级方式：manual / auto
-	SettingKeyAffiliateAgentLevel2Threshold       = "affiliate_agent_level2_threshold"  // 自动升 2 级所需邀请人数（0=不自动升）
-	SettingKeyAffiliateAgentLevel1Threshold       = "affiliate_agent_level1_threshold"  // 自动升 1 级所需邀请人数（0=不自动升）
-	SettingKeyAffiliateAgentCountMode             = "affiliate_agent_count_mode"        // 邀请人数口径：all / recharged
-	SettingKeyAffiliateSettleIntervalMinutes      = "affiliate_settle_interval_minutes" // 消费返利结算周期（分钟）
-	SettingKeyRiskControlEnabled                  = "risk_control_enabled"              // 是否启用风控中心入口与审计链路
-	SettingKeyContentModerationConfig             = "content_moderation_config"         // 内容审计配置（JSON）
-	SettingKeyCyberSessionBlockEnabled            = "cyber_session_block_enabled"       // cyber 命中后会话级自动屏蔽总开关(默认关)
-	SettingKeyCyberPolicyUserAllowlist            = "cyber_policy_user_allowlist"       // Platform user IDs with log-only cyber handling
-	SettingKeyCyberSessionBlockTTLSeconds         = "cyber_session_block_ttl_seconds"   // 会话屏蔽 TTL 秒数(默认 3600)
-	SettingKeyLoginAgreementEnabled               = "login_agreement_enabled"           // 登录前是否要求同意条款
-	SettingKeyLoginAgreementMode                  = "login_agreement_mode"              // 条款确认展示模式：modal / checkbox
-	SettingKeyLoginAgreementUpdatedAt             = "login_agreement_updated_at"        // 条款更新日期（展示用）
-	SettingKeyLoginAgreementDocuments             = "login_agreement_documents"         // 条款文档列表（JSON，Markdown 内容）
+	SettingKeyPromoCodeEnabled                    = "promo_code_enabled"                      // 是否启用优惠码功能
+	SettingKeyPasswordResetEnabled                = "password_reset_enabled"                  // 是否启用忘记密码功能（需要先开启邮件验证）
+	SettingKeyFrontendURL                         = "frontend_url"                            // 前端基础URL，用于生成邮件中的重置密码链接
+	SettingKeyInvitationCodeEnabled               = "invitation_code_enabled"                 // 是否启用邀请码注册
+	SettingKeyAffiliateEnabled                    = "affiliate_enabled"                       // 邀请返利功能总开关
+	SettingKeyAffiliateRebateRate                 = "affiliate_rebate_rate"                   // 利润池 P / 一级代理比例（百分比，0-100）
+	SettingKeyAffiliateRebateFreezeHours          = "affiliate_rebate_freeze_hours"           // 返利冻结期（小时，0=不冻结）
+	SettingKeyAffiliateRebateDurationDays         = "affiliate_rebate_duration_days"          // 返利有效期（天，0=永久）
+	SettingKeyAffiliateRebatePerInviteeCap        = "affiliate_rebate_per_invitee_cap"        // 单人返利上限（0=无上限）
+	SettingKeyAffiliateAdminRechargeEnabled       = "affiliate_admin_recharge_enabled"        // 管理员充值是否产生返利
+	SettingKeyAffiliateAgentLevel2Rate            = "affiliate_agent_level2_rate"             // 二级代理比例 R2（≤ 利润池）
+	SettingKeyAffiliateAgentCustomRateEnabled     = "affiliate_agent_custom_rate_enabled"     // 专属比例开关
+	SettingKeyAffiliateAgentAppointEnabled        = "affiliate_agent_appoint_enabled"         // 允许一级代理任命二级
+	SettingKeyAffiliateAgentAppointMax            = "affiliate_agent_appoint_max"             // 每个一级最多任命几个（0=不限）
+	SettingKeyAffiliateInviteRewardMode           = "affiliate_invite_reward_mode"            // 普通用户邀请奖励：off / percent / first_recharge
+	SettingKeyAffiliateInviteRewardRate           = "affiliate_invite_reward_rate"            // percent 模式比例
+	SettingKeyAffiliateInviteRewardDurationDays   = "affiliate_invite_reward_duration_days"   // percent 模式有效期（天，0=永久）
+	SettingKeyAffiliateInviteRewardPerInviteeCap  = "affiliate_invite_reward_per_invitee_cap" // percent 模式单人上限（0=不限）
+	SettingKeyAffiliateInviteRewardFixedAmount    = "affiliate_invite_reward_fixed_amount"    // first_recharge 模式奖励金额
+	SettingKeyAffiliateInviteRewardMinRecharge    = "affiliate_invite_reward_min_recharge"    // first_recharge 模式首充门槛
+	SettingKeyAffiliateInviteeBonusMode           = "affiliate_invitee_bonus_mode"            // 被邀请人首充奖励：off / percent / fixed
+	SettingKeyAffiliateInviteeBonusValue          = "affiliate_invitee_bonus_value"           // 比例或金额
+	SettingKeyAffiliateInviteeBonusMinRecharge    = "affiliate_invitee_bonus_min_recharge"    // 首充门槛
+	SettingKeyAffiliateInviteeBonusMax            = "affiliate_invitee_bonus_max"             // 比例模式封顶（0=不封顶）
+	SettingKeyAffiliateRebateBase                 = "affiliate_rebate_base"                   // 返利基数：recharge（充值）/ consumption（消费）
+	SettingKeyAffiliateAgentUpgradeMode           = "affiliate_agent_upgrade_mode"            // 代理升级方式：manual / auto
+	SettingKeyAffiliateAgentLevel2Threshold       = "affiliate_agent_level2_threshold"        // 自动升 2 级所需邀请人数（0=不自动升）
+	SettingKeyAffiliateAgentLevel1Threshold       = "affiliate_agent_level1_threshold"        // 自动升 1 级所需邀请人数（0=不自动升）
+	SettingKeyAffiliateAgentCountMode             = "affiliate_agent_count_mode"              // 邀请人数口径：all / recharged
+	SettingKeyAffiliateSettleIntervalMinutes      = "affiliate_settle_interval_minutes"       // 消费返利结算周期（分钟）
+	SettingKeyRiskControlEnabled                  = "risk_control_enabled"                    // 是否启用风控中心入口与审计链路
+	SettingKeyContentModerationConfig             = "content_moderation_config"               // 内容审计配置（JSON）
+	SettingKeyCyberSessionBlockEnabled            = "cyber_session_block_enabled"             // cyber 命中后会话级自动屏蔽总开关(默认关)
+	SettingKeyCyberPolicyUserAllowlist            = "cyber_policy_user_allowlist"             // Platform user IDs with log-only cyber handling
+	SettingKeyCyberSessionBlockTTLSeconds         = "cyber_session_block_ttl_seconds"         // 会话屏蔽 TTL 秒数(默认 3600)
+	SettingKeyLoginAgreementEnabled               = "login_agreement_enabled"                 // 登录前是否要求同意条款
+	SettingKeyLoginAgreementMode                  = "login_agreement_mode"                    // 条款确认展示模式：modal / checkbox
+	SettingKeyLoginAgreementUpdatedAt             = "login_agreement_updated_at"              // 条款更新日期（展示用）
+	SettingKeyLoginAgreementDocuments             = "login_agreement_documents"               // 条款文档列表（JSON，Markdown 内容）
 
 	// 邮件服务设置
 	SettingKeySMTPHost     = "smtp_host"      // SMTP服务器地址

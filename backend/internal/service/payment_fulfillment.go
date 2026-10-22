@@ -438,6 +438,7 @@ func (s *PaymentService) doBalance(ctx context.Context, o *dbent.PaymentOrder, l
 		if err := s.applyAffiliateRebateForOrder(ctx, o); err != nil {
 			return err
 		}
+		s.applyFirstRechargeRewards(ctx, o)
 		// Code already created and redeemed — just mark completed
 		return s.markCompleted(ctx, o, lease, "RECHARGE_SUCCESS")
 	case redeemActionCreate:
@@ -454,6 +455,7 @@ func (s *PaymentService) doBalance(ctx context.Context, o *dbent.PaymentOrder, l
 	if err := s.applyAffiliateRebateForOrder(ctx, o); err != nil {
 		return err
 	}
+	s.applyFirstRechargeRewards(ctx, o)
 	return s.markCompleted(ctx, o, lease, "RECHARGE_SUCCESS")
 }
 
@@ -795,18 +797,40 @@ func (s *PaymentService) applyAffiliateRebateForOrder(ctx context.Context, o *db
 	return nil
 }
 
+// affiliateRebateBaseAmount 返回订单的返利基数：只认余额订单的实充部分（赠送额度不参与）。
+// 订阅订单不进任何奖励口径，与消费模式的真实充值封顶、首充口径、人数口径一致。
 func affiliateRebateBaseAmount(o *dbent.PaymentOrder) float64 {
-	if o == nil {
+	if o == nil || o.OrderType != payment.OrderTypeBalance {
 		return 0
 	}
-	switch o.OrderType {
-	case payment.OrderTypeBalance:
-		// 返利只按实充部分计算，赠送额度不参与
-		return paymentOrderAmountWithoutBonus(o)
-	case payment.OrderTypeSubscription:
-		return o.Amount
-	default:
-		return 0
+	return paymentOrderAmountWithoutBonus(o)
+}
+
+// applyFirstRechargeRewards 在余额订单到账后发放首充奖励。奖励按用户幂等（流水唯一索引），
+// 失败只写审计日志，不影响订单完成。
+func (s *PaymentService) applyFirstRechargeRewards(ctx context.Context, o *dbent.PaymentOrder) {
+	if s.affiliateService == nil || o == nil || o.OrderType != payment.OrderTypeBalance {
+		return
+	}
+	realAmount := paymentOrderAmountWithoutBonus(o)
+	if realAmount <= 0 {
+		return
+	}
+	orderID := o.ID
+	result, err := s.affiliateService.ApplyFirstRechargeRewards(ctx, o.UserID, realAmount, &orderID)
+	if err != nil {
+		s.writeAuditLog(ctx, o.ID, "AFFILIATE_FIRST_RECHARGE_FAILED", "system", map[string]any{
+			"error": err.Error(),
+		})
+		return
+	}
+	if result != nil && (result.InviteeBonus > 0 || result.InviterReward > 0) {
+		s.writeAuditLog(ctx, o.ID, "AFFILIATE_FIRST_RECHARGE_APPLIED", "system", map[string]any{
+			"realAmount":    realAmount,
+			"inviteeBonus":  result.InviteeBonus,
+			"inviterReward": result.InviterReward,
+			"inviterId":     result.InviterID,
+		})
 	}
 }
 

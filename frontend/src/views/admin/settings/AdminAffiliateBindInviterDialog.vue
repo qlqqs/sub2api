@@ -19,6 +19,16 @@
         @select="selectInviter"
         @clear="inviter = null"
       />
+      <div
+        v-if="invitee && inviter"
+        class="rounded-lg border border-primary-200 bg-primary-50 p-3 text-sm text-primary-800 dark:border-primary-800 dark:bg-primary-900/20 dark:text-primary-200"
+        aria-live="polite"
+        data-test="affiliate-bind-preview"
+      >
+        <template v-if="previewLoading">{{ t('admin.settings.features.affiliate.bind.previewLoading') }}</template>
+        <span v-else-if="previewError" class="text-red-600 dark:text-red-400">{{ previewError }}</span>
+        <template v-else-if="previewText">{{ previewText }}</template>
+      </div>
       <div>
         <label for="affiliate-bind-reason" class="input-label">{{ t('admin.settings.features.affiliate.bind.reason') }}</label>
         <textarea
@@ -49,7 +59,7 @@
 import { computed, defineComponent, h, onUnmounted, ref, watch, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'
-import { affiliatesAPI, type SimpleUser } from '@/api/admin/affiliates'
+import { affiliatesAPI, type AffiliateInviterPreview, type SimpleUser } from '@/api/admin/affiliates'
 import { extractApiErrorMessage } from '@/utils/apiError'
 
 const props = defineProps<{ show: boolean }>()
@@ -61,7 +71,72 @@ const reason = ref('')
 const saving = ref(false)
 const error = ref('')
 
-const canSubmit = computed(() => !!invitee.value && !!inviter.value && invitee.value.id !== inviter.value.id && reason.value.trim().length > 0)
+const preview = ref<AffiliateInviterPreview | null>(null)
+const previewLoading = ref(false)
+const previewError = ref('')
+let previewController: AbortController | undefined
+let previewSequence = 0
+
+const canSubmit = computed(() =>
+  !!invitee.value &&
+  !!inviter.value &&
+  invitee.value.id !== inviter.value.id &&
+  reason.value.trim().length > 0 &&
+  !previewLoading.value &&
+  !previewError.value,
+)
+
+// 「绑定后归属代理：x（二级），上方一级：y」— the ownership snapshot the bind would freeze.
+const previewText = computed(() => {
+  const p = preview.value
+  if (!p) return ''
+  if (p.agent_owner_id == null) return t('admin.settings.features.affiliate.bind.previewNoOwner')
+  const level = p.agent_owner_level === 1 || p.agent_owner_level === 2 ? p.agent_owner_level : 3
+  return t('admin.settings.features.affiliate.bind.preview', {
+    owner: p.agent_owner_email || `#${p.agent_owner_id}`,
+    level: t(`admin.affiliates.levelShort.${level}`),
+    upline: p.agent_upline_id == null
+      ? t('admin.settings.features.affiliate.bind.previewNone')
+      : p.agent_upline_email || `#${p.agent_upline_id}`,
+  })
+})
+
+function resetPreview() {
+  previewSequence++
+  previewController?.abort()
+  previewController = undefined
+  preview.value = null
+  previewLoading.value = false
+  previewError.value = ''
+}
+
+async function loadPreview(inviteeId: number, inviterId: number) {
+  resetPreview()
+  const sequence = previewSequence
+  previewController = new AbortController()
+  previewLoading.value = true
+  try {
+    const result = await affiliatesAPI.previewInviter(inviteeId, inviterId, { signal: previewController.signal })
+    if (sequence === previewSequence) preview.value = result
+  } catch (err) {
+    if (sequence === previewSequence) previewError.value = extractApiErrorMessage(err, t('common.error'))
+  } finally {
+    if (sequence === previewSequence) previewLoading.value = false
+  }
+}
+
+watch(
+  () => [invitee.value?.id, inviter.value?.id] as const,
+  ([inviteeId, inviterId]) => {
+    if (inviteeId != null && inviterId != null && inviteeId !== inviterId) {
+      void loadPreview(inviteeId, inviterId)
+    } else {
+      resetPreview()
+    }
+  },
+)
+
+onUnmounted(resetPreview)
 
 watch(() => props.show, (show) => {
   if (show) {

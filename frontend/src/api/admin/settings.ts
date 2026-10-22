@@ -432,14 +432,28 @@ export interface SystemSettings {
   affiliate_rebate_duration_days: number;
   affiliate_rebate_per_invitee_cap: number;
   affiliate_admin_recharge_enabled: boolean;
-  affiliate_rebate_levels: number;
-  affiliate_rebate_rate_l2: number;
   affiliate_rebate_base: "recharge" | "consumption";
   affiliate_agent_upgrade_mode: "manual" | "auto";
   affiliate_agent_level2_threshold: number;
   affiliate_agent_level1_threshold: number;
   affiliate_agent_count_mode: "all" | "recharged";
   affiliate_settle_interval_minutes: number;
+  /** 二级代理比例 R2，0-100 且 ≤ affiliate_rebate_rate（利润池 P）。 */
+  affiliate_agent_level2_rate: number;
+  affiliate_agent_custom_rate_enabled: boolean;
+  affiliate_agent_appoint_enabled: boolean;
+  /** 每个一级代理最多任命几个二级，0 = 不限。 */
+  affiliate_agent_appoint_max: number;
+  affiliate_invite_reward_mode: "off" | "percent" | "first_recharge";
+  affiliate_invite_reward_rate: number;
+  affiliate_invite_reward_duration_days: number;
+  affiliate_invite_reward_per_invitee_cap: number;
+  affiliate_invite_reward_fixed_amount: number;
+  affiliate_invite_reward_min_recharge: number;
+  affiliate_invitee_bonus_mode: "off" | "percent" | "fixed";
+  affiliate_invitee_bonus_value: number;
+  affiliate_invitee_bonus_min_recharge: number;
+  affiliate_invitee_bonus_max: number;
   default_concurrency: number;
   default_user_rpm_limit: number;
   default_subscriptions: DefaultSubscriptionSetting[];
@@ -793,14 +807,28 @@ export interface UpdateSettingsRequest {
   affiliate_rebate_duration_days?: number;
   affiliate_rebate_per_invitee_cap?: number;
   affiliate_admin_recharge_enabled?: boolean;
-  affiliate_rebate_levels?: number;
-  affiliate_rebate_rate_l2?: number;
   affiliate_rebate_base?: "recharge" | "consumption";
   affiliate_agent_upgrade_mode?: "manual" | "auto";
   affiliate_agent_level2_threshold?: number;
   affiliate_agent_level1_threshold?: number;
   affiliate_agent_count_mode?: "all" | "recharged";
   affiliate_settle_interval_minutes?: number;
+  /** 二级代理比例 R2，0-100 且 ≤ affiliate_rebate_rate（利润池 P）。 */
+  affiliate_agent_level2_rate?: number;
+  affiliate_agent_custom_rate_enabled?: boolean;
+  affiliate_agent_appoint_enabled?: boolean;
+  /** 每个一级代理最多任命几个二级，0 = 不限。 */
+  affiliate_agent_appoint_max?: number;
+  affiliate_invite_reward_mode?: "off" | "percent" | "first_recharge";
+  affiliate_invite_reward_rate?: number;
+  affiliate_invite_reward_duration_days?: number;
+  affiliate_invite_reward_per_invitee_cap?: number;
+  affiliate_invite_reward_fixed_amount?: number;
+  affiliate_invite_reward_min_recharge?: number;
+  affiliate_invitee_bonus_mode?: "off" | "percent" | "fixed";
+  affiliate_invitee_bonus_value?: number;
+  affiliate_invitee_bonus_min_recharge?: number;
+  affiliate_invitee_bonus_max?: number;
   default_concurrency?: number;
   default_user_rpm_limit?: number;
   default_subscriptions?: DefaultSubscriptionSetting[];

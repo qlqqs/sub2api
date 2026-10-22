@@ -28,6 +28,15 @@
 
       <!-- Registration Form -->
       <form v-else @submit.prevent="handleRegister" class="space-y-5">
+        <!-- Invitee first-recharge bonus (opened from an invite link) -->
+        <p
+          v-if="inviteeBonusHint"
+          class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
+          data-testid="register-invitee-bonus-hint"
+        >
+          {{ inviteeBonusHint }}
+        </p>
+
         <!-- Email Input -->
         <div>
           <label for="email" class="input-label">
@@ -399,6 +408,7 @@ import {
   resolveAffiliateReferralCode
 } from '@/utils/oauthAffiliate'
 import type { LoginAgreementDocument } from '@/types'
+import { describeInviteeBonusValue, formatUsdShort, isInviteeBonusActive, type InviteeBonusLike } from '@/utils/affiliateRewards'
 
 const { t, locale } = useI18n()
 const LOGIN_AGREEMENT_STORAGE_KEY = 'sub2api_login_agreement_consent'
@@ -431,6 +441,9 @@ const promoCodeEnabled = ref<boolean>(
 )
 const invitationCodeEnabled = ref<boolean>(false)
 const affiliateEnabled = ref<boolean>(false)
+const inviteeBonus = ref<InviteeBonusLike | null>(null)
+// Code taken from the invite link (?aff= / ?aff_code=), not typed by hand.
+const inviteLinkCode = ref('')
 const turnstileEnabled = ref<boolean>(false)
 const turnstileSiteKey = ref<string>('')
 const tencentCaptchaEnabled = ref<boolean>(false)
@@ -553,8 +566,19 @@ function syncAffiliateReferralCode(): string {
   if (code) {
     formData.aff_code = code
   }
+  inviteLinkCode.value = code
   return code
 }
+
+// 「通过邀请注册，首充可额外获得 …」— same copy whether the inviter is a regular user or an agent.
+const inviteeBonusHint = computed(() => {
+  const bonus = inviteeBonus.value
+  if (!affiliateEnabled.value || !inviteLinkCode.value || !isInviteeBonusActive(bonus)) return ''
+  const value = describeInviteeBonusValue(bonus, t)
+  return bonus.min_recharge > 0
+    ? t('auth.inviteeBonusHintWithMin', { min: formatUsdShort(bonus.min_recharge), bonus: value })
+    : t('auth.inviteeBonusHint', { bonus: value })
+})
 
 // ==================== Lifecycle ====================
 
@@ -568,6 +592,14 @@ onMounted(async () => {
     promoCodeEnabled.value = settings.promo_code_enabled
     invitationCodeEnabled.value = settings.invitation_code_enabled
     affiliateEnabled.value = settings.affiliate_enabled
+    inviteeBonus.value = settings.affiliate_invitee_bonus_mode && settings.affiliate_invitee_bonus_mode !== 'off'
+      ? {
+          mode: settings.affiliate_invitee_bonus_mode,
+          value: Number(settings.affiliate_invitee_bonus_value) || 0,
+          min_recharge: Number(settings.affiliate_invitee_bonus_min_recharge) || 0,
+          max: Number(settings.affiliate_invitee_bonus_max) || 0,
+        }
+      : null
     turnstileEnabled.value = settings.turnstile_enabled
     turnstileSiteKey.value = settings.turnstile_site_key || ''
     tencentCaptchaEnabled.value = settings.tencent_captcha_enabled === true

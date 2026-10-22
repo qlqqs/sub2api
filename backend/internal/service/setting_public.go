@@ -243,6 +243,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyRiskControlEnabled,
 		SettingKeyAllowUserViewErrorRequests,
 	}
+	keys = append(keys, affiliateRewardConfigKeys...)
 
 	settings, err := s.settingRepo.GetMultiple(ctx, keys)
 	if err != nil {
@@ -299,7 +300,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		balanceLowNotifyThreshold = v
 	}
 
-	return &PublicSettings{
+	public := &PublicSettings{
 		RegistrationEnabled:                 settings[SettingKeyRegistrationEnabled] == "true",
 		EmailVerifyEnabled:                  emailVerifyEnabled,
 		ForceEmailOnThirdPartySignup:        settings[SettingKeyForceEmailOnThirdPartySignup] == "true",
@@ -377,7 +378,9 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		RiskControlEnabled: settings[SettingKeyRiskControlEnabled] == "true",
 
 		AllowUserViewErrorRequests: settings[SettingKeyAllowUserViewErrorRequests] == "true",
-	}, nil
+	}
+	applyPublicInviteeBonus(public, settings)
+	return public, nil
 }
 
 // channelMonitorIntervalMin / channelMonitorIntervalMax bound the default interval
@@ -633,16 +636,20 @@ type PublicSettingsInjectionPayload struct {
 	// monitors; fail-closed (absent/false = hidden). Admin UI always shows it.
 	// ChannelMonitorHideUserRanking hides the user ranking tab and /users payload
 	// from non-admin channel-monitor v2 viewers; default false (visible).
-	ChannelMonitorHideUserRanking bool `json:"channel_monitor_hide_user_ranking"`
-	ChannelMonitorShowQuota       bool `json:"channel_monitor_show_quota"`
-	AvailableChannelsEnabled      bool `json:"available_channels_enabled"`
-	SubscriptionEnabled           bool `json:"subscription_enabled"`
-	ModelPlazaEnabled             bool `json:"model_plaza_enabled"`
-	ModelPlazaRequireAuth         bool `json:"model_plaza_require_auth"`
-	PluginManagementEnabled       bool `json:"plugin_management_enabled"`
-	AffiliateEnabled              bool `json:"affiliate_enabled"`
-	RiskControlEnabled            bool `json:"risk_control_enabled"`
-	AllowUserViewErrorRequests    bool `json:"allow_user_view_error_requests"`
+	ChannelMonitorHideUserRanking    bool    `json:"channel_monitor_hide_user_ranking"`
+	ChannelMonitorShowQuota          bool    `json:"channel_monitor_show_quota"`
+	AvailableChannelsEnabled         bool    `json:"available_channels_enabled"`
+	SubscriptionEnabled              bool    `json:"subscription_enabled"`
+	ModelPlazaEnabled                bool    `json:"model_plaza_enabled"`
+	ModelPlazaRequireAuth            bool    `json:"model_plaza_require_auth"`
+	PluginManagementEnabled          bool    `json:"plugin_management_enabled"`
+	AffiliateEnabled                 bool    `json:"affiliate_enabled"`
+	AffiliateInviteeBonusMode        string  `json:"affiliate_invitee_bonus_mode"`
+	AffiliateInviteeBonusValue       float64 `json:"affiliate_invitee_bonus_value"`
+	AffiliateInviteeBonusMinRecharge float64 `json:"affiliate_invitee_bonus_min_recharge"`
+	AffiliateInviteeBonusMax         float64 `json:"affiliate_invitee_bonus_max"`
+	RiskControlEnabled               bool    `json:"risk_control_enabled"`
+	AllowUserViewErrorRequests       bool    `json:"allow_user_view_error_requests"`
 }
 
 // GetPublicSettingsForInjection returns public settings in a format suitable for HTML injection.
@@ -725,6 +732,10 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		ModelPlazaRequireAuth:                settings.ModelPlazaRequireAuth,
 		PluginManagementEnabled:              settings.PluginManagementEnabled,
 		AffiliateEnabled:                     settings.AffiliateEnabled,
+		AffiliateInviteeBonusMode:            settings.AffiliateInviteeBonusMode,
+		AffiliateInviteeBonusValue:           settings.AffiliateInviteeBonusValue,
+		AffiliateInviteeBonusMinRecharge:     settings.AffiliateInviteeBonusMinRecharge,
+		AffiliateInviteeBonusMax:             settings.AffiliateInviteeBonusMax,
 		RiskControlEnabled:                   settings.RiskControlEnabled,
 		AllowUserViewErrorRequests:           settings.AllowUserViewErrorRequests,
 	}, nil
@@ -850,4 +861,21 @@ func parseCustomMenuItemURLs(raw string) []string {
 		}
 	}
 	return urls
+}
+
+// applyPublicInviteeBonus 填充公开设置里的被邀请人首充奖励；邀请返利关闭或奖励无效时为 off。
+// 只暴露这一项，不暴露利润池、二级比例、邀请人奖励等其它返利设置。
+func applyPublicInviteeBonus(public *PublicSettings, settings map[string]string) {
+	public.AffiliateInviteeBonusMode = AffiliateInviteeBonusModeOff
+	if !public.AffiliateEnabled {
+		return
+	}
+	bonus := inviteeBonusInfo(parseAffiliateRewardConfig(settings))
+	if bonus == nil {
+		return
+	}
+	public.AffiliateInviteeBonusMode = bonus.Mode
+	public.AffiliateInviteeBonusValue = bonus.Value
+	public.AffiliateInviteeBonusMinRecharge = bonus.MinRecharge
+	public.AffiliateInviteeBonusMax = bonus.Max
 }

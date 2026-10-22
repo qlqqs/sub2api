@@ -49,7 +49,7 @@ function overviewWithQuota(availableQuota: number) {
     email: 'inviter@example.com',
     username: 'inviter',
     aff_code: 'INVITER',
-    rebate_rate_percent: 20,
+    agent_rate_percent: null,
     invited_count: 3,
     rebated_invitee_count: 2,
     available_quota: availableQuota,

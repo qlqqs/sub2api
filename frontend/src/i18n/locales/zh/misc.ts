@@ -315,6 +315,13 @@ export default {
     amountLabel: '充值金额',
     paymentAmount: '支付金额',
     creditedBalance: '到账余额',
+    firstRechargeBonus: {
+      notice: '首次充值满 {min} 额外赠送 {bonus}，到账后发放',
+      noticeNoMin: '首次充值额外赠送 {bonus}，到账后发放',
+      rowLabel: '首充奖励',
+      rowValue: '+{amount}（到账后发放）',
+      shortfall: '再充 {amount} 可获得首充奖励'
+    },
     rechargeBonus: {
       creditedShort: '到账 {amount}',
       payShort: '实付 {amount}',

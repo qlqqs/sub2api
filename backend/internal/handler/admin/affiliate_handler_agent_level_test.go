@@ -28,7 +28,7 @@ type agentLevelHandlerRepo struct {
 	locked []agentLevelLock
 }
 
-func (r *agentLevelHandlerRepo) SetAgentLevelManual(_ context.Context, ids []int64, level int) error {
+func (r *agentLevelHandlerRepo) SetAgentLevelManual(_ context.Context, ids []int64, level int, _ int64) error {
 	r.manual = append(r.manual, agentLevelSet{ids: ids, level: level})
 	return nil
 }

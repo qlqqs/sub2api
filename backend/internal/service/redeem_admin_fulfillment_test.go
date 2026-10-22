@@ -29,9 +29,10 @@ func TestAdminFulfillmentBypassesLimitAndKeepsRedeemAffiliate(t *testing.T) {
 	affiliateRepo := &paymentFulfillmentAffiliateRepoStub{
 		inviteeSummary: &AffiliateSummary{
 			UserID: userID, AffCode: "INVITEE", InviterID: &inviterID, CreatedAt: time.Now().Add(-time.Hour),
+			AgentOwnerID: &inviterID, AgentOwnerLevel: ptrIntValue(AffiliateAgentLevelTop),
 		},
 		inviterSummary: &AffiliateSummary{
-			UserID: inviterID, AffCode: "INVITER", AgentLevel: 2, CreatedAt: time.Now().Add(-2 * time.Hour),
+			UserID: inviterID, AffCode: "INVITER", AgentLevel: AffiliateAgentLevelTop, CreatedAt: time.Now().Add(-2 * time.Hour),
 		},
 	}
 	settingSvc := NewSettingService(&paymentFulfillmentSettingRepoStub{values: map[string]string{
