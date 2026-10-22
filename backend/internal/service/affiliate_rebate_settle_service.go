@@ -18,6 +18,9 @@ const (
 	// affiliateSettleLeaderLockTTL must exceed affiliateSettleRunTimeout so the lock
 	// never expires mid-run.
 	affiliateSettleLeaderLockTTL = 15 * time.Minute
+	// affiliateSettleCheckInterval 是检查「是否到期」的节拍；结算间隔每次检查都重新读取，
+	// 修改设置后最迟一个节拍生效，不必等旧间隔跑完或重启。
+	affiliateSettleCheckInterval = time.Minute
 )
 
 // AffiliateRebateSettleService periodically settles consumption-based affiliate
@@ -62,18 +65,27 @@ func (s *AffiliateRebateSettleService) Start() {
 	go func() {
 		defer s.wg.Done()
 		// 首轮延后一个周期，避免启动时与迁移、缓存预热争抢数据库。
-		timer := time.NewTimer(s.interval())
-		defer timer.Stop()
+		lastRun := time.Now()
+		ticker := time.NewTicker(affiliateSettleCheckInterval)
+		defer ticker.Stop()
 		for {
 			select {
-			case <-timer.C:
+			case now := <-ticker.C:
+				if !s.due(lastRun, now) {
+					continue
+				}
+				lastRun = now
 				s.runOnce()
-				timer.Reset(s.interval())
 			case <-s.stopCh:
 				return
 			}
 		}
 	}()
+}
+
+// due 判断距上一轮是否已满结算间隔；间隔每次都从设置重新读取。
+func (s *AffiliateRebateSettleService) due(lastRun, now time.Time) bool {
+	return now.Sub(lastRun) >= s.interval()
 }
 
 func (s *AffiliateRebateSettleService) Stop() {
