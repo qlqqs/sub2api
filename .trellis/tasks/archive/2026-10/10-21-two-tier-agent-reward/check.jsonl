@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/backend/index.md", "reason": "两级代理分润实现需遵循的规范"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "迁移与归属回填需遵循的规范"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "两级代理分润实现需遵循的规范"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "两级代理分润实现需遵循的规范"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "设置页与邀请页改造需遵循的规范"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "设置页与邀请页改造需遵循的规范"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "设置页与邀请页改造需遵循的规范"}
+{"file": ".trellis/tasks/archive/2026-10/10-21-agent-level-consumption-rebate/design.md", "reason": "上一轮代理等级与消费结算设计，本任务复用其结算框架"}
+{"file": ".trellis/tasks/10-21-two-tier-agent-reward/ui.md", "reason": "UI 与操作逻辑"}
