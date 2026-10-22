@@ -1,6 +1,7 @@
-# CUSTOM: builds the sub2api-custom image and pushes it to GHCR.
-# Upstream workflows (CI / Release / Security Scan / CLA) are disabled on this
-# fork in the GitHub Actions settings, so this is the only workflow that runs.
+# CUSTOM: tests the sub2api-custom branch, then builds the image and pushes it
+# to GHCR. The image job only runs after every check passes, so a broken commit
+# never replaces custom-latest. Upstream workflows (CI / Release / Security
+# Scan / CLA) are disabled on this fork in the GitHub Actions settings.
 name: Custom Image
 
 on:
@@ -25,7 +26,69 @@ permissions:
   packages: write
 
 jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: backend/go.mod
+          check-latest: false
+          cache: true
+          cache-dependency-path: backend/go.sum
+      - name: Unit tests
+        working-directory: backend
+        run: make test-unit
+      - name: Integration tests
+        working-directory: backend
+        run: make test-integration
+
+  backend-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: backend/go.mod
+          check-latest: false
+          cache: true
+          cache-dependency-path: backend/go.sum
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.14.0
+          args: --timeout=30m
+          working-directory: backend
+
+  frontend-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        working-directory: frontend
+        run: pnpm run lint:check
+      - name: Typecheck
+        working-directory: frontend
+        run: pnpm run typecheck
+      - name: Vitest
+        working-directory: frontend
+        run: pnpm run test:run
+
   image:
+    needs: [backend-test, backend-lint, frontend-test]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -59,6 +122,7 @@ jobs:
           build-args: |
             GOPROXY=https://proxy.golang.org,direct
             GOSUMDB=sum.golang.org
+            BUILD_TYPE=custom
             COMMIT=${{ steps.meta.outputs.short_sha }}
             DATE=${{ steps.meta.outputs.date }}
           tags: |
