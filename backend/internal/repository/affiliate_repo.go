@@ -133,13 +133,16 @@ SET inviter_id = $1,
     agent_owner_level = $7,
     agent_upline_id = $8,
     agent_owner_bound_at = CASE WHEN $6::bigint IS NULL THEN NULL ELSE NOW() END,
+    agent_owner_set_by = NULL,
+    inviter_was_agent = $9,
     rebate_settled_at = NOW(),
     updated_at = NOW()
 WHERE user_id = $5
   AND inviter_id IS NULL
   AND inviter_bound_at IS NULL
 RETURNING inviter_bound_at`, inviterID, binding.Source, binding.BoundBy, binding.Reason, userID,
-			nullableInt64Arg(binding.Owner.OwnerID), nullableIntArg(binding.Owner.OwnerLevel), nullableInt64Arg(binding.Owner.UplineID))
+			nullableInt64Arg(binding.Owner.OwnerID), nullableIntArg(binding.Owner.OwnerLevel), nullableInt64Arg(binding.Owner.UplineID),
+			binding.InviterWasAgent)
 		if err != nil {
 			return fmt.Errorf("bind inviter: %w", err)
 		}
@@ -1198,6 +1201,8 @@ const affiliateSummaryColumns = `
        agent_owner_level,
        agent_upline_id,
        agent_owner_bound_at,
+       agent_owner_set_by,
+       inviter_was_agent,
        rebate_settled_at,
        rebate_settled_consumption::double precision,
        created_at,
@@ -1230,7 +1235,7 @@ func scanAffiliateSummary(rows *sql.Rows) (*service.AffiliateSummary, error) {
 	var out service.AffiliateSummary
 	var inviterID, inviterBoundBy sql.NullInt64
 	var inviterBoundAt, agentLevelUpdatedAt sql.NullTime
-	var agentLevelUpdatedBy, agentOwnerID, agentOwnerLevel, agentUplineID sql.NullInt64
+	var agentLevelUpdatedBy, agentOwnerID, agentOwnerLevel, agentUplineID, agentOwnerSetBy sql.NullInt64
 	var agentOwnerBoundAt sql.NullTime
 	var inviterBoundSource, inviterBindReason sql.NullString
 	var rebateRate sql.NullFloat64
@@ -1257,6 +1262,8 @@ func scanAffiliateSummary(rows *sql.Rows) (*service.AffiliateSummary, error) {
 		&agentOwnerLevel,
 		&agentUplineID,
 		&agentOwnerBoundAt,
+		&agentOwnerSetBy,
+		&out.InviterWasAgent,
 		&out.RebateSettledAt,
 		&out.RebateSettledConsumption,
 		&out.CreatedAt,
@@ -1289,6 +1296,7 @@ func scanAffiliateSummary(rows *sql.Rows) (*service.AffiliateSummary, error) {
 	out.AgentLevelUpdatedBy = nullableInt64Ptr(agentLevelUpdatedBy)
 	out.AgentOwnerID = nullableInt64Ptr(agentOwnerID)
 	out.AgentUplineID = nullableInt64Ptr(agentUplineID)
+	out.AgentOwnerSetBy = nullableInt64Ptr(agentOwnerSetBy)
 	if agentOwnerLevel.Valid {
 		level := int(agentOwnerLevel.Int64)
 		out.AgentOwnerLevel = &level
@@ -1642,10 +1650,14 @@ SELECT ua.user_id,
            SELECT SUM(l.amount)
            FROM user_affiliate_ledger l
            WHERE l.user_id = ua.user_id AND l.reward_type IN ('agent_direct', 'agent_diff')
-       ), 0)::double precision,` + affiliateAgentRefColumns + `
+       ), 0)::double precision,
+       ua.agent_owner_bound_at,
+       ua.agent_owner_set_by,
+       COALESCE(owner_setter.email, ''),` + affiliateAgentRefColumns + `
 FROM user_affiliates ua
 JOIN users u ON u.id = ua.user_id
-LEFT JOIN users updater ON updater.id = ua.agent_level_updated_by` + affiliateAgentRefJoins + `
+LEFT JOIN users updater ON updater.id = ua.agent_level_updated_by
+LEFT JOIN users owner_setter ON owner_setter.id = ua.agent_owner_set_by` + affiliateAgentRefJoins + `
 WHERE ` + strings.Join(clauses, " AND ") + `
 ORDER BY ua.agent_level ASC, ua.updated_at DESC, ua.user_id DESC
 LIMIT $` + fmt.Sprint(len(args)-1) + ` OFFSET $` + fmt.Sprint(len(args))
@@ -1660,11 +1672,13 @@ LIMIT $` + fmt.Sprint(len(args)-1) + ` OFFSET $` + fmt.Sprint(len(args))
 	for rows.Next() {
 		var e service.AffiliateAdminEntry
 		var rebate sql.NullFloat64
-		var updatedBy sql.NullInt64
+		var updatedBy, ownerSetBy sql.NullInt64
+		var ownerBoundAt sql.NullTime
 		var ref agentRefScan
 		targets := append([]any{&e.UserID, &e.Email, &e.Username, &e.AffCode,
 			&e.AffCodeCustom, &rebate, &e.AffCount, &e.AgentLevel, &e.AgentLevelLocked, &e.AgentLevelSource,
 			&updatedBy, &e.AgentLevelUpdatedByEmail, &e.OwnedCustomerCount, &e.AgentProfitTotal,
+			&ownerBoundAt, &ownerSetBy, &e.AgentOwnerSetByEmail,
 		}, ref.targets(&e.AffiliateAgentRef)...)
 		if err := rows.Scan(targets...); err != nil {
 			return nil, 0, err
@@ -1672,6 +1686,10 @@ LIMIT $` + fmt.Sprint(len(args)-1) + ` OFFSET $` + fmt.Sprint(len(args))
 		ref.apply(&e.AffiliateAgentRef)
 		e.AffRebateRatePercent = nullableFloat64Ptr(rebate)
 		e.AgentLevelUpdatedBy = nullableInt64Ptr(updatedBy)
+		e.AgentOwnerSetBy = nullableInt64Ptr(ownerSetBy)
+		if ownerBoundAt.Valid {
+			e.AgentOwnerBoundAt = &ownerBoundAt.Time
+		}
 		entries = append(entries, e)
 	}
 	if err := rows.Err(); err != nil {

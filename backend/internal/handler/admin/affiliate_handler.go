@@ -308,6 +308,43 @@ func (h *AffiliateHandler) BindInviter(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// SetAffiliateAgentOwnerRequest sets (owner_id) or clears (owner_id null) a
+// level-2 agent's level-1 upline.
+type SetAffiliateAgentOwnerRequest struct {
+	OwnerID *int64 `json:"owner_id"`
+}
+
+// SetAgentOwner sets, replaces or clears the level-1 upline of a level-2 agent.
+// Only the agent's own ownership snapshot changes; the invite relation and
+// existing customers' snapshots are untouched.
+// PUT /api/v1/admin/affiliates/users/:user_id/agent-owner
+func (h *AffiliateHandler) SetAgentOwner(c *gin.Context) {
+	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if err != nil || userID <= 0 {
+		response.BadRequest(c, "Invalid user_id")
+		return
+	}
+	var req SetAffiliateAgentOwnerRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request")
+		return
+	}
+	if req.OwnerID != nil && *req.OwnerID <= 0 {
+		response.BadRequest(c, "Invalid owner_id")
+		return
+	}
+	subject, ok := middleware.GetAuthSubjectFromContext(c)
+	if !ok || subject.UserID <= 0 {
+		response.Unauthorized(c, "Unauthorized")
+		return
+	}
+	if err := h.affiliateService.AdminSetAgentOwner(c.Request.Context(), userID, req.OwnerID, subject.UserID); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"user_id": userID, "agent_owner_id": req.OwnerID})
+}
+
 // ListAgentCustomers lists customers owned by the agent (relation=owner) or
 // whose level-1 upline is the agent (relation=upline), with contribution.
 // GET /api/v1/admin/affiliates/users/:user_id/customers

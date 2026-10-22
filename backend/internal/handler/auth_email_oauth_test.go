@@ -492,6 +492,10 @@ func (r *oauthEmailAffiliateRepoStub) SetAgentLevelByAgent(context.Context, int6
 	panic("unexpected SetAgentLevelByAgent call")
 }
 
+func (r *oauthEmailAffiliateRepoStub) SetAgentOwnerByAdmin(context.Context, int64, *int64, int64) error {
+	panic("unexpected SetAgentOwnerByAdmin call")
+}
+
 func (r *oauthEmailAffiliateRepoStub) CountAgentAppointments(context.Context, int64) (int, error) {
 	panic("unexpected CountAgentAppointments call")
 }

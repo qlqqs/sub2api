@@ -139,7 +139,7 @@ func (r *affiliateRepository) WithTx(ctx context.Context, fn func(txCtx context.
 	})
 }
 
-// ListUsersWithPendingConsumption 列出有邀请人且在水位之后、滞后窗口之前产生了余额消费的用户。
+// ListUsersWithPendingConsumption 列出有邀请人或归属代理、且在水位之后、滞后窗口之前产生了余额消费的用户。
 func (r *affiliateRepository) ListUsersWithPendingConsumption(ctx context.Context, lag time.Duration, limit int) ([]int64, error) {
 	if limit <= 0 {
 		limit = 500
@@ -148,7 +148,7 @@ func (r *affiliateRepository) ListUsersWithPendingConsumption(ctx context.Contex
 	rows, err := client.QueryContext(ctx, `
 SELECT ua.user_id
 FROM user_affiliates ua
-WHERE ua.inviter_id IS NOT NULL
+WHERE (ua.inviter_id IS NOT NULL OR ua.agent_owner_id IS NOT NULL)
   AND EXISTS (
     SELECT 1 FROM usage_logs ul
     WHERE ul.user_id = ua.user_id
@@ -275,6 +275,34 @@ WHERE user_id = $1`, targetID, level, service.AffiliateAgentLevelSourceAgent, lo
 	affected, err := res.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("read set agent level by agent result: %w", err)
+	}
+	if affected == 0 {
+		return service.ErrUserNotFound
+	}
+	return nil
+}
+
+// SetAgentOwnerByAdmin 改写用户自己的归属快照：设为一级代理 ownerID（档位 1、上方一级清空）
+// 或清除（ownerID 为 nil）。不改邀请关系。原本既没有邀请人也没有归属的用户，结算水位
+// 移到当前时刻，避免把设置之前的消费补发给新上级；其余用户保留水位。
+func (r *affiliateRepository) SetAgentOwnerByAdmin(ctx context.Context, userID int64, ownerID *int64, adminID int64) error {
+	client := clientFromContext(ctx, r.client)
+	res, err := client.ExecContext(ctx, `
+UPDATE user_affiliates
+SET agent_owner_id = $2,
+    agent_owner_level = CASE WHEN $2::bigint IS NULL THEN NULL ELSE $3::smallint END,
+    agent_upline_id = NULL,
+    agent_owner_bound_at = CASE WHEN $2::bigint IS NULL THEN NULL ELSE NOW() END,
+    agent_owner_set_by = $4,
+    rebate_settled_at = CASE WHEN inviter_id IS NULL AND agent_owner_id IS NULL THEN NOW() ELSE rebate_settled_at END,
+    updated_at = NOW()
+WHERE user_id = $1`, userID, nullableInt64Arg(ownerID), service.AffiliateAgentLevelTop, adminID)
+	if err != nil {
+		return fmt.Errorf("set agent owner by admin: %w", err)
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("read set agent owner result: %w", err)
 	}
 	if affected == 0 {
 		return service.ErrUserNotFound

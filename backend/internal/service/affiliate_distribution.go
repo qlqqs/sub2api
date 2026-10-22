@@ -106,7 +106,7 @@ func planAgentShares(consumer *AffiliateSummary, nodes map[int64]AffiliateNode, 
 }
 
 // planInviteShare 计算普通用户邀请比例奖励：仅 percent 模式、且绑定时邀请人是普通用户
-// （归属代理不是邀请人本人）时发放。
+// （inviter_was_agent 为 false，绑定时写死）时发放。
 func planInviteShare(consumer *AffiliateSummary, nodes map[int64]AffiliateNode, cfg AffiliateRewardConfig) *affiliateShare {
 	if !inviterWasNormalUserAtBind(consumer) || cfg.InviteMode != AffiliateInviteRewardModePercent || cfg.InviteRate <= 0 {
 		return nil
@@ -118,18 +118,22 @@ func planInviteShare(consumer *AffiliateSummary, nodes map[int64]AffiliateNode, 
 	return &affiliateShare{inviterID, cfg.InviteRate, AffiliateRewardInvitePercent}
 }
 
-// inviterWasNormalUserAtBind 判断绑定时邀请人是普通用户：邀请人是代理时归属代理就是邀请人。
+// inviterWasNormalUserAtBind 判断绑定时邀请人是普通用户（读绑定时写死的 inviter_was_agent，
+// 不随管理员改归属而变化）。
 func inviterWasNormalUserAtBind(consumer *AffiliateSummary) bool {
 	if consumer == nil || consumer.InviterID == nil || *consumer.InviterID <= 0 || *consumer.InviterID == consumer.UserID {
 		return false
 	}
-	return consumer.AgentOwnerID == nil || *consumer.AgentOwnerID != *consumer.InviterID
+	return !consumer.InviterWasAgent
 }
 
-// bindingStart 返回邀请关系的起算时间（有效期从绑定时起算）。
+// bindingStart 返回邀请关系的起算时间（有效期从绑定时起算）；没有邀请人时按管理员设置归属的时间。
 func bindingStart(consumer *AffiliateSummary) time.Time {
 	if consumer.InviterBoundAt != nil {
 		return *consumer.InviterBoundAt
+	}
+	if consumer.AgentOwnerBoundAt != nil {
+		return *consumer.AgentOwnerBoundAt
 	}
 	return consumer.CreatedAt
 }
@@ -141,7 +145,9 @@ func withinDuration(consumer *AffiliateSummary, days int, now time.Time) bool {
 // distributeRewards 以 base 为基数给消费者 consumer 的代理与普通邀请人入账：
 // 代理利润按绑定时快照级差分配，普通邀请比例奖励另算。返回入账合计。
 func (s *AffiliateService) distributeRewards(ctx context.Context, consumer *AffiliateSummary, base float64, source AffiliateAccrueSource) (float64, error) {
-	if consumer == nil || consumer.InviterID == nil || *consumer.InviterID <= 0 {
+	// 没有邀请人也可能有管理员设置的归属代理（二级代理挂到一级下）。
+	hasInviter := consumer != nil && consumer.InviterID != nil && *consumer.InviterID > 0
+	if consumer == nil || (!hasInviter && consumer.AgentOwnerID == nil) {
 		return 0, nil
 	}
 	if base <= 0 || math.IsNaN(base) || math.IsInf(base, 0) {

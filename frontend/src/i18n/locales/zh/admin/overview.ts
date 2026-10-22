@@ -429,6 +429,9 @@ export default {
       errors: {
         AFFILIATE_LEVEL2_RATE_EXCEEDS_POOL: '二级代理比例不能大于利润池',
         AFFILIATE_CYCLE: '绑定会形成循环邀请关系',
+        AFFILIATE_SELF_INVITE: '不能选择用户本人',
+        AFFILIATE_AGENT_OWNER_TARGET_INVALID: '只有二级代理可以设置上级一级代理',
+        AFFILIATE_AGENT_OWNER_INVALID: '上级必须是有效的一级代理',
         AFFILIATE_ALREADY_BOUND: '该用户已绑定邀请人',
         loadFailed: '加载邀请返利记录失败',
         AFFILIATE_QUOTA_INSUFFICIENT: '可提取返利额度不足',
@@ -588,7 +591,26 @@ export default {
           changeUser: '更换用户',
           level: '代理等级',
           hint: '设置后立即生效，只影响之后新绑定的用户。',
+          upline: '上级一级代理（选填）',
+          uplineHint: '二级代理的客户由上级一级拿差额；不选则该二级拿满利润池。',
           submit: '确认设置'
+        },
+        upline: {
+          none: '无上级一级',
+          set: '设置上级',
+          change: '更换',
+          setByAdmin: '由 {email} 于 {time} 设置',
+          dialogTitle: '设置上级一级代理',
+          agent: '二级代理',
+          current: '当前上级',
+          select: '上级一级代理',
+          selectPlaceholder: '搜索一级代理的邮箱或用户名',
+          noAgentFound: '未找到匹配的一级代理',
+          changeSelection: '重新选择',
+          clear: '清除上级',
+          hint: '只影响 TA 之后新邀请的客户和 TA 本人消费；已有客户的分润不变，邀请关系不变。',
+          clearHint: '清除后 TA 之后的新客户由 TA 拿满利润池，TA 本人消费不产生代理利润。',
+          submit: '保存'
         },
         batchDialog: {
           title: '批量设置等级（已选 {count} 个用户）',

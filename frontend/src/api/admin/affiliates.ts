@@ -40,6 +40,11 @@ export interface AffiliateAdminEntry extends AffiliateAgentSnapshot {
   agent_level_source: AgentLevelSource | string
   agent_level_updated_by: number | null
   agent_level_updated_by_email: string
+  /** When the ownership snapshot was written (bind time or admin change). */
+  agent_owner_bound_at: string | null
+  /** Admin who last set the ownership; null when written by a bind. */
+  agent_owner_set_by: number | null
+  agent_owner_set_by_email: string
   owned_customer_count: number
   /** agent_direct + agent_diff received as beneficiary. */
   agent_profit_total: number
@@ -281,6 +286,27 @@ export async function previewInviter(
   return data
 }
 
+/**
+ * Sets (ownerId) or clears (null) a level-2 agent's level-1 upline. Only affects
+ * customers they invite afterwards and their own usage.
+ */
+export async function setAgentOwner(
+  userId: number,
+  ownerId: number | null,
+): Promise<{ user_id: number; agent_owner_id: number | null }> {
+  const { data } = await apiClient.put<{ user_id: number; agent_owner_id: number | null }>(
+    `/admin/affiliates/users/${userId}/agent-owner`,
+    { owner_id: ownerId },
+  )
+  return data
+}
+
+/** Searches current level-1 agents, shaped like lookupUsers results. */
+export async function lookupTopAgents(q: string): Promise<SimpleUser[]> {
+  const page = await listUsers({ search: q, agent_level: 1, page: 1, page_size: 10 })
+  return page.items.map((e) => ({ id: e.user_id, email: e.email, username: e.username }))
+}
+
 export async function lookupUsers(
   q: string,
   options: { signal?: AbortSignal } = {},
@@ -428,6 +454,8 @@ export const affiliatesAPI = {
   listUsers,
   listUserCustomers,
   previewInviter,
+  setAgentOwner,
+  lookupTopAgents,
   lookupUsers,
   bindInviter,
   updateUserSettings,

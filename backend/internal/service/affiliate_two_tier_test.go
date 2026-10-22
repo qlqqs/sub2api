@@ -92,6 +92,9 @@ func (r *fakeAffiliateRepo) BindInviter(_ context.Context, userID, inviterID int
 	row.AgentOwnerID = binding.Owner.OwnerID
 	row.AgentOwnerLevel = binding.Owner.OwnerLevel
 	row.AgentUplineID = binding.Owner.UplineID
+	row.AgentOwnerBoundAt = &now
+	row.AgentOwnerSetBy = nil
+	row.InviterWasAgent = binding.InviterWasAgent
 	row.RebateSettledAt = now
 	r.row(inviterID).AffCount++
 	return &AffiliateInviterBindingResult{InviteeID: userID, InviterID: inviterID, BoundAt: now, Source: binding.Source}, true, nil
@@ -279,6 +282,26 @@ func (r *fakeAffiliateRepo) SetAgentLevelByAgent(_ context.Context, targetID int
 	row.AgentLevelLocked = locked
 	op := appointerID
 	row.AgentLevelUpdatedBy = &op
+	return nil
+}
+
+func (r *fakeAffiliateRepo) SetAgentOwnerByAdmin(_ context.Context, userID int64, ownerID *int64, adminID int64) error {
+	row := r.row(userID)
+	if row.InviterID == nil && row.AgentOwnerID == nil {
+		row.RebateSettledAt = time.Now()
+	}
+	row.AgentOwnerID = ownerID
+	row.AgentUplineID = nil
+	row.AgentOwnerLevel = nil
+	row.AgentOwnerBoundAt = nil
+	if ownerID != nil {
+		level := AffiliateAgentLevelTop
+		now := time.Now()
+		row.AgentOwnerLevel = &level
+		row.AgentOwnerBoundAt = &now
+	}
+	op := adminID
+	row.AgentOwnerSetBy = &op
 	return nil
 }
 
@@ -1055,4 +1078,103 @@ func TestSettleConsumptionRebates_DistributesAndAdvancesWatermark(t *testing.T) 
 	require.Equal(t, map[int64]float64{userA: 10, userB: 5}, rewardsBySource(repo, from, userU2))
 	require.InDelta(t, 50, repo.advances[userU2], 1e-9)
 	require.NotNil(t, repo.ledger[from].source.UsageUntil)
+}
+
+func TestAdminSetAgentOwner_AffectsNewCustomersAndOwnConsumptionOnly(t *testing.T) {
+	t.Parallel()
+	repo := newFakeAffiliateRepo()
+	for _, id := range []int64{1, 2, 3, 4, 5, 6} {
+		repo.row(id)
+	}
+	svc, _ := newTwoTierService(repo, nil)
+	ctx := context.Background()
+	// 2 没有邀请人就被设为二级：没有上级一级。
+	setLevel(t, svc, 1, 1)
+	setLevel(t, svc, 2, 2)
+	bind(t, svc, 3, 2)
+	require.Nil(t, repo.rows[3].AgentUplineID)
+	require.Equal(t, map[int64]float64{2: 30}, consume(t, svc, repo, 3, 100))
+	require.Empty(t, consume(t, svc, repo, 2, 100))
+
+	owner := int64(1)
+	require.NoError(t, svc.AdminSetAgentOwner(ctx, 2, &owner, 99))
+	a := repo.rows[2]
+	require.Equal(t, int64(1), *a.AgentOwnerID)
+	require.Equal(t, AffiliateAgentLevelTop, *a.AgentOwnerLevel)
+	require.Equal(t, int64(99), *a.AgentOwnerSetBy)
+	require.Nil(t, a.InviterID, "invite relation is untouched")
+
+	// 已有客户 3 的快照不变；新客户 4 的上方一级为 1；2 本人消费归 1。
+	require.Equal(t, map[int64]float64{2: 30}, consume(t, svc, repo, 3, 100))
+	bind(t, svc, 4, 2)
+	require.Equal(t, int64(1), *repo.rows[4].AgentUplineID)
+	require.Equal(t, map[int64]float64{2: 20, 1: 10}, consume(t, svc, repo, 4, 100))
+	require.Equal(t, map[int64]float64{1: 30}, consume(t, svc, repo, 2, 100))
+
+	// 更换为 5，再清除。
+	setLevel(t, svc, 5, 1)
+	newOwner := int64(5)
+	require.NoError(t, svc.AdminSetAgentOwner(ctx, 2, &newOwner, 99))
+	bind(t, svc, 6, 2)
+	require.Equal(t, int64(5), *repo.rows[6].AgentUplineID)
+	require.Equal(t, int64(1), *repo.rows[4].AgentUplineID)
+	require.NoError(t, svc.AdminSetAgentOwner(ctx, 2, nil, 99))
+	require.Nil(t, repo.rows[2].AgentOwnerID)
+	require.Nil(t, repo.rows[2].AgentOwnerLevel)
+	require.Empty(t, consume(t, svc, repo, 2, 100))
+}
+
+func TestAdminSetAgentOwner_Rejections(t *testing.T) {
+	t.Parallel()
+	repo := newFakeAffiliateRepo()
+	for _, id := range []int64{1, 2, 3, 4} {
+		repo.row(id)
+	}
+	svc, _ := newTwoTierService(repo, nil)
+	ctx := context.Background()
+	setLevel(t, svc, 1, 1)
+	setLevel(t, svc, 2, 2)
+	ptr := func(v int64) *int64 { return &v }
+
+	require.ErrorIs(t, svc.AdminSetAgentOwner(ctx, 3, ptr(1), 99), ErrAffiliateAgentOwnerTargetInvalid, "target must be level 2")
+	require.ErrorIs(t, svc.AdminSetAgentOwner(ctx, 2, ptr(3), 99), ErrAffiliateAgentOwnerInvalid, "owner must be level 1")
+	require.ErrorIs(t, svc.AdminSetAgentOwner(ctx, 2, ptr(2), 99), ErrAffiliateSelfInvite)
+	repo.deleted[1] = true
+	require.ErrorIs(t, svc.AdminSetAgentOwner(ctx, 2, ptr(1), 99), ErrAffiliateAgentOwnerInvalid, "deleted owner")
+	delete(repo.deleted, 1)
+
+	// 4 是一级，归属 2（二级）：把 2 挂到 4 下会成环。
+	setLevel(t, svc, 4, 1)
+	four := repo.rows[4]
+	two := int64(2)
+	four.AgentOwnerID = &two
+	require.ErrorIs(t, svc.AdminSetAgentOwner(ctx, 2, ptr(4), 99), ErrAffiliateCycle)
+	require.Nil(t, repo.rows[2].AgentOwnerID)
+}
+
+func TestAdminSetAgentOwner_KeepsInviteRewardEligibilityFromBind(t *testing.T) {
+	t.Parallel()
+	repo := newFakeAffiliateRepo()
+	for _, id := range []int64{1, 2, 3, 4, 5} {
+		repo.row(id)
+	}
+	svc, _ := newTwoTierService(repo, map[string]string{
+		SettingKeyAffiliateInviteRewardMode: AffiliateInviteRewardModePercent,
+		SettingKeyAffiliateInviteRewardRate: "5",
+	})
+	ctx := context.Background()
+	setLevel(t, svc, 1, 1)
+	setLevel(t, svc, 5, 1)
+	// 2 由一级 1 直接邀请后升为二级：邀请人是代理，不拿普通邀请奖励。
+	bind(t, svc, 2, 1)
+	setLevel(t, svc, 2, 2)
+	owner := int64(5)
+	require.NoError(t, svc.AdminSetAgentOwner(ctx, 2, &owner, 99))
+	require.Equal(t, map[int64]float64{5: 30}, consume(t, svc, repo, 2, 100))
+
+	// 4 由普通用户 3 邀请后被设为二级：改归属后 3 仍拿普通邀请奖励。
+	bind(t, svc, 4, 3)
+	setLevel(t, svc, 4, 2)
+	require.NoError(t, svc.AdminSetAgentOwner(ctx, 4, &owner, 99))
+	require.Equal(t, map[int64]float64{5: 30, 3: 5}, consume(t, svc, repo, 4, 100))
 }

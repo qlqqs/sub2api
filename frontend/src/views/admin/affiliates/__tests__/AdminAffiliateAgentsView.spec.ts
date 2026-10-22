@@ -10,6 +10,8 @@ const {
   clearUserSettings,
   batchSetAgentLevel,
   listUserCustomers,
+  setAgentOwner,
+  lookupTopAgents,
   routerPush,
   showError,
   showSuccess,
@@ -20,6 +22,8 @@ const {
   clearUserSettings: vi.fn(),
   batchSetAgentLevel: vi.fn(),
   listUserCustomers: vi.fn(),
+  setAgentOwner: vi.fn(),
+  lookupTopAgents: vi.fn(),
   routerPush: vi.fn(),
   showError: vi.fn(),
   showSuccess: vi.fn(),
@@ -33,6 +37,8 @@ vi.mock('@/api/admin/affiliates', () => {
     clearUserSettings,
     batchSetAgentLevel,
     listUserCustomers,
+    setAgentOwner,
+    lookupTopAgents,
   }
   return { affiliatesAPI, default: affiliatesAPI }
 })
@@ -107,6 +113,9 @@ function entry(overrides: Record<string, unknown> = {}) {
     agent_upline_id: null,
     agent_upline_email: '',
     agent_upline_deleted: false,
+    agent_owner_bound_at: null,
+    agent_owner_set_by: null,
+    agent_owner_set_by_email: '',
     owned_customer_count: 15,
     agent_profit_total: 96,
     ...overrides,
@@ -277,6 +286,86 @@ describe('AdminAffiliateAgentsView', () => {
 
     expect(updateUserSettings).toHaveBeenCalledWith(42, { agent_level: 1 })
     expect(listUsers).toHaveBeenCalledTimes(2)
+    wrapper.unmount()
+    vi.useRealTimers()
+  })
+
+  it('sets, changes and clears a level-2 agent upline', async () => {
+    vi.useFakeTimers()
+    listUsers.mockResolvedValue(page([
+      entry({ user_id: 2, agent_owner_id: null, agent_owner_email: '', agent_owner_level: null }),
+      entry({ user_id: 3, email: 'c@x.com', agent_level: 1, agent_owner_id: null, agent_owner_email: '', agent_owner_level: null }),
+    ]))
+    lookupTopAgents.mockResolvedValue([{ id: 9, email: 'top@x.com', username: 'top' }])
+    setAgentOwner.mockResolvedValue({ user_id: 2, agent_owner_id: 9 })
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    // 只有二级代理行有设置上级入口；没有上级时显示「无上级一级」。
+    const buttons = wrapper.findAll('[data-test="agent-upline-open"]')
+    expect(buttons).toHaveLength(1)
+    expect(wrapper.get('[data-test="row-0"] [data-test="cell-owner"]').text()).toContain('admin.affiliates.agents.upline.none')
+    expect(buttons[0].text()).toBe('admin.affiliates.agents.upline.set')
+
+    await buttons[0].trigger('click')
+    expect(wrapper.get('[data-test="agent-upline-submit"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('[data-test="agent-upline-clear"]').exists()).toBe(false)
+    await wrapper.get('[data-test="agent-upline-select-input"]').setValue('top')
+    vi.advanceTimersByTime(300)
+    await flushPromises()
+    expect(lookupTopAgents).toHaveBeenCalledWith('top')
+    await wrapper.get('[data-test="agent-upline-select-option"]').trigger('click')
+    await wrapper.get('[data-test="agent-upline-submit"]').trigger('click')
+    await flushPromises()
+    expect(setAgentOwner).toHaveBeenCalledWith(2, 9)
+    expect(showSuccess).toHaveBeenCalled()
+
+    // 已有上级：显示设置人，可以清除。
+    listUsers.mockResolvedValue(page([
+      entry({ user_id: 2, agent_owner_id: 9, agent_owner_email: 'top@x.com', agent_owner_set_by: 1, agent_owner_set_by_email: 'admin@x.com', agent_owner_bound_at: '2026-10-22T10:00:00Z' }),
+    ]))
+    await wrapper.vm.$nextTick()
+    setAgentOwner.mockClear()
+    const reloaded = mountView()
+    await flushPromises()
+    expect(reloaded.get('[data-test="agent-upline-open"]').text()).toBe('admin.affiliates.agents.upline.change')
+    expect(reloaded.get('[data-test="cell-owner"] [title]').attributes('title')).toContain('admin@x.com')
+    await reloaded.get('[data-test="agent-upline-open"]').trigger('click')
+    await reloaded.get('[data-test="agent-upline-clear"]').setValue(true)
+    await reloaded.get('[data-test="agent-upline-submit"]').trigger('click')
+    await flushPromises()
+    expect(setAgentOwner).toHaveBeenCalledWith(2, null)
+
+    wrapper.unmount()
+    reloaded.unmount()
+    vi.useRealTimers()
+  })
+
+  it('sets the upline right after creating a level-2 agent', async () => {
+    vi.useFakeTimers()
+    listUsers.mockResolvedValue(page([]))
+    lookupUsers.mockResolvedValue([{ id: 42, email: 'new@x.com', username: 'new' }])
+    lookupTopAgents.mockResolvedValue([{ id: 9, email: 'top@x.com', username: 'top' }])
+    updateUserSettings.mockResolvedValue({ user_id: 42 })
+    setAgentOwner.mockResolvedValue({ user_id: 42, agent_owner_id: 9 })
+
+    const wrapper = mountView()
+    await flushPromises()
+    await wrapper.get('[data-test="agents-add-open"]').trigger('click')
+    await wrapper.get('[data-test="agent-add-user-input"]').setValue('new')
+    vi.advanceTimersByTime(300)
+    await flushPromises()
+    await wrapper.get('[data-test="agent-add-user-option"]').trigger('click')
+    await wrapper.get('[data-test="agent-add-upline-input"]').setValue('top')
+    vi.advanceTimersByTime(300)
+    await flushPromises()
+    await wrapper.get('[data-test="agent-add-upline-option"]').trigger('click')
+    await wrapper.get('[data-test="agent-add-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(updateUserSettings).toHaveBeenCalledWith(42, { agent_level: 2 })
+    expect(setAgentOwner).toHaveBeenCalledWith(42, 9)
     wrapper.unmount()
     vi.useRealTimers()
   })

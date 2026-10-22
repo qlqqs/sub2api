@@ -90,6 +90,10 @@ type AffiliateSummary struct {
 	AgentOwnerLevel   *int       `json:"agent_owner_level,omitempty"`
 	AgentUplineID     *int64     `json:"agent_upline_id,omitempty"`
 	AgentOwnerBoundAt *time.Time `json:"agent_owner_bound_at,omitempty"`
+	// AgentOwnerSetBy：最近一次由管理员改归属的操作人（绑定写入时为空）。
+	AgentOwnerSetBy *int64 `json:"agent_owner_set_by,omitempty"`
+	// InviterWasAgent：绑定时邀请人是否为代理，绑定时写死；为 true 时不发普通邀请奖励。
+	InviterWasAgent bool `json:"-"`
 	// RebateSettledAt / RebateSettledConsumption 是按消费结算返利的水位。
 	RebateSettledAt          time.Time `json:"-"`
 	RebateSettledConsumption float64   `json:"-"`
@@ -125,6 +129,8 @@ type AffiliateInviterBinding struct {
 	Reason  *string
 	// Owner 是绑定时解析出的分润结构快照，与邀请人一起写入。
 	Owner AffiliateOwnerSnapshot
+	// InviterWasAgent：绑定时邀请人是否为代理（即归属代理就是邀请人）。
+	InviterWasAgent bool
 }
 
 // AffiliateOwnerSnapshot 是一条邀请关系在绑定时写死的分润结构：归属代理、归属代理
@@ -277,6 +283,9 @@ type AffiliateRepository interface {
 	SetAgentLevelManual(ctx context.Context, userIDs []int64, level int, operatorID int64) error
 	// GetAffiliateForUpdate 在事务内锁定并读取用户的 user_affiliates 行。
 	GetAffiliateForUpdate(ctx context.Context, userID int64) (*AffiliateSummary, error)
+	// SetAgentOwnerByAdmin 管理员改写某用户自己的归属快照：ownerID 为一级代理（档位记 1、上方一级清空）
+	// 或 nil（清除）；记录操作人与时间，不改邀请关系。
+	SetAgentOwnerByAdmin(ctx context.Context, userID int64, ownerID *int64, adminID int64) error
 	// SetAgentLevelByAgent 一级代理任命 / 取消二级：来源记为 agent，locked 控制是否锁定自动升级。
 	SetAgentLevelByAgent(ctx context.Context, targetID int64, level int, appointerID int64, locked bool) error
 	// CountAgentAppointments 统计某一级代理当前任命的二级人数。
@@ -331,8 +340,12 @@ type AffiliateAdminEntry struct {
 	AgentLevelUpdatedBy      *int64   `json:"agent_level_updated_by"`
 	AgentLevelUpdatedByEmail string   `json:"agent_level_updated_by_email"`
 	AffiliateAgentRef
-	OwnedCustomerCount int     `json:"owned_customer_count"`
-	AgentProfitTotal   float64 `json:"agent_profit_total"`
+	// AgentOwnerBoundAt / AgentOwnerSetBy*：归属写入时间与管理员操作人（绑定写入时操作人为空）。
+	AgentOwnerBoundAt    *time.Time `json:"agent_owner_bound_at"`
+	AgentOwnerSetBy      *int64     `json:"agent_owner_set_by"`
+	AgentOwnerSetByEmail string     `json:"agent_owner_set_by_email"`
+	OwnedCustomerCount   int        `json:"owned_customer_count"`
+	AgentProfitTotal     float64    `json:"agent_profit_total"`
 }
 
 // AffiliateAgentCustomer 是归属某代理（owner）或以其为上方一级（upline）的客户。

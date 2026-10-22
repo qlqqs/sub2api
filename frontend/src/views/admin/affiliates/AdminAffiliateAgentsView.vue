@@ -98,11 +98,23 @@
             </div>
           </template>
           <template #cell-owner="{ row }">
-            <span v-if="row.agent_owner_id == null" class="text-sm text-gray-400 dark:text-dark-500">—</span>
-            <span v-else-if="row.agent_owner_deleted" class="text-sm text-gray-400 dark:text-dark-500" data-test="agent-owner-deleted">{{ t('admin.affiliates.deleted') }}</span>
-            <div v-else class="space-y-0.5">
-              <div class="max-w-56 truncate text-sm text-gray-700 dark:text-gray-300">{{ row.agent_owner_email || '#' + row.agent_owner_id }}</div>
-              <div v-if="row.agent_owner_level" class="text-xs text-gray-400 dark:text-dark-500">{{ levelShort(row.agent_owner_level) }}</div>
+            <div class="space-y-0.5">
+              <span v-if="row.agent_owner_id == null" class="text-sm text-gray-400 dark:text-dark-500">{{ row.agent_level === 2 ? t('admin.affiliates.agents.upline.none') : '—' }}</span>
+              <span v-else-if="row.agent_owner_deleted" class="text-sm text-gray-400 dark:text-dark-500" data-test="agent-owner-deleted">{{ t('admin.affiliates.deleted') }}</span>
+              <template v-else>
+                <div class="max-w-56 truncate text-sm text-gray-700 dark:text-gray-300" :title="ownerSetByTitle(row)">{{ row.agent_owner_email || '#' + row.agent_owner_id }}</div>
+                <div v-if="row.agent_owner_level" class="text-xs text-gray-400 dark:text-dark-500">{{ levelShort(row.agent_owner_level) }}</div>
+              </template>
+              <!-- CUSTOM: 管理员为二级代理设置 / 更换上级一级代理 -->
+              <button
+                v-if="row.agent_level === 2"
+                type="button"
+                class="text-xs text-primary-600 hover:underline dark:text-primary-400"
+                data-test="agent-upline-open"
+                @click="openUplineDialog(row)"
+              >
+                {{ row.agent_owner_id == null ? t('admin.affiliates.agents.upline.set') : t('admin.affiliates.agents.upline.change') }}
+              </button>
             </div>
           </template>
           <template #cell-aff_count="{ row }">
@@ -266,6 +278,21 @@
           </select>
           <p class="mt-1 text-xs text-gray-400">{{ t('admin.affiliates.agents.addDialog.hint') }}</p>
         </div>
+        <div v-if="addDialog.level === 2">
+          <AffiliateUserLookup
+            input-id="agent-add-upline"
+            :label="t('admin.affiliates.agents.addDialog.upline')"
+            :placeholder="t('admin.affiliates.agents.upline.selectPlaceholder')"
+            :clear-label="t('admin.affiliates.agents.upline.changeSelection')"
+            :empty-text="t('admin.affiliates.agents.upline.noAgentFound')"
+            :selected="addDialog.upline"
+            :search="searchTopAgents"
+            test-id="agent-add-upline"
+            @select="addDialog.upline = $event"
+            @clear="addDialog.upline = null"
+          />
+          <p class="mt-1 text-xs text-gray-400">{{ t('admin.affiliates.agents.addDialog.uplineHint') }}</p>
+        </div>
       </div>
       <template #footer>
         <button type="button" class="btn btn-secondary" :disabled="addDialog.saving" @click="closeAddDialog">{{ t('common.cancel') }}</button>
@@ -282,6 +309,56 @@
     </BaseDialog>
 
     <!-- 批量设等级 -->
+    <!-- CUSTOM: 设置上级一级代理 -->
+    <BaseDialog :show="upline.open" :title="t('admin.affiliates.agents.upline.dialogTitle')" width="normal" @close="closeUplineDialog">
+      <div v-if="upline.entry" class="space-y-4" data-test="agent-upline-form">
+        <div>
+          <span class="input-label">{{ t('admin.affiliates.agents.upline.agent') }}</span>
+          <p class="text-sm font-medium text-gray-900 dark:text-white">{{ upline.entry.email }} <span class="text-xs text-gray-500">#{{ upline.entry.user_id }}</span></p>
+        </div>
+        <div>
+          <span class="input-label">{{ t('admin.affiliates.agents.upline.current') }}</span>
+          <p class="text-sm text-gray-700 dark:text-gray-300" data-test="agent-upline-current">
+            <template v-if="upline.entry.agent_owner_id == null">{{ t('admin.affiliates.agents.upline.none') }}</template>
+            <template v-else-if="upline.entry.agent_owner_deleted">{{ t('admin.affiliates.deleted') }}</template>
+            <template v-else>{{ upline.entry.agent_owner_email || '#' + upline.entry.agent_owner_id }}</template>
+          </p>
+        </div>
+        <template v-if="!upline.clear">
+          <AffiliateUserLookup
+            input-id="agent-upline-select"
+            :label="t('admin.affiliates.agents.upline.select')"
+            :placeholder="t('admin.affiliates.agents.upline.selectPlaceholder')"
+            :clear-label="t('admin.affiliates.agents.upline.changeSelection')"
+            :empty-text="t('admin.affiliates.agents.upline.noAgentFound')"
+            :selected="upline.selected"
+            :search="searchTopAgents"
+            test-id="agent-upline-select"
+            @select="upline.selected = $event"
+            @clear="upline.selected = null"
+          />
+          <p class="text-xs text-gray-400">{{ t('admin.affiliates.agents.upline.hint') }}</p>
+        </template>
+        <p v-else class="text-xs text-amber-600 dark:text-amber-400">{{ t('admin.affiliates.agents.upline.clearHint') }}</p>
+        <label v-if="upline.entry.agent_owner_id != null" class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+          <input v-model="upline.clear" type="checkbox" data-test="agent-upline-clear" />
+          {{ t('admin.affiliates.agents.upline.clear') }}
+        </label>
+      </div>
+      <template #footer>
+        <button type="button" class="btn btn-secondary" :disabled="upline.saving" @click="closeUplineDialog">{{ t('common.cancel') }}</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          :disabled="upline.saving || !uplineCanSubmit"
+          data-test="agent-upline-submit"
+          @click="submitUpline"
+        >
+          {{ upline.saving ? t('common.saving') : t('admin.affiliates.agents.upline.submit') }}
+        </button>
+      </template>
+    </BaseDialog>
+
     <BaseDialog :show="batch.open" :title="t('admin.affiliates.agents.batchDialog.title', { count: selectedIds.length })" width="narrow" @close="batch.open = false">
       <div class="space-y-2">
         <select v-model.number="batch.level" class="input" :aria-label="t('admin.affiliates.agents.adjustDialog.level')" data-test="agents-batch-level">
@@ -701,16 +778,18 @@ function submitAdjust() {
 }
 
 // ---------- + 设置代理 ----------
-const addDialog = reactive<{ open: boolean; saving: boolean; user: SimpleUser | null; level: 1 | 2 }>({
+const addDialog = reactive<{ open: boolean; saving: boolean; user: SimpleUser | null; level: 1 | 2; upline: SimpleUser | null }>({
   open: false,
   saving: false,
   user: null,
   level: 2,
+  upline: null,
 })
 
 function openAddDialog() {
   addDialog.user = null
   addDialog.level = 2
+  addDialog.upline = null
   addDialog.open = true
 }
 
@@ -723,6 +802,17 @@ async function submitAddDialog() {
   addDialog.saving = true
   try {
     await affiliatesAPI.updateUserSettings(addDialog.user.id, { agent_level: addDialog.level })
+    if (addDialog.level === 2 && addDialog.upline) {
+      try {
+        await affiliatesAPI.setAgentOwner(addDialog.user.id, addDialog.upline.id)
+      } catch (error) {
+        // 等级已保存：关闭对话框并刷新，提示上级未设置成功，可在列表里重试。
+        showError(error)
+        addDialog.open = false
+        reloadFromFirstPage()
+        return
+      }
+    }
     appStore.showSuccess(t('common.saved'))
     addDialog.open = false
     reloadFromFirstPage()
@@ -730,6 +820,57 @@ async function submitAddDialog() {
     showError(error)
   } finally {
     addDialog.saving = false
+  }
+}
+
+// ---------- 上级一级代理（CUSTOM） ----------
+const searchTopAgents = (keyword: string) => affiliatesAPI.lookupTopAgents(keyword)
+
+const upline = reactive<{ open: boolean; saving: boolean; entry: AffiliateAdminEntry | null; selected: SimpleUser | null; clear: boolean }>({
+  open: false,
+  saving: false,
+  entry: null,
+  selected: null,
+  clear: false,
+})
+
+const uplineCanSubmit = computed(() => {
+  if (!upline.entry) return false
+  if (upline.clear) return upline.entry.agent_owner_id != null
+  return upline.selected != null && upline.selected.id !== upline.entry.agent_owner_id
+})
+
+function ownerSetByTitle(row: AffiliateAdminEntry): string | undefined {
+  if (!row.agent_owner_set_by || !row.agent_owner_bound_at) return undefined
+  return t('admin.affiliates.agents.upline.setByAdmin', {
+    email: row.agent_owner_set_by_email || '#' + row.agent_owner_set_by,
+    time: formatDateTime(row.agent_owner_bound_at),
+  })
+}
+
+function openUplineDialog(entry: AffiliateAdminEntry) {
+  upline.entry = entry
+  upline.selected = null
+  upline.clear = false
+  upline.open = true
+}
+
+function closeUplineDialog() {
+  if (!upline.saving) upline.open = false
+}
+
+async function submitUpline() {
+  if (!upline.entry || upline.saving || !uplineCanSubmit.value) return
+  upline.saving = true
+  try {
+    await affiliatesAPI.setAgentOwner(upline.entry.user_id, upline.clear ? null : upline.selected!.id)
+    appStore.showSuccess(t('common.saved'))
+    upline.open = false
+    await loadEntries()
+  } catch (error) {
+    showError(error)
+  } finally {
+    upline.saving = false
   }
 }
 

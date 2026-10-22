@@ -271,6 +271,10 @@ func (r *paymentFulfillmentAffiliateRepoStub) SetAgentLevelByAgent(context.Conte
 	panic("unexpected SetAgentLevelByAgent call")
 }
 
+func (r *paymentFulfillmentAffiliateRepoStub) SetAgentOwnerByAdmin(context.Context, int64, *int64, int64) error {
+	panic("unexpected SetAgentOwnerByAdmin call")
+}
+
 func (r *paymentFulfillmentAffiliateRepoStub) CountAgentAppointments(context.Context, int64) (int, error) {
 	panic("unexpected CountAgentAppointments call")
 }

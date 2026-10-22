@@ -429,6 +429,9 @@ export default {
       errors: {
         AFFILIATE_LEVEL2_RATE_EXCEEDS_POOL: 'The level-2 rate cannot exceed the profit pool',
         AFFILIATE_CYCLE: 'This binding would create an invite cycle',
+        AFFILIATE_SELF_INVITE: 'You cannot select the user themselves',
+        AFFILIATE_AGENT_OWNER_TARGET_INVALID: 'Only level-2 agents can have a level-1 upline',
+        AFFILIATE_AGENT_OWNER_INVALID: 'The upline must be an active level-1 agent',
         AFFILIATE_ALREADY_BOUND: 'This user already has an inviter',
         loadFailed: 'Failed to load affiliate records',
         AFFILIATE_QUOTA_INSUFFICIENT: 'Insufficient available affiliate quota',
@@ -588,7 +591,26 @@ export default {
           changeUser: 'Change user',
           level: 'Agent level',
           hint: 'Takes effect immediately and only affects users bound afterwards.',
+          upline: 'Level-1 upline (optional)',
+          uplineHint: 'The level-1 upline earns the difference on this level-2 agent\'s customers; without one, the level-2 agent keeps the full pool.',
           submit: 'Confirm'
+        },
+        upline: {
+          none: 'No level-1 upline',
+          set: 'Set upline',
+          change: 'Change',
+          setByAdmin: 'Set by {email} at {time}',
+          dialogTitle: 'Set level-1 upline',
+          agent: 'Level-2 agent',
+          current: 'Current upline',
+          select: 'Level-1 upline',
+          selectPlaceholder: 'Search level-1 agents by email or username',
+          noAgentFound: 'No matching level-1 agents',
+          changeSelection: 'Choose again',
+          clear: 'Clear upline',
+          hint: 'Only affects customers they invite from now on and their own usage. Existing customers and the invite relation stay unchanged.',
+          clearHint: 'After clearing, their new customers give them the full pool and their own usage earns no agent profit.',
+          submit: 'Save'
         },
         batchDialog: {
           title: 'Batch Set Level ({count} users selected)',

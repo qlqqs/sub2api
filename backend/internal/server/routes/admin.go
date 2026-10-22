@@ -836,6 +836,7 @@ func registerAffiliateRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 			users.GET("/:user_id/customers", h.Admin.Affiliate.ListAgentCustomers)
 			users.GET("/:user_id/inviter/preview", h.Admin.Affiliate.PreviewInviterBinding)
 			users.POST("/:user_id/inviter", h.Admin.Affiliate.BindInviter)
+			users.PUT("/:user_id/agent-owner", h.Admin.Affiliate.SetAgentOwner)
 			users.POST("/:user_id/withdraw", h.Admin.Affiliate.WithdrawQuota)
 			users.PUT("/:user_id", h.Admin.Affiliate.UpdateUserSettings)
 			users.DELETE("/:user_id", h.Admin.Affiliate.ClearUserSettings)

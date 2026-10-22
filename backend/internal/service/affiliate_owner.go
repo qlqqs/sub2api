@@ -144,6 +144,7 @@ func (s *AffiliateService) bindInviterWithOwner(ctx context.Context, inviteeID, 
 			return err
 		}
 		binding.Owner = snapshot
+		binding.InviterWasAgent = snapshot.OwnerID != nil && *snapshot.OwnerID == inviterID
 		result, bound, err = s.repo.BindInviter(txCtx, inviteeID, inviterID, binding)
 		return err
 	})

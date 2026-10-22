@@ -63,7 +63,7 @@
 import { onUnmounted, ref } from 'vue'
 import { affiliatesAPI, type SimpleUser } from '@/api/admin/affiliates'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   inputId: string
   label?: string
   placeholder?: string
@@ -71,7 +71,10 @@ withDefaults(defineProps<{
   emptyText?: string
   selected: SimpleUser | null
   testId?: string
+  /** Custom search source; defaults to the generic admin user lookup. */
+  search?: (keyword: string, options: { signal: AbortSignal }) => Promise<SimpleUser[]>
 }>(), {
+  search: undefined,
   label: '',
   placeholder: '',
   clearLabel: '',
@@ -114,7 +117,8 @@ function scheduleSearch() {
     controller = new AbortController()
     searching.value = true
     try {
-      const users = await affiliatesAPI.lookupUsers(keyword, { signal: controller.signal })
+      const search = props.search ?? affiliatesAPI.lookupUsers
+      const users = await search(keyword, { signal: controller.signal })
       if (current === sequence) results.value = users
     } catch {
       if (current === sequence) results.value = []

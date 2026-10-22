@@ -310,3 +310,84 @@ func TestAffiliateRepository_AgentAppointmentsAndLevelFilter(t *testing.T) {
 	require.True(t, summary.AgentLevelLocked)
 	require.Equal(t, appointer.ID, *summary.AgentLevelUpdatedBy)
 }
+
+func TestAffiliateRepository_SetAgentOwnerByAdminAndInviterWasAgent(t *testing.T) {
+	ctx := context.Background()
+	tx := testEntTx(t)
+	txCtx := dbent.NewTxContext(ctx, tx)
+	client := tx.Client()
+	repo := NewAffiliateRepository(client, integrationDB)
+
+	top := mustCreateAffiliateWithdrawUser(t, client, "owner-top")
+	admin := mustCreateAffiliateWithdrawUser(t, client, "owner-admin")
+	agent := mustCreateAffiliateWithdrawUser(t, client, "owner-agent")
+	invited := mustCreateAffiliateWithdrawUser(t, client, "owner-invited")
+	account := mustCreateAccount(t, client, &service.Account{Name: fmt.Sprintf("owner-%d", time.Now().UnixNano())})
+	apiKey := mustCreateApiKey(t, client, &service.APIKey{UserID: agent.ID, Name: "owner", Key: fmt.Sprintf("sk-owner-%d", time.Now().UnixNano())})
+
+	// 绑定写入 inviter_was_agent。
+	level := 1
+	_, bound, err := repo.BindInviter(txCtx, invited.ID, top.ID, service.AffiliateInviterBinding{
+		Source: "registration", InviterWasAgent: true,
+		Owner: service.AffiliateOwnerSnapshot{OwnerID: &top.ID, OwnerLevel: &level},
+	})
+	require.NoError(t, err)
+	require.True(t, bound)
+	summary, err := repo.EnsureUserAffiliate(txCtx, invited.ID)
+	require.NoError(t, err)
+	require.True(t, summary.InviterWasAgent)
+	require.Nil(t, summary.AgentOwnerSetBy)
+
+	// agent 没有邀请人也没有归属：不在待结算列表里，水位停在很久以前。
+	_, err = repo.EnsureUserAffiliate(txCtx, agent.ID)
+	require.NoError(t, err)
+	_, err = client.ExecContext(txCtx, "UPDATE user_affiliates SET rebate_settled_at = NOW() - interval '30 days' WHERE user_id = $1", agent.ID)
+	require.NoError(t, err)
+	mustInsertUsageLog(t, txCtx, client, agent.ID, apiKey.ID, account.ID, 10, service.BillingTypeBalance, time.Now().Add(-2*time.Hour))
+	pending, err := repo.ListUsersWithPendingConsumption(txCtx, time.Minute, 100)
+	require.NoError(t, err)
+	require.NotContains(t, pending, agent.ID)
+
+	// 设置上级：写快照与操作人，水位移到当前（不补发设置前的消费），不改邀请关系。
+	require.NoError(t, repo.SetAgentOwnerByAdmin(txCtx, agent.ID, &top.ID, admin.ID))
+	summary, err = repo.EnsureUserAffiliate(txCtx, agent.ID)
+	require.NoError(t, err)
+	require.Nil(t, summary.InviterID)
+	require.Equal(t, top.ID, *summary.AgentOwnerID)
+	require.Equal(t, 1, *summary.AgentOwnerLevel)
+	require.Nil(t, summary.AgentUplineID)
+	require.Equal(t, admin.ID, *summary.AgentOwnerSetBy)
+	require.NotNil(t, summary.AgentOwnerBoundAt)
+	require.WithinDuration(t, time.Now(), summary.RebateSettledAt, time.Minute)
+	pending, err = repo.ListUsersWithPendingConsumption(txCtx, time.Minute, 100)
+	require.NoError(t, err)
+	require.NotContains(t, pending, agent.ID, "consumption before the owner was set is not settled")
+
+	// 已有归属时更换不移动水位；之后的消费会进入待结算。
+	_, err = client.ExecContext(txCtx, "UPDATE user_affiliates SET rebate_settled_at = NOW() - interval '1 day' WHERE user_id = $1", agent.ID)
+	require.NoError(t, err)
+	require.NoError(t, repo.SetAgentOwnerByAdmin(txCtx, agent.ID, &top.ID, admin.ID))
+	pending, err = repo.ListUsersWithPendingConsumption(txCtx, time.Minute, 100)
+	require.NoError(t, err)
+	require.Contains(t, pending, agent.ID)
+
+	entries, _, err := repo.ListUsersWithCustomSettings(txCtx, service.AffiliateAdminFilter{OwnerID: top.ID, Page: 1, PageSize: 10})
+	require.NoError(t, err)
+	var found bool
+	for _, e := range entries {
+		if e.UserID == agent.ID {
+			found = true
+			require.Equal(t, admin.Email, e.AgentOwnerSetByEmail)
+			require.NotNil(t, e.AgentOwnerBoundAt)
+		}
+	}
+	require.True(t, found)
+
+	// 清除：快照清空。
+	require.NoError(t, repo.SetAgentOwnerByAdmin(txCtx, agent.ID, nil, admin.ID))
+	summary, err = repo.EnsureUserAffiliate(txCtx, agent.ID)
+	require.NoError(t, err)
+	require.Nil(t, summary.AgentOwnerID)
+	require.Nil(t, summary.AgentOwnerLevel)
+	require.Nil(t, summary.AgentOwnerBoundAt)
+}
