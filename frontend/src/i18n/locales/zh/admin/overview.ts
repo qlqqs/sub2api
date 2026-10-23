@@ -423,9 +423,53 @@ export default {
 
     affiliates: {
       agentsDescription: '管理代理名单、等级、归属关系与专属设置',
+      teamDescription: '按代理查看团队的余额消费与分润',
       invitesDescription: '查看全站邀请关系和被邀请用户累计返利',
       rebatesDescription: '查看每一笔返利入账，包括充值订单、兑换码和管理员充值产生的返利',
       transfersDescription: '查看返利额度转入余额与线下提现的流水',
+      team: {
+        title: '团队消费',
+        summary: {
+          cost: '消费',
+          costShare: '占全站余额消费 {percent}',
+          earnings: '分润',
+          earningsShare: '占团队消费 {percent}'
+        },
+        levels: {
+          all: '全部',
+          level1: '一级',
+          level2: '二级',
+          level2With: '二级 · {name}',
+          noUpline: '无上级',
+          downgraded: '已降级'
+        },
+        columns: {
+          agent: '代理',
+          level: '等级'
+        },
+        meta: {
+          level1: '一级代理',
+          level2: '二级代理',
+          upline: '上级 {name}',
+          downgraded: '已降级 · 代理期间的客户仍产生分润',
+          usage: '使用记录'
+        },
+        empty: {
+          noAgents: '还没有代理',
+          noMatches: '没有匹配的代理'
+        },
+        // 代理视角中替换代理端的文案（第三人称、「收益」改称「分润」）。
+        labels: {
+          directCustomers: '直属客户',
+          earnings: '分润',
+          lifetimeEarnings: '累计分润 {amount}',
+          historicalHint: '已不是 {name} 的二级代理，之前的客户仍为其带来差额分润',
+          searchPlaceholder: '邮箱、昵称或 ID',
+          notFound: '代理或客户不存在',
+          backToSummary: '返回团队消费',
+          deleted: '已删除 #{id}'
+        }
+      },
       errors: {
         AFFILIATE_LEVEL2_RATE_EXCEEDS_POOL: '二级代理比例不能大于利润池',
         AFFILIATE_CYCLE: '绑定会形成循环邀请关系',
@@ -567,6 +611,7 @@ export default {
         adjust: '调整',
         more: '更多操作',
         viewCustomers: '查看客户',
+        viewTeam: '团队消费',
         viewRebates: '查看返利记录',
         clearSettings: '清除专属设置',
         clearTitle: '清除专属设置',

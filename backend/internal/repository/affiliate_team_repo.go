@@ -350,7 +350,10 @@ func (r *affiliateTeamRepository) ListCustomers(ctx context.Context, viewerID in
 		where = "ua.agent_owner_id = " + args.add(query.AgentID) + " AND ua.agent_upline_id = " + viewer
 	}
 	searchSQL := "TRUE"
-	if query.Search != "" {
+	switch {
+	case query.Search != "" && query.AdminSearch:
+		searchSQL = teamAdminSearchSQL(args, query.Search)
+	case query.Search != "":
 		searchSQL = "NOT entries.deleted AND (entries.nickname ILIKE " + args.add("%"+escapeLike(query.Search)+"%") +
 			` ESCAPE '\' OR LOWER(entries.email) = LOWER(` + args.add(query.Search) + "))"
 	}

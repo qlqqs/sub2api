@@ -80,3 +80,21 @@ describe('AppSidebar subscription feature flag', () => {
     expect(componentSource).toMatch(/path: '\/purchase'[^\n]*label: purchaseNavLabel\.value/)
   })
 })
+
+describe('AppSidebar affiliate group', () => {
+  it('lists team spend right after agents inside the feature-gated affiliate group', () => {
+    const group = componentSource.match(/path: '\/admin\/affiliates',[\s\S]*?children: \[([\s\S]*?)\]/)
+    expect(group?.[0]).toContain('featureFlag: flagAffiliate')
+    const children = group?.[1] ?? ''
+    expect(children.indexOf("'/admin/affiliates/agents'")).toBeLessThan(children.indexOf("'/admin/affiliates/team'"))
+    expect(children.indexOf("'/admin/affiliates/team'")).toBeLessThan(children.indexOf("'/admin/affiliates/invites'"))
+    expect(children).toMatch(/path: '\/admin\/affiliates\/team', label: t\('nav\.affiliateTeam'\)/)
+  })
+
+  it('keeps a group expanded and highlights the most specific child on drill-down pages', () => {
+    // /admin/affiliates/team/:viewerId 等下钻页归到最长前缀的子项；同组路径互为前缀时只高亮一项。
+    expect(componentSource).toMatch(/:class="\{ 'sidebar-link-active': activeChildPath\(item\) === child\.path \}"/)
+    expect(componentSource).toMatch(/isActive\(child\.path\) && \(best === null \|\| child\.path\.length > best\.length\)/)
+    expect(componentSource).toMatch(/function isGroupActive\(item: NavItem\): boolean \{\s*return activeChildPath\(item\) !== null/)
+  })
+})

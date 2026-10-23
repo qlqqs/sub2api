@@ -34,6 +34,7 @@ var (
 	ErrAffiliateTeamForbidden    = infraerrors.Forbidden("AFFILIATE_TEAM_FORBIDDEN", "team consumption is only available to agents")
 	ErrAffiliateTeamNotFound     = infraerrors.NotFound("AFFILIATE_TEAM_NOT_FOUND", "customer or agent not found")
 	ErrAffiliateTeamInvalidRange = infraerrors.BadRequest("AFFILIATE_TEAM_INVALID_RANGE", "date range must cover 1 to 90 days")
+	ErrAffiliateTeamUnavailable  = infraerrors.ServiceUnavailable("SERVICE_UNAVAILABLE", "affiliate service unavailable")
 )
 
 // 列表排序白名单；repository 再映射为 SQL 表达式。
@@ -71,9 +72,13 @@ type AffiliateTeamListQuery struct {
 	PageSize int
 	Model    string
 	GroupID  *int64
+	// Level 只用于管理端汇总页：AffiliateTeamLevel* 之一，空串为全部。
+	Level string
+	// AdminSearch 由 service 按受众设置：管理端搜索为昵称 / 邮箱模糊，纯数字时另按用户 ID 精确匹配。
+	AdminSearch bool
 }
 
-// AffiliateTeamUser 是展示给代理的用户：昵称 + 脱敏邮箱；账号已删除时两者都为空。
+// AffiliateTeamUser 是团队页上的用户：昵称 + 邮箱（代理端脱敏，管理端原文）；账号已删除时两者都为空。
 type AffiliateTeamUser struct {
 	UserID   int64  `json:"user_id"`
 	Nickname string `json:"nickname"`
@@ -151,6 +156,8 @@ type AffiliateTeamOverview struct {
 	Trend    []AffiliateTeamTrendPoint     `json:"trend"`
 	Models   []AffiliateTeamModelShare     `json:"models"`
 	Filters  *AffiliateTeamFilters         `json:"filters"`
+	// Subject 只在管理端返回：被查看的代理本人。
+	Subject *AffiliateTeamViewerSubject `json:"subject,omitempty"`
 }
 
 type AffiliateTeamCustomerEntry struct {
@@ -201,7 +208,7 @@ type AffiliateTeamViewerState struct {
 	HasUplineCustomer bool
 }
 
-// AffiliateTeamRepository 是团队消费页的数据端口；返回的邮箱均为原文，由 service 脱敏。
+// AffiliateTeamRepository 是团队消费页的数据端口；返回的邮箱均为原文，由 service 按受众脱敏。
 type AffiliateTeamRepository interface {
 	GetViewerState(ctx context.Context, userID int64) (AffiliateTeamViewerState, error)
 	CountTeam(ctx context.Context, viewerID int64) (AffiliateTeamCounts, error)
@@ -216,7 +223,23 @@ type AffiliateTeamRepository interface {
 	ListCustomers(ctx context.Context, viewerID int64, rng AffiliateTeamRange, query AffiliateTeamListQuery) ([]AffiliateTeamCustomerEntry, int64, error)
 	ListAgents(ctx context.Context, viewerID int64, rng AffiliateTeamRange, query AffiliateTeamListQuery) ([]AffiliateTeamAgentEntry, int64, error)
 	ListRequests(ctx context.Context, customerID int64, rng AffiliateTeamRange, query AffiliateTeamListQuery) ([]AffiliateTeamRequest, int64, error)
+
+	// 以下只用于管理端。
+	// GetViewerSubject 返回被查看代理的展示信息；累计分润读分润日汇总（迁移 252）。
+	GetViewerSubject(ctx context.Context, userID int64) (AffiliateTeamViewerSubject, error)
+	// GetPlatformAggregates 返回汇总页的计数、摘要、趋势（只含有数据的日期）与全部模型（按消费降序）。
+	GetPlatformAggregates(ctx context.Context, rng AffiliateTeamRange) (AffiliateTeamPlatformAggregates, error)
+	// ListTeamOwners 列出全部有团队的人（汇总页的行）。
+	ListTeamOwners(ctx context.Context, rng AffiliateTeamRange, query AffiliateTeamListQuery) ([]AffiliateTeamOwnerEntry, int64, error)
 }
+
+// affiliateTeamAudience 区分同一套查询的两种查看者：代理本人，或在后台查看某代理视角的管理员。
+type affiliateTeamAudience int
+
+const (
+	affiliateTeamAudienceAgent affiliateTeamAudience = iota
+	affiliateTeamAudienceAdmin
+)
 
 type AffiliateTeamService struct {
 	repo           AffiliateTeamRepository
@@ -257,7 +280,11 @@ func ParseAffiliateTeamRange(startDate, endDate string, now time.Time) (Affiliat
 
 // Overview 返回摘要、趋势、模型分布；agentID / customerID 二选一，均为 0 时为团队总览。
 func (s *AffiliateTeamService) Overview(ctx context.Context, viewerID, agentID, customerID int64, rng AffiliateTeamRange) (*AffiliateTeamOverview, error) {
-	viewer, err := s.resolveViewer(ctx, viewerID)
+	return s.overview(ctx, affiliateTeamAudienceAgent, viewerID, agentID, customerID, rng)
+}
+
+func (s *AffiliateTeamService) overview(ctx context.Context, audience affiliateTeamAudience, viewerID, agentID, customerID int64, rng AffiliateTeamRange) (*AffiliateTeamOverview, error) {
+	viewer, err := s.resolveViewer(ctx, audience, viewerID)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +302,7 @@ func (s *AffiliateTeamService) Overview(ctx context.Context, viewerID, agentID, 
 		if agent == nil {
 			return nil, ErrAffiliateTeamNotFound
 		}
-		agent.User = presentAffiliateTeamUser(agent.User)
+		agent.User = presentAffiliateTeamUser(audience, agent.User)
 		out.Agent = agent
 	case customerID > 0:
 		customer, err := s.repo.GetCustomer(ctx, viewerID, customerID)
@@ -285,10 +312,10 @@ func (s *AffiliateTeamService) Overview(ctx context.Context, viewerID, agentID, 
 		if customer == nil {
 			return nil, ErrAffiliateTeamNotFound
 		}
-		customer.User = presentAffiliateTeamUser(customer.User)
+		customer.User = presentAffiliateTeamUser(audience, customer.User)
 		customer.AgentLevel = normalizeAgentLevel(customer.AgentLevel)
 		if customer.OwnerAgent != nil {
-			owner := presentAffiliateTeamUser(*customer.OwnerAgent)
+			owner := presentAffiliateTeamUser(audience, *customer.OwnerAgent)
 			customer.OwnerAgent = &owner
 		}
 		out.Customer = customer
@@ -312,12 +339,28 @@ func (s *AffiliateTeamService) Overview(ctx context.Context, viewerID, agentID, 
 	out.Summary = agg.Summary
 	out.Trend = fillAffiliateTeamTrend(agg.Trend, rng)
 	out.Models = topAffiliateTeamModels(agg.Models, affiliateTeamTopModels)
+	if audience == affiliateTeamAudienceAdmin {
+		subject, err := s.repo.GetViewerSubject(ctx, viewerID)
+		if err != nil {
+			return nil, err
+		}
+		subject.User = presentAffiliateTeamUser(audience, subject.User)
+		if subject.Upline != nil {
+			upline := presentAffiliateTeamUser(audience, *subject.Upline)
+			subject.Upline = &upline
+		}
+		out.Subject = &subject
+	}
 	return out, nil
 }
 
 // ListCustomers 列「我的客户」，或 agentID 指定的二级代理在我下面的团队。
 func (s *AffiliateTeamService) ListCustomers(ctx context.Context, viewerID int64, rng AffiliateTeamRange, query AffiliateTeamListQuery) ([]AffiliateTeamCustomerEntry, int64, error) {
-	if _, err := s.resolveViewer(ctx, viewerID); err != nil {
+	return s.listCustomers(ctx, affiliateTeamAudienceAgent, viewerID, rng, query)
+}
+
+func (s *AffiliateTeamService) listCustomers(ctx context.Context, audience affiliateTeamAudience, viewerID int64, rng AffiliateTeamRange, query AffiliateTeamListQuery) ([]AffiliateTeamCustomerEntry, int64, error) {
+	if _, err := s.resolveViewer(ctx, audience, viewerID); err != nil {
 		return nil, 0, err
 	}
 	if query.AgentID > 0 {
@@ -330,19 +373,24 @@ func (s *AffiliateTeamService) ListCustomers(ctx context.Context, viewerID int64
 		}
 	}
 	query = normalizeAffiliateTeamListQuery(query, AffiliateTeamSortCost, AffiliateTeamSortCost, AffiliateTeamSortRequests, AffiliateTeamSortEarnings, AffiliateTeamSortLastUsedAt)
+	query.AdminSearch = audience == affiliateTeamAudienceAdmin
 	items, total, err := s.repo.ListCustomers(ctx, viewerID, rng, query)
 	if err != nil {
 		return nil, 0, err
 	}
 	for i := range items {
-		items[i].User = presentAffiliateTeamUser(items[i].User)
+		items[i].User = presentAffiliateTeamUser(audience, items[i].User)
 		items[i].AgentLevel = normalizeAgentLevel(items[i].AgentLevel)
 	}
 	return items, total, nil
 }
 
 func (s *AffiliateTeamService) ListAgents(ctx context.Context, viewerID int64, rng AffiliateTeamRange, query AffiliateTeamListQuery) ([]AffiliateTeamAgentEntry, int64, error) {
-	if _, err := s.resolveViewer(ctx, viewerID); err != nil {
+	return s.listAgents(ctx, affiliateTeamAudienceAgent, viewerID, rng, query)
+}
+
+func (s *AffiliateTeamService) listAgents(ctx context.Context, audience affiliateTeamAudience, viewerID int64, rng AffiliateTeamRange, query AffiliateTeamListQuery) ([]AffiliateTeamAgentEntry, int64, error) {
+	if _, err := s.resolveViewer(ctx, audience, viewerID); err != nil {
 		return nil, 0, err
 	}
 	query = normalizeAffiliateTeamListQuery(query, AffiliateTeamSortTeamCost, AffiliateTeamSortTeamCost, AffiliateTeamSortEarnings, AffiliateTeamSortActiveCustomers)
@@ -351,13 +399,17 @@ func (s *AffiliateTeamService) ListAgents(ctx context.Context, viewerID int64, r
 		return nil, 0, err
 	}
 	for i := range items {
-		items[i].User = presentAffiliateTeamUser(items[i].User)
+		items[i].User = presentAffiliateTeamUser(audience, items[i].User)
 	}
 	return items, total, nil
 }
 
 func (s *AffiliateTeamService) ListRequests(ctx context.Context, viewerID, customerID int64, rng AffiliateTeamRange, query AffiliateTeamListQuery) ([]AffiliateTeamRequest, int64, error) {
-	if _, err := s.resolveViewer(ctx, viewerID); err != nil {
+	return s.listRequests(ctx, affiliateTeamAudienceAgent, viewerID, customerID, rng, query)
+}
+
+func (s *AffiliateTeamService) listRequests(ctx context.Context, audience affiliateTeamAudience, viewerID, customerID int64, rng AffiliateTeamRange, query AffiliateTeamListQuery) ([]AffiliateTeamRequest, int64, error) {
+	if _, err := s.resolveViewer(ctx, audience, viewerID); err != nil {
 		return nil, 0, err
 	}
 	customer, err := s.repo.GetCustomer(ctx, viewerID, customerID)
@@ -374,7 +426,7 @@ func (s *AffiliateTeamService) ListRequests(ctx context.Context, viewerID, custo
 
 // HasTeamAccess 判断用户能否进入团队消费页：当前是代理，或名下仍有快照客户（被降级者看老客户）。
 func (s *AffiliateTeamService) HasTeamAccess(ctx context.Context, userID int64) (bool, error) {
-	_, err := s.resolveViewer(ctx, userID)
+	_, err := s.resolveViewer(ctx, affiliateTeamAudienceAgent, userID)
 	if err == nil {
 		return true, nil
 	}
@@ -384,11 +436,12 @@ func (s *AffiliateTeamService) HasTeamAccess(ctx context.Context, userID int64) 
 	return false, err
 }
 
-func (s *AffiliateTeamService) resolveViewer(ctx context.Context, userID int64) (AffiliateTeamViewer, error) {
-	if s == nil || s.repo == nil {
-		return AffiliateTeamViewer{}, infraerrors.ServiceUnavailable("SERVICE_UNAVAILABLE", "affiliate service unavailable")
+// resolveViewer 做准入：代理端受功能开关约束，没有团队时 403；管理端不看开关，没有团队时 404。
+func (s *AffiliateTeamService) resolveViewer(ctx context.Context, audience affiliateTeamAudience, userID int64) (AffiliateTeamViewer, error) {
+	if s == nil || s.repo == nil || (audience == affiliateTeamAudienceAdmin && s.settingService == nil) {
+		return AffiliateTeamViewer{}, ErrAffiliateTeamUnavailable
 	}
-	if s.settingService == nil || !s.settingService.IsAffiliateEnabled(ctx) {
+	if audience == affiliateTeamAudienceAgent && (s.settingService == nil || !s.settingService.IsAffiliateEnabled(ctx)) {
 		return AffiliateTeamViewer{}, ErrAffiliateTeamForbidden
 	}
 	state, err := s.repo.GetViewerState(ctx, userID)
@@ -398,6 +451,9 @@ func (s *AffiliateTeamService) resolveViewer(ctx context.Context, userID int64) 
 	level := normalizeAgentLevel(state.AgentLevel)
 	isAgent := isAgentLevel(level)
 	if !isAgent && !state.HasOwnedCustomers && !state.HasUplineCustomer {
+		if audience == affiliateTeamAudienceAdmin {
+			return AffiliateTeamViewer{}, ErrAffiliateTeamNotFound
+		}
 		return AffiliateTeamViewer{}, ErrAffiliateTeamForbidden
 	}
 	return AffiliateTeamViewer{
@@ -436,12 +492,15 @@ func normalizeAffiliateTeamListQuery(query AffiliateTeamListQuery, defaultSort s
 	return query
 }
 
-func presentAffiliateTeamUser(user AffiliateTeamUser) AffiliateTeamUser {
+// presentAffiliateTeamUser 按受众展示用户：代理端邮箱脱敏，管理端原文；已删除账号只留 ID。
+func presentAffiliateTeamUser(audience affiliateTeamAudience, user AffiliateTeamUser) AffiliateTeamUser {
 	if user.Deleted {
 		return AffiliateTeamUser{UserID: user.UserID, Deleted: true}
 	}
 	user.Nickname = strings.TrimSpace(user.Nickname)
-	user.Email = maskEmail(user.Email)
+	if audience != affiliateTeamAudienceAdmin {
+		user.Email = maskEmail(user.Email)
+	}
 	return user
 }
 

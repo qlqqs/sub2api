@@ -109,18 +109,26 @@ export function clampAffiliateTeamRange(start: string, end: string): { start: st
 
 // ---------- 解析 / 生成 ----------
 
-function single(value: LocationQuery[string] | undefined): string {
+/** 路径参数里的用户 ID：正整数，否则为 -1（页面直接按不存在处理）。 */
+export function parseAffiliateTeamRouteId(raw: string | string[] | undefined): number {
+  const value = Array.isArray(raw) ? raw[0] : raw
+  return typeof value === 'string' && /^[1-9]\d*$/.test(value) && Number.isSafeInteger(Number(value)) ? Number(value) : -1
+}
+
+/** query 里的单个字符串值（数组取第一个字符串），去掉首尾空白。 */
+export function single(value: LocationQuery[string] | undefined): string {
   const raw = Array.isArray(value) ? value.find((item): item is string => typeof item === 'string') : value
   return typeof raw === 'string' ? raw.trim() : ''
 }
 
-function positiveInt(value: string): number | null {
+export function positiveInt(value: string): number | null {
   if (!/^\d+$/.test(value)) return null
   const n = Number(value)
   return Number.isSafeInteger(n) && n > 0 ? n : null
 }
 
-function parseRange(query: LocationQuery, today: Date): { start: string; end: string } {
+/** start / end 非法时回落最近 7 天，超过 90 天时收拢开始日期。 */
+export function parseRange(query: LocationQuery, today: Date): { start: string; end: string } {
   const start = single(query.start)
   const end = single(query.end)
   const days = affiliateTeamRangeDays(start, end)
@@ -176,7 +184,7 @@ export function buildAffiliateTeamQuery(
   return query
 }
 
-function sameQuery(next: Record<string, string>, current: LocationQuery): boolean {
+export function sameQuery(next: Record<string, string>, current: LocationQuery): boolean {
   const currentKeys = Object.keys(current).filter((key) => current[key] !== undefined)
   const nextKeys = Object.keys(next)
   if (currentKeys.length !== nextKeys.length) return false

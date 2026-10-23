@@ -1,7 +1,7 @@
 <template>
   <span class="inline-flex min-w-0 items-center gap-2">
     <span v-if="user.deleted" class="text-gray-400 dark:text-dark-500" data-team-row-disabled>
-      {{ t('affiliate.team.deleted') }}
+      {{ label('affiliate.team.deleted', { id: user.user_id }) }}
     </span>
     <template v-else>
       <RouterLink
@@ -20,9 +20,9 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 import type { AffiliateTeamUser } from '@/types'
+import { useTeamLabel } from './teamContext'
 
 defineProps<{
   user: AffiliateTeamUser
@@ -30,7 +30,8 @@ defineProps<{
   to?: RouteLocationRaw
 }>()
 
-const { t } = useI18n()
+// 管理端的已删除用户显示 ID。
+const label = useTeamLabel()
 </script>
 
 <style>

@@ -18,6 +18,9 @@ type fakeAffiliateTeamRepo struct {
 	models    []AffiliateTeamModelShare
 	customer  []AffiliateTeamCustomerEntry
 	lastQuery AffiliateTeamListQuery
+	subject   AffiliateTeamViewerSubject
+	platform  AffiliateTeamPlatformAggregates
+	owners    []AffiliateTeamOwnerEntry
 }
 
 func (f *fakeAffiliateTeamRepo) GetViewerState(context.Context, int64) (AffiliateTeamViewerState, error) {
@@ -57,6 +60,21 @@ func (f *fakeAffiliateTeamRepo) ListAgents(_ context.Context, _ int64, _ Affilia
 func (f *fakeAffiliateTeamRepo) ListRequests(_ context.Context, _ int64, _ AffiliateTeamRange, q AffiliateTeamListQuery) ([]AffiliateTeamRequest, int64, error) {
 	f.lastQuery = q
 	return nil, 0, nil
+}
+func (f *fakeAffiliateTeamRepo) GetViewerSubject(context.Context, int64) (AffiliateTeamViewerSubject, error) {
+	subject := f.subject
+	if subject.Upline != nil {
+		upline := *subject.Upline
+		subject.Upline = &upline
+	}
+	return subject, nil
+}
+func (f *fakeAffiliateTeamRepo) GetPlatformAggregates(context.Context, AffiliateTeamRange) (AffiliateTeamPlatformAggregates, error) {
+	return f.platform, nil
+}
+func (f *fakeAffiliateTeamRepo) ListTeamOwners(_ context.Context, _ AffiliateTeamRange, q AffiliateTeamListQuery) ([]AffiliateTeamOwnerEntry, int64, error) {
+	f.lastQuery = q
+	return append([]AffiliateTeamOwnerEntry(nil), f.owners...), int64(len(f.owners)), nil
 }
 
 func newAffiliateTeamTestService(repo *fakeAffiliateTeamRepo, enabled bool) *AffiliateTeamService {

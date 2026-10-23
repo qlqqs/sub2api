@@ -29,6 +29,7 @@ frontend/src/
 ## 放置规则
 
 - 路由直接加载的页面放 `views/<area>/...View.vue`，并在 `router/index.ts` 使用动态 import。权限、标题和功能门控放 route meta/guard，不只靠页面隐藏。
+- 下钻页的路径放在对应菜单项的路径之下（如 `/admin/affiliates/team/:viewerId`）：侧边栏分组按「最长路径前缀」决定高亮哪个子项并保持分组展开（`AppSidebar.vue` 的 `activeChildPath`），不需要为下钻页单独配置菜单状态。
 - 跨多个页面复用的视觉/交互组件放 `components/common/`；全局框架放 `components/layout/`；只属于一个业务域的组件放对应子目录。
 - 可复用的有状态逻辑放 `composables/`，文件名遵循 `use<Name>.ts`；纯格式化、分类、sanitize 和 key 构造放 `utils/`。
 - 所有 HTTP 请求经 `api/client.ts` 创建的 `apiClient`；端点按业务域放 `api/*.ts` 或 `api/admin/*.ts`。组件/页面不直接创建另一个 Axios 实例。

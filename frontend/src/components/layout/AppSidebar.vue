@@ -68,7 +68,7 @@
                   :key="child.path"
                   :to="child.path"
                   class="sidebar-link mb-0.5 py-1.5 text-sm"
-                  :class="{ 'sidebar-link-active': route.path === child.path }"
+                  :class="{ 'sidebar-link-active': activeChildPath(item) === child.path }"
                   @click="handleMenuItemClick(child.path)"
                 >
                   <component :is="child.icon" class="h-4 w-4 flex-shrink-0" />
@@ -818,6 +818,7 @@ const adminNavItems = computed((): NavItem[] => {
       featureFlag: flagAffiliate,
       children: [
         { path: '/admin/affiliates/agents', label: t('nav.affiliateAgents'), icon: UserIcon },
+        { path: '/admin/affiliates/team', label: t('nav.affiliateTeam'), icon: ChartIcon },
         { path: '/admin/affiliates/invites', label: t('nav.affiliateInviteRecords'), icon: UsersIcon },
         { path: '/admin/affiliates/rebates', label: t('nav.affiliateRebateRecords'), icon: OrderIcon },
         { path: '/admin/affiliates/transfers', label: t('nav.affiliateTransferRecords'), icon: CreditCardIcon },
@@ -898,9 +899,21 @@ function isActive(path: string): boolean {
   return route.path === path || route.path.startsWith(path + '/')
 }
 
+/**
+ * 分组内对应当前路由的子项：路径完全相同，或是最长的路径前缀。
+ * 下钻页（如 /admin/affiliates/team/:viewerId）归到「团队消费」；
+ * 同组路径互为前缀时（/admin/orders 与 /admin/orders/dashboard）只高亮最具体的一项。
+ */
+function activeChildPath(item: NavItem): string | null {
+  let best: string | null = null
+  for (const child of item.children ?? []) {
+    if (isActive(child.path) && (best === null || child.path.length > best.length)) best = child.path
+  }
+  return best
+}
+
 function isGroupActive(item: NavItem): boolean {
-  if (!item.children) return false
-  return item.children.some(child => route.path === child.path)
+  return activeChildPath(item) !== null
 }
 
 function isGroupExpanded(item: NavItem): boolean {

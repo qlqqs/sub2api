@@ -26,6 +26,15 @@ const emit = defineEmits<{
 - 只在父级确实需要命令式调用时 `defineExpose`，如输入框的 `focus`/`select`；普通状态通过 props/emits 传递。
 - 异步按钮要有 loading/disabled 防重入，失败交给调用方或统一 toast，不留下无法退出的中间状态。
 
+## 同一页面服务两种受众
+
+代理端与管理端看同一份数据时（团队消费页：代理本人 `/affiliate/team`、管理员查看某代理 `/admin/affiliates/team/:viewerId`），共用一个页面组件，不复制两份：
+
+- 页面主体放在组件目录（`components/user/affiliate-team/TeamConsumptionPage.vue`），路由视图只负责从路由算出 props 并提供上下文。
+- 受众差异集中在 provide/inject 的上下文里（`teamContext.ts`）：接口（与代理端同签名，管理端绑定被查看的代理）、路由构造、受众专用路由（使用记录、汇总页）。未提供时回落代理端，代理端原有测试不改断言即可通过。
+- 文案差异用「代理端 key → 替换 key」的映射（`useTeamLabel` + `adminTeamContext.ts` 的 `ADMIN_AFFILIATE_TEAM_LABELS`），组件里写 `label('affiliate.team.columns.earnings')`，不写 `if admin`；替换文案可引用上下文参数（如被查看代理的名字 `{name}`）。结构上的差异（元信息行、使用记录链接）由上下文是否提供对应路由决定。
+- 上下文里的接口与路由在调用时读取当前 ID（getter），换层级时沿用同一实例；换到另一个根（另一位代理）时给页面加 `:key`，整页重建。
+
 ## 样式与响应式布局
 
 - 主要使用 Tailwind utilities，并复用 `style.css` 中的语义类，如 `btn`、`input`、`modal-*`、`table-*`。

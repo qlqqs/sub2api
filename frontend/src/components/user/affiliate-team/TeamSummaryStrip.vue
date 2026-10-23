@@ -4,7 +4,7 @@
       <div
         v-for="metric in metrics"
         :key="metric.key"
-        :class="['min-w-0', summary && metric.sub && 'col-span-2 sm:col-span-1']"
+        :class="['min-w-0', loaded && metric.sub && 'col-span-2 sm:col-span-1']"
         :data-test="`team-summary-${metric.key}`"
       >
         <div class="flex flex-wrap items-baseline gap-x-2">
@@ -12,7 +12,7 @@
           <!-- 数值与 ⓘ 不拆行 -->
           <span class="inline-flex items-center whitespace-nowrap">
             <span
-              v-if="summary"
+              v-if="loaded"
               class="text-xl font-semibold tabular-nums text-gray-900 dark:text-white"
               data-test="team-summary-value"
             >
@@ -23,7 +23,7 @@
           </span>
         </div>
         <p
-          v-if="summary && metric.sub"
+          v-if="loaded && metric.sub"
           class="mt-0.5 text-xs tabular-nums text-gray-500 dark:text-dark-400"
           data-test="team-summary-split"
         >
@@ -38,10 +38,11 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import HelpTooltip from '@/components/common/HelpTooltip.vue'
-import type { AffiliateTeamCounts, AffiliateTeamSummary } from '@/types'
+import type { AffiliateTeamCounts, AffiliateTeamPlatformSummary, AffiliateTeamSummary } from '@/types'
 import type { AffiliateTeamView } from '@/composables/useAffiliateTeamQuery'
-import { formatTeamCount, formatTeamMoney } from '@/utils/affiliateTeam'
+import { formatTeamCount, formatTeamMoney, formatTeamRate, formatTeamShare } from '@/utils/affiliateTeam'
 import { formatTokensK } from '@/utils/format'
+import { useTeamLabel } from './teamContext'
 
 interface Metric {
   key: string
@@ -52,16 +53,50 @@ interface Metric {
 }
 
 const props = defineProps<{
-  view: AffiliateTeamView
+  /** platform = 管理端汇总页（读 platform），其余为团队页的三层（读 summary）。 */
+  view: AffiliateTeamView | 'platform'
   /** null = 首次加载（骨架）。 */
-  summary: AffiliateTeamSummary | null
+  summary?: AffiliateTeamSummary | null
+  platform?: AffiliateTeamPlatformSummary | null
   counts?: AffiliateTeamCounts | null
   settleIntervalMinutes?: number
 }>()
 
 const { t } = useI18n()
+const label = useTeamLabel()
+
+const loaded = computed(() => (props.view === 'platform' ? props.platform : props.summary) != null)
+
+function ratio(part: number | undefined, whole: number | undefined): number {
+  return whole && whole > 0 ? (part ?? 0) / whole : 0
+}
 
 const metrics = computed<Metric[]>(() => {
+  const hint = t('affiliate.team.summary.earningsHint', { n: props.settleIntervalMinutes ?? 60 })
+  if (props.view === 'platform') {
+    const p = props.platform
+    return [
+      {
+        key: 'cost',
+        label: t('admin.affiliates.team.summary.cost'),
+        value: formatTeamMoney(p?.cost),
+        sub: t('admin.affiliates.team.summary.costShare', { percent: formatTeamShare(ratio(p?.cost, p?.platform_cost)) })
+      },
+      {
+        key: 'earnings',
+        label: t('admin.affiliates.team.summary.earnings'),
+        value: formatTeamMoney(p?.earnings),
+        hint,
+        sub: t('admin.affiliates.team.summary.earningsShare', { percent: formatTeamRate(ratio(p?.earnings, p?.cost)) })
+      },
+      {
+        key: 'active',
+        label: t('affiliate.team.summary.activeCustomers'),
+        value: `${formatTeamCount(p?.active_customers)} / ${formatTeamCount(p?.customers)}`
+      }
+    ]
+  }
+
   const s = props.summary
   const cost: Metric = {
     key: 'cost',
@@ -74,9 +109,9 @@ const metrics = computed<Metric[]>(() => {
   }
   const earnings: Metric = {
     key: 'earnings',
-    label: t('affiliate.team.summary.earnings'),
+    label: label('affiliate.team.summary.earnings'),
     value: formatTeamMoney(s?.earnings),
-    hint: t('affiliate.team.summary.earningsHint', { n: props.settleIntervalMinutes ?? 60 })
+    hint
   }
   if (props.view === 'customer') {
     return [

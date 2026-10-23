@@ -265,6 +265,32 @@ describe('AdminAffiliateAgentsView', () => {
     wrapper.unmount()
   })
 
+  it('opens the team spend view only for users who have a team', async () => {
+    listUsers.mockResolvedValue(page([
+      entry(),
+      entry({ user_id: 5, email: 'gone@x.com', agent_level: 3, owned_customer_count: 2 }),
+      entry({ user_id: 6, email: 'plain@x.com', agent_level: 3, owned_customer_count: 0 }),
+    ]))
+
+    const wrapper = mountView()
+    await flushPromises()
+    const more = wrapper.findAll('[data-test="agent-more"]')
+
+    await more[0].trigger('click')
+    await wrapper.get('[data-test="agent-menu-team"]').trigger('click')
+    expect(routerPush).toHaveBeenCalledWith({ name: 'AdminAffiliateTeamViewer', params: { viewerId: '2' } })
+
+    // 已降级但名下仍有客户：仍有团队消费页。
+    await more[1].trigger('click')
+    expect(wrapper.find('[data-test="agent-menu-team"]').exists()).toBe(true)
+    await more[1].trigger('click')
+
+    await more[2].trigger('click')
+    expect(wrapper.find('[data-test="agent-menu"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="agent-menu-team"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
   it('sets a new agent from a user lookup', async () => {
     vi.useFakeTimers()
     listUsers.mockResolvedValue(page([]))

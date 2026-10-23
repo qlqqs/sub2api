@@ -17,7 +17,7 @@
   >
     <template #cell-user="{ row }">
       <TeamUserCell :user="row.user" :to="row.user.deleted ? undefined : agentRoute(row)">
-        <TeamBadge v-if="row.historical" tone="gray" :hint="t('affiliate.team.historicalHint')">
+        <TeamBadge v-if="row.historical" tone="gray" :hint="label('affiliate.team.historicalHint')">
           {{ t('affiliate.team.historical') }}
         </TeamBadge>
       </TeamUserCell>
@@ -50,6 +50,7 @@ import { formatTeamCount, formatTeamMoney } from '@/utils/affiliateTeam'
 import TeamBadge from './TeamBadge.vue'
 import TeamShareCell from './TeamShareCell.vue'
 import TeamUserCell from './TeamUserCell.vue'
+import { useAffiliateTeamContext, useTeamLabel } from './teamContext'
 
 const props = defineProps<{
   rows: AffiliateTeamAgent[]
@@ -65,18 +66,20 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const router = useRouter()
+const context = useAffiliateTeamContext()
+const label = useTeamLabel(context)
 
 const columns = computed<Column[]>(() => [
   { key: 'user', label: t('affiliate.team.columns.agent') },
   { key: 'active_customers', label: t('affiliate.team.columns.activeCustomers'), sortable: true, class: 'text-right' },
   { key: 'team_cost', label: t('affiliate.team.columns.teamCost'), sortable: true, class: 'text-right' },
-  { key: 'earnings', label: t('affiliate.team.columns.earnings'), sortable: true, class: 'text-right' }
+  { key: 'earnings', label: label('affiliate.team.columns.earnings'), sortable: true, class: 'text-right' }
 ])
 
 const rowKey = (row: AffiliateTeamAgent) => row.user.user_id
 
 function agentRoute(row: AffiliateTeamAgent): RouteLocationRaw {
-  return { name: 'AffiliateTeamAgent', params: { id: String(row.user.user_id) }, query: props.drillQuery }
+  return context.routes.agent(row.user.user_id, props.drillQuery)
 }
 
 function openRow(row: AffiliateTeamAgent) {

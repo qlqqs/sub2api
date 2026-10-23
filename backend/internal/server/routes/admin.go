@@ -817,7 +817,7 @@ func registerChannelMonitorRoutes(admin *gin.RouterGroup, h *handler.Handlers, s
 	}
 }
 
-// registerAffiliateRoutes 注册邀请返利的管理端路由（代理管理、记录、补绑）
+// registerAffiliateRoutes 注册邀请返利的管理端路由（代理管理、记录、补绑、团队消费）
 func registerAffiliateRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 	affiliates := admin.Group("/affiliates")
 	{
@@ -840,6 +840,17 @@ func registerAffiliateRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 			users.POST("/:user_id/withdraw", h.Admin.Affiliate.WithdrawQuota)
 			users.PUT("/:user_id", h.Admin.Affiliate.UpdateUserSettings)
 			users.DELETE("/:user_id", h.Admin.Affiliate.ClearUserSettings)
+		}
+
+		// 团队消费（只读）：汇总页与某代理的视角，复用代理端团队页的查询；只用路由组的全局限流。
+		team := affiliates.Group("/team")
+		{
+			team.GET("/overview", h.AffiliateTeam.AdminOverview)
+			team.GET("/agents", h.AffiliateTeam.AdminListOwners)
+			team.GET("/:viewer_id/overview", h.AffiliateTeam.AdminViewerOverview)
+			team.GET("/:viewer_id/customers", h.AffiliateTeam.AdminViewerCustomers)
+			team.GET("/:viewer_id/agents", h.AffiliateTeam.AdminViewerAgents)
+			team.GET("/:viewer_id/customers/:user_id/requests", h.AffiliateTeam.AdminViewerRequests)
 		}
 	}
 }

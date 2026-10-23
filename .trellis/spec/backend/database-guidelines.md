@@ -56,15 +56,19 @@ return tx.Commit()
 
 ## 触发器维护的汇总表
 
-`usage_logs` 上有两类汇总：222/223 的分组日汇总（水位 + 定时重建），和 251 的用户日汇总 `usage_user_daily_rollups`（语句级触发器增量维护，代理团队消费页使用）。新增类似汇总时按 251 的约定：
+现有三类汇总：`usage_logs` 上 222/223 的分组日汇总（水位 + 定时重建）；251 的用户日汇总 `usage_user_daily_rollups`（代理团队消费页）；`user_affiliate_ledger` 上 252 的分润日汇总 `affiliate_agent_reward_daily_rollups`（受益代理 × 来源 × 北京时间日，管理端团队消费页）。后两者用语句级触发器增量维护，新增类似汇总时按 252 的写法：
 
-- 用 `AFTER INSERT/DELETE/UPDATE ... REFERENCING NEW/OLD TABLE ... FOR EACH STATEMENT`，一个函数按 `TG_OP` 先扣旧行再加新行；带转换表的触发器不能写列清单。
-- 增量 upsert 先 `GROUP BY` 主键（同一语句同一键只能出现一次），再 `ORDER BY` 主键（并发批次同序加锁，避免死锁）。
-- 函数体包 `EXCEPTION WHEN OTHERS THEN RAISE WARNING`：汇总失败不能让计费明细写入失败。
-- 日界固定写 `(created_at AT TIME ZONE 'Asia/Shanghai')::date`，Go 侧用 `service.AffiliateTeamLocation`（固定 +8，不依赖 tzdata）。
-- 迁移内先建触发器再回填（同一事务，无空档）；回填与运维修复复用同一个 SQL 函数，例如 `SELECT rebuild_usage_user_daily_rollups(DATE '2026-10-01', DATE '2026-10-22');`（先删区间再 `ON CONFLICT` 累加，可与并发写入同时执行）。
+- 用 `AFTER INSERT/DELETE/UPDATE ... REFERENCING NEW/OLD TABLE ... FOR EACH STATEMENT`，一个函数按 `TG_OP` 分支（转换表只在对应事件里存在，引用不存在的转换表会报错）；带转换表的触发器不能写列清单。
+- 所有写入都走「先 `GROUP BY` 主键（同一语句同一键只能出现一次）、再 `ORDER BY` 主键」的 upsert，扣减就是累加负数：并发批次按相同顺序加锁，避免死锁。扣减后计数 `<= 0` 的行删除。
+- UPDATE 按键合并「旧行扣减、新行累加」，`HAVING` 只写净变化不为 0 的键：只改其他列的 UPDATE（如流水的解冻 `frozen_until`、提现回写快照列）不写汇总。251 是先全部扣减再全部累加，只适合几乎没有 UPDATE 的表。
+- 函数体包 `EXCEPTION WHEN OTHERS THEN RAISE WARNING`：汇总失败不能让计费明细 / 入账写入失败。
+- 日界固定写 `(created_at AT TIME ZONE 'Asia/Shanghai')::date`，Go 侧用 `service.AffiliateTeamLocation`（固定 +8，不依赖 tzdata）。外键 `SET NULL` 的列在汇总键里用 `COALESCE(col, 0)`，外键动作产生的 UPDATE / DELETE 同样经过触发器。
+- 迁移内先建触发器再回填（同一事务，无空档）；回填与运维修复复用同一个 SQL 函数，例如 `SELECT rebuild_affiliate_agent_reward_daily_rollups(DATE '2026-10-01', DATE '2026-10-22');`。
+  - 修复函数是「删区间」「按明细重建」两条语句、两个快照：若并发批次恰好在两步之间提交一个汇总里还没有的新键，会被重复累加。252 的修复函数先 `LOCK TABLE ... IN SHARE MODE`，并发写入等到修复事务结束；251 未加锁（`usage_logs` 是热表，加锁会阻塞网关写入），修复时选低峰并避开当天。
 - 整月删分区不经过触发器：保留期清理（`CleanupUsageLogs`）里按日期删除过期汇总。
-- 多维读取尽量一次扫描：`GROUP BY GROUPING SETS ((bucket_date), (model), (user_id))` 同时出趋势、分布和按用户汇总（见 `affiliate_team_repo.go` 的 `GetAggregates`）。
+- 多维读取尽量一次扫描：`GROUP BY GROUPING SETS ((bucket_date), (model), (user_id))` 同时出趋势、分布和按用户汇总（见 `affiliate_team_repo.go` 的 `GetAggregates`、`affiliate_team_admin_repo.go` 的 `GetPlatformAggregates`）。
+- 开销（本机 PG 18，`research/perf.md`，任务 `10-23-admin-team-consumption`）：每个语句约多 0.05–0.08 ms；但同一事务内对同一汇总行反复更新会拉长版本链，单行插入循环 5000 次时每条约 1–1.5 ms。批量写入同一键的明细时合并成一条语句。
+- 核对汇总与明细用按主键 `FULL JOIN` 比较，不要对两个大的聚合结果做 `EXCEPT`（260 万行流水上 `EXCEPT` 十几分钟不结束，`FULL JOIN` 2.5 s）。
 
 ## 常见错误
 

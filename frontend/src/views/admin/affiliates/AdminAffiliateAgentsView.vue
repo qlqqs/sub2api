@@ -181,6 +181,16 @@
         <button type="button" role="menuitem" class="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-dark-700" data-test="agent-menu-customers" @click="openCustomers(menu.entry)">
           {{ t('admin.affiliates.agents.viewCustomers') }}
         </button>
+        <button
+          v-if="hasTeam(menu.entry)"
+          type="button"
+          role="menuitem"
+          class="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-dark-700"
+          data-test="agent-menu-team"
+          @click="viewTeam(menu.entry)"
+        >
+          {{ t('admin.affiliates.agents.viewTeam') }}
+        </button>
         <button type="button" role="menuitem" class="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-dark-700" data-test="agent-menu-rebates" @click="viewRebates(menu.entry)">
           {{ t('admin.affiliates.agents.viewRebates') }}
         </button>
@@ -619,6 +629,17 @@ function handleDocumentClick() {
 
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape' && menu.entry) closeMenu()
+}
+
+/** 一级 / 二级代理，或名下仍有归属客户（已降级）的用户才有团队消费页。 */
+function hasTeam(entry: AffiliateAdminEntry): boolean {
+  return entry.agent_level !== 3 || entry.owned_customer_count > 0
+}
+
+function viewTeam(entry: AffiliateAdminEntry | null) {
+  closeMenu()
+  if (!entry) return
+  void router.push({ name: 'AdminAffiliateTeamViewer', params: { viewerId: String(entry.user_id) } })
 }
 
 function viewRebates(entry: AffiliateAdminEntry | null) {

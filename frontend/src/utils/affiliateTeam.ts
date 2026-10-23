@@ -27,6 +27,13 @@ export function formatTeamShare(share: number): string {
   return `${Math.round(share * 100)}%`
 }
 
+/** 比率 0-1 → 一位小数的百分比（分润率这类通常不到 50% 的比例）；大于 0 但不足 0.1% 显示 <0.1%。 */
+export function formatTeamRate(rate: number): string {
+  if (!Number.isFinite(rate) || rate <= 0) return '0%'
+  if (rate < 0.001) return '<0.1%'
+  return `${(rate * 100).toFixed(1)}%`
+}
+
 /** 底条宽度（CSS 百分比），限定在 0–100%。 */
 export function teamShareWidth(share: number): string {
   const pct = Number.isFinite(share) ? Math.min(Math.max(share, 0), 1) * 100 : 0

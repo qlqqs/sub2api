@@ -103,4 +103,7 @@ export const affiliateTeamAPI = {
   listRequests
 }
 
+/** 团队页的四个数据接口；管理端的代理视角提供同签名的实现（api/admin/affiliateTeam.ts）。 */
+export type AffiliateTeamDataSource = typeof affiliateTeamAPI
+
 export default affiliateTeamAPI

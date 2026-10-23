@@ -34,6 +34,7 @@
 - token 等既有认证键只能通过 auth/client 流程操作；不要创建未审计的凭据副本。
 - 组件/store 卸载或登出时终止 polling、timeout 与在途请求，防止旧会话结果写入新状态。
 - 多层下钻页参考 `composables/useAffiliateTeamQuery.ts`：query 键白名单解析、非法值回落默认值、默认值不写入 URL；页内变化用 `router.replace`，下钻用新路由且只携带需要延续的筛选（如时间范围），浏览器返回即回到上一层的完整状态。
+- 下钻页的面包屑要「回到列表原来的筛选」时（管理端团队消费：汇总页 → 代理视角），在列表页 `onBeforeRouteLeave` 里记下 `from.query`（模块内变量，刷新后丢失即回到默认），面包屑用它生成链接；不要用 watch 记录，路由切换时旧组件的 watch 可能先拿到新页面的 query。见 `composables/useAdminAffiliateTeamQuery.ts`。
 
 ## 常见错误
 

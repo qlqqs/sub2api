@@ -423,9 +423,53 @@ export default {
 
     affiliates: {
       agentsDescription: 'Manage agents, levels, ownership and exclusive settings',
+      teamDescription: 'Balance spend and profit sharing by agent team',
       invitesDescription: 'View site-wide inviter and invitee relationships',
       rebatesDescription: 'View every affiliate rebate accrual from recharge orders, redeem codes, and admin recharges',
       transfersDescription: 'View affiliate quota transfers into balance and offline withdrawals',
+      team: {
+        title: 'Team Spend',
+        summary: {
+          cost: 'Spend',
+          costShare: '{percent} of all balance spend',
+          earnings: 'Profit sharing',
+          earningsShare: '{percent} of team spend'
+        },
+        levels: {
+          all: 'All',
+          level1: 'Level 1',
+          level2: 'Level 2',
+          level2With: 'Level 2 · {name}',
+          noUpline: 'no upline',
+          downgraded: 'Downgraded'
+        },
+        columns: {
+          agent: 'Agent',
+          level: 'Level'
+        },
+        meta: {
+          level1: 'Level-1 agent',
+          level2: 'Level-2 agent',
+          upline: 'Upline {name}',
+          downgraded: 'Downgraded · customers from the agent period still generate profit sharing',
+          usage: 'Usage records'
+        },
+        empty: {
+          noAgents: 'No agents yet',
+          noMatches: 'No matching agents'
+        },
+        // Replaces agent-facing copy in the agent view (third person, profit sharing instead of earnings).
+        labels: {
+          directCustomers: 'Direct customers',
+          earnings: 'Profit sharing',
+          lifetimeEarnings: 'Lifetime profit sharing {amount}',
+          historicalHint: 'No longer a level-2 agent of {name}; their earlier customers still bring them the difference',
+          searchPlaceholder: 'Email, nickname or ID',
+          notFound: 'Agent or customer not found',
+          backToSummary: 'Back to team spend',
+          deleted: 'Deleted #{id}'
+        }
+      },
       errors: {
         AFFILIATE_LEVEL2_RATE_EXCEEDS_POOL: 'The level-2 rate cannot exceed the profit pool',
         AFFILIATE_CYCLE: 'This binding would create an invite cycle',
@@ -567,6 +611,7 @@ export default {
         adjust: 'Adjust',
         more: 'More actions',
         viewCustomers: 'View customers',
+        viewTeam: 'Team spend',
         viewRebates: 'View rebate records',
         clearSettings: 'Clear exclusive settings',
         clearTitle: 'Clear Exclusive Settings',

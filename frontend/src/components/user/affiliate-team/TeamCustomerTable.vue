@@ -57,6 +57,7 @@ import { formatDateTime, formatRelativeTime } from '@/utils/format'
 import TeamBadge from './TeamBadge.vue'
 import TeamShareCell from './TeamShareCell.vue'
 import TeamUserCell from './TeamUserCell.vue'
+import { useAffiliateTeamContext, useTeamLabel } from './teamContext'
 
 const props = defineProps<{
   rows: AffiliateTeamCustomer[]
@@ -73,19 +74,21 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const router = useRouter()
+const context = useAffiliateTeamContext()
+const label = useTeamLabel(context)
 
 const columns = computed<Column[]>(() => [
   { key: 'user', label: t('affiliate.team.columns.customer') },
   { key: 'cost', label: t('affiliate.team.columns.cost'), sortable: true, class: 'text-right' },
   { key: 'requests', label: t('affiliate.team.columns.requests'), sortable: true, class: 'text-right' },
-  { key: 'earnings', label: t('affiliate.team.columns.earnings'), sortable: true, class: 'text-right' },
+  { key: 'earnings', label: label('affiliate.team.columns.earnings'), sortable: true, class: 'text-right' },
   { key: 'last_used_at', label: t('affiliate.team.columns.lastUsed'), sortable: true, class: 'text-right' }
 ])
 
 const rowKey = (row: AffiliateTeamCustomer) => row.user.user_id
 
 function customerRoute(row: AffiliateTeamCustomer): RouteLocationRaw {
-  return { name: 'AffiliateTeamCustomer', params: { id: String(row.user.user_id) }, query: props.drillQuery }
+  return context.routes.customer(row.user.user_id, props.drillQuery)
 }
 
 function mutedClass(row: AffiliateTeamCustomer): string {

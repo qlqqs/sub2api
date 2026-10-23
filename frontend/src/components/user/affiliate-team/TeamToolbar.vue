@@ -1,10 +1,11 @@
 <template>
-  <!-- 团队消费根页：左侧是「邀请 | 团队消费」分区 Tab，日期与刷新放进它的右侧插槽；下钻页左侧是面包屑。 -->
+  <!-- 团队消费根页：左侧是「邀请 | 团队消费」分区 Tab，日期与刷新放进它的右侧插槽；下钻页左侧是面包屑；
+       没有面包屑（管理端汇总页，标题已在顶部栏）时日期与刷新靠右。 -->
   <component
     :is="sectionTabs ? AffiliateSectionTabs : 'div'"
-    :class="sectionTabs ? undefined : 'flex flex-wrap items-center justify-between gap-3'"
+    :class="sectionTabs ? undefined : ['flex flex-wrap items-center gap-3', crumbs.length > 0 ? 'justify-between' : 'justify-end']"
   >
-    <nav v-if="!sectionTabs" :aria-label="t('affiliate.team.breadcrumb')" class="min-w-0" data-test="team-breadcrumb">
+    <nav v-if="!sectionTabs && crumbs.length > 0" :aria-label="t('affiliate.team.breadcrumb')" class="min-w-0" data-test="team-breadcrumb">
       <ol class="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-lg font-semibold">
         <li
           v-for="(crumb, index) in crumbs"

@@ -689,6 +689,55 @@ const routes: RouteRecordRaw[] = [
       descriptionKey: 'admin.affiliates.agentsDescription'
     }
   },
+  // 团队消费：汇总页 + 某代理的视角（三层共用一个视图，与代理端 /affiliate/team 相同）
+  {
+    path: '/admin/affiliates/team',
+    name: 'AdminAffiliateTeam',
+    component: () => import('@/views/admin/affiliates/AdminAffiliateTeamView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Affiliate Team Spend',
+      titleKey: 'nav.affiliateTeam',
+      descriptionKey: 'admin.affiliates.teamDescription'
+    }
+  },
+  {
+    path: '/admin/affiliates/team/:viewerId',
+    name: 'AdminAffiliateTeamViewer',
+    component: () => import('@/views/admin/affiliates/AdminAffiliateTeamViewerView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Affiliate Team Spend',
+      titleKey: 'nav.affiliateTeam',
+      descriptionKey: 'admin.affiliates.teamDescription'
+    }
+  },
+  {
+    path: '/admin/affiliates/team/:viewerId/agents/:id',
+    name: 'AdminAffiliateTeamViewerAgent',
+    component: () => import('@/views/admin/affiliates/AdminAffiliateTeamViewerView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Affiliate Team Spend',
+      titleKey: 'nav.affiliateTeam',
+      descriptionKey: 'admin.affiliates.teamDescription'
+    }
+  },
+  {
+    path: '/admin/affiliates/team/:viewerId/customers/:id',
+    name: 'AdminAffiliateTeamViewerCustomer',
+    component: () => import('@/views/admin/affiliates/AdminAffiliateTeamViewerView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Affiliate Team Spend',
+      titleKey: 'nav.affiliateTeam',
+      descriptionKey: 'admin.affiliates.teamDescription'
+    }
+  },
   {
     path: '/admin/affiliates/invites',
     name: 'AdminAffiliateInvites',

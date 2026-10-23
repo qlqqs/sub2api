@@ -7,7 +7,7 @@
       </span>
       <span class="inline-flex items-center gap-1.5">
         <span class="h-0.5 w-3.5 rounded-full" :style="{ backgroundColor: EARNINGS_COLOR }" aria-hidden="true"></span>
-        {{ t('affiliate.team.chart.earnings') }}
+        {{ label('affiliate.team.chart.earnings') }}
       </span>
     </div>
     <div class="relative h-56">
@@ -45,6 +45,7 @@ import { Bar } from 'vue-chartjs'
 import type { AffiliateTeamTrendPoint } from '@/types'
 import { formatBalance } from '@/utils/balanceCurrency'
 import { formatTeamMoney } from '@/utils/affiliateTeam'
+import { useTeamLabel } from './teamContext'
 
 // 柱状图叠加一条收益折线：只注册用到的部件。
 ChartJS.register(BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip)
@@ -59,6 +60,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const label = useTeamLabel()
 
 const isDarkMode = computed(() => document.documentElement.classList.contains('dark'))
 const axisColors = computed(() => ({
@@ -84,7 +86,7 @@ const chartData = computed<ChartData<'bar' | 'line', number[], string>>(() => ({
     },
     {
       type: 'line' as const,
-      label: t('affiliate.team.chart.earnings'),
+      label: label('affiliate.team.chart.earnings'),
       data: props.trend.map((point) => point.earnings),
       borderColor: EARNINGS_COLOR,
       backgroundColor: EARNINGS_COLOR,

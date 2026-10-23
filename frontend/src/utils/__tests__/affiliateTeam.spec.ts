@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatTeamMoney, formatTeamShare, teamUserName } from '../affiliateTeam'
+import { formatTeamMoney, formatTeamRate, formatTeamShare, teamUserName } from '../affiliateTeam'
 
 describe('affiliateTeam formatting', () => {
   it('shows tiny positive amounts as <¥0.01 instead of 0.00', () => {
@@ -16,5 +16,13 @@ describe('affiliateTeam formatting', () => {
     expect(formatTeamShare(0.456)).toBe('46%')
     expect(teamUserName({ user_id: 1, nickname: '', email: 'a***@b***.com', deleted: false }, '已删除')).toBe('a***@b***.com')
     expect(teamUserName({ user_id: 1, nickname: '', email: '', deleted: true }, '已删除')).toBe('已删除')
+  })
+
+  it('formats rates with one decimal (profit sharing over team spend)', () => {
+    expect(formatTeamRate(0)).toBe('0%')
+    expect(formatTeamRate(Number.NaN)).toBe('0%')
+    expect(formatTeamRate(0.0004)).toBe('<0.1%')
+    expect(formatTeamRate(0.2)).toBe('20.0%')
+    expect(formatTeamRate(0.12345)).toBe('12.3%')
   })
 })

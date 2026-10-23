@@ -222,7 +222,7 @@ export interface UserAffiliateDetail {
 
 // ==================== Affiliate Team (代理团队消费页) ====================
 
-/** 展示给代理的用户：昵称 + 脱敏邮箱；账号已删除时两者都为空串。 */
+/** 团队页上的用户：昵称 + 邮箱（代理端脱敏，管理端原文）；账号已删除时两者都为空串。 */
 export interface AffiliateTeamUser {
   user_id: number
   nickname: string
@@ -297,6 +297,15 @@ export interface AffiliateTeamFilters {
   groups: AffiliateTeamGroup[]
 }
 
+/** 管理端代理视角中被查看的代理本人。 */
+export interface AffiliateTeamViewerSubject {
+  user: AffiliateTeamUser
+  /** 只对当前二级代理有值：其归属的一级代理。 */
+  upline: AffiliateTeamUser | null
+  /** 全部历史的代理分润，与代理管理列表的「累计分润」一致。 */
+  lifetime_earnings: number
+}
+
 /** 三种视角各用一个可空字段：counts（团队）/ agent（二级团队）/ customer（单个客户）。 */
 export interface AffiliateTeamOverview {
   viewer: AffiliateTeamViewer
@@ -307,6 +316,8 @@ export interface AffiliateTeamOverview {
   trend: AffiliateTeamTrendPoint[]
   models: AffiliateTeamModelShare[]
   filters: AffiliateTeamFilters | null
+  /** 只在管理端返回。 */
+  subject?: AffiliateTeamViewerSubject
 }
 
 export interface AffiliateTeamCustomer {
@@ -347,6 +358,49 @@ export interface AffiliateTeamRequest {
 export type AffiliateTeamCustomerSort = 'cost' | 'requests' | 'earnings' | 'last_used_at'
 export type AffiliateTeamAgentSort = 'team_cost' | 'earnings' | 'active_customers'
 export type AffiliateTeamSortOrder = 'asc' | 'desc'
+
+// ---------- 管理端团队消费汇总页 ----------
+
+/** 空串为全部；downgraded = 已降级但名下仍有客户。 */
+export type AdminAffiliateTeamLevel = '' | '1' | '2' | 'downgraded'
+
+export interface AffiliateTeamOwnerCounts {
+  all: number
+  level1: number
+  level2: number
+  downgraded: number
+}
+
+/** 渠道客户（有归属代理）的余额消费，每个客户只算一次；earnings 为区间内入账的全部代理分润。 */
+export interface AffiliateTeamPlatformSummary {
+  cost: number
+  /** 全站余额消费（cost 的占比分母）。 */
+  platform_cost: number
+  earnings: number
+  active_customers: number
+  customers: number
+}
+
+export interface AffiliateTeamPlatformOverview {
+  settle_interval_minutes: number
+  counts: AffiliateTeamOwnerCounts
+  summary: AffiliateTeamPlatformSummary
+  trend: AffiliateTeamTrendPoint[]
+  models: AffiliateTeamModelShare[]
+}
+
+/** 汇总页的一行：团队消费、活跃 / 客户、分润与该代理自己页面的摘要相同（一级包含其二级团队）。 */
+export interface AffiliateTeamOwner {
+  user: AffiliateTeamUser
+  agent_level: number
+  upline: AffiliateTeamUser | null
+  customers: number
+  active_customers: number
+  team_cost: number
+  earnings: number
+  /** 占汇总条消费的比例（0-1）。 */
+  cost_share: number
+}
 
 export interface SetInviteeAgentLevelResponse {
   user_id: number
