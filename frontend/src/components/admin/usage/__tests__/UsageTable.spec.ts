@@ -999,27 +999,25 @@ describe('user UsageTable cost breakdown in the balance unit (CUSTOM)', () => {
     wrapper.unmount()
   })
 
-  it('replaces the price ratio row with a discount (1 − k ÷ fx) and shows ¥k = $1 as secondary text', async () => {
+  it('replaces the price ratio row with a discount (1 − k ÷ fx) and does not show the rate', async () => {
     const wrapper = await openUserTooltip(tokenRow)
     const tooltip = wrapper.get('.fixed')
     expect(tooltip.text()).not.toContain('Price ratio')
     expect(tooltip.text()).toContain('Discount')
     // 1 − 0.5 ÷ 6.8 ≈ 92.6% → -93%
-    const discount = tooltip.get('[data-testid="usage-discount"]')
-    expect(discount.text()).toContain('-93%')
-    expect(tooltip.get('[data-testid="usage-discount-ratio"]').text()).toBe('¥0.5 = $1')
+    expect(tooltip.get('[data-testid="usage-discount"]').text()).toBe('-93%')
+    expect(tooltip.text()).not.toContain('= $1')
     expect(tooltip.text()).not.toContain('Account billed')
     wrapper.unmount()
   })
 
   it('uses the stored rate as k when the original cost is 0, and reports ≈ original near the exchange rate', async () => {
     const free = await openUserTooltip({ ...tokenRow, total_cost: 0, actual_cost: 0, rate_multiplier: 6.8 })
-    expect(free.get('[data-testid="usage-discount-ratio"]').text()).toBe('¥6.8 = $1')
-    expect(free.get('[data-testid="usage-discount"]').text()).toContain('≈ original')
+    expect(free.get('[data-testid="usage-discount"]').text()).toBe('≈ original')
     free.unmount()
 
     const pricier = await openUserTooltip({ ...tokenRow, total_cost: 0.1, actual_cost: 0.714 })
-    expect(pricier.get('[data-testid="usage-discount"]').text()).toContain('+5%')
+    expect(pricier.get('[data-testid="usage-discount"]').text()).toBe('+5%')
     pricier.unmount()
   })
 

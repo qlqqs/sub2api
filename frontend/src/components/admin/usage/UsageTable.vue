@@ -504,9 +504,9 @@
           </div>
           <div class="flex items-center justify-between gap-6">
             <span class="text-gray-400">{{ showAccountBilling ? t('usage.priceRatio') : t('usage.discount') }}</span>
-            <!-- CUSTOM: 管理端为本次请求的价格比例「¥x = $1」;用户端为相比原价的折扣,次要文字为换算比例「¥k = $1」 -->
+            <!-- CUSTOM: 管理端为本次请求的价格比例「¥x = $1」;用户端只显示相比原价的折扣,不露出倍率 -->
             <span v-if="showAccountBilling" class="font-semibold text-blue-400">{{ formatRateRatio(tooltipData?.rate_multiplier ?? 1) }}</span>
-            <span v-else class="font-semibold text-blue-400" data-testid="usage-discount">{{ userDiscountText(tooltipData) }}<span class="ml-1.5 font-normal text-gray-400" data-testid="usage-discount-ratio">{{ formatRateRatio(balanceFactor(tooltipData)) }}</span></span>
+            <span v-else class="font-semibold text-blue-400" data-testid="usage-discount">{{ userDiscountText(tooltipData) }}</span>
           </div>
           <div class="flex items-center justify-between gap-6">
             <span class="text-gray-400">{{ t('usage.original') }}</span>
