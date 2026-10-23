@@ -1,0 +1,674 @@
+/*
+ * CUSTOM: QxAPI 主题非管理页面的极简线条样式 —— 控制台类页面（API 密钥、使用记录、可用渠道、渠道状态、模型广场、批量生图、自定义页）。
+ * 规则限定在 html.qx-app.qx-line[data-qx-page="<路由名>"] 下，只覆盖页面里直接写的阴影、渐变、底色块等，公共组件见 line.css。
+ *
+ * 页面路由名：Keys（/keys）、Usage（/usage）、UserAvailableChannels（/available-channels）、
+ * ChannelStatus（/monitor，V1 卡片版与 V2 矩阵版）、BatchImageGuide（/batch-image）、CustomPage（/custom/:id）。
+ * 上游模板没有专用类名，这里按 Tailwind 类组合匹配（[class~='…'] 精确匹配单个类名），注释写明对应的组件 / 元素。
+ * 浮层沿用 line.css 定义的 --ql-float-line / --ql-float-shadow，悬停底色用 --ql-hover。
+ */
+
+/* ======================================================================
+ * 一、六个页面通用：主内容区（.qx-shell-main）与弹窗（.modal-content）里
+ * ====================================================================== */
+
+/* 1. Tailwind 阴影类（shadow / shadow-sm / -lg / -xl / shadow-card…）一律去掉；ring 细线保留 */
+html.qx-app.qx-line:is([data-qx-page='Keys'], [data-qx-page='Usage'], [data-qx-page='UserAvailableChannels'], [data-qx-page='ChannelStatus'], [data-qx-page='BatchImageGuide'], [data-qx-page='CustomPage']) :is(.qx-shell-main, .modal-content) [class*='shadow'] {
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+}
+
+/* 2. 毛玻璃去掉 */
+html.qx-app.qx-line:is([data-qx-page='Keys'], [data-qx-page='Usage'], [data-qx-page='UserAvailableChannels'], [data-qx-page='ChannelStatus'], [data-qx-page='BatchImageGuide'], [data-qx-page='CustomPage']) :is(.qx-shell-main, .modal-content) [class*='backdrop-blur'] {
+  backdrop-filter: none;
+}
+
+/* 3. 渐变底去掉（使用记录表里按首字 / 总耗时分段着色的延迟条是数据图形，保留） */
+html.qx-app.qx-line:is([data-qx-page='Keys'], [data-qx-page='Usage'], [data-qx-page='UserAvailableChannels'], [data-qx-page='ChannelStatus'], [data-qx-page='BatchImageGuide'], [data-qx-page='CustomPage']) :is(.qx-shell-main, .modal-content) [class*='bg-gradient-']:not([class~='from-40%']) {
+  background-image: none;
+}
+
+/*
+ * 4. 彩色浅底块（标签、状态胶囊、提示条、图标方块）→ 透明底 + 同色 1px 细线，文字颜色不变。
+ *    已有 border 类的元素只去底色（沿用自己的语义色描边）；没有边框的用内描边（不改尺寸）。
+ *    高度 1~2 的细条是进度条 / 色点，不在此列；GroupBadge 由 line.css 处理，这里跳过。
+ */
+html.qx-app.qx-line:is([data-qx-page='Keys'], [data-qx-page='Usage'], [data-qx-page='UserAvailableChannels'], [data-qx-page='ChannelStatus'], [data-qx-page='BatchImageGuide'], [data-qx-page='CustomPage']) :is(.qx-shell-main, .modal-content) :where(:is(
+  [class~='bg-amber-50'], [class~='bg-amber-100'], [class~='bg-amber-50/90'], [class~='bg-amber-500/10'], [class~='bg-amber-500/20'],
+  [class~='bg-yellow-50'], [class~='bg-orange-50'], [class~='bg-orange-100'], [class~='bg-orange-500/10'], [class~='bg-orange-500/20'],
+  [class~='bg-red-50'], [class~='bg-red-100'], [class~='bg-rose-50'], [class~='bg-rose-100'], [class~='bg-rose-500/10'], [class~='bg-rose-500/20'],
+  [class~='bg-pink-50'], [class~='bg-pink-100'], [class~='bg-pink-500/10'],
+  [class~='bg-purple-50'], [class~='bg-purple-100'], [class~='bg-purple-500/10'], [class~='bg-violet-50'], [class~='bg-violet-100'], [class~='bg-violet-500/10'],
+  [class~='bg-indigo-50'], [class~='bg-indigo-100'], [class~='bg-indigo-500/10'],
+  [class~='bg-blue-50'], [class~='bg-blue-100'], [class~='bg-blue-50/90'], [class~='bg-blue-500/10'],
+  [class~='bg-primary-50'], [class~='bg-primary-100'], [class~='bg-primary-50/80'],
+  [class~='bg-sky-50'], [class~='bg-sky-100'], [class~='bg-sky-500/10'], [class~='bg-cyan-100'], [class~='bg-cyan-500/10'],
+  [class~='bg-teal-50'], [class~='bg-teal-100'], [class~='bg-teal-500/10'],
+  [class~='bg-emerald-50'], [class~='bg-emerald-100'], [class~='bg-green-50'], [class~='bg-green-100'], [class~='bg-green-500/10'], [class~='bg-green-500/20']
+):not([class~='h-1']):not([class~='h-1.5']):not([class~='h-2']):not([class~='gap-1.5'][class~='rounded-md'][class~='transition-colors']):not([class~='gap-1.5'][class~='rounded-md'][class~='transition-colors'] > *)) {
+  background-color: transparent;
+}
+html.qx-app.qx-line:is([data-qx-page='Keys'], [data-qx-page='Usage'], [data-qx-page='UserAvailableChannels'], [data-qx-page='ChannelStatus'], [data-qx-page='BatchImageGuide'], [data-qx-page='CustomPage']) :is(.qx-shell-main, .modal-content) :where(:is(
+  [class~='bg-amber-50'], [class~='bg-amber-100'], [class~='bg-amber-50/90'], [class~='bg-amber-500/10'], [class~='bg-amber-500/20'],
+  [class~='bg-yellow-50'], [class~='bg-orange-50'], [class~='bg-orange-100'], [class~='bg-orange-500/10'], [class~='bg-orange-500/20'],
+  [class~='bg-red-50'], [class~='bg-red-100'], [class~='bg-rose-50'], [class~='bg-rose-100'], [class~='bg-rose-500/10'], [class~='bg-rose-500/20'],
+  [class~='bg-pink-50'], [class~='bg-pink-100'], [class~='bg-pink-500/10'],
+  [class~='bg-purple-50'], [class~='bg-purple-100'], [class~='bg-purple-500/10'], [class~='bg-violet-50'], [class~='bg-violet-100'], [class~='bg-violet-500/10'],
+  [class~='bg-indigo-50'], [class~='bg-indigo-100'], [class~='bg-indigo-500/10'],
+  [class~='bg-blue-50'], [class~='bg-blue-100'], [class~='bg-blue-50/90'], [class~='bg-blue-500/10'],
+  [class~='bg-primary-50'], [class~='bg-primary-100'], [class~='bg-primary-50/80'],
+  [class~='bg-sky-50'], [class~='bg-sky-100'], [class~='bg-sky-500/10'], [class~='bg-cyan-100'], [class~='bg-cyan-500/10'],
+  [class~='bg-teal-50'], [class~='bg-teal-100'], [class~='bg-teal-500/10'],
+  [class~='bg-emerald-50'], [class~='bg-emerald-100'], [class~='bg-green-50'], [class~='bg-green-100'], [class~='bg-green-500/10'], [class~='bg-green-500/20']
+):not([class*='border']):not(.input):not([class~='h-1']):not([class~='h-1.5']):not([class~='h-2']):not([class~='gap-1.5'][class~='rounded-md'][class~='transition-colors']):not([class~='gap-1.5'][class~='rounded-md'][class~='transition-colors'] > *)) {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 32%, transparent);
+}
+
+/* 5. 中性灰底块（只读值框、灰色胶囊、面板、骨架方块）→ 透明底 + --qx-line 细线 */
+html.qx-app.qx-line:is([data-qx-page='Keys'], [data-qx-page='Usage'], [data-qx-page='UserAvailableChannels'], [data-qx-page='ChannelStatus'], [data-qx-page='BatchImageGuide'], [data-qx-page='CustomPage']) :is(.qx-shell-main, .modal-content) :where(:is(
+  [class~='bg-gray-50'], [class~='bg-gray-100'], [class~='bg-gray-50/50'], [class~='bg-gray-50/60'], [class~='bg-gray-50/70'], [class~='bg-gray-50/80'], [class~='bg-gray-200/60'],
+  [class~='bg-zinc-50'], [class~='bg-zinc-100'], [class~='bg-zinc-800/10'], [class~='bg-neutral-100'], [class~='bg-neutral-500/10'], [class~='bg-slate-500/10']
+):not([class~='h-1']):not([class~='h-1.5']):not([class~='h-2']):not([class~='gap-1.5'][class~='rounded-md'][class~='transition-colors']):not([class~='gap-1.5'][class~='rounded-md'][class~='transition-colors'] > *)) {
+  background-color: transparent;
+}
+html.qx-app.qx-line:is([data-qx-page='Keys'], [data-qx-page='Usage'], [data-qx-page='UserAvailableChannels'], [data-qx-page='ChannelStatus'], [data-qx-page='BatchImageGuide'], [data-qx-page='CustomPage']) :is(.qx-shell-main, .modal-content) :where(:is(
+  [class~='bg-gray-50'], [class~='bg-gray-100'], [class~='bg-gray-50/50'], [class~='bg-gray-50/60'], [class~='bg-gray-50/70'], [class~='bg-gray-50/80'], [class~='bg-gray-200/60'],
+  [class~='bg-zinc-50'], [class~='bg-zinc-100'], [class~='bg-zinc-800/10'], [class~='bg-neutral-100'], [class~='bg-neutral-500/10'], [class~='bg-slate-500/10']
+):not([class*='border']):not(.input):not(thead):not(tr):not([class~='inline-flex'][class~='rounded-lg'][class~='p-1']):not([class~='h-1']):not([class~='h-1.5']):not([class~='h-2']):not([class~='gap-1.5'][class~='rounded-md'][class~='transition-colors']):not([class~='gap-1.5'][class~='rounded-md'][class~='transition-colors'] > *)) {
+  box-shadow: inset 0 0 0 1px var(--qx-line);
+}
+
+/* 6. 进度条 / 骨架条的灰色轨道 → 细线色 */
+html.qx-app.qx-line:is([data-qx-page='Keys'], [data-qx-page='Usage'], [data-qx-page='UserAvailableChannels'], [data-qx-page='ChannelStatus'], [data-qx-page='BatchImageGuide'], [data-qx-page='CustomPage']) :is(.qx-shell-main, .modal-content) :where([class~='bg-gray-200'], [class~='bg-blue-200/80'], [class~='bg-gray-100'][class~='h-2']) {
+  background-color: var(--qx-line);
+}
+
+/* 7. 页面内手写的下拉菜单 / 提示浮层（列设置、缓存明细等）：页面底 + 浮层细线 + 极淡投影，与 line.css 的 .dropdown 一致 */
+html.qx-app.qx-line:is([data-qx-page='Keys'], [data-qx-page='Usage'], [data-qx-page='BatchImageGuide']) .qx-shell-main [class~='absolute'][class~='border'][class~='bg-white'][class*='shadow-'] {
+  border-color: var(--ql-float-line);
+  border-radius: 10px;
+  background: var(--qx-page);
+  box-shadow: var(--ql-float-shadow);
+}
+html.qx-app.qx-line:is([data-qx-page='Keys'], [data-qx-page='Usage'], [data-qx-page='BatchImageGuide']) .qx-shell-main [class~='absolute'][class~='border'][class~='bg-white'][class*='shadow-'] > button:hover {
+  background: var(--ql-hover);
+}
+
+/* 8. 行内代码（密钥、路径） */
+html.qx-app.qx-line:is([data-qx-page='Keys'], [data-qx-page='Usage'], [data-qx-page='UserAvailableChannels'], [data-qx-page='ChannelStatus'], [data-qx-page='BatchImageGuide'], [data-qx-page='CustomPage']) .code {
+  font-family: var(--qx-mono);
+  border-radius: 6px;
+}
+
+/* ======================================================================
+ * 二、API 密钥（Keys）
+ * ====================================================================== */
+
+/* 当前并发：有并发时绿色描边，0 时灰色描边（通用规则已去底），数字等宽 */
+html.qx-app.qx-line[data-qx-page='Keys'] .qx-shell-main span[class~='min-w-8'][class~='tabular-nums'] {
+  font-family: var(--qx-mono);
+  font-weight: 500;
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .qx-shell-main span[class~='min-w-8'][class~='ring-1'] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 40%, transparent);
+}
+/* 分组单元格按钮：悬停只给细线，不填底色 */
+html.qx-app.qx-line[data-qx-page='Keys'] .qx-shell-main button[class~='group-hover/dropdown:opacity-100'],
+html.qx-app.qx-line[data-qx-page='Keys'] .qx-shell-main button[class~='-mx-2'][class~='-my-1']:hover {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--qx-line);
+}
+/* 操作列图标按钮：悬停不填底色，只变文字颜色 */
+html.qx-app.qx-line[data-qx-page='Keys'] .qx-shell-main button[class~='flex-col'][class~='p-1.5']:hover {
+  background: transparent;
+}
+/* 用量额度进度条：2px 细条 */
+html.qx-app.qx-line[data-qx-page='Keys'] .qx-shell-main div[class~='rounded-full'][class~='bg-gray-200']:is([class~='h-1'], [class~='h-1.5']) {
+  height: 2px;
+}
+
+/* 创建 / 编辑弹窗：厂商卡片（细线卡，选中蓝色描边，不填底） */
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content label > input.peer + span[class~='rounded-xl'] {
+  border-color: var(--qx-line);
+  border-radius: 12px;
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content label > input.peer:checked + span[class~='rounded-xl'] {
+  border-color: var(--qx-blue);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--qx-blue);
+}
+/* 厂商图标方块：细线方框 + 品牌色图标 */
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content label > input.peer + span span[class~='h-8'][class~='w-8'][class~='rounded-lg'] {
+  border: 1px solid var(--qx-line);
+  background: transparent;
+  box-shadow: none;
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content label > span[class~='absolute'][class~='bg-primary-500'] {
+  background: var(--qx-blue);
+}
+/* 开关（页面里手写的 h-5 w-9 开关，与 line.css 的 Toggle 一致：关 = 细线框 + 灰点，开 = 蓝底白点） */
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content button[class~='h-5'][class~='w-9'][class~='rounded-full'][class~='border-2'] {
+  border-color: var(--ql-hover-line);
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content button[class~='h-5'][class~='w-9'][class~='rounded-full'][class~='border-2'] > span {
+  background: var(--qx-muted);
+  box-shadow: none;
+  scale: 0.8;
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content button[class~='h-5'][class~='w-9'][class~='rounded-full'][class~='border-2'][class~='bg-primary-600'] {
+  border-color: var(--qx-blue);
+  background: var(--qx-blue);
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content button[class~='h-5'][class~='w-9'][class~='rounded-full'][class~='border-2'][class~='bg-primary-600'] > span {
+  background: #fff;
+}
+/* 有效期快捷项：细线胶囊，选中蓝色描边 + 蓝字 */
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content button[class~='rounded-lg'][class~='px-3'][class~='py-1.5'][class~='bg-gray-100']:hover {
+  box-shadow: inset 0 0 0 1px var(--ql-hover-line);
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content button[class~='rounded-lg'][class~='px-3'][class~='py-1.5'][class~='bg-primary-100'] {
+  box-shadow: inset 0 0 0 1px var(--qx-blue);
+  color: var(--qx-blue);
+}
+/* 已用额度等只读值：数字等宽 */
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content div[class~='flex-1'][class~='rounded-lg'][class~='bg-gray-100'] {
+  font-family: var(--qx-mono);
+  font-size: 13px;
+}
+/* 导入到 CCS 弹窗：两个大选项卡，1px 细线，悬停蓝色描边不填底 */
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content button[class~='rounded-xl'][class~='border-2'] {
+  border-width: 1px;
+  border-color: var(--qx-line);
+  border-radius: 12px;
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content button[class~='rounded-xl'][class~='border-2']:hover {
+  border-color: var(--qx-blue);
+  background: transparent;
+}
+
+/* 使用密钥弹窗（UseKeyModal）：Codex 认证方式分段切换（grid 版，不在 line.css 的 inline-flex 规则里） */
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content div[class~='grid'][class~='grid-cols-2'][class~='rounded-lg'][class~='bg-gray-100'][class~='p-1'] > button {
+  border: 1px solid transparent;
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content div[class~='grid'][class~='grid-cols-2'][class~='rounded-lg'][class~='bg-gray-100'][class~='p-1'] > button:hover {
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content div[class~='grid'][class~='grid-cols-2'][class~='rounded-lg'][class~='bg-gray-100'][class~='p-1'] > button[class~='bg-white'] {
+  border-color: var(--qx-blue);
+  background: transparent;
+  color: var(--qx-blue);
+}
+/* 左侧竖线式提示（border-l-2）：只留左线，不加整圈描边 */
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content [class~='border-l-2'] {
+  box-shadow: none;
+}
+/* 配置文件代码窗：沿用首页代码窗配色（--qx-code-*），1px 细线，无阴影；标题栏和复制按钮去掉填充 */
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content div[class~='bg-gray-900'][class~='rounded-xl'] {
+  border: 1px solid var(--qx-code-line);
+  border-radius: 12px;
+  background: var(--qx-code-bg);
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content div[class~='bg-gray-900'][class~='rounded-xl'] > div[class~='bg-gray-800'] {
+  border-color: var(--qx-code-line);
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content div[class~='bg-gray-900'][class~='rounded-xl'] > div[class~='bg-gray-800'] > span {
+  color: var(--qx-code-muted);
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content div[class~='bg-gray-900'][class~='rounded-xl'] > div[class~='bg-gray-800'] > button {
+  border: 1px solid var(--qx-code-line);
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--qx-code-text);
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content div[class~='bg-gray-900'][class~='rounded-xl'] > div[class~='bg-gray-800'] > button:hover {
+  border-color: var(--qx-code-muted);
+  color: #fff;
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content div[class~='bg-gray-900'][class~='rounded-xl'] > div[class~='bg-gray-800'] > button[class~='text-green-400'] {
+  border-color: rgb(74 222 128 / 0.45);
+  color: #4ade80;
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .modal-content div[class~='bg-gray-900'][class~='rounded-xl'] pre {
+  font-family: var(--qx-mono);
+  color: var(--qx-code-text);
+}
+
+/* 端点列表（EndpointPopover）：端点块已是细线框，去掉白底 */
+html.qx-app.qx-line[data-qx-page='Keys'] .qx-shell-main [class~='rounded-lg'][class~='border'][class~='bg-white'][class~='px-2.5'][class~='py-1.5'] {
+  border-color: var(--qx-line);
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Keys'] .qx-shell-main [class~='rounded-lg'][class~='border'][class~='bg-white'][class~='px-2.5'][class~='py-1.5']:hover {
+  border-color: var(--qx-blue);
+}
+
+/* 分组选择浮层（Teleport 到 body）：页面底 + 浮层细线；选中项蓝色描边，悬停极淡底 */
+html.qx-app.qx-line[data-qx-page='Keys'] body > div[class~='fixed'][class~='z-[100000020]'] {
+  border: 1px solid var(--ql-float-line);
+  border-radius: 12px;
+  background: var(--qx-page);
+  box-shadow: var(--ql-float-shadow);
+}
+html.qx-app.qx-line[data-qx-page='Keys'] body > div[class~='fixed'][class~='z-[100000020]'] [class~='border-b'],
+html.qx-app.qx-line[data-qx-page='Keys'] body > div[class~='fixed'][class~='z-[100000020]'] button[class~='border-b'] {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='Keys'] body > div[class~='fixed'][class~='z-[100000020]'] input {
+  border-color: var(--qx-line);
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Keys'] body > div[class~='fixed'][class~='z-[100000020]'] input:focus {
+  border-color: var(--qx-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--qx-blue) 15%, transparent);
+}
+html.qx-app.qx-line[data-qx-page='Keys'] body > div[class~='fixed'][class~='z-[100000020]'] button:hover {
+  background: var(--ql-hover);
+}
+html.qx-app.qx-line[data-qx-page='Keys'] body > div[class~='fixed'][class~='z-[100000020]'] button[class~='bg-primary-50'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--qx-blue) 55%, transparent);
+}
+
+/* ======================================================================
+ * 三、使用记录（Usage）
+ * ====================================================================== */
+
+/* 顶部四个统计卡（UsageStatsCards）：图标色块 → 细线方框 + 彩色图标；数字等宽常规字重 */
+html.qx-app.qx-line[data-qx-page='Usage'] .qx-shell-main .card > div[class~='rounded-lg'][class~='p-2']:first-child {
+  border: 1px solid var(--qx-line);
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+}
+html.qx-app.qx-line[data-qx-page='Usage'] .qx-shell-main .card > div > p[class~='text-xl'][class~='font-bold'] {
+  font-family: var(--qx-mono);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+html.qx-app.qx-line[data-qx-page='Usage'] .qx-shell-main .card > div > p[class~='text-xl'][class~='font-bold']:not([class*='text-green']) {
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line[data-qx-page='Usage'] .qx-shell-main .card > div > p[class~='text-xs'][class~='font-medium'] {
+  color: var(--qx-muted);
+}
+/* 缓存明细悬浮卡 */
+html.qx-app.qx-line[data-qx-page='Usage'] .qx-shell-main span[class~='absolute'][class~='border'][class~='bg-white'][class~='shadow-lg'] {
+  border-color: var(--ql-float-line);
+  background: var(--qx-page);
+  box-shadow: var(--ql-float-shadow);
+}
+/* 分布图旁的小表：表头细线、数字等宽 */
+html.qx-app.qx-line[data-qx-page='Usage'] .qx-shell-main .card table[class~='text-xs'] thead tr {
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line[data-qx-page='Usage'] .qx-shell-main .card table[class~='text-xs'] tbody tr {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='Usage'] .qx-shell-main .card table[class~='text-xs'] td:not(:first-child) {
+  font-family: var(--qx-mono);
+}
+/* 明细表：费用、Token 数字等宽；行内悬停图标不填底 */
+html.qx-app.qx-line[data-qx-page='Usage'] .qx-shell-main td button[class~='p-0.5']:hover {
+  background: transparent;
+}
+/* 「批量获取地区」等文字按钮：悬停不填底 */
+html.qx-app.qx-line[data-qx-page='Usage'] .qx-shell-main button[class~='text-primary-600'][class~='px-2'][class~='py-1']:hover {
+  background: transparent;
+  text-decoration: underline;
+}
+
+/* ======================================================================
+ * 四、可用渠道（UserAvailableChannels）—— AvailableChannelsTable / SupportedModelChip
+ * ====================================================================== */
+
+/* 表头：无底色、等宽小字灰色、下方一道细线（与 line.css 的表格一致） */
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] .qx-shell-main .table-wrapper thead > tr {
+  border-color: var(--qx-line);
+  background: transparent;
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+/* 渠道之间原来是 2px 灰线，改 1px 细线；同渠道多平台之间用更淡的细线 */
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] .qx-shell-main .table-wrapper tbody[class~='border-b-2'],
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] .qx-shell-main [data-testid='mobile-channels'] > [class~='border-b-2'] {
+  border-bottom-width: 1px;
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] .qx-shell-main .table-wrapper tbody tr[class~='border-t'] {
+  border-color: color-mix(in srgb, var(--qx-line) 60%, transparent);
+}
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] .qx-shell-main .table-wrapper tbody td[rowspan] {
+  border-right: 1px solid var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] .qx-shell-main .table-wrapper tbody tr:hover {
+  background: transparent;
+}
+/* 平台标签、模型标签：同色描边（通用规则已去底），字重略降 */
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] .qx-shell-main [class~='border'][class*='-500/30'] {
+  border-color: color-mix(in srgb, currentColor 35%, transparent);
+}
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] .qx-shell-main span[class~='bg-gray-200/60'] {
+  font-family: var(--qx-mono);
+}
+/* 模型价格悬浮卡（Teleport，fixed）：页面底 + 浮层细线，标题栏去底色 */
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] body > div[class~='fixed'][class~='z-[99999]'],
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] div[class~='pointer-events-none'][class~='fixed'][class~='z-[99999]'] {
+  border-radius: 10px;
+  background: var(--qx-page);
+  box-shadow: var(--ql-float-shadow);
+}
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] div[class~='pointer-events-none'][class~='fixed'][class~='z-[99999]'] > div[class~='rounded-t-lg'] {
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='UserAvailableChannels'] div[class~='pointer-events-none'][class~='fixed'][class~='z-[99999]'] > div[class~='rounded-t-lg'] > span:last-child {
+  border: 1px solid currentColor;
+  background: transparent;
+}
+
+/* ======================================================================
+ * 五、渠道状态（ChannelStatus）
+ * ====================================================================== */
+
+/* ---- V1：MonitorHero 时间窗分段切换（rounded-xl 版，不在 line.css 的规则里） ---- */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main [role='tablist'][class~='rounded-xl'][class~='bg-gray-100'] {
+  gap: 2px;
+  border-color: var(--qx-line);
+  border-radius: 10px;
+}
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main [role='tablist'][class~='rounded-xl'][class~='bg-gray-100'] > button {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main [role='tablist'][class~='rounded-xl'][class~='bg-gray-100'] > button:hover {
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main [role='tablist'][class~='rounded-xl'][class~='bg-gray-100'] > button[aria-selected='true'] {
+  border-color: var(--qx-blue);
+  background: transparent;
+  color: var(--qx-blue);
+}
+/* 总体状态、自动刷新：描边胶囊（通用规则已去底），状态文字等宽 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main section span[class~='tracking-wider'][class~='uppercase'][class~='rounded-full'] {
+  font-family: var(--qx-mono);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+/* ---- V1：渠道卡片（MonitorCard）→ 细线卡片，无投影 / 毛玻璃 / 上浮，悬停只加深描边 ---- */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main button[class~='shadow-card'],
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main div[class~='min-h-[280px]'][class~='animate-pulse'] {
+  border-color: var(--qx-line);
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+}
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main button[class~='shadow-card']:hover {
+  transform: none;
+  border-color: var(--ql-hover-line);
+  box-shadow: none;
+}
+html.qx-app.qx-line.dark[data-qx-page='ChannelStatus'] .qx-shell-main button[class~='shadow-card']:hover {
+  border-color: color-mix(in srgb, var(--qx-blue) 45%, var(--qx-line));
+}
+/* 供应商图标方块：细线方框 + 品牌色图标 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main button[class~='shadow-card'] span[class~='w-9'][class~='h-9'][class~='ring-1'] {
+  border: 1px solid var(--qx-line);
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+}
+/* 名称 / 状态胶囊 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main button[class~='shadow-card'] > div:first-child > span[class~='rounded-full'] {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  font-weight: 500;
+}
+/* 延迟 / PING 指标块（MonitorMetricPair）：细线框，数字等宽 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main div[class~='rounded-xl'][class~='p-3'][class~='bg-gray-50/80'] {
+  border-color: var(--qx-line);
+  border-radius: 10px;
+}
+/* 可用率大数字：等宽常规字重 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main button[class~='shadow-card'] [class~='text-4xl'],
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main button[class~='shadow-card'] [class~='text-3xl'] {
+  font-family: var(--qx-mono);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main button[class~='shadow-card'] [class~='border-t'] {
+  border-color: var(--qx-line);
+}
+
+/* ---- V2：大圆角无边框 + 投影 + ring 的卡片（顶部工具卡、指标格 MetricCell、矩阵、趋势图、明细区）→ 细线卡片 ---- */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main [class~='!rounded-3xl'][class~='ring-1'] {
+  border: 1px solid var(--qx-line) !important;
+  border-radius: 12px !important;
+  background: var(--qx-page) !important;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main [class~='!rounded-3xl'][class~='ring-1'] [class~='border-b'],
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main [class~='!rounded-3xl'][class~='ring-1'] [class~='border-t'] {
+  border-color: var(--qx-line);
+}
+/* 标题图标方块 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main .page-title > span[class~='h-8'][class~='w-8'] {
+  border: 1px solid var(--qx-line);
+  border-radius: 10px;
+  box-shadow: none;
+}
+/* 刷新按钮：去灰底 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main button.btn-icon[class~='bg-gray-100'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main button.btn-icon[class~='bg-gray-100']:hover {
+  box-shadow: inset 0 0 0 1px var(--ql-hover-line);
+  color: var(--qx-ink);
+}
+/* 数据补齐进度条（蓝底横幅）：只留底部细线，文字保持蓝色 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main div[class~='border-b'][class~='bg-blue-50/90'] {
+  border-color: var(--qx-line);
+  box-shadow: inset 2px 0 0 var(--qx-blue);
+}
+/* 骨架格 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main div[class~='h-24'][class~='animate-pulse'] {
+  border-radius: 12px;
+}
+/* 错误分类条：渐变红条改纯色 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main span[class~='from-red-400'] {
+  background-color: var(--ql-red);
+}
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main div[class~='rounded-2xl'][class~='bg-gray-50'] {
+  border-radius: 12px;
+}
+/* 矩阵（RelayPulseMatrix）：滚动区细线框；吸顶表头和固定列需要不透明底 → 页面底色 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main .matrix-scroll {
+  border-radius: 10px;
+}
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main .matrix-header {
+  background: var(--qx-page);
+  box-shadow: inset 0 -1px 0 var(--qx-line);
+  font-family: var(--qx-mono);
+}
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main :is(.dimension-cell, .summary-value) {
+  background: var(--qx-page);
+}
+/* 排名表里自己的那一行：蓝色左线代替底色 */
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main .monitor-table tbody tr[class~='bg-primary-50'],
+html.qx-app.qx-line[data-qx-page='ChannelStatus'] .qx-shell-main .monitor-table tbody tr[class~='bg-primary-50/80'] {
+  box-shadow: inset 2px 0 0 var(--qx-blue);
+}
+
+/* ======================================================================
+ * 六、批量生图（BatchImageGuide）
+ * ====================================================================== */
+
+/* 批量操作条（选中任务后出现）：细线条，无投影 */
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .qx-shell-main div[class~='rounded-lg'][class~='border'][class~='bg-white'][class~='shadow-sm'] {
+  border-color: var(--qx-line);
+  border-radius: 10px;
+  background: transparent;
+}
+/* 行内操作按钮：悬停不填底 */
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .qx-shell-main .batch-row-action:hover {
+  background: transparent;
+}
+/* 任务名按钮：悬停不填底，只变色 */
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .qx-shell-main button[class~='min-w-0'][class~='flex-1'][class~='rounded-lg']:hover {
+  background: transparent;
+  color: var(--qx-blue);
+}
+/* 「更多」菜单、Prompt 悬浮卡（fixed，z-[9999]）：页面底 + 浮层细线 */
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] div[class~='fixed'][class~='z-[9999]'] {
+  border: 1px solid var(--ql-float-line);
+  border-radius: 10px;
+  background: var(--qx-page);
+  box-shadow: var(--ql-float-shadow);
+}
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] div[class~='fixed'][class~='z-[9999]'] button:hover {
+  background: var(--ql-hover);
+}
+/* 结果 / 汇总数字等宽 */
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .qx-shell-main td [class~='tabular-nums'] {
+  font-family: var(--qx-mono);
+}
+/* 任务详情弹窗：汇总条细线框；明细表表头无底色；缩略图框细线 */
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='rounded-lg'][class~='border'][class~='bg-gray-50/70'] {
+  border-color: var(--qx-line);
+  border-radius: 10px;
+}
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='rounded-lg'][class~='border'][class~='bg-gray-50/70'] [class~='text-lg'],
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='rounded-lg'][class~='border'][class~='bg-gray-50/70'] [class~='text-base'] {
+  font-family: var(--qx-mono);
+  font-weight: 500;
+}
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='overflow-x-auto'][class~='rounded-lg'][class~='border'] {
+  border-color: var(--qx-line);
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='overflow-x-auto'][class~='rounded-lg'][class~='border'] thead {
+  background: transparent;
+  box-shadow: inset 0 -1px 0 var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='overflow-x-auto'][class~='rounded-lg'][class~='border'] thead th {
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='overflow-x-auto'][class~='rounded-lg'][class~='border'] tbody tr {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='overflow-x-auto'][class~='rounded-lg'][class~='border'] tbody tr:hover {
+  background: var(--ql-hover);
+}
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='h-12'][class~='w-12'][class~='border'] {
+  border-color: var(--qx-line);
+  border-radius: 8px;
+}
+/* 结果标签（ring 描边胶囊）：去底，描边用同色 */
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content span[class~='ring-1'][class~='ring-inset'] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 35%, transparent);
+}
+/* 创建任务弹窗：只读输入框、Prompt 列表、参考图标签 */
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content .input[class~='bg-gray-50'] {
+  border-style: dashed;
+  background: transparent;
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content textarea[class~='border'] {
+  border-color: var(--qx-line);
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content textarea[class~='border']:focus {
+  border-color: var(--qx-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--qx-blue) 15%, transparent);
+}
+/* 提示条（琥珀 / 天蓝）：去底色，左侧 2px 语义色线 */
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='rounded-lg'][class~='border'][class~='bg-amber-50'],
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='rounded-lg'][class~='border'][class~='bg-sky-50'] {
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
+  box-shadow: inset 2px 0 0 currentColor;
+}
+/* 使用说明弹窗：说明块细线；技能文本框代码字体 */
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='rounded-lg'][class~='border'][class~='bg-gray-50'][class~='p-3'] {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content textarea[class~='font-mono'] {
+  font-family: var(--qx-mono);
+}
+/* 图片预览底：细线框 */
+html.qx-app.qx-line[data-qx-page='BatchImageGuide'] .modal-content div[class~='min-h-[420px]'][class~='bg-gray-50'] {
+  border-radius: 10px;
+}
+
+/* ======================================================================
+ * 七、自定义页（CustomPage）
+ * ====================================================================== */
+
+/* 目录侧栏：去灰底，只留右侧细线；当前项蓝字 + 左侧蓝线 */
+html.qx-app.qx-line[data-qx-page='CustomPage'] .qx-shell-main .toc-sidebar {
+  border-color: var(--qx-line);
+  background: var(--qx-page);
+}
+html.qx-app.qx-line[data-qx-page='CustomPage'] .qx-shell-main .toc-header {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='CustomPage'] .qx-shell-main .toc-item:hover {
+  background: var(--ql-hover);
+}
+html.qx-app.qx-line[data-qx-page='CustomPage'] .qx-shell-main .toc-item.toc-active {
+  border-radius: 0 4px 4px 0;
+  background: transparent;
+  box-shadow: inset 2px 0 0 var(--qx-blue);
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line[data-qx-page='CustomPage'] .qx-shell-main :is(.toc-toggle-btn, .toc-close-btn) {
+  border-color: var(--qx-line);
+  background: var(--qx-page);
+  box-shadow: none;
+}
+html.qx-app.qx-line[data-qx-page='CustomPage'] .qx-shell-main .toc-toggle-btn:hover {
+  border-color: var(--ql-hover-line);
+}
+/* Markdown 正文：表头、代码块、引用改细线 */
+html.qx-app.qx-line[data-qx-page='CustomPage'] .markdown-page-content :is(th, td) {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='CustomPage'] .markdown-page-content th {
+  background: transparent;
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line[data-qx-page='CustomPage'] .markdown-page-content :is(h1, h2) {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='CustomPage'] .markdown-page-content blockquote {
+  border-left-width: 2px;
+  border-color: var(--qx-blue);
+}
+html.qx-app.qx-line[data-qx-page='CustomPage'] .markdown-page-content :not(pre) > code {
+  border: 1px solid var(--qx-line);
+  background: transparent;
+  font-family: var(--qx-mono);
+}
+html.qx-app.qx-line[data-qx-page='CustomPage'] .markdown-page-content pre {
+  border: 1px solid var(--qx-code-line);
+  background: var(--qx-code-bg);
+  box-shadow: none;
+}
+/* 内嵌页右上角「新窗口打开」按钮：无投影 */
+html.qx-app.qx-line[data-qx-page='CustomPage'] .qx-shell-main .custom-open-fab {
+  box-shadow: none;
+}

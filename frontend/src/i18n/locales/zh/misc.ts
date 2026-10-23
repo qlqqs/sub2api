@@ -106,7 +106,11 @@ export default {
     total: '条公告',
     emptyDescription: '暂时没有任何系统公告',
     readStatus: '您已阅读此公告',
-    markReadHint: '点击"已读"标记此公告'
+    markReadHint: '点击"已读"标记此公告',
+    // CUSTOM: 仪表盘公告轮播横幅
+    bannerDetail: '查看详情',
+    bannerPrev: '上一条',
+    bannerNext: '下一条'
   },
 
   // User Subscriptions Page

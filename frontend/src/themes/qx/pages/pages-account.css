@@ -1,0 +1,711 @@
+/*
+ * CUSTOM: QxAPI 主题非管理页面的极简线条样式 —— 账户类页面（充值、订单、兑换、邀请返利、团队、个人资料、订阅、支付结果等）。
+ * 规则限定在 html.qx-app.qx-line[data-qx-page="<路由名>"] 下，只覆盖页面里直接写的阴影、渐变、底色块等，公共组件见 line.css。
+ * 做法：底色块 → 透明 + 1px 细线（--qx-line）；语义色块（成功 / 警告 / 错误 / 提示）→ 透明 + 同色细边，文字保留颜色；
+ * 选中态 → 蓝色细边 + 蓝字，不填底；图标方块 → 描边方块 + 彩色图标；数字用 --qx-mono。
+ * 为不改变尺寸，选中时加粗的那半像素用 inset box-shadow 画，不改 border-width。
+ * PaymentResult / PaymentQRCode 两页不套 AppLayout（没有 QxShell），<html> 上没有 qx-line，这里不写它们的规则。
+ */
+
+/* ---------- 语义色（本文件内用），浅色 / 深色 ---------- */
+html.qx-app.qx-line:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  ) {
+  --qa-green: #059669;
+  --qa-red: #dc2626;
+  --qa-amber: var(--qx-amber);
+  --qa-purple: #7c3aed;
+  --qa-orange: #ea580c;
+  --qa-sky: #0284c7;
+  --qa-edge: 38%;
+}
+html.qx-app.qx-line.dark:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  ) {
+  --qa-green: #34d399;
+  --qa-red: #f87171;
+  --qa-purple: #a78bfa;
+  --qa-orange: #fb923c;
+  --qa-sky: #38bdf8;
+  --qa-edge: 42%;
+}
+
+/* ---------- 各页共用：页面主体里去掉阴影、渐变、毛玻璃 ---------- */
+html.qx-app.qx-line:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  )
+  .qx-shell-main
+  :is(
+    [class~='shadow'],
+    [class~='shadow-sm'],
+    [class~='shadow-md'],
+    [class~='shadow-lg'],
+    [class~='shadow-xl'],
+    [class~='shadow-2xl']
+  ) {
+  box-shadow: none;
+}
+html.qx-app.qx-line:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  )
+  .qx-shell-main
+  [class*='bg-gradient-to-'] {
+  /* 渐变 → 起始色的实色（如平台色竖条、Stripe 卡头）；需要去底色的地方下面单独改成透明 */
+  background-color: var(--tw-gradient-from, transparent);
+  background-image: none;
+}
+html.qx-app.qx-line:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  )
+  .qx-shell-main
+  :is([class~='backdrop-blur-sm'], [class~='backdrop-blur']) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* ---------- 各页共用：语义色的浅底图标方块 / 提示块 → 透明 + 同色细边 ---------- */
+html.qx-app.qx-line:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  )
+  :where(
+    [class~='bg-emerald-50'],
+    [class~='bg-emerald-100'],
+    [class~='bg-green-50'],
+    [class~='bg-green-100']
+  ) {
+  border: 1px solid color-mix(in srgb, var(--qa-green) var(--qa-edge), transparent);
+  background-color: transparent;
+}
+html.qx-app.qx-line:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  )
+  :where([class~='bg-red-50'], [class~='bg-red-100']) {
+  border: 1px solid color-mix(in srgb, var(--qa-red) var(--qa-edge), transparent);
+  background-color: transparent;
+}
+html.qx-app.qx-line:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  )
+  :where(
+    [class~='bg-amber-50'],
+    [class~='bg-amber-100'],
+    [class~='bg-yellow-50'],
+    [class~='bg-yellow-100']
+  ) {
+  border: 1px solid color-mix(in srgb, var(--qa-amber) var(--qa-edge), transparent);
+  background-color: transparent;
+}
+html.qx-app.qx-line:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  )
+  :where([class~='bg-orange-50'], [class~='bg-orange-100']) {
+  border: 1px solid color-mix(in srgb, var(--qa-orange) var(--qa-edge), transparent);
+  background-color: transparent;
+}
+html.qx-app.qx-line:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  )
+  :where([class~='bg-purple-50'], [class~='bg-purple-100']) {
+  border: 1px solid color-mix(in srgb, var(--qa-purple) var(--qa-edge), transparent);
+  background-color: transparent;
+}
+html.qx-app.qx-line:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  )
+  :where(
+    [class~='bg-primary-50'],
+    [class~='bg-primary-100'],
+    [class~='bg-blue-50'],
+    [class~='bg-blue-100'],
+    [class~='bg-sky-100']
+  ) {
+  border: 1px solid color-mix(in srgb, var(--qx-blue) 32%, transparent);
+  background-color: transparent;
+}
+/* 灰色浅底块（列表项、空状态图标、详情块） → 透明 + 细线 */
+html.qx-app.qx-line:is(
+    [data-qx-page='PurchaseSubscription'],
+    [data-qx-page='OrderList'],
+    [data-qx-page='Redeem'],
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer'],
+    [data-qx-page='Profile'],
+    [data-qx-page='Subscriptions']
+  )
+  :where(
+    [class~='bg-gray-50'],
+    [class~='bg-gray-50/70'],
+    [class~='bg-gray-50/80'],
+    [class~='bg-gray-100']
+  ):where(:not(.animate-pulse):not([class~='h-1.5']):not([class~='h-2'])) {
+  border: 1px solid var(--qx-line);
+  background-color: transparent;
+}
+
+/* =====================================================================
+ * 充值页（PurchaseSubscription）
+ * ===================================================================== */
+
+/* 充值 / 订阅切换：细线外框，选中项蓝字 + 蓝色细边 */
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main .flex.space-x-1.rounded-xl.p-1 {
+  border: 1px solid var(--qx-line);
+  border-radius: 12px;
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main .flex.space-x-1.rounded-xl.p-1 > button {
+  border-radius: 9px;
+  background: transparent;
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main .flex.space-x-1.rounded-xl.p-1 > button:hover {
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main .flex.space-x-1.rounded-xl.p-1 > button[class~='bg-white'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--qx-blue);
+  color: var(--qx-blue);
+}
+
+/* 快捷金额：细线方块，等宽数字；选中蓝边蓝字不填底；有优惠的档位红色细边 */
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] button[data-testid^='quick-amount-'] {
+  padding: 13px;
+  border-width: 1px;
+  border-color: var(--qx-line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--qx-ink);
+  font-family: var(--qx-mono);
+  font-weight: 500;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] button[data-testid^='quick-amount-']:hover {
+  border-color: var(--qx-wire);
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] button[data-testid^='quick-amount-'][class~='border-red-200'] {
+  border-color: color-mix(in srgb, var(--qa-red) 40%, transparent);
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] button[data-testid^='quick-amount-'][class~='border-primary-500'] {
+  border-color: var(--qx-blue);
+  background: transparent;
+  box-shadow: inset 0 0 0 0.5px var(--qx-blue);
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] [data-testid='quick-amount-credited'] {
+  font-family: var(--qx-mono);
+}
+/* 促销价签保留红色实底（语义），去阴影；白色描边换成页面底色，像在细线上开个缺口 */
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] [data-testid='quick-amount-bonus-badge'] > span {
+  box-shadow: 0 0 0 2px var(--qx-page);
+}
+
+/* 支付方式：细线卡片；选中统一蓝色细边 + 蓝字（品牌色由图标体现），不填底 */
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] [data-testid='payment-method-grid'] > button {
+  border-color: var(--qx-line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--qx-ink);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] [data-testid='payment-method-grid'] > button:not(:disabled):hover {
+  border-color: var(--qx-wire);
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] [data-testid='payment-method-grid'] > button[class~='shadow-sm'] {
+  border-color: var(--qx-blue);
+  box-shadow: inset 0 0 0 0.5px var(--qx-blue);
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] [data-testid='payment-method-grid'] > button:disabled {
+  border-style: dashed;
+  background: transparent;
+}
+
+/* 键盘焦点：浏览器默认的黑 / 白粗框换成主题蓝的外描线 */
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] :is(button[data-testid^='quick-amount-'], [data-testid='payment-method-grid'] > button):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--qx-blue) 45%, transparent);
+  outline-offset: 2px;
+}
+
+/* 金额提示（琥珀）/ 优惠提示（绿）：透明 + 同色细边，左侧 2px 色线 */
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main .card [class~='border-amber-200'][class~='bg-amber-50'] {
+  border-color: color-mix(in srgb, var(--qa-amber) var(--qa-edge), transparent);
+  border-left: 2px solid var(--qa-amber);
+  border-radius: 8px;
+  color: var(--qx-text);
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main .card [class~='border-emerald-200'][class~='bg-emerald-50'] {
+  border-color: color-mix(in srgb, var(--qa-green) var(--qa-edge), transparent);
+  border-left: 2px solid var(--qa-green);
+  border-radius: 8px;
+  color: var(--qa-green);
+}
+
+/* 充值账户余额、费用明细里的金额：等宽数字 */
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main .card p[class~='text-green-600'],
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main .card .space-y-2.text-sm .flex.justify-between > span:last-child {
+  font-family: var(--qx-mono);
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main .card .space-y-2.text-sm .flex.justify-between > span[class~='text-lg'] {
+  font-weight: 600;
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main .card [class~='border-t'][class~='border-gray-200'] {
+  border-color: var(--qx-line);
+}
+
+/* 确认支付按钮：保留支付品牌色实底，去阴影；不可点时改为细线空心，不再是一条浅色色块 */
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main :is(.btn-alipay, .btn-wxpay, .btn-stripe, .btn-airwallex) {
+  box-shadow: none;
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main :is(.btn-alipay, .btn-wxpay, .btn-stripe, .btn-airwallex, .btn-primary):disabled {
+  border: 1px solid var(--qx-line);
+  background: transparent;
+  color: var(--qx-muted);
+  opacity: 1;
+}
+
+/* 已有订阅的精简列表、套餐卡里的灰底信息块 */
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main [class~='rounded-xl'][class~='border-gray-100'][class~='bg-white'] {
+  border-color: var(--qx-line);
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main [class~='bg-gray-200/80'] {
+  border: 1px solid var(--qx-line);
+  background: transparent;
+}
+
+/* 续费选择弹窗、图片预览：去毛玻璃、阴影，细线框 */
+html.qx-app.qx-line[data-qx-page='PurchaseSubscription'] .qx-shell-main .fixed.inset-0 > [class~='rounded-2xl'][class~='shadow-2xl'] {
+  border-color: var(--qx-line);
+  border-radius: 14px;
+  background: var(--qx-page);
+}
+
+/* =====================================================================
+ * 我的订单（OrderList）
+ * ===================================================================== */
+
+/* 行内「取消 / 退款」文字按钮：悬停时不填底，改成同色细边 */
+html.qx-app.qx-line[data-qx-page='OrderList'] .qx-shell-main td button.inline-flex.rounded-md:hover {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 40%, transparent);
+}
+/* 退款弹窗里的订单信息块（弹窗传送到 body 外） */
+html.qx-app.qx-line[data-qx-page='OrderList'] [class~='rounded-xl'][class~='bg-gray-50'] {
+  border-radius: 10px;
+}
+html.qx-app.qx-line[data-qx-page='OrderList'] [class~='rounded-xl'][class~='bg-gray-50'] .flex.justify-between > span:last-child {
+  font-family: var(--qx-mono);
+}
+
+/* =====================================================================
+ * 兑换（Redeem）
+ * ===================================================================== */
+
+/* 余额卡：去掉蓝色渐变底，余额蓝色等宽数字，图标改为描边方块 */
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card > [class~='bg-gradient-to-br'] {
+  background-color: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card > [class~='bg-gradient-to-br'] > div:first-child {
+  border: 1px solid var(--qx-line);
+  border-radius: 14px;
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card > [class~='bg-gradient-to-br'] > div:first-child svg {
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card > [class~='bg-gradient-to-br'] [class~='text-primary-100'] {
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card > [class~='bg-gradient-to-br'] p[class~='text-4xl'] {
+  color: var(--qx-blue);
+  font-family: var(--qx-mono);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+/* 兑换成功 / 失败 / 说明卡：卡片不填底，边框换语义色 */
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card:is([class~='bg-emerald-50'], [class~='bg-red-50'], [class~='bg-primary-50']) {
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card[class~='bg-primary-50'] h3,
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card[class~='bg-primary-50'] ul {
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card[class~='bg-primary-50'] ul {
+  color: var(--qx-text);
+}
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card[class~='bg-primary-50'] ul li::marker {
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card[class~='bg-primary-50'] [class~='bg-primary-200/50'] {
+  border: 1px solid color-mix(in srgb, var(--qx-blue) 32%, transparent);
+  background: transparent;
+  color: var(--qx-blue);
+}
+/* 图标方块（说明、成功、失败、最近活动） */
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .h-10.w-10[class~='rounded-xl'] {
+  border-radius: 10px;
+}
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .card [class~='border-b'][class~='border-gray-100'] {
+  border-color: var(--qx-line);
+}
+/* 最近活动：列表项细线框，金额等宽 */
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .space-y-3 > [class~='rounded-xl'][class~='bg-gray-50'] {
+  border-radius: 10px;
+}
+html.qx-app.qx-line[data-qx-page='Redeem'] .qx-shell-main .space-y-3 > [class~='rounded-xl'][class~='bg-gray-50'] .text-right > p:first-child {
+  font-family: var(--qx-mono);
+  font-weight: 500;
+}
+
+/* =====================================================================
+ * 邀请返利（Affiliate）与团队消费（AffiliateTeam / AffiliateTeamAgent / AffiliateTeamCustomer）
+ * ===================================================================== */
+
+/* 「邀请 | 团队消费」分区切换、团队列表「我的客户 | 下级代理」切换：细线外框，选中蓝字蓝边 */
+html.qx-app.qx-line:is(
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer']
+  )
+  :is([data-test='affiliate-section-tabs'], [role='tablist'][class~='bg-gray-100']) {
+  border: 1px solid var(--qx-line);
+  border-radius: 10px;
+  background: transparent;
+}
+html.qx-app.qx-line:is(
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer']
+  )
+  :is([data-test='affiliate-section-tabs'] > a, [role='tablist'][class~='bg-gray-100'] > button) {
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line:is(
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer']
+  )
+  :is([data-test='affiliate-section-tabs'] > a, [role='tablist'][class~='bg-gray-100'] > button):hover {
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line:is(
+    [data-qx-page='Affiliate'],
+    [data-qx-page='AffiliateTeam'],
+    [data-qx-page='AffiliateTeamAgent'],
+    [data-qx-page='AffiliateTeamCustomer']
+  )
+  :is([data-test='affiliate-section-tabs'] > a[aria-current='page'], [role='tablist'][class~='bg-gray-100'] > button[aria-selected='true']) {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--qx-blue);
+  color: var(--qx-blue);
+}
+
+/* 代理档位卡：比例蓝字 */
+html.qx-app.qx-line[data-qx-page='Affiliate'] [data-test='affiliate-agent-level'] {
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line[data-qx-page='Affiliate'] [data-test='affiliate-agent-rate'] {
+  color: var(--qx-blue);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* 邀请码 / 邀请链接框：灰底换成细线框，内容等宽 */
+html.qx-app.qx-line[data-qx-page='Affiliate'] [data-test='affiliate-invite-card'] [class~='rounded-xl'][class~='bg-gray-50'] {
+  border-color: var(--qx-line);
+  border-radius: 10px;
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Affiliate'] [data-test='affiliate-invite-card'] code {
+  font-family: var(--qx-mono);
+}
+html.qx-app.qx-line[data-qx-page='Affiliate'] [data-test='affiliate-invite-card'] > ul {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--qx-line);
+  color: var(--qx-muted);
+}
+
+/* 返利余额 / 累计收益：等宽数字，返利余额保留绿色 */
+html.qx-app.qx-line[data-qx-page='Affiliate'] .qx-shell-main .card.p-5 > p[class~='text-2xl'] {
+  font-family: var(--qx-mono);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+html.qx-app.qx-line[data-qx-page='Affiliate'] .qx-shell-main .card.p-5 > p[class~='text-2xl']:not([data-test]) {
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line[data-qx-page='Affiliate'] [data-test='affiliate-total-breakdown'],
+html.qx-app.qx-line[data-qx-page='Affiliate'] .qx-shell-main .card.p-5 > p[class~='text-amber-600'] {
+  font-family: var(--qx-mono);
+  font-size: 11.5px;
+}
+
+/* 邀请列表：页内表格的分隔线、空状态虚线框统一细线色，金额等宽 */
+html.qx-app.qx-line[data-qx-page='Affiliate'] [data-test='affiliate-invitees'] tr[class~='border-b'] {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='Affiliate'] [data-test='affiliate-invitees'] thead th {
+  color: var(--qx-muted);
+  font-weight: 500;
+}
+html.qx-app.qx-line[data-qx-page='Affiliate'] [data-test='affiliate-invitees'] [class~='border-dashed'] {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line[data-qx-page='Affiliate'] [data-test='affiliate-invitees'] td[class~='text-right'] {
+  font-family: var(--qx-mono);
+}
+
+/* 团队消费：汇总条数值等宽 */
+html.qx-app.qx-line:is([data-qx-page='AffiliateTeam'], [data-qx-page='AffiliateTeamAgent'], [data-qx-page='AffiliateTeamCustomer'])
+  [data-test='team-summary-value'] {
+  font-family: var(--qx-mono);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+html.qx-app.qx-line:is([data-qx-page='AffiliateTeam'], [data-qx-page='AffiliateTeamAgent'], [data-qx-page='AffiliateTeamCustomer'])
+  [data-test='team-summary-split'] {
+  font-family: var(--qx-mono);
+}
+html.qx-app.qx-line:is([data-qx-page='AffiliateTeam'], [data-qx-page='AffiliateTeamAgent'], [data-qx-page='AffiliateTeamCustomer'])
+  [role='tablist'][class~='bg-gray-100']
+  > button
+  > span {
+  font-family: var(--qx-mono);
+}
+html.qx-app.qx-line:is([data-qx-page='AffiliateTeam'], [data-qx-page='AffiliateTeamAgent'], [data-qx-page='AffiliateTeamCustomer'])
+  [role='tablist'][class~='bg-gray-100']
+  > button[aria-selected='true']
+  > span {
+  color: var(--qx-blue);
+}
+
+/* =====================================================================
+ * 个人资料（Profile）
+ * ===================================================================== */
+
+/* 顶部概览：去掉渐变底，细线卡片 */
+html.qx-app.qx-line[data-qx-page='Profile'] .qx-shell-main [data-testid='profile-overview-hero'][class*='bg-gradient-to-'] {
+  border-color: var(--qx-line);
+  background-color: transparent;
+}
+/* 头像：实心渐变方块 → 蓝色细边描边方块 + 蓝色首字母（有图片时只多一圈细边） */
+html.qx-app.qx-line[data-qx-page='Profile'] [data-testid='profile-overview-hero'] .h-20.w-20 {
+  border: 1px solid color-mix(in srgb, var(--qx-blue) 45%, transparent);
+  border-radius: 18px;
+  background-color: transparent;
+  color: var(--qx-blue);
+  font-family: var(--qx-mono);
+  font-weight: 500;
+}
+/* 来源提示胶囊：透明 + 细线 */
+html.qx-app.qx-line[data-qx-page='Profile'] [data-testid='profile-overview-hero'] [class~='ring-1'][class~='rounded-full'] {
+  border: 1px solid var(--qx-line);
+  background: transparent;
+  box-shadow: none;
+}
+/* 余额 / 并发 / 注册时间：细线小格，数值等宽 */
+html.qx-app.qx-line[data-qx-page='Profile'] [data-testid^='profile-overview-metric-'] {
+  border: 1px solid var(--qx-line);
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+}
+html.qx-app.qx-line[data-qx-page='Profile'] [data-testid^='profile-overview-metric-'] > p:first-child {
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-size: 11px;
+  font-weight: 500;
+}
+html.qx-app.qx-line[data-qx-page='Profile'] [data-testid^='profile-overview-metric-'] > p:last-child {
+  color: var(--qx-ink);
+  font-family: var(--qx-mono);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+html.qx-app.qx-line[data-qx-page='Profile'] [data-testid='profile-overview-metric-balance'] > p:last-child {
+  color: var(--qx-blue);
+}
+
+/* 资料与头像、登录方式绑定、资料来源：卡片细线，内层灰底圆角块 → 细线框 */
+html.qx-app.qx-line[data-qx-page='Profile'] .qx-shell-main .card[class~='bg-white/90'] {
+  border-color: var(--qx-line);
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Profile'] .qx-shell-main :is([class~='rounded-3xl'], [class~='rounded-2xl'])[class~='border-gray-100'] {
+  border-color: var(--qx-line);
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+}
+/* 头像卡里的小头像（实心蓝方块） */
+html.qx-app.qx-line[data-qx-page='Profile'] [data-testid='profile-basics-panel'] [class*='bg-gradient-to-'] {
+  border: 1px solid color-mix(in srgb, var(--qx-blue) 45%, transparent);
+  background-color: transparent;
+  color: var(--qx-blue);
+  font-family: var(--qx-mono);
+  font-weight: 500;
+}
+/* 登录方式图标方块：浅色底 → 同色描边 */
+html.qx-app.qx-line[data-qx-page='Profile'] .qx-shell-main .h-11.w-11[class~='rounded-2xl'] {
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  border-radius: 10px;
+  background: transparent;
+}
+/* 各卡片的标题分隔线 */
+html.qx-app.qx-line[data-qx-page='Profile'] .qx-shell-main .card [class~='border-b'][class~='border-gray-100'] {
+  border-color: var(--qx-line);
+}
+/* 联系客服卡：透明 + 蓝色细边 */
+html.qx-app.qx-line[data-qx-page='Profile'] .qx-shell-main .card[class~='bg-primary-50'] {
+  border-color: color-mix(in srgb, var(--qx-blue) 32%, transparent);
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Profile'] .qx-shell-main .card[class~='bg-primary-50'] h3 {
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line[data-qx-page='Profile'] .qx-shell-main .card[class~='bg-primary-50'] [class~='bg-primary-100'] {
+  border-radius: 10px;
+}
+/* 双因素认证状态图标：浅底圆 → 描边圆 */
+html.qx-app.qx-line[data-qx-page='Profile'] .qx-shell-main .flex-shrink-0.rounded-full.p-3 {
+  background: transparent;
+}
+/* 余额提醒里的额外邮箱行 / 提示行 */
+html.qx-app.qx-line[data-qx-page='Profile'] .qx-shell-main [class~='bg-gray-50'][class~='rounded-lg'] {
+  border-color: var(--qx-line);
+}
+/* Passkey 列表、空状态框 */
+html.qx-app.qx-line[data-qx-page='Profile'] .qx-shell-main .card :is([class~='border-gray-200'], [class~='border-dashed']) {
+  border-color: var(--qx-line);
+}
+/* 页内弹窗（2FA 设置 / 关闭、Passkey 删除）：去阴影，细线框 */
+html.qx-app.qx-line[data-qx-page='Profile'] .fixed.inset-0 [class~='rounded-xl'][class~='shadow-xl'] {
+  border: 1px solid var(--qx-line);
+  box-shadow: none;
+}
+html.qx-app.qx-line[data-qx-page='Profile'] .fixed.inset-0 code[class~='bg-gray-100'] {
+  border-radius: 6px;
+  font-family: var(--qx-mono);
+}
+
+/* =====================================================================
+ * 我的订阅（Subscriptions）
+ * ===================================================================== */
+
+/* 订阅卡：保留平台色描边，去掉白底 */
+html.qx-app.qx-line[data-qx-page='Subscriptions'] .qx-shell-main [class~='rounded-2xl'][class~='border'][class~='bg-white'] {
+  border-radius: 12px;
+  background: transparent;
+}
+html.qx-app.qx-line[data-qx-page='Subscriptions'] .qx-shell-main [class~='border-b'][class~='border-gray-100'] {
+  border-color: var(--qx-line);
+}
+/* 空状态图标：灰底圆 → 细线圆 */
+html.qx-app.qx-line[data-qx-page='Subscriptions'] .qx-shell-main .h-16.w-16.rounded-full {
+  border: 1px solid var(--qx-line);
+  background: transparent;
+}
+/* 不限额度块：去渐变，绿色细边 */
+html.qx-app.qx-line[data-qx-page='Subscriptions'] .qx-shell-main [class~='from-emerald-50'] {
+  border: 1px solid color-mix(in srgb, var(--qa-green) var(--qa-edge), transparent);
+  border-radius: 10px;
+  background: transparent;
+}

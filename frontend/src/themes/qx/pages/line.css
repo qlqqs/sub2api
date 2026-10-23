@@ -1,0 +1,768 @@
+/*
+ * CUSTOM: QxAPI 主题非管理页面的极简线条样式 —— 公共层（卡片、按钮、输入框、表格、标签、弹窗、下拉、分页、标签页、顶栏等）。
+ * 所有规则限定在 html.qx-app.qx-line 下（QxShell 在非 /admin 路由上加 qx-line），管理后台不受影响。
+ * 与仪表盘（themes/qx/dashboard/dashboard.css）一致：底色即页面底色，区块之间只用 1px --qx-line 细线分隔，
+ * 不用阴影、渐变和毛玻璃；选中 / 激活用蓝色文字 + 蓝色描边表示，语义色（成功 / 警告 / 危险）保留文字颜色。
+ * 上游组件（DataTable、Pagination、Toggle、GroupBadge 等）没有专用类名的地方按其 Tailwind 类组合匹配，注释里写明对应组件。
+ */
+
+html.qx-app.qx-line {
+  /* 悬停行 / 选项的极淡底色：不透明，固定列、吸顶表头也能用 */
+  --ql-hover: color-mix(in srgb, var(--qx-ink) 3%, var(--qx-page));
+  /* 浮层（弹窗、下拉）描边比普通细线略深，好和下面的内容分开 */
+  --ql-float-line: color-mix(in srgb, var(--qx-muted) 28%, var(--qx-line));
+  --ql-float-shadow: 0 12px 32px -20px rgb(15 23 42 / 0.28);
+  --ql-hover-line: color-mix(in srgb, var(--qx-muted) 45%, var(--qx-line));
+  --ql-green: #059669;
+  --ql-red: #dc2626;
+  --ql-amber: var(--qx-amber);
+}
+html.qx-app.qx-line.dark {
+  --ql-hover: color-mix(in srgb, #fff 3.5%, var(--qx-page));
+  --ql-float-line: color-mix(in srgb, var(--qx-muted) 35%, var(--qx-line));
+  --ql-float-shadow: 0 12px 32px -18px rgb(0 0 0 / 0.6);
+  --ql-green: #34d399;
+  --ql-red: #f87171;
+}
+
+/* ---------- 卡片 ---------- */
+html.qx-app.qx-line .card,
+html.qx-app.qx-line .glass-card,
+html.qx-app.qx-line .card-glass,
+html.qx-app.qx-line .stat-card {
+  border: 1px solid var(--qx-line);
+  border-radius: 12px;
+  background: var(--qx-page);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+html.qx-app.qx-line .glass {
+  background: var(--qx-page);
+  backdrop-filter: none;
+}
+html.qx-app.qx-line .card-hover:hover {
+  transform: none;
+  border-color: var(--ql-hover-line);
+  box-shadow: none;
+}
+html.qx-app.qx-line .card-header,
+html.qx-app.qx-line .card-footer {
+  border-color: var(--qx-line);
+  background: transparent;
+}
+html.qx-app.qx-line .card-header :is(h2, h3) {
+  color: var(--qx-ink);
+}
+
+/* 统计卡：图标从色块改成细线方框 + 彩色图标；数字用等宽常规字重 */
+html.qx-app.qx-line .stat-icon {
+  border: 1px solid var(--qx-line);
+  border-radius: 10px;
+  background: transparent;
+}
+html.qx-app.qx-line .stat-value {
+  color: var(--qx-ink);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+html.qx-app.qx-line .stat-label {
+  color: var(--qx-muted);
+}
+
+/* ---------- 按钮 ---------- */
+html.qx-app.qx-line .btn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background-image: none;
+  box-shadow: none;
+}
+html.qx-app.qx-line .btn:focus {
+  box-shadow: none;
+}
+html.qx-app.qx-line .btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--qx-blue) 45%, transparent);
+  outline-offset: 2px;
+}
+/* 主按钮：实心蓝，无阴影 */
+html.qx-app.qx-line .btn-primary {
+  border-color: var(--qx-blue);
+  background: var(--qx-blue);
+  color: #fff;
+}
+html.qx-app.qx-line .btn-primary:hover:not(:disabled) {
+  border-color: var(--qx-blue-hover);
+  background: var(--qx-blue-hover);
+  box-shadow: none;
+}
+/* 禁用：所有按钮都改成灰色细线描边，不再是半透明的浅色实心块 */
+html.qx-app.qx-line .btn:disabled,
+html.qx-app.qx-line .btn:disabled:hover {
+  border-color: var(--qx-line);
+  background: transparent;
+  color: var(--qx-muted);
+  opacity: 1;
+}
+html.qx-app.qx-line .btn-ghost:disabled,
+html.qx-app.qx-line .btn-ghost:disabled:hover {
+  border-color: transparent;
+  opacity: 0.6;
+}
+/* 次按钮 / 幽灵按钮：透明底 + 细线，悬停只改描边和文字颜色 */
+html.qx-app.qx-line .btn-secondary {
+  border-color: var(--qx-line);
+  background: transparent;
+  color: var(--qx-ink);
+  box-shadow: none;
+}
+html.qx-app.qx-line .btn-secondary:hover:not(:disabled) {
+  border-color: var(--qx-blue);
+  background: transparent;
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line .btn-ghost {
+  background: transparent;
+  color: var(--qx-text);
+}
+html.qx-app.qx-line .btn-ghost:hover:not(:disabled) {
+  border-color: var(--qx-line);
+  background: transparent;
+  color: var(--qx-blue);
+}
+/* 危险 / 成功 / 警告：描边按钮；作为弹窗主操作（底栏里）时保留实心 */
+html.qx-app.qx-line .btn-danger {
+  --ql-tone: var(--ql-red);
+}
+html.qx-app.qx-line .btn-success {
+  --ql-tone: var(--ql-green);
+}
+html.qx-app.qx-line .btn-warning {
+  --ql-tone: var(--ql-amber);
+}
+html.qx-app.qx-line :is(.btn-danger, .btn-success, .btn-warning) {
+  border-color: color-mix(in srgb, var(--ql-tone) 45%, transparent);
+  background: transparent;
+  color: var(--ql-tone);
+}
+html.qx-app.qx-line :is(.btn-danger, .btn-success, .btn-warning):hover:not(:disabled) {
+  border-color: var(--ql-tone);
+  background: color-mix(in srgb, var(--ql-tone) 6%, transparent);
+  color: var(--ql-tone);
+  box-shadow: none;
+}
+html.qx-app.qx-line :is(.modal-footer, .dialog-footer) :is(.btn-danger, .btn-success, .btn-warning) {
+  border-color: var(--ql-tone);
+  background: var(--ql-tone);
+  color: #fff;
+}
+html.qx-app.qx-line.dark :is(.modal-footer, .dialog-footer) :is(.btn-danger, .btn-success, .btn-warning) {
+  color: var(--qx-badge-ink);
+}
+html.qx-app.qx-line :is(.modal-footer, .dialog-footer) :is(.btn-danger, .btn-success, .btn-warning):hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ql-tone) 86%, #000);
+}
+/* 支付品牌按钮：保留品牌色，只去阴影 */
+html.qx-app.qx-line :is(.btn-stripe, .btn-airwallex, .btn-alipay, .btn-wxpay),
+html.qx-app.qx-line :is(.btn-stripe, .btn-airwallex, .btn-alipay, .btn-wxpay):hover {
+  box-shadow: none;
+}
+
+/* ---------- 输入框 / 下拉触发器 / 文本域 ---------- */
+html.qx-app.qx-line .input,
+html.qx-app.qx-line .select-trigger,
+html.qx-app.qx-line .date-picker-trigger,
+html.qx-app.qx-line .date-picker-input {
+  border-color: var(--qx-line);
+  border-radius: 8px;
+  background-color: transparent;
+  box-shadow: none;
+}
+html.qx-app.qx-line :is(.input, .select-trigger, .date-picker-trigger, .date-picker-input):hover:not(:disabled):not(:focus) {
+  border-color: var(--ql-hover-line);
+}
+html.qx-app.qx-line :is(.input, .select-trigger, .date-picker-trigger, .date-picker-input):focus,
+html.qx-app.qx-line .select-trigger-open,
+html.qx-app.qx-line .select-trigger-open:hover:not(:disabled),
+html.qx-app.qx-line .date-picker-trigger-open,
+html.qx-app.qx-line .date-picker-trigger-open:hover {
+  border-color: var(--qx-blue);
+  box-shadow: none;
+  --tw-ring-shadow: 0 0 #0000;
+}
+html.qx-app.qx-line .input:disabled,
+html.qx-app.qx-line .select-trigger-disabled {
+  background-color: var(--ql-hover);
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line .input-error,
+html.qx-app.qx-line .input-error:focus,
+html.qx-app.qx-line .select-trigger-error {
+  border-color: var(--ql-red);
+}
+html.qx-app.qx-line .input::placeholder {
+  color: var(--qx-muted);
+  opacity: 0.8;
+}
+html.qx-app.qx-line .input-label {
+  color: var(--qx-ink);
+  font-weight: 500;
+}
+html.qx-app.qx-line .input-hint {
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line .input-error-text {
+  color: var(--ql-red);
+}
+html.qx-app.qx-line .select-icon,
+html.qx-app.qx-line .date-picker-icon,
+html.qx-app.qx-line .date-picker-chevron {
+  color: var(--qx-muted);
+}
+
+/* 复选框：细线方框，选中蓝色 */
+html.qx-app.qx-line input[type='checkbox'] {
+  border-color: var(--ql-hover-line);
+  background-color: transparent;
+  box-shadow: none;
+  accent-color: var(--qx-blue);
+}
+html.qx-app.qx-line input[type='checkbox']:checked {
+  border-color: var(--qx-blue);
+  background-color: var(--qx-blue);
+}
+
+/* ---------- 浮层：Select 下拉（挂在 body）、日期选择、.dropdown 菜单 ---------- */
+html.qx-app.qx-line .select-dropdown-portal,
+html.qx-app.qx-line .date-picker-dropdown,
+html.qx-app.qx-line .dropdown {
+  border: 1px solid var(--ql-float-line);
+  border-radius: 10px;
+  background: var(--qx-page);
+  box-shadow: var(--ql-float-shadow);
+}
+html.qx-app.qx-line .select-dropdown-portal .select-search,
+html.qx-app.qx-line .date-picker-divider {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line .select-dropdown-portal .select-option {
+  color: var(--qx-text);
+}
+html.qx-app.qx-line .select-dropdown-portal .select-option:hover,
+html.qx-app.qx-line .select-dropdown-portal .select-option-focused {
+  background: var(--ql-hover);
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line .select-dropdown-portal .select-option-selected,
+html.qx-app.qx-line .select-dropdown-portal .select-option-selected:hover {
+  background: transparent;
+  color: var(--qx-blue);
+  font-weight: 500;
+}
+html.qx-app.qx-line .select-dropdown-portal .select-option-selected.select-option-focused {
+  background: var(--ql-hover);
+}
+html.qx-app.qx-line .select-dropdown-portal .select-option-group,
+html.qx-app.qx-line .select-dropdown-portal .select-option-group:hover {
+  border-top: 1px solid var(--qx-line);
+  background: transparent;
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+html.qx-app.qx-line .select-dropdown-portal .select-empty {
+  color: var(--qx-muted);
+}
+/* 日期快捷项：选中为蓝色描边 */
+html.qx-app.qx-line .date-picker-preset {
+  border: 1px solid transparent;
+  color: var(--qx-text);
+}
+html.qx-app.qx-line .date-picker-preset:hover {
+  background: transparent;
+  border-color: var(--qx-line);
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line .date-picker-preset-active,
+html.qx-app.qx-line .date-picker-preset-active:hover {
+  border-color: var(--qx-blue);
+  background: transparent;
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line .date-picker-label {
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line .date-picker-apply {
+  border-radius: 8px;
+  background: var(--qx-blue);
+}
+html.qx-app.qx-line .date-picker-apply:hover {
+  background: var(--qx-blue-hover);
+}
+/* .dropdown 菜单项（顶栏用户菜单等） */
+html.qx-app.qx-line .dropdown-item {
+  color: var(--qx-text);
+}
+html.qx-app.qx-line .dropdown-item:hover {
+  background: var(--ql-hover);
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line .dropdown-item[class~='text-red-600'],
+html.qx-app.qx-line .dropdown-item[class~='text-red-600']:hover {
+  color: var(--ql-red);
+}
+html.qx-app.qx-line .dropdown [class~='border-b'],
+html.qx-app.qx-line .dropdown [class~='border-t'] {
+  border-color: var(--qx-line);
+}
+
+/* ---------- 表格：.table 公共类 + DataTable（.table-wrapper）+ TablePageLayout（.table-scroll-container） ---------- */
+html.qx-app.qx-line .table-container {
+  border-color: var(--qx-line);
+  border-radius: 12px;
+}
+html.qx-app.qx-line .table-scroll-container {
+  border-color: var(--qx-line);
+  border-radius: 12px;
+  background: var(--qx-page);
+  box-shadow: none;
+}
+/* 表头：无底色（吸顶时用页面底色遮住表体），等宽小字灰色，下方一道细线 */
+html.qx-app.qx-line .table-wrapper .table-header,
+html.qx-app.qx-line .table-scroll-container thead,
+html.qx-app.qx-line .table thead {
+  background: var(--qx-page);
+  backdrop-filter: none;
+}
+html.qx-app.qx-line .table th,
+html.qx-app.qx-line .table-wrapper th,
+html.qx-app.qx-line .sticky-header-cell {
+  border-bottom: 1px solid var(--qx-line);
+  background: var(--qx-page);
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+html.qx-app.qx-line .table-wrapper th[class~='cursor-pointer']:hover {
+  background: var(--qx-page);
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line .table-wrapper thead.sticky {
+  box-shadow: none;
+}
+/* 表体：无斑马纹，行间细线，悬停极淡底色 */
+html.qx-app.qx-line .table-wrapper :is(table, tbody),
+html.qx-app.qx-line .table-wrapper :is(table, tbody) > *,
+html.qx-app.qx-line .table-wrapper tbody > tr {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line .table-wrapper tbody,
+html.qx-app.qx-line .table tbody {
+  background: transparent;
+}
+html.qx-app.qx-line .table td,
+html.qx-app.qx-line .table-wrapper td {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line .table-wrapper tbody tr:hover,
+html.qx-app.qx-line .table tbody tr:hover {
+  background: var(--ql-hover);
+}
+html.qx-app.qx-line .table-wrapper tbody .sticky-col {
+  background: var(--qx-page);
+}
+html.qx-app.qx-line .table-wrapper tbody tr:hover .sticky-col {
+  background: var(--ql-hover);
+}
+/* 固定列的渐变阴影换成 1px 细线 */
+html.qx-app.qx-line .is-scrollable .sticky-col-left::after,
+html.qx-app.qx-line .is-scrollable .sticky-col-left-second::after {
+  width: 1px;
+  background: var(--qx-line);
+}
+html.qx-app.qx-line .is-scrollable .sticky-col-right::before {
+  width: 1px;
+  background: var(--qx-line);
+}
+/* 选中行：极淡蓝底 */
+html.qx-app.qx-line .table-wrapper tbody tr[class~='bg-primary-50/40'] {
+  background: color-mix(in srgb, var(--qx-blue) 5%, var(--qx-page));
+}
+/* DataTable 手机卡片布局：每条记录一个细线框 */
+html.qx-app.qx-line .space-y-3 > [class~='rounded-lg'][class~='border-gray-200'][class~='bg-white'][class~='p-4'] {
+  border-color: var(--qx-line);
+  border-radius: 12px;
+  background: var(--qx-page);
+}
+html.qx-app.qx-line .space-y-3 > [class~='rounded-lg'][class~='border-gray-200'][class~='bg-white'][class~='p-4'] [class~='border-t'] {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line .space-y-3 > [class~='rounded-lg'][class~='border-gray-200'][class~='bg-white'][class~='p-4'] [class~='uppercase'] {
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-weight: 500;
+}
+
+/* ---------- 分页（Pagination.vue） ---------- */
+html.qx-app.qx-line div[class~='border-t'][class~='bg-white']:has(> div > nav[class~='-space-x-px']) {
+  border-color: var(--qx-line);
+  background: transparent;
+  color: var(--qx-text);
+}
+html.qx-app.qx-line nav[class~='-space-x-px'] {
+  gap: 6px;
+  box-shadow: none;
+}
+html.qx-app.qx-line nav[class~='-space-x-px'] > button,
+html.qx-app.qx-line div:has(> div > nav[class~='-space-x-px']) > div[class~='sm:hidden'] > button {
+  min-width: 34px;
+  height: 34px;
+  justify-content: center;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid var(--qx-line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--qx-text);
+  font-family: var(--qx-mono);
+  font-weight: 500;
+}
+html.qx-app.qx-line nav[class~='-space-x-px'] > button:hover:not(:disabled),
+html.qx-app.qx-line div:has(> div > nav[class~='-space-x-px']) > div[class~='sm:hidden'] > button:hover:not(:disabled) {
+  border-color: var(--ql-hover-line);
+  background: transparent;
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line nav[class~='-space-x-px'] > button[aria-current='page'],
+html.qx-app.qx-line nav[class~='-space-x-px'] > button[aria-current='page']:hover {
+  border-color: var(--qx-blue);
+  background: transparent;
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line nav[class~='-space-x-px'] > button:disabled:not([aria-current]) {
+  opacity: 0.45;
+}
+html.qx-app.qx-line .page-size-select .select-trigger {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  font-family: var(--qx-mono);
+}
+
+/* ---------- 徽章：描边胶囊，保留语义文字色 ---------- */
+html.qx-app.qx-line .badge {
+  border: 1px solid color-mix(in srgb, currentColor 38%, transparent);
+  background: transparent;
+  font-weight: 500;
+}
+html.qx-app.qx-line .badge-gray {
+  border-color: var(--qx-line);
+  color: var(--qx-text);
+}
+/* GroupBadge.vue：分组标签（平台色底块）改成同色描边 */
+html.qx-app.qx-line span[class~='gap-1.5'][class~='rounded-md'][class~='px-2'][class~='py-0.5'][class~='text-xs'][class~='font-medium'][class~='transition-colors'] {
+  border: 1px solid color-mix(in srgb, currentColor 32%, transparent);
+  background: transparent;
+}
+html.qx-app.qx-line span[class~='gap-1.5'][class~='rounded-md'][class~='px-2'][class~='py-0.5'][class~='text-xs'][class~='font-medium'][class~='transition-colors'] > span[class*='bg-'] {
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  background: transparent;
+}
+
+/* ---------- 弹窗（BaseDialog / ConfirmDialog 及 .dialog-*） ---------- */
+html.qx-app.qx-line .modal-overlay {
+  background: rgb(8 12 24 / 0.42);
+  backdrop-filter: none;
+}
+html.qx-app.qx-line.dark .modal-overlay {
+  background: rgb(0 0 0 / 0.6);
+}
+html.qx-app.qx-line .modal-content,
+html.qx-app.qx-line .dialog-container {
+  border: 1px solid var(--ql-float-line);
+  border-radius: 12px;
+  background: var(--qx-page);
+  box-shadow: none;
+}
+/* 去掉 app.css 给弹窗顶部加的蓝青渐变线 */
+html.qx-app.qx-line .modal-content::before {
+  content: none;
+}
+html.qx-app.qx-line :is(.modal-header, .modal-footer, .dialog-header, .dialog-footer) {
+  border-color: var(--qx-line);
+  background: transparent;
+}
+html.qx-app.qx-line :is(.modal-title, .dialog-header h3) {
+  color: var(--qx-ink);
+  font-size: 16px;
+  font-weight: 650;
+}
+/* 关闭按钮：无底色，悬停变深 */
+html.qx-app.qx-line .modal-header > button {
+  border-radius: 8px;
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line .modal-header > button:hover {
+  background: transparent;
+  color: var(--qx-ink);
+}
+/* ConfirmDialog 的取消（白底描边）和确认（实色）按钮：去圆角差异、取消改透明 */
+html.qx-app.qx-line .modal-footer button[class~='rounded-md'] {
+  border-radius: 8px;
+  box-shadow: none;
+}
+html.qx-app.qx-line .modal-footer button[class~='rounded-md'][class~='bg-white'] {
+  border-color: var(--qx-line);
+  background: transparent;
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line .modal-footer button[class~='rounded-md'][class~='bg-white']:hover {
+  border-color: var(--qx-blue);
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line .modal-footer button[class~='bg-primary-600'] {
+  background: var(--qx-blue);
+}
+
+/* ---------- 标签页 / 分段切换 ---------- */
+/* .tabs 容器：细线框；.tab-active：蓝字 + 蓝色描边，不填底色 */
+html.qx-app.qx-line .tabs {
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--qx-line);
+  border-radius: 10px;
+  background: transparent;
+}
+html.qx-app.qx-line .tab {
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line .tab:hover {
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line .tab-active,
+html.qx-app.qx-line .tab-active:hover {
+  border-color: var(--qx-blue);
+  background: transparent;
+  box-shadow: none;
+  color: var(--qx-blue);
+}
+/* 不在 .tabs 里的下划线式标签（如使用记录页「使用 / 错误」）：只留底边蓝线 */
+html.qx-app.qx-line [class~='border-b']:not(.tabs) > .tab {
+  margin-bottom: -1px;
+  border-width: 0 0 2px;
+  border-radius: 0;
+}
+html.qx-app.qx-line [class~='border-b']:not(.tabs):has(> .tab) {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line [class~='border-b']:not(.tabs) > .tab-active {
+  border-color: var(--qx-blue);
+}
+/* 图表、邀请返利页签等手写的灰底分段切换（inline-flex rounded-lg bg-gray-100/50 p-1/p-0.5 + 白底选中项） */
+html.qx-app.qx-line :is([class~='inline-flex'][class~='rounded-lg'][class~='bg-gray-100'][class~='p-1'], [class~='inline-flex'][class~='rounded-lg'][class~='bg-gray-50'][class~='p-0.5']) {
+  gap: 2px;
+  border: 1px solid var(--qx-line);
+  background: transparent;
+}
+html.qx-app.qx-line :is([class~='inline-flex'][class~='rounded-lg'][class~='bg-gray-100'][class~='p-1'], [class~='inline-flex'][class~='rounded-lg'][class~='bg-gray-50'][class~='p-0.5']) > :is(button, a) {
+  border: 1px solid transparent;
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line :is([class~='inline-flex'][class~='rounded-lg'][class~='bg-gray-100'][class~='p-1'], [class~='inline-flex'][class~='rounded-lg'][class~='bg-gray-50'][class~='p-0.5']) > :is(button, a):hover {
+  color: var(--qx-ink);
+}
+html.qx-app.qx-line :is([class~='inline-flex'][class~='rounded-lg'][class~='bg-gray-100'][class~='p-1'], [class~='inline-flex'][class~='rounded-lg'][class~='bg-gray-50'][class~='p-0.5']) > :is(button, a)[class~='bg-white'] {
+  border-color: var(--qx-blue);
+  background: transparent;
+  box-shadow: none;
+  color: var(--qx-blue);
+}
+
+/* ---------- 开关（Toggle.vue、payment/ToggleSwitch.vue 及页面里同样写法的 Tailwind 开关） ---------- */
+/* 关：透明底 + 1px 细线框 + 灰色圆点；开：实心蓝 + 白点。边框由 2px 透明改成 1px + 1px 内边距，尺寸和位移不变 */
+html.qx-app.qx-line button[class~='inline-flex'][class~='rounded-full'][class~='border-2'][class~='border-transparent'] {
+  padding: 1px;
+  border: 1px solid var(--ql-hover-line);
+  background: transparent;
+  box-shadow: none;
+}
+html.qx-app.qx-line button[class~='inline-flex'][class~='rounded-full'][class~='border-2'][class~='border-transparent'] > span[class~='rounded-full'] {
+  background: color-mix(in srgb, var(--qx-muted) 75%, transparent);
+  box-shadow: none;
+}
+html.qx-app.qx-line button[class~='inline-flex'][class~='rounded-full'][class~='border-2'][class~='border-transparent']:is([class~='bg-primary-600'], [class~='bg-primary-500']) {
+  border-color: var(--qx-blue);
+  background: var(--qx-blue);
+}
+html.qx-app.qx-line button[class~='inline-flex'][class~='rounded-full'][class~='border-2'][class~='border-transparent']:is([class~='bg-primary-600'], [class~='bg-primary-500']) > span[class~='rounded-full'] {
+  background: #fff;
+}
+html.qx-app.qx-line .switch {
+  border: 1px solid var(--ql-hover-line);
+  background: transparent;
+}
+html.qx-app.qx-line .switch-thumb {
+  background: var(--qx-muted);
+  box-shadow: none;
+}
+html.qx-app.qx-line .switch-active {
+  border-color: var(--qx-blue);
+  background: var(--qx-blue);
+}
+html.qx-app.qx-line .switch-active .switch-thumb {
+  background: #fff;
+}
+
+/* ---------- 空状态（EmptyState.vue）：图标色块改细线方框 ---------- */
+html.qx-app.qx-line .empty-state > div:first-child[class~='rounded-2xl'] {
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--qx-line);
+  border-radius: 14px;
+  background: transparent;
+}
+html.qx-app.qx-line .empty-state-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line .empty-state-title {
+  color: var(--qx-ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+html.qx-app.qx-line .empty-state-description {
+  color: var(--qx-muted);
+}
+
+/* ---------- 进度条、代码、骨架、分隔线 ---------- */
+html.qx-app.qx-line .progress {
+  background: var(--qx-line);
+}
+html.qx-app.qx-line .progress-bar {
+  background: var(--qx-blue);
+}
+html.qx-app.qx-line .code {
+  border: 1px solid var(--qx-line);
+  background: transparent;
+  color: var(--qx-blue);
+}
+html.qx-app.qx-line .skeleton {
+  background: var(--qx-line);
+}
+html.qx-app.qx-line .divider {
+  background: var(--qx-line);
+}
+html.qx-app.qx-line .page-description {
+  color: var(--qx-muted);
+}
+
+/* ---------- 通知（Toast.vue，挂在 body） ---------- */
+html.qx-app.qx-line [aria-live='polite'][class~='fixed'] > div[class~='border-l-4'] {
+  border: 1px solid var(--ql-float-line);
+  border-left-width: 2px;
+  border-radius: 10px;
+  background: var(--qx-page);
+  box-shadow: var(--ql-float-shadow);
+}
+html.qx-app.qx-line [aria-live='polite'][class~='fixed'] > div[class~='border-l-4'][class~='border-l-emerald-500'] {
+  border-left-color: var(--ql-green);
+}
+html.qx-app.qx-line [aria-live='polite'][class~='fixed'] > div[class~='border-l-4'][class~='border-l-red-500'] {
+  border-left-color: var(--ql-red);
+}
+html.qx-app.qx-line [aria-live='polite'][class~='fixed'] > div[class~='border-l-4'][class~='border-l-amber-500'] {
+  border-left-color: var(--ql-amber);
+}
+html.qx-app.qx-line [aria-live='polite'][class~='fixed'] > div[class~='border-l-4'] > div[class~='h-1'] {
+  height: 1px;
+  background: var(--qx-line);
+}
+
+/* ---------- 顶栏（上游 AppHeader，仅非管理页） ---------- */
+/* 实色页面底 + 底部细线，不用毛玻璃 */
+html.qx-app.qx-line .qx-shell .qx-shell-col > header {
+  background: var(--qx-page);
+  backdrop-filter: none;
+}
+/* 文档 / 模型广场链接、公告铃铛、语言切换：悬停不填底色，只改文字颜色 */
+html.qx-app.qx-line .qx-shell .qx-shell-col > header > div > div:last-child > a:hover,
+html.qx-app.qx-line .qx-shell .qx-shell-col > header button.h-9.w-9:hover,
+html.qx-app.qx-line .qx-shell .qx-shell-col > header > div > div:last-child > div > button[title]:hover {
+  background: transparent;
+  color: var(--qx-blue);
+}
+/* 余额：细线胶囊，「余额」灰字 + 蓝色等宽金额，不再用蓝底徽章 */
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='bg-primary-50'] {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--qx-line);
+  background: transparent;
+  transition: border-color 0.15s ease;
+}
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='bg-primary-50']:hover {
+  border-color: var(--qx-blue);
+}
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='bg-primary-50']::before {
+  color: var(--qx-muted);
+}
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='bg-primary-50'] > span.text-sm {
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--qx-blue);
+  font-size: 13px;
+  font-weight: 600;
+}
+/* 冻结金额：琥珀色描边小胶囊 */
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='bg-primary-50'] > span.rounded-full {
+  border: 1px solid color-mix(in srgb, var(--qx-amber) 40%, transparent);
+  background: transparent;
+  color: var(--qx-amber);
+}
+@media (max-width: 639.98px) {
+  html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='bg-primary-50'] {
+    height: 32px;
+    padding: 0 10px;
+  }
+}
+/* 订阅进度（SubscriptionProgressMini）：细线胶囊 */
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='bg-purple-50'] {
+  height: 34px;
+  border: 1px solid var(--qx-line);
+  border-radius: 999px;
+  background: transparent;
+}
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='bg-purple-50']:hover {
+  border-color: var(--ql-hover-line);
+  background: transparent;
+}
+/* 顶栏里的弹出层（余额明细、语言菜单、订阅明细）：页面底 + 细线 */
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='absolute'][class~='border'][class~='bg-white'] {
+  border-color: var(--ql-float-line);
+  background: var(--qx-page);
+  box-shadow: var(--ql-float-shadow);
+}
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='absolute'][class~='bg-white'] [class~='border-b'],
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='absolute'][class~='bg-white'] [class~='border-t'] {
+  border-color: var(--qx-line);
+}
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='absolute'][class~='bg-white'] button:hover {
+  background: var(--ql-hover);
+}
+/* 头像：去渐变，细线方框 + 蓝色首字母 */
+html.qx-app.qx-line .qx-shell .qx-shell-col > header [class~='bg-gradient-to-br'] {
+  border: 1px solid var(--qx-line);
+  background: transparent;
+  color: var(--qx-blue);
+  font-weight: 600;
+  transition: border-color 0.15s ease;
+}
+html.qx-app.qx-line .qx-shell .qx-shell-col > header > div > div:last-child > div:last-child > button:hover {
+  opacity: 1;
+}
+html.qx-app.qx-line .qx-shell .qx-shell-col > header > div > div:last-child > div:last-child > button:hover [class~='bg-gradient-to-br'] {
+  border-color: var(--qx-blue);
+}

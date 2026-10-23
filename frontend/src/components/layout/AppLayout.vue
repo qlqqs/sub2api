@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-dark-950">
+  <QxShell v-if="qxThemeConfig.enabled"><!-- CUSTOM: QxAPI 主题外壳 --><slot /></QxShell>
+  <div v-else class="min-h-screen bg-gray-50 dark:bg-dark-950">
     <!-- Background Decoration -->
     <div class="pointer-events-none fixed inset-0 bg-mesh-gradient"></div>
 
@@ -31,6 +32,8 @@ import { useOnboardingTour } from '@/composables/useOnboardingTour'
 import { useOnboardingStore } from '@/stores/onboarding'
 import AppSidebar from './AppSidebar.vue'
 import AppHeader from './AppHeader.vue'
+import QxShell from '@/themes/qx/shell/QxShell.vue' // CUSTOM: QxAPI 主题外壳
+import { qxThemeConfig } from '@/themes/qx/config' // CUSTOM: 主题关闭时渲染下方上游原版
 
 const appStore = useAppStore()
 const authStore = useAuthStore()

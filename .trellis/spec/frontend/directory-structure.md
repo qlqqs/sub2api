@@ -19,6 +19,7 @@ frontend/src/
 ├── router/         # 路由、meta、守卫和标题
 ├── stores/         # Pinia 全局/跨页面状态
 ├── styles/         # 补充样式；全局入口为 style.css
+├── themes/         # CUSTOM: fork 自有的页面主题（如 themes/qx），替换上游首页/登录外壳
 ├── types/          # 跨模块 TypeScript 合约
 ├── utils/          # 纯函数与无 UI 技术辅助函数
 └── views/          # 路由级页面，按 admin/auth/public/setup/user 划分
@@ -36,6 +37,20 @@ frontend/src/
 - 跨模块共享的 API/领域类型放 `types/index.ts` 或专题文件（如 `types/payment.ts`）；只在一个组件/API 模块使用的类型留在其附近。
 - Pinia 只承载跨页面、跨组件生命周期或需统一缓存/清理的状态；通过 `stores/index.ts` 暴露稳定入口。
 - 单元测试放相邻 `__tests__/` 目录并命名 `*.spec.ts`；跨模块用户流程放 `src/__tests__/integration/`。
+
+## Fork 主题（themes/）
+
+替换上游页面外观、又要持续合并上游时，用独立主题而不是改上游组件（参考 `themes/qx/`，即 QxAPI 首页与登录外壳）：
+
+- 主题代码、样式、文案、测试全部放在 `themes/<name>/`；上游文件只改接入点，并加 `CUSTOM` 注释：路由组件、`components/layout/index.ts` 的导出、`tailwind.config.js` 的 primary 变量、`i18n/locales/{zh,en}/index.ts` 的引入（各一两行）。
+- 主题入口组件在主题关闭时渲染上游原版组件（开关在 `themes/<name>/config.ts`）。替换上游组件时用 `defineOptions({ name })` 沿用原组件名，按名字 stub 的上游测试无需改动。
+- 样式用主题前缀类并限定在根类（如 `.qx`）下；需要让插槽里的上游组件跟随主题色时，在根类上覆盖 `--color-primary-*`（primary 已改为带原青色默认值的 CSS 变量）。
+- 主题里的价格、模型数据只取现有公开接口（如模型广场），口径与原页面一致，不另写计价规则；与原组件口径对齐的逻辑写单元测试锁住。
+- 全站换肤（控制台、管理后台）走色阶变量，不逐页改模板：`tailwind.config.js` 的 `primary` / `gray` / `dark` / `accent` 色阶和 `glow`、`gradient-primary`、`mesh-gradient` 都读 CSS 变量，默认值即官方原色；主题开启时 `main.ts` 调 `themes/qx/app/install.ts` 给 `<html>` 加 `qx-app`，`app/tokens.css` 覆盖这些变量，`app/app.css` 只改 `style.css` 公共类和布局组件的形状。所有规则限定在 `html.qx-app` 下，关闭主题时与官方原版一致。
+- 控制台外壳（侧栏 + 顶栏）：上游 `components/layout/AppLayout.vue` 被各页面直接引用，接入点是它模板里的 `<QxShell v-if>` / `v-else`（CUSTOM），脚本里的新手引导保持不变。`themes/qx/shell/QxSidebar.vue` 自绘分组侧栏，顶栏复用上游 `AppHeader.vue` 只改样式。菜单数据 `shell/useQxNav.ts` 照搬自 `AppSidebar.vue`（功能开关、简洁模式、自定义菜单、引导选择器），`useQxNav.drift.spec.ts` 会检查上游侧栏里的每个路径在主题菜单里都有：合并上游后它失败，就把新菜单项补进 `useQxNav.ts`。
+- 需要重做结构的页面（如仪表盘 `themes/qx/dashboard/`）和首页一样在路由里接入主题入口组件，主题关闭时渲染上游原页面。
+- 只换样式、不改结构的用户页面（极简线条风格）写在 `themes/qx/pages/`：`QxShell` 在非 `/admin` 路由给 `<html>` 加 `qx-line` 类和 `data-qx-page=<路由名>`（放在 `<html>` 上，传送到 body 的弹窗也能匹配）。`line.css` 是公共类和组件层，限定在 `html.qx-app.qx-line` 下；`pages-console.css` / `pages-account.css` 按 `[data-qx-page="…"]` 覆盖各页面模板里直接写的 Tailwind 阴影、渐变、底色块。合并上游后这些选择器可能失配，失配时页面退回主题原样而不会出错，截图检查即可。
+- 合并上游后检查被替换组件（如 `views/HomeView.vue`、`views/user/DashboardView.vue`、`components/layout/AuthLayout.vue`、`AppSidebar.vue`、`AppHeader.vue`）的新改动，需要的话手动搬进主题；同时检查 `tailwind.config.js`、`style.css` 有没有新加写死的颜色（新色阶、新渐变或阴影），需要的话同样改成变量并在 `app/tokens.css` 里给主题值。
 
 ## 命名和导入
 

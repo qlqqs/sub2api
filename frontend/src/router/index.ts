@@ -33,7 +33,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/home',
     name: 'Home',
-    component: () => import('@/views/HomeView.vue'),
+    component: () => import('@/themes/qx/QxHomeView.vue'), // CUSTOM: QxAPI 主题，见 themes/qx/config.ts
     meta: {
       requiresAuth: false,
       title: 'Home'
@@ -194,7 +194,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('@/views/user/DashboardView.vue'),
+    component: () => import('@/themes/qx/dashboard/QxDashboardView.vue'), // CUSTOM: QxAPI 主题仪表盘
     meta: {
       requiresAuth: true,
       requiresAdmin: false,

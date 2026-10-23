@@ -1,0 +1,421 @@
+/*
+ * CUSTOM: QxAPI 主题用户仪表盘（QxDashboard.vue 及 QxDash*.vue），全部规则限定在 .qx-dash 下。
+ * 极简线条：没有底色块、点阵和阴影，区块之间只用 1px 细线（--qx-line）分隔；
+ * 数字用等宽字体、常规字重，强调色只留给余额、选中和迷你折线。颜色取自 app/tokens.css 的 --qx-*。
+ */
+.qx-dash {
+  --qd-green: #059669;
+  display: grid;
+  gap: 20px;
+  max-width: 1360px;
+  color: var(--qx-text);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.dark .qx-dash {
+  --qd-green: #34d399;
+}
+.qx-dash .qd-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  color: var(--qx-muted);
+}
+.qx-dash .qd-kicker {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ---------- 今日概览：细边框区块，表头 / 指标 / 汇总三段 ---------- */
+.qx-dash .qd-today {
+  border: 1px solid var(--qx-line);
+  border-radius: 12px;
+}
+.qx-dash .qd-today-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 24px 16px;
+  border-bottom: 1px solid var(--qx-line);
+}
+.qx-dash .qd-today-head h3 {
+  color: var(--qx-ink);
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+/* 近 5 分钟 RPM / TPM：描边胶囊，数值不填底色 */
+.qx-dash .qd-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid var(--qx-line);
+  border-radius: 999px;
+  color: var(--qx-muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.qx-dash .qd-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--qd-green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--qd-green) 18%, transparent);
+}
+.qx-dash .qd-live-val {
+  padding-left: 10px;
+  border-left: 1px solid var(--qx-line);
+  font-family: var(--qx-mono);
+  font-size: 12px;
+}
+.qx-dash .qd-live-val b {
+  color: var(--qx-ink);
+  font-weight: 600;
+}
+
+/* 指标：四列，列间 1px 竖线 */
+.qx-dash .qd-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.qx-dash .qd-kpis.qd-kpis-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.qx-dash .qd-kpi {
+  position: relative;
+  min-width: 0;
+  padding: 20px 24px 22px;
+}
+.qx-dash .qd-kpi + .qd-kpi {
+  border-left: 1px solid var(--qx-line);
+}
+.qx-dash .qd-kpi-label {
+  color: var(--qx-muted);
+  font-size: 13px;
+}
+.qx-dash .qd-kpi-val {
+  margin-top: 10px;
+  overflow: hidden;
+  color: var(--qx-ink);
+  font-family: var(--qx-mono);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qx-dash .qd-kpi-balance .qd-kpi-val {
+  color: var(--qx-blue);
+}
+.qx-dash .qd-kpi-sub {
+  position: relative;
+  z-index: 1;
+  margin-top: 8px;
+  color: var(--qx-muted);
+  font-size: 12.5px;
+}
+.qx-dash .qd-kpi-sub b {
+  color: var(--qx-text);
+  font-family: var(--qx-mono);
+  font-weight: 500;
+}
+/* 充值：带下划线的文字链接 */
+.qx-dash .qd-kpi-act {
+  display: inline-flex;
+  margin-top: 8px;
+  border-bottom: 1px solid currentColor;
+  color: var(--qx-blue);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.qx-dash .qd-kpi-act:hover {
+  color: var(--qx-blue-hover);
+}
+.qx-dash .qd-spark {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  width: 84px;
+  height: 28px;
+  overflow: visible;
+}
+
+/* 汇总：一行文字，项之间短竖线 */
+.qx-dash .qd-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 13px 24px;
+  border-top: 1px solid var(--qx-line);
+  color: var(--qx-muted);
+  font-size: 13px;
+}
+.qx-dash .qd-stats-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.qx-dash .qd-stats-item + .qd-stats-item {
+  padding-left: 20px;
+  border-left: 1px solid var(--qx-line);
+}
+.qx-dash .qd-stats b {
+  color: var(--qx-ink);
+  font-family: var(--qx-mono);
+  font-weight: 500;
+}
+
+/* ---------- 下排：模型分布（宽）+ 快捷操作（窄），同样是细边框区块 ---------- */
+.qx-dash .qd-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.qx-dash .qd-panel {
+  border: 1px solid var(--qx-line);
+  border-radius: 12px;
+}
+.qx-dash .qd-panel-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 24px 16px;
+  border-bottom: 1px solid var(--qx-line);
+}
+.qx-dash .qd-panel-head h3 {
+  color: var(--qx-ink);
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+.qx-dash .qd-panel-note {
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-size: 12px;
+}
+.qx-dash .qd-panel-foot {
+  padding: 12px 24px;
+  border-top: 1px solid var(--qx-line);
+  color: var(--qx-muted);
+  font-size: 12.5px;
+}
+.qx-dash .qd-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  color: var(--qx-muted);
+  font-size: 13px;
+}
+.qx-dash .qd-tone-blue { --qd-tone: var(--qx-blue); }
+.qx-dash .qd-tone-cyan { --qd-tone: var(--qx-cyan); }
+.qx-dash .qd-tone-amber { --qd-tone: var(--qx-amber); }
+.qx-dash .qd-tone-green { --qd-tone: var(--qd-green); }
+.qx-dash .qd-tone-muted { --qd-tone: var(--qx-muted); }
+
+/* 模型分布：序号 + 名称 / 占比 + 2px 细进度条 + 用量与花费 */
+.qx-dash .qd-mix-row {
+  display: flex;
+  gap: 16px;
+  padding: 14px 24px;
+}
+.qx-dash .qd-mix-row + .qd-mix-row {
+  border-top: 1px solid var(--qx-line);
+}
+.qx-dash .qd-mix-rank {
+  flex: none;
+  width: 20px;
+  padding-top: 1px;
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-size: 12px;
+}
+.qx-dash .qd-mix-body {
+  flex: 1;
+  min-width: 0;
+}
+.qx-dash .qd-mix-top,
+.qx-dash .qd-mix-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.qx-dash .qd-mix-name {
+  overflow: hidden;
+  color: var(--qx-ink);
+  font-family: var(--qx-mono);
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qx-dash .qd-mix-share {
+  color: var(--qd-tone);
+  font-family: var(--qx-mono);
+  font-size: 13px;
+}
+.qx-dash .qd-bar {
+  height: 2px;
+  margin: 9px 0 8px;
+  background: var(--qx-line);
+}
+.qx-dash .qd-bar i {
+  display: block;
+  height: 100%;
+  background: var(--qd-tone);
+}
+.qx-dash .qd-mix-meta {
+  color: var(--qx-muted);
+  font-size: 12.5px;
+}
+.qx-dash .qd-mix-cost {
+  color: var(--qx-text);
+  font-family: var(--qx-mono);
+}
+
+/* 快捷操作：一行一项，描边图标 + 标题说明 + 箭头，悬停只改文字和描边颜色 */
+.qx-dash .qd-action {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 24px;
+  color: var(--qx-text);
+  transition: color 0.15s ease;
+}
+.qx-dash .qd-action + .qd-action {
+  border-top: 1px solid var(--qx-line);
+}
+.qx-dash .qd-action-ic {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--qx-line);
+  border-radius: 10px;
+  color: var(--qd-tone);
+  transition: border-color 0.15s ease;
+}
+.qx-dash .qd-action-ic svg {
+  width: 18px;
+  height: 18px;
+}
+.qx-dash .qd-action-text {
+  flex: 1;
+  min-width: 0;
+}
+.qx-dash .qd-action-text h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--qx-ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.qx-dash .qd-action-text p {
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--qx-muted);
+  font-size: 12.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qx-dash .qd-action-badge {
+  padding: 0 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--qx-cyan);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 18px;
+}
+.qx-dash .qd-action-arrow {
+  flex: none;
+  color: var(--qx-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+.qx-dash .qd-action:hover .qd-action-ic {
+  border-color: var(--qd-tone);
+}
+.qx-dash .qd-action:hover h4,
+.qx-dash .qd-action:hover .qd-action-arrow {
+  color: var(--qx-blue);
+}
+.qx-dash .qd-action:hover .qd-action-arrow {
+  transform: translateX(3px);
+}
+
+/* 窄屏：指标两列，竖线只留在右列，第二行起加横线 */
+@media (max-width: 1100px) {
+  .qx-dash .qd-kpis,
+  .qx-dash .qd-kpis.qd-kpis-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .qx-dash .qd-kpi + .qd-kpi {
+    border-left: 0;
+  }
+  .qx-dash .qd-kpi:nth-child(2n) {
+    border-left: 1px solid var(--qx-line);
+  }
+  .qx-dash .qd-kpi:nth-child(n + 3) {
+    border-top: 1px solid var(--qx-line);
+  }
+  .qx-dash .qd-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .qx-dash {
+    gap: 16px;
+  }
+  .qx-dash .qd-today-head,
+  .qx-dash .qd-panel-head {
+    padding: 14px 16px;
+  }
+  .qx-dash .qd-row {
+    gap: 16px;
+  }
+  .qx-dash .qd-mix-row,
+  .qx-dash .qd-action,
+  .qx-dash .qd-panel-foot {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+  .qx-dash .qd-kpi {
+    padding: 14px 16px 16px;
+  }
+  .qx-dash .qd-kpi-val {
+    font-size: 22px;
+  }
+  .qx-dash .qd-spark {
+    display: none;
+  }
+  .qx-dash .qd-stats {
+    padding: 12px 16px;
+  }
+  .qx-dash .qd-stats-item {
+    width: calc(50% - 10px);
+  }
+  .qx-dash .qd-stats-item + .qd-stats-item {
+    padding-left: 0;
+    border-left: 0;
+  }
+}

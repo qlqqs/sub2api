@@ -1,0 +1,204 @@
+/*
+ * CUSTOM: QxAPI 全站主题（控制台、用户页、管理后台）。
+ * 由 install.ts 在 <html> 上加 qx-app 类后生效，所有选择器都以 html.qx-app 开头。
+ * 颜色主要靠 tokens.css 里的色阶变量整体替换；这里只改官方公共类（style.css 与布局组件）的形状：
+ * 去掉渐变和大阴影，统一 1px 细边框、较小圆角、等宽数字，与首页的点阵面板风格一致。
+ */
+
+/* ---------- 页面底色与背景点阵 ---------- */
+html.qx-app body {
+  background-color: var(--qx-page);
+}
+html.qx-app .bg-mesh-gradient {
+  background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, transparent 520px);
+  mask-image: linear-gradient(to bottom, #000 0, transparent 520px);
+}
+html.qx-app ::selection {
+  background: color-mix(in srgb, var(--qx-blue) 22%, transparent);
+}
+
+/* ---------- 按钮 ---------- */
+html.qx-app .btn {
+  border-radius: 8px;
+}
+html.qx-app .btn:active {
+  transform: none;
+}
+html.qx-app .btn-primary {
+  background: var(--qx-blue);
+  box-shadow: none;
+}
+html.qx-app .btn-primary:hover:not(:disabled) {
+  background: var(--qx-blue-hover);
+  box-shadow: none;
+}
+html.qx-app .btn-danger,
+html.qx-app .btn-success,
+html.qx-app .btn-warning {
+  background-image: none;
+  box-shadow: none;
+}
+html.qx-app .btn-danger {
+  background-color: #dc2626;
+}
+html.qx-app .btn-danger:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+html.qx-app .btn-success {
+  background-color: #059669;
+}
+html.qx-app .btn-success:hover:not(:disabled) {
+  background-color: #047857;
+}
+html.qx-app .btn-warning {
+  background-color: #d97706;
+}
+html.qx-app .btn-warning:hover:not(:disabled) {
+  background-color: #b45309;
+}
+html.qx-app .btn-secondary {
+  border-color: var(--qx-box-line);
+  background: var(--qx-box);
+  box-shadow: none;
+}
+html.qx-app .btn-secondary:hover:not(:disabled) {
+  border-color: var(--qx-wire);
+  background: var(--qx-tint);
+}
+
+/* ---------- 输入框 ---------- */
+html.qx-app .input {
+  border-radius: 8px;
+  border-color: var(--qx-box-line);
+  background-color: var(--qx-box);
+}
+html.qx-app .input:focus {
+  border-color: var(--qx-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--qx-blue) 18%, transparent);
+}
+
+/* ---------- 卡片 / 统计卡 ---------- */
+html.qx-app .card,
+html.qx-app .glass-card,
+html.qx-app .card-glass {
+  border: 1px solid var(--qx-box-line);
+  border-radius: 12px;
+  background: var(--qx-box);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+html.qx-app .card-hover:hover {
+  transform: none;
+  border-color: var(--qx-wire);
+  box-shadow: none;
+}
+html.qx-app .card-header,
+html.qx-app .card-footer {
+  border-color: var(--qx-box-line);
+}
+html.qx-app .stat-icon {
+  border-radius: 10px;
+}
+html.qx-app .stat-value {
+  font-family: var(--qx-mono);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- 表格 ---------- */
+html.qx-app .table-container,
+html.qx-app .table-wrapper {
+  border-color: var(--qx-box-line);
+}
+html.qx-app .table th,
+html.qx-app .sticky-header-cell {
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+html.qx-app .table th {
+  background: var(--qx-tint);
+  border-bottom-color: var(--qx-box-line);
+}
+html.qx-app .table td {
+  border-bottom-color: var(--qx-box-line);
+}
+html.qx-app .table tbody tr:hover {
+  background: var(--qx-tint);
+}
+
+/* ---------- 徽章：带颜色描边的胶囊 ---------- */
+html.qx-app .badge {
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+html.qx-app .badge-primary {
+  border-color: color-mix(in srgb, var(--qx-blue) 35%, transparent);
+}
+html.qx-app .badge-success {
+  border-color: rgb(16 185 129 / 0.35);
+}
+html.qx-app .badge-warning {
+  border-color: rgb(245 158 11 / 0.4);
+}
+html.qx-app .badge-danger {
+  border-color: rgb(239 68 68 / 0.35);
+}
+html.qx-app .badge-gray {
+  border-color: var(--qx-box-line);
+}
+html.qx-app .badge-purple {
+  border-color: rgb(168 85 247 / 0.35);
+}
+
+/* ---------- 下拉、弹窗、提示 ---------- */
+html.qx-app .dropdown {
+  border-color: var(--qx-box-line);
+  border-radius: 10px;
+  background: var(--qx-box);
+  box-shadow: 0 12px 32px -12px rgb(15 23 42 / 0.22);
+}
+html.qx-app .modal-overlay {
+  background: rgb(8 12 24 / 0.55);
+}
+html.qx-app .modal-content {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--qx-box-line);
+  border-radius: 14px;
+  background: var(--qx-box);
+  box-shadow: 0 24px 64px -24px rgb(8 12 24 / 0.45);
+}
+/* 弹窗顶部与首页代码窗口相同的蓝青细线 */
+html.qx-app .modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  height: 2px;
+  background: var(--qx-accent-line);
+}
+html.qx-app .modal-header,
+html.qx-app .modal-footer {
+  border-color: var(--qx-box-line);
+}
+
+/* ---------- 页面标题、选项卡、开关、代码块 ---------- */
+html.qx-app .page-title {
+  color: var(--qx-ink);
+  font-weight: 720;
+  letter-spacing: -0.015em;
+}
+html.qx-app .tab-active {
+  border-color: var(--qx-blue);
+  color: var(--qx-blue);
+}
+html.qx-app .code,
+html.qx-app .code-block {
+  font-family: var(--qx-mono);
+}

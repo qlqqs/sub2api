@@ -1,0 +1,115 @@
+/*
+ * CUSTOM: QxAPI 主题的颜色变量，首页 / 登录外壳（.qx）与全站主题（html.qx-app，见 install.ts）共用。
+ * --color-*-N 是 tailwind.config.js 里 primary / gray / dark / accent 色阶读取的变量，未设置时为官方原色。
+ */
+.qx,
+html.qx-app {
+  --qx-blue: #1d4eff;
+  --qx-blue-hover: #1640d6;
+  --qx-blue-soft: #edf2ff;
+  --qx-ink: #0f172a;
+  --qx-text: #475569;
+  --qx-muted: #7a8699;
+  --qx-line: #e5e8ee;
+  --qx-page: #ffffff;
+  --qx-tint: #f7f8fa;
+  --qx-surface: #ffffff;
+  --qx-dot: #d7dce5;
+  --qx-code-bg: #0f1420;
+  --qx-code-line: #222a3a;
+  --qx-code-text: #d6deeb;
+  --qx-code-muted: #6b7a93;
+  --qx-accent-line: linear-gradient(90deg, #2448ff, #1fd5f5);
+  /* 点阵面板 / 方框 / 连线 / 支线色（流程图、价格面板共用） */
+  --qx-panel: #f6f8fb;
+  --qx-panel-dot: #d9dfe8;
+  --qx-box: #ffffff;
+  --qx-box-line: #dfe5ee;
+  --qx-wire: #c3ccda;
+  --qx-cyan: #0891b2;
+  --qx-amber: #d97706;
+  --qx-badge-ink: #ffffff;
+  --qx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+
+  --color-primary-50: 238 243 255;
+  --color-primary-100: 220 230 255;
+  --color-primary-200: 185 204 255;
+  --color-primary-300: 138 168 255;
+  --color-primary-400: 90 128 255;
+  --color-primary-500: 52 98 255;
+  --color-primary-600: 29 78 255;
+  --color-primary-700: 22 64 214;
+  --color-primary-800: 20 52 168;
+  --color-primary-900: 20 46 130;
+  --color-primary-950: 14 28 79;
+}
+.dark .qx,
+html.qx-app.dark {
+  --qx-blue: #4f7bff;
+  --qx-blue-hover: #6b8fff;
+  --qx-blue-soft: #16203d;
+  --qx-ink: #e8ecf3;
+  --qx-text: #a7b0c0;
+  --qx-muted: #7d889b;
+  --qx-line: #1f2633;
+  --qx-page: #0b0f17;
+  --qx-tint: #0f141e;
+  --qx-surface: #111723;
+  --qx-dot: #1c2330;
+  --qx-code-bg: #0d121c;
+  --qx-code-line: #1f2633;
+  --qx-panel: #0d1220;
+  --qx-panel-dot: #1f2a3d;
+  --qx-box: #111827;
+  --qx-box-line: #243044;
+  --qx-wire: #33405a;
+  --qx-cyan: #22d3ee;
+  --qx-amber: #fbbf24;
+  --qx-badge-ink: #0d1220;
+
+}
+
+/* 全站：中性色换成偏冷的蓝灰，深色模式换成藏青；发光、渐变、背景网格换成主题蓝 */
+html.qx-app {
+  --color-gray-50: 246 248 251;
+  --color-gray-100: 238 241 246;
+  --color-gray-200: 223 229 238;
+  --color-gray-300: 195 204 218;
+  --color-gray-400: 148 160 180;
+  --color-gray-500: 107 119 140;
+  --color-gray-600: 71 85 105;
+  --color-gray-700: 51 65 85;
+  --color-gray-800: 30 41 59;
+  --color-gray-900: 15 23 42;
+  --color-gray-950: 7 11 20;
+
+  --color-accent-50: 246 248 251;
+  --color-accent-100: 238 241 246;
+  --color-accent-200: 223 229 238;
+  --color-accent-300: 195 204 218;
+  --color-accent-400: 148 160 180;
+  --color-accent-500: 107 119 140;
+  --color-accent-600: 71 85 105;
+  --color-accent-700: 51 65 85;
+  --color-accent-800: 30 41 59;
+  --color-accent-900: 15 23 42;
+  --color-accent-950: 7 11 20;
+
+  --color-dark-50: 244 246 250;
+  --color-dark-100: 232 236 243;
+  --color-dark-200: 205 211 222;
+  --color-dark-300: 167 176 192;
+  --color-dark-400: 125 136 155;
+  --color-dark-500: 91 104 128;
+  --color-dark-600: 51 64 90;
+  --color-dark-700: 36 48 68;
+  --color-dark-800: 17 24 39;
+  --color-dark-900: 13 18 32;
+  --color-dark-950: 11 15 23;
+
+  --qx-shadow-glow: 0 0 20px rgba(29, 78, 255, 0.2);
+  --qx-shadow-glow-lg: 0 0 40px rgba(29, 78, 255, 0.28);
+  --qx-shadow-glow-pulse: 0 0 30px rgba(29, 78, 255, 0.32);
+  --qx-gradient-primary: linear-gradient(135deg, #3462ff 0%, #1d4eff 100%);
+  --qx-mesh-gradient: radial-gradient(var(--qx-panel-dot) 1px, transparent 1px);
+}

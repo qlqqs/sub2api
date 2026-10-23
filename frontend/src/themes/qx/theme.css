@@ -1,0 +1,933 @@
+/*
+ * CUSTOM: QxAPI 主题样式。所有选择器限定在 .qx 下，不影响其他页面。
+ * .qx 内同时覆盖 Tailwind primary 的 CSS 变量（见 tailwind.config.js），
+ * 让登录表单等沿用官方组件的部分也换成主题蓝。
+ */
+@import './app/tokens.css';
+
+.qx {
+  min-height: 100vh;
+  background: var(--qx-page);
+  color: var(--qx-text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.qx-wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+.qx-mono {
+  font-family: var(--qx-mono);
+}
+.qx :focus-visible {
+  outline: 2px solid var(--qx-blue);
+  outline-offset: 2px;
+}
+
+/* Buttons */
+.qx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.qx-btn-sm {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 14px;
+  border-radius: 7px;
+}
+.qx-btn-primary {
+  background: var(--qx-blue);
+  color: #fff;
+}
+.qx-btn-primary:hover {
+  background: var(--qx-blue-hover);
+}
+.qx-btn-outline {
+  border-color: var(--qx-line);
+  background: var(--qx-surface);
+  color: var(--qx-ink);
+}
+.qx-btn-outline:hover {
+  border-color: var(--qx-muted);
+}
+
+/* Header */
+.qx-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--qx-line);
+  background: color-mix(in srgb, var(--qx-page) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+.qx-top-plain {
+  position: relative;
+  border-bottom: 0;
+  background: transparent;
+  backdrop-filter: none;
+}
+.qx-top-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 64px;
+}
+.qx-brand {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  color: var(--qx-ink);
+  font-size: 17px;
+  font-weight: 650;
+}
+.qx-brand img {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  background: #fff;
+  object-fit: contain;
+}
+.qx-brand span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qx-nav {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  font-size: 14px;
+}
+.qx-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--qx-text);
+}
+.qx-nav-link:hover {
+  background: var(--qx-tint);
+  color: var(--qx-ink);
+}
+.qx-nav-icon {
+  padding: 8px;
+}
+.qx-nav .qx-btn {
+  margin-left: 8px;
+}
+
+/* Dotted texture */
+.qx-dots {
+  position: relative;
+}
+.qx-dots::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(var(--qx-dot) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 90%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 90%);
+}
+.qx-dots-center::before {
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+}
+
+/*
+ * 共用元素：点阵面板、等宽小标题、胶囊标签（可带数字徽章）、统计行。
+ * 胶囊和终点方框的颜色取自 --qx-tone，由 .qx-tone-* 指定。
+ */
+.qx .qx-tone-blue {
+  --qx-tone: var(--qx-blue);
+}
+.qx .qx-tone-cyan {
+  --qx-tone: var(--qx-cyan);
+}
+.qx .qx-tone-amber {
+  --qx-tone: var(--qx-amber);
+}
+.qx-panel {
+  position: relative;
+  border: 1px solid var(--qx-box-line);
+  border-radius: 14px;
+  background-color: var(--qx-panel);
+  background-image: radial-gradient(var(--qx-panel-dot) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.qx-kicker {
+  display: block;
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.qx-pill {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 5px 4px 14px;
+  border: 1.5px solid var(--qx-tone, var(--qx-box-line));
+  border-radius: 999px;
+  background: var(--qx-panel);
+  color: var(--qx-ink);
+  font-size: 14px;
+  white-space: nowrap;
+}
+.qx-pill:not(:has(b)) {
+  padding-right: 14px;
+}
+.qx-pill b {
+  min-width: 26px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: var(--qx-tone, var(--qx-tint));
+  color: var(--qx-badge-ink);
+  font-family: var(--qx-mono);
+  font-size: 12px;
+  font-weight: 650;
+  text-align: center;
+}
+.qx-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--qx-box-line);
+  color: var(--qx-muted);
+  font-size: 14px;
+}
+.qx-stats-item {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.qx-stats-item + .qx-stats-item {
+  padding-left: 20px;
+  border-left: 1px solid var(--qx-box-line);
+}
+.qx-stats b,
+.qx-stats code {
+  color: var(--qx-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+.qx-stats code {
+  font-family: var(--qx-mono);
+}
+
+/* Hero */
+.qx-hero {
+  border-bottom: 1px solid var(--qx-line);
+}
+.qx-hero-body {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
+  gap: 56px;
+  align-items: center;
+  padding-top: 80px;
+  padding-bottom: 88px;
+}
+.qx-hero h1 {
+  color: var(--qx-ink);
+  font-size: 60px;
+  font-weight: 760;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+}
+.qx-hero-sub {
+  margin-top: 18px;
+  color: var(--qx-ink);
+  font-size: 22px;
+  font-weight: 500;
+  white-space: pre-wrap;
+}
+.qx-hero-desc {
+  margin-top: 10px;
+  max-width: 32em;
+  font-size: 16px;
+}
+.qx-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+.qx-hero-stats {
+  flex-wrap: nowrap;
+  align-items: stretch;
+  margin-top: 28px;
+}
+.qx-hero-stats .qx-stats-item {
+  flex-direction: column;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  gap: 2px;
+}
+.qx-hero-stats dt {
+  font-size: 13px;
+  white-space: nowrap;
+}
+/* 极窄屏放不下时只让协议名在本格内换行，三项仍在一行 */
+.qx-hero-stats dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+}
+.qx-hero-stats dd b {
+  white-space: nowrap;
+}
+.qx-hero-stats b {
+  font-size: 15px;
+}
+
+/* Code window */
+.qx-console {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--qx-code-line);
+  border-radius: 12px;
+  background: var(--qx-code-bg);
+  color: var(--qx-code-text);
+}
+.qx-console::before,
+.qx-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--qx-accent-line);
+}
+.qx-console-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px 2px;
+}
+.qx-console-tab {
+  padding: 3px 13px;
+  border: 1.5px solid #2a3448;
+  border-radius: 999px;
+  background: none;
+  color: var(--qx-code-muted);
+  font-size: 13px;
+}
+.qx-console-tab:hover {
+  color: #fff;
+}
+.qx-console-tab[aria-selected='true'] {
+  border-color: #22d3ee;
+  color: #fff;
+}
+.qx-console-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--qx-code-line);
+}
+.qx-console-ep {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.qx-console-ep span {
+  color: var(--qx-code-muted);
+  white-space: nowrap;
+}
+.qx-console-ep code {
+  color: #fff;
+  font-family: var(--qx-mono);
+  overflow-wrap: anywhere;
+}
+.qx-copy {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--qx-code-line);
+  border-radius: 6px;
+  background: #182032;
+  color: var(--qx-code-text);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.qx-copy:hover {
+  border-color: #1fd5f5;
+  color: #fff;
+}
+.qx-console pre {
+  margin: 0;
+  padding: 18px 20px 20px;
+  overflow-x: auto;
+  font-family: var(--qx-mono);
+  font-size: 13px;
+  line-height: 1.75;
+}
+.qx-c-muted {
+  color: var(--qx-code-muted);
+}
+.qx-c-prompt {
+  color: #34d399;
+}
+.qx-c-str {
+  color: #a5b4fc;
+}
+
+/* Sections */
+.qx-section {
+  padding: 72px 0;
+}
+.qx-section + .qx-section {
+  border-top: 1px solid var(--qx-line);
+}
+.qx-section .qx-kicker {
+  margin-bottom: 8px;
+}
+.qx-section h2 {
+  color: var(--qx-ink);
+  font-size: 26px;
+  font-weight: 720;
+  letter-spacing: -0.015em;
+}
+.qx-lead {
+  margin-top: 6px;
+  color: var(--qx-muted);
+}
+
+/* 价格面板：分组胶囊（徽章为模型数）+ 价格表 + 底部统计行 */
+.qx-price-panel {
+  margin-top: 24px;
+  padding: 24px;
+}
+.qx-price-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.qx-tab {
+  cursor: pointer;
+  color: var(--qx-text);
+}
+.qx-tab:hover,
+.qx-tab[aria-selected='true'] {
+  color: var(--qx-ink);
+}
+.qx-tab:not([aria-selected='true']) b {
+  background: var(--qx-box-line);
+  color: var(--qx-text);
+}
+.qx-group-desc {
+  margin-top: 14px;
+  color: var(--qx-text);
+  font-size: 14px;
+}
+.qx-table {
+  margin-top: 16px;
+  overflow: hidden;
+  overflow-x: auto;
+  border: 1px solid var(--qx-box-line);
+  border-radius: 10px;
+  background: var(--qx-box);
+}
+.qx-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.qx-table th,
+.qx-table td {
+  padding: 14px 22px;
+  text-align: left;
+  vertical-align: middle;
+}
+.qx-table th {
+  border-bottom: 1px solid var(--qx-box-line);
+  background: none;
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+.qx-table td {
+  color: var(--qx-ink);
+}
+.qx-table tbody tr + tr td {
+  border-top: 1px solid var(--qx-box-line);
+}
+.qx-table tbody tr:hover td {
+  background: var(--qx-tint);
+}
+.qx-table .qx-num {
+  text-align: right;
+}
+.qx-model {
+  font-family: var(--qx-mono);
+  font-size: 14px;
+  white-space: nowrap;
+}
+.qx-table td.qx-tier div,
+.qx-table td.qx-num div {
+  line-height: 24px;
+  white-space: nowrap;
+}
+.qx-table td.qx-num div {
+  font-family: var(--qx-mono);
+  font-size: 14px;
+}
+.qx-table td.qx-num div:first-child {
+  font-weight: 600;
+}
+.qx-table td.qx-num div + div {
+  color: var(--qx-muted);
+  font-size: 13px;
+}
+.qx-table td.qx-tier div {
+  color: var(--qx-muted);
+  font-family: var(--qx-mono);
+  font-size: 12px;
+}
+.qx-table td.qx-tier div:first-child {
+  color: var(--qx-blue);
+}
+.qx-unit {
+  color: var(--qx-muted);
+  font-family: inherit;
+  font-weight: 400;
+}
+.qx-price-foot {
+  margin-top: 20px;
+  font-size: 13px;
+}
+.qx-more {
+  margin-left: auto;
+  color: var(--qx-blue);
+  font-size: 14px;
+  font-weight: 500;
+}
+.qx-more:hover {
+  text-decoration: underline;
+}
+
+/*
+ * 接入流程图：深色点阵面板，左侧两步，第 3 步分成两条虚线支线（一键导入 / 手动配置）指向右侧终点。
+ * 面板随深浅色切换（颜色变量见文件顶部）。
+ */
+.qx-flow {
+  --qx-flow-gap: 16px;
+
+  margin-top: 32px;
+  overflow: hidden;
+}
+.qx-flow-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr) minmax(190px, 1.1fr) minmax(0, 1.7fr);
+  align-items: center;
+  padding: 36px 32px;
+}
+.qx-flow-box {
+  position: relative;
+  padding: 18px 20px;
+  border: 1px solid var(--qx-box-line);
+  border-radius: 10px;
+  background: var(--qx-box);
+}
+.qx-flow-box h3 {
+  margin-top: 6px;
+  color: var(--qx-ink);
+  font-size: 17px;
+  font-weight: 650;
+}
+.qx-flow-box p {
+  margin-top: 4px;
+  color: var(--qx-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 01 → 02 之间的箭头 */
+.qx-flow-link {
+  position: relative;
+  height: 2px;
+}
+.qx-flow-link::before,
+.qx-flow-branch::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: repeating-linear-gradient(90deg, var(--qx-wire-color) 0 10px, transparent 10px 18px);
+}
+.qx-flow-link::before {
+  --qx-wire-color: var(--qx-blue);
+  left: 8px;
+  right: 16px;
+}
+.qx-flow-link::after,
+.qx-flow-branch::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  margin-top: -6px;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 9px solid var(--qx-arrow-color);
+}
+.qx-flow-link::after {
+  --qx-arrow-color: var(--qx-blue);
+}
+
+/* 分叉：竖向主干 + 每行一条带标签的虚线 */
+.qx-flow-fork {
+  position: relative;
+  display: grid;
+  grid-auto-rows: 1fr;
+  gap: var(--qx-flow-gap);
+  align-self: stretch;
+}
+.qx-flow-fork::before {
+  content: '';
+  position: absolute;
+  top: calc((100% - var(--qx-flow-gap)) / 4);
+  bottom: calc((100% - var(--qx-flow-gap)) / 4);
+  left: 16px;
+  width: 2px;
+  background: var(--qx-wire);
+}
+.qx-flow-fork::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 18px;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--qx-wire);
+}
+.qx-flow-branch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px 0 16px;
+}
+.qx-flow-branch::before {
+  --qx-wire-color: var(--qx-tone);
+  left: 16px;
+  right: 16px;
+}
+.qx-flow-branch::after {
+  --qx-arrow-color: var(--qx-tone);
+}
+.qx-flow-pill-inline {
+  display: none;
+}
+
+/* 终点方框 */
+.qx-flow-ends {
+  display: grid;
+  grid-auto-rows: 1fr;
+  gap: var(--qx-flow-gap);
+}
+.qx-flow-end {
+  border-color: color-mix(in srgb, var(--qx-tone) 55%, transparent);
+}
+.qx-flow-end h3 {
+  color: var(--qx-tone);
+  font-family: var(--qx-mono);
+}
+.qx-flow-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.qx-flow-links a {
+  color: var(--qx-tone);
+}
+.qx-flow-links a:hover {
+  text-decoration: underline;
+}
+.qx-flow-endpoints {
+  margin-top: 8px;
+  font-size: 13px;
+}
+.qx-flow-endpoints dt {
+  margin-top: 6px;
+  color: var(--qx-muted);
+  font-size: 12px;
+}
+.qx-flow-endpoints dd {
+  color: var(--qx-ink);
+  font-family: var(--qx-mono);
+  overflow-wrap: anywhere;
+}
+
+/* 只有手动配置一条线：不画主干 */
+.qx-flow-single .qx-flow-fork::before {
+  display: none;
+}
+.qx-flow-single .qx-flow-fork::after {
+  width: 16px;
+}
+
+/* 底部接口路径 */
+.qx-flow-foot {
+  margin: 0 32px;
+  padding-bottom: 20px;
+}
+
+/* Footer */
+.qx-foot {
+  border-top: 1px solid var(--qx-line);
+}
+.qx-foot-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 68px;
+  color: var(--qx-muted);
+  font-size: 13px;
+}
+.qx-foot-links {
+  display: flex;
+  gap: 16px;
+}
+.qx-foot a:hover {
+  color: var(--qx-ink);
+}
+
+/* Auth shell */
+.qx-auth {
+  display: flex;
+  flex-direction: column;
+}
+.qx-auth-main {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px 80px;
+}
+.qx-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+  border: 1px solid var(--qx-box-line);
+  border-radius: 14px;
+  background: var(--qx-box);
+  padding: 32px;
+}
+.qx-auth-footer {
+  margin-top: 20px;
+  font-size: 14px;
+  text-align: center;
+}
+.qx-auth-stats {
+  justify-content: center;
+  margin-top: 28px;
+  padding-top: 0;
+  border-top: 0;
+  font-size: 13px;
+}
+.qx-auth-stats .qx-kicker {
+  width: 100%;
+  text-align: center;
+}
+/* 官方表单按钮在主题内用纯色，去掉原有渐变与投影 */
+.qx .btn-primary {
+  background: var(--qx-blue);
+  box-shadow: none;
+}
+.qx .btn-primary:hover:not(:disabled) {
+  background: var(--qx-blue-hover);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .qx-btn,
+  .qx-tab,
+  .qx-copy,
+  .qx-console-tab,
+  .qx-nav-link {
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+}
+
+@media (max-width: 900px) {
+  .qx-wrap {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .qx-hide-sm {
+    display: none;
+  }
+  .qx-hero-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+    padding-top: 44px;
+    padding-bottom: 56px;
+  }
+  .qx-hero h1 {
+    font-size: 44px;
+  }
+  .qx-hero-sub {
+    font-size: 19px;
+  }
+  .qx-console pre {
+    padding: 14px 16px 16px;
+    font-size: 12px;
+  }
+  .qx-section {
+    padding: 52px 0;
+  }
+  .qx-section h2 {
+    font-size: 23px;
+  }
+  .qx-table th,
+  .qx-table td {
+    padding: 12px 8px;
+  }
+  .qx-table th:first-child,
+  .qx-table td:first-child {
+    padding-left: 14px;
+  }
+  .qx-table th:last-child,
+  .qx-table td:last-child {
+    padding-right: 14px;
+  }
+  .qx-model {
+    font-size: 13px;
+  }
+  .qx-hide-sm-col {
+    display: none;
+  }
+  .qx-flow-main {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+  }
+  /* 手机上改成竖向流程：箭头朝下，分叉标签移进终点方框 */
+  .qx-flow-link,
+  .qx-flow-fork {
+    height: 32px;
+  }
+  .qx-flow-fork {
+    display: block;
+  }
+  .qx-flow-fork > .qx-flow-branch {
+    display: none;
+  }
+  .qx-flow-link::before,
+  .qx-flow-fork::before,
+  .qx-flow-single .qx-flow-fork::before {
+    display: block;
+    top: 4px;
+    bottom: 12px;
+    left: 24px;
+    right: auto;
+    width: 2px;
+    height: auto;
+    margin-top: 0;
+    background: repeating-linear-gradient(180deg, var(--qx-flow-blue) 0 6px, transparent 6px 11px);
+  }
+  .qx-flow-link::after,
+  .qx-flow-fork::after,
+  .qx-flow-single .qx-flow-fork::after {
+    top: auto;
+    bottom: 2px;
+    left: 19px;
+    right: auto;
+    width: 0;
+    height: 0;
+    margin-top: 0;
+    border-top: 9px solid var(--qx-flow-blue);
+    border-right: 6px solid transparent;
+    border-bottom: 0;
+    border-left: 6px solid transparent;
+    background: none;
+  }
+  .qx-flow-ends {
+    grid-auto-rows: auto;
+  }
+  .qx-flow-pill-inline {
+    display: inline-flex;
+    margin-bottom: 12px;
+  }
+  .qx-flow-foot {
+    margin: 0 20px;
+  }
+  .qx-flow-foot-label {
+    width: 100%;
+  }
+  .qx-stats:not(.qx-hero-stats) .qx-stats-item + .qx-stats-item {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .qx-stats:not(.qx-hero-stats) .qx-stats-item {
+    width: 100%;
+  }
+  .qx-hero-stats {
+    gap: 10px;
+  }
+  .qx-hero-stats .qx-stats-item + .qx-stats-item {
+    padding-left: 10px;
+  }
+  .qx-hero-stats dt {
+    font-size: 12px;
+  }
+  .qx-hero-stats dd {
+    column-gap: 6px;
+  }
+  .qx-hero-stats b {
+    font-size: 13px;
+  }
+  .qx-auth-stats .qx-stats-item {
+    justify-content: center;
+  }
+  .qx-price-panel {
+    padding: 12px;
+  }
+  .qx-table th {
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+  .qx-card {
+    padding: 24px;
+  }
+}
