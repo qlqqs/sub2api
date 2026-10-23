@@ -60,6 +60,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { computed, ref, watch } from 'vue'
+import { isDocumentDark } from '@/composables/documentDark' // CUSTOM: 深浅色切换后图表配色跟着更新
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -99,7 +100,7 @@ const zoom = ref<ZoomState>(resetZoom())
 const zoomed = computed(() => isZoomed(zoom.value))
 
 const isDark = computed(() =>
-  typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  typeof document !== 'undefined' && isDocumentDark()
 )
 
 const bucketLabel = computed(() => {

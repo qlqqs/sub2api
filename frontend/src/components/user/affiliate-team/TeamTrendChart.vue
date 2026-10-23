@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isDocumentDark } from '@/composables/documentDark' // CUSTOM: 深浅色切换后图表配色跟着更新
 import { useI18n } from 'vue-i18n'
 import {
   Chart as ChartJS,
@@ -62,7 +63,7 @@ const props = defineProps<{
 const { t } = useI18n()
 const label = useTeamLabel()
 
-const isDarkMode = computed(() => document.documentElement.classList.contains('dark'))
+const isDarkMode = computed(() => isDocumentDark())
 const axisColors = computed(() => ({
   text: isDarkMode.value ? '#9ca3af' : '#6b7280',
   grid: isDarkMode.value ? '#334155' : '#f3f4f6'

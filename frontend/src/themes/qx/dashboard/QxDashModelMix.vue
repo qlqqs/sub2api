@@ -10,7 +10,7 @@
     <div v-if="loading && mix.rows.length === 0" class="qd-empty"><LoadingSpinner size="md" /></div>
     <div v-else-if="mix.rows.length === 0" class="qd-empty">{{ t('dashboard.noDataAvailable') }}</div>
     <ol v-else class="qd-mix">
-      <li v-for="(row, i) in mix.rows" :key="row.model" class="qd-mix-row" :class="TONES[i] ?? 'qd-tone-muted'" data-testid="qd-mix-row">
+      <li v-for="(row, i) in mix.rows" :key="row.model" class="qd-mix-row" :class="[TONES[i] ?? 'qd-tone-muted', { 'is-zero': row.share === 0 }]" data-testid="qd-mix-row">
         <span class="qd-mix-rank">{{ String(i + 1).padStart(2, '0') }}</span>
         <div class="qd-mix-body">
           <div class="qd-mix-top">

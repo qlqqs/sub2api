@@ -350,6 +350,7 @@
 <script setup lang="ts">
 import { BALANCE_SYMBOL } from '@/utils/balanceCurrency'
 import { ref, computed, onMounted } from 'vue'
+import { isDocumentDark } from '@/composables/documentDark' // CUSTOM: 深浅色切换后图表配色跟着更新
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
@@ -447,7 +448,7 @@ const granularityOptions = computed(() => [
 
 // Dark mode detection
 const isDarkMode = computed(() => {
-  return document.documentElement.classList.contains('dark')
+  return isDocumentDark()
 })
 
 // Chart colors

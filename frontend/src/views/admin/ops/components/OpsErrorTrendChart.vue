@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { isDocumentDark } from '@/composables/documentDark' // CUSTOM: 深浅色切换后图表配色跟着更新
 import { useI18n } from 'vue-i18n'
 import {
   Chart as ChartJS,
@@ -34,7 +35,7 @@ const emit = defineEmits<{
 }>()
 const { t } = useI18n()
 
-const isDarkMode = computed(() => document.documentElement.classList.contains('dark'))
+const isDarkMode = computed(() => isDocumentDark())
 const colors = computed(() => ({
   red: '#ef4444',
   redAlpha: '#ef444420',

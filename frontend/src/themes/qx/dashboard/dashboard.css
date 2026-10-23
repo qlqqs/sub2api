@@ -227,14 +227,15 @@
 .qx-dash .qd-tone-green { --qd-tone: var(--qd-green); }
 .qx-dash .qd-tone-muted { --qd-tone: var(--qx-muted); }
 
-/* 模型分布：序号 + 名称 / 占比 + 2px 细进度条 + 用量与花费 */
+/* 模型分布：序号 + 名称 / 占比 + 2px 细进度条 + 用量与花费。
+   行间不加分隔线，进度条底线调淡，避免每行两条灰线叠在一起显得乱 */
+.qx-dash .qd-mix {
+  padding: 8px 0;
+}
 .qx-dash .qd-mix-row {
   display: flex;
   gap: 16px;
-  padding: 14px 24px;
-}
-.qx-dash .qd-mix-row + .qd-mix-row {
-  border-top: 1px solid var(--qx-line);
+  padding: 10px 24px;
 }
 .qx-dash .qd-mix-rank {
   flex: none;
@@ -269,10 +270,13 @@
   font-family: var(--qx-mono);
   font-size: 13px;
 }
+.qx-dash .qd-mix-row.is-zero .qd-mix-share {
+  color: var(--qx-muted);
+}
 .qx-dash .qd-bar {
   height: 2px;
-  margin: 9px 0 8px;
-  background: var(--qx-line);
+  margin: 8px 0 7px;
+  background: color-mix(in srgb, var(--qx-line) 55%, transparent);
 }
 .qx-dash .qd-bar i {
   display: block;
