@@ -93,7 +93,7 @@ const props = withDefaults(defineProps<{
   /** 支付币种（折扣模式第二行实付金额的币种与精度） */
   currency?: string
 }>(), {
-  amounts: () => [10, 20, 50, 100, 200, 500, 1000, 2000, 5000],
+  amounts: () => [1, 5, 10, 30, 50, 100],
   min: 0,
   max: 0,
   bonusTiers: () => [],
