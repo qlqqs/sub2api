@@ -130,6 +130,9 @@ func RegisterUserRoutes(
 			announcements.GET("", h.Announcement.List)
 			announcements.POST("/:id/read", h.Announcement.MarkRead)
 		}
+		// CUSTOM: 仪表盘公告轮播名单与顺序（只读，只含公告 ID）。handler 在管理端组里，
+		// 请求时再取，避免只装配了用户端 handler 的测试在注册阶段解引用 h.Admin
+		authenticated.GET("/announcement-banner", func(c *gin.Context) { h.Admin.AnnouncementBanner.Get(c) })
 
 		// 卡密兑换
 		redeem := authenticated.Group("/redeem")

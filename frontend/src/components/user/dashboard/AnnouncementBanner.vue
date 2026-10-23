@@ -1,9 +1,10 @@
 <!--
   CUSTOM: 仪表盘顶部的公告轮播大横幅（fork 自有组件，DashboardView 里一行接入）。
   数据复用公告 store（登录后 App.vue 已拉取，这里再调一次走节流）。
-  每条公告一屏：大标题 + 正文摘要 + 查看详情；多条时自动轮播，悬停/聚焦暂停，
+  每条公告一屏：大标题 + 正文摘要 + 查看详情；多条时每 4 秒自动轮播，悬停/聚焦暂停，
   可点圆点、左右箭头或在手机上滑动切换。点详情标记已读。
-  关掉后这一批公告不再显示，公告有增减时重新出现。
+  不提供关闭按钮：有公告就一直显示。
+  上哪些公告、按什么顺序由管理员在公告管理的「轮播设置」里决定（api/announcementBanner.ts）。
   variant="qx"：QxAPI 主题仪表盘用的极简线条样式：细边框、淡蓝渐变底，右侧是线描的铃铛圆环。
 -->
 <template>
@@ -114,17 +115,6 @@
       </div>
     </template>
 
-    <button
-      type="button"
-      class="absolute right-3 top-3 rounded-lg p-1.5 transition"
-      :class="isQx ? 'qx-banner-close' : 'text-white/70 hover:bg-white/15 hover:text-white'"
-      :aria-label="t('common.close')"
-      data-testid="announcement-banner-dismiss"
-      @click="dismiss"
-    >
-      <Icon name="x" size="sm" />
-    </button>
-
     <BaseDialog :show="selected !== null" :title="selected?.title ?? ''" width="wide" @close="selected = null">
       <template v-if="selected">
         <time class="block text-xs text-gray-500 dark:text-gray-400">
@@ -145,6 +135,7 @@ import { useI18n } from 'vue-i18n'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { useAnnouncementStore } from '@/stores/announcements'
+import { applyAnnouncementBanner, getAnnouncementBanner, type AnnouncementBannerConfig } from '@/api/announcementBanner'
 import { formatDateOnly, formatRelativeWithDateTime } from '@/utils/format'
 import type { UserAnnouncement } from '@/types'
 import Icon from '@/components/icons/Icon.vue'
@@ -153,16 +144,17 @@ import '@/styles/announcement-markdown.css'
 
 const props = withDefaults(defineProps<{ variant?: 'default' | 'qx' }>(), { variant: 'default' })
 
-const DISMISS_KEY = 'dashboard_announcement_banner_dismissed'
-const AUTOPLAY_MS = 6000
+const AUTOPLAY_MS = 4000
 
 const { t } = useI18n()
 const announcementStore = useAnnouncementStore()
 
-const items = computed(() => announcementStore.announcements)
+const bannerConfig = ref<AnnouncementBannerConfig | null>(null)
+const configReady = ref(false)
+const items = computed(() => applyAnnouncementBanner(announcementStore.announcements, bannerConfig.value))
 const signature = computed(() => items.value.map((a) => a.id).sort((a, b) => a - b).join(','))
-const dismissedSignature = ref(readDismissed())
-const visible = computed(() => items.value.length > 0 && signature.value !== dismissedSignature.value)
+// 等轮播设置加载完再显示，避免先闪出全部公告再收起；加载失败按默认（全部公告）显示
+const visible = computed(() => configReady.value && items.value.length > 0)
 
 const index = ref(0)
 const paused = ref(false)
@@ -186,23 +178,6 @@ function excerpt(content: string): string {
   if (!html) return ''
   const doc = new DOMParser().parseFromString(html, 'text/html')
   return (doc.body.textContent ?? '').replace(/\s+/g, ' ').trim()
-}
-
-function readDismissed(): string {
-  try {
-    return localStorage.getItem(DISMISS_KEY) ?? ''
-  } catch {
-    return ''
-  }
-}
-
-function dismiss() {
-  dismissedSignature.value = signature.value
-  try {
-    localStorage.setItem(DISMISS_KEY, signature.value)
-  } catch {
-    // 存不了就只在本次页面内隐藏
-  }
 }
 
 function go(i: number) {
@@ -240,6 +215,14 @@ watch(signature, () => {
 
 onMounted(() => {
   announcementStore.fetchAnnouncements()
+  getAnnouncementBanner()
+    .then((config) => {
+      bannerConfig.value = config
+    })
+    .catch(() => {})
+    .finally(() => {
+      configReady.value = true
+    })
   timer = setInterval(tick, AUTOPLAY_MS)
 })
 
@@ -433,13 +416,6 @@ onBeforeUnmount(() => {
   border-color: var(--qxb-blue);
   background: var(--qx-page, #fff);
   color: var(--qxb-blue);
-}
-.qx-banner-close {
-  z-index: 2;
-  color: var(--qx-muted, #7a8699);
-}
-.qx-banner-close:hover {
-  color: var(--qx-ink, #0f172a);
 }
 @media (max-width: 760px) {
   .qx-banner-mark {

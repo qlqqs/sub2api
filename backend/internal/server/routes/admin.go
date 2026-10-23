@@ -613,6 +613,9 @@ func registerSettingsRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		adminSettings.GET("/fx-rate", h.Admin.FxRate.Get)
 		adminSettings.PUT("/fx-rate", h.Admin.FxRate.Update)
 		adminSettings.POST("/fx-rate/refresh", h.Admin.FxRate.Refresh)
+		// CUSTOM: 仪表盘公告轮播名单与顺序
+		adminSettings.GET("/announcement-banner", h.Admin.AnnouncementBanner.Get)
+		adminSettings.PUT("/announcement-banner", h.Admin.AnnouncementBanner.Update)
 	}
 }
 

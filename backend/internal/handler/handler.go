@@ -43,8 +43,9 @@ type AdminHandlers struct {
 	Affiliate              *admin.AffiliateHandler
 	Compliance             *admin.ComplianceHandler
 	AuditLog               *admin.AuditLogHandler
-	GroupModelRate         *admin.GroupModelRateHandler // CUSTOM: 分组内单个模型倍率
-	FxRate                 *admin.FxRateHandler         // CUSTOM: 美元汇率
+	GroupModelRate         *admin.GroupModelRateHandler     // CUSTOM: 分组内单个模型倍率
+	FxRate                 *admin.FxRateHandler             // CUSTOM: 美元汇率
+	AnnouncementBanner     *admin.AnnouncementBannerHandler // CUSTOM: 仪表盘公告轮播名单
 }
 
 // Handlers contains all HTTP handlers

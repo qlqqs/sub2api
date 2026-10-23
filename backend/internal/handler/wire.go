@@ -49,6 +49,7 @@ func ProvideAdminHandlers(
 	auditLogHandler *admin.AuditLogHandler,
 	groupModelRateHandler *admin.GroupModelRateHandler, // CUSTOM
 	fxRateHandler *admin.FxRateHandler, // CUSTOM
+	announcementBannerHandler *admin.AnnouncementBannerHandler, // CUSTOM
 	upstreamBillingProbe *service.UpstreamBillingProbeService,
 	ollamaCloudUsage *service.OllamaCloudUsageService,
 	opencodeGoUsage *service.OpenCodeGoUsageService,
@@ -95,8 +96,9 @@ func ProvideAdminHandlers(
 		Affiliate:              affiliateHandler,
 		Compliance:             complianceHandler,
 		AuditLog:               auditLogHandler,
-		GroupModelRate:         groupModelRateHandler, // CUSTOM
-		FxRate:                 fxRateHandler,         // CUSTOM
+		GroupModelRate:         groupModelRateHandler,     // CUSTOM
+		FxRate:                 fxRateHandler,             // CUSTOM
+		AnnouncementBanner:     announcementBannerHandler, // CUSTOM
 	}
 }
 
@@ -298,8 +300,9 @@ var ProviderSet = wire.NewSet(
 	admin.NewAffiliateHandler,
 	admin.NewComplianceHandler,
 	admin.NewAuditLogHandler,
-	admin.NewGroupModelRateHandler, // CUSTOM: 分组内单个模型倍率
-	admin.NewFxRateHandler,         // CUSTOM: 美元汇率
+	admin.NewGroupModelRateHandler,     // CUSTOM: 分组内单个模型倍率
+	admin.NewFxRateHandler,             // CUSTOM: 美元汇率
+	admin.NewAnnouncementBannerHandler, // CUSTOM: 仪表盘公告轮播名单
 
 	// AdminHandlers and Handlers constructors
 	ProvideAdminHandlers,

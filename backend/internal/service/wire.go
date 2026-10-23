@@ -991,6 +991,7 @@ var ProviderSet = wire.NewSet(
 	ProvideUserPlatformQuotaUsageFlusher,
 	ProvideGroupModelRateService, // CUSTOM: 分组内单个模型倍率（setter 注入到计费 / 广场 / 复制分组）
 	ProvideFxRateService,         // CUSTOM: 美元汇率（后台定时更新）
+	NewAnnouncementBannerService, // CUSTOM: 仪表盘公告轮播名单
 )
 
 // ProvideUserPlatformQuotaUsageFlusher 创建并启动 UserPlatformQuotaUsageFlusher。

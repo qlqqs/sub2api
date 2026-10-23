@@ -372,6 +372,19 @@ export default {
 
     // Announcements
     announcements: {
+      // CUSTOM: 仪表盘公告轮播
+      banner: {
+        button: '轮播设置',
+        title: '仪表盘公告轮播',
+        description: '勾选要在用户仪表盘顶部轮播的公告，用箭头调整顺序。新发布的公告默认上轮播，排在已设置的公告后面。只有状态为「展示中」、在展示时间内且符合展示条件的公告才会实际出现。',
+        show: '上轮播',
+        moveUp: '上移',
+        moveDown: '下移',
+        empty: '还没有可设置的公告',
+        archivedHint: '已归档的公告不会显示，这里不列出。',
+        saved: '轮播设置已保存',
+        loadFailed: '加载轮播设置失败'
+      },
       title: '公告管理',
       description: '创建公告并按条件投放',
       createFirstAnnouncement: '还没有公告，创建您的第一条公告。',

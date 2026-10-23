@@ -375,6 +375,19 @@ export default {
 
     // Announcements
     announcements: {
+      // CUSTOM: dashboard announcement carousel
+      banner: {
+        button: 'Carousel',
+        title: 'Dashboard announcement carousel',
+        description: 'Tick the announcements that rotate at the top of the user dashboard and use the arrows to reorder them. New announcements join the carousel by default, after the ones ordered here. Only active announcements within their display window and matching their targeting actually appear.',
+        show: 'In carousel',
+        moveUp: 'Move up',
+        moveDown: 'Move down',
+        empty: 'No announcements to configure yet',
+        archivedHint: 'Archived announcements never show and are not listed.',
+        saved: 'Carousel settings saved',
+        loadFailed: 'Failed to load carousel settings'
+      },
       title: 'Announcements',
       description: 'Create announcements and target by conditions',
       createFirstAnnouncement: 'No announcements yet. Create your first one.',

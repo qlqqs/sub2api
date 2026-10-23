@@ -30,6 +30,8 @@
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
             </button>
+            <!-- CUSTOM: 仪表盘公告轮播设置 -->
+            <button class="btn btn-secondary" data-testid="announcement-banner-settings" @click="showBannerDialog = true">{{ t('admin.announcements.banner.button') }}</button>
             <button @click="openCreateDialog" class="btn btn-primary">
               <Icon name="plus" size="md" class="mr-1" />
               {{ t('admin.announcements.createAnnouncement') }}
@@ -241,6 +243,8 @@
       @cancel="showDeleteDialog = false"
     />
 
+    <AnnouncementBannerDialog :show="showBannerDialog" @close="showBannerDialog = false" /><!-- CUSTOM -->
+
     <!-- Read Status Dialog -->
     <AnnouncementReadStatusDialog
       :show="showReadStatusDialog"
@@ -278,12 +282,14 @@ import Icon from '@/components/icons/Icon.vue'
 
 import AnnouncementTargetingEditor from '@/components/admin/announcements/AnnouncementTargetingEditor.vue'
 import AnnouncementReadStatusDialog from '@/components/admin/announcements/AnnouncementReadStatusDialog.vue'
+import AnnouncementBannerDialog from '@/components/admin/announcements/AnnouncementBannerDialog.vue' // CUSTOM: 仪表盘公告轮播设置
 import AnnouncementPopup from '@/components/common/AnnouncementPopup.vue'
 
 const { t } = useI18n()
 const appStore = useAppStore()
 
 const announcements = ref<Announcement[]>([])
+const showBannerDialog = ref(false) // CUSTOM: 仪表盘公告轮播设置
 const loading = ref(false)
 
 const filters = reactive({
