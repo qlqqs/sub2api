@@ -156,6 +156,10 @@ type SettingService struct {
 
 	channelMonitorRuntimeListenersMu sync.Mutex
 	channelMonitorRuntimeListeners   []func()
+
+	// CUSTOM: onUpdate 的原子副本。汇率等 fork 后台 goroutine 在 wire 初始化时就已启动，
+	// 早于 router 调用 SetOnUpdateCallback，只能经此读取回调，避免数据竞争。
+	publicSettingsChangedHook atomic.Pointer[func()]
 }
 
 // DefaultPlatformQuotaSetting 单 platform 三档限额（nil = 沿用上层；0 = 显式禁用；>0 = 上限）
@@ -383,6 +387,7 @@ func (s *SettingService) GetAllSettings(ctx context.Context) (*SystemSettings, e
 // This is used for cache invalidation (e.g., HTML cache in frontend server)
 func (s *SettingService) SetOnUpdateCallback(callback func()) {
 	s.onUpdate = callback
+	s.publicSettingsChangedHook.Store(&callback) // CUSTOM: 供后台 goroutine 并发安全地读取
 }
 
 // SubscribeChannelMonitorRuntime registers a listener that is invoked after

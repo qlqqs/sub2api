@@ -1,5 +1,30 @@
 export default {
     settings: {
+      // CUSTOM: USD exchange rate (display-only for "vs. official" discounts; never used for billing)
+      fxRate: {
+        title: 'USD exchange rate',
+        description: 'Used to convert ¥ prices to USD when showing "vs. official" discounts in the model plaza and user usage records. Not used for billing.',
+        effective: 'In effect',
+        fromFetched: 'fetched automatically',
+        fromDefault: 'default rate',
+        lastFetched: 'Last fetched',
+        neverFetched: 'Never fetched successfully',
+        lastError: 'Last failure',
+        autoEnabled: 'Auto update',
+        autoEnabledHint: 'Fetched from public exchange-rate APIs every 6 hours; the default rate is used when off or never fetched.',
+        defaultRate: 'Default rate (1 USD = ? CNY)',
+        defaultRateHint: 'Between {min} and {max}.',
+        defaultRateInvalid: 'The default rate must be between {min} and {max}',
+        refreshNow: 'Update now',
+        refreshed: 'Exchange rate updated: 1 USD = {rate} CNY',
+        refreshFailed: 'Failed to update the exchange rate: {error}',
+        saved: 'Exchange rate settings saved',
+        saveFailed: 'Failed to save exchange rate settings',
+        loadFailed: 'Failed to load exchange rate settings: {error}',
+        retry: 'Retry',
+        stale: 'The exchange rate has not been updated for more than 3 days; discounts currently use 1 USD = {rate} CNY.',
+        staleNever: 'The exchange rate has never been fetched successfully; discounts currently use the default 1 USD = {rate} CNY.',
+      },
       title: 'System Settings',
       description: 'Manage registration, email verification, default values, and SMTP settings',
       tabs: {
@@ -69,6 +94,8 @@ export default {
           requireAuthHint: 'When on, anonymous visitors are redirected to the login page; when off, the page is public and anonymous visitors only see non-exclusive groups.',
           priceDescription: 'Pricing notes (Markdown)',
           priceDescriptionHint: 'Rendered at the top of the plaza page. Use it for billing rules, exchange rates, promotions, etc.',
+          // CUSTOM: group rates are no longer shown to users
+          disabledHint: 'When off, users have nowhere to see model prices (user pages no longer show group rates; the plaza is authoritative).',
         },
         pluginManagement: {
           title: 'Plugin Management',

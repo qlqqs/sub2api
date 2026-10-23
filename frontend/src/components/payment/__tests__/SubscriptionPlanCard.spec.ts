@@ -1,9 +1,10 @@
-import { mount } from "@vue/test-utils";
+import { mount, RouterLinkStub } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { createPinia } from "pinia";
 import { createI18n } from "vue-i18n";
 import type { SubscriptionPlan } from "@/types/payment";
 import SubscriptionPlanCard from "../SubscriptionPlanCard.vue";
+import PlazaPriceLink from "@/components/common/PlazaPriceLink.vue";
 
 const i18n = createI18n({
   legacy: false,
@@ -48,7 +49,8 @@ const mountPlanCard = (groupPlatform: string, overrides: Partial<SubscriptionPla
         ...overrides,
       },
     },
-    global: { plugins: [i18n, createPinia()] },
+    // CUSTOM: PlazaPriceLink 渲染 RouterLink,测试不挂路由
+    global: { plugins: [i18n, createPinia()], stubs: { RouterLink: RouterLinkStub } },
   });
 
 describe("SubscriptionPlanCard", () => {
@@ -149,24 +151,26 @@ describe("SubscriptionPlanCard", () => {
     expect(badge?.element.parentElement?.textContent).toContain("/ 30payment.days");
   });
 
-  it("shows the plan group rate as a price ratio and limits in the balance unit", () => {
-    const wrapper = mountPlanCard("openai", { rate_multiplier: 0.5, daily_limit_usd: 20 });
-    const text = wrapper.text();
-
-    expect(text).toContain("¥0.5 = $1");
-    expect(text).not.toContain("×0.5");
-    expect(text).toContain("¥20");
-  });
-
-  it("shows the peak window as the peak-period ratio (plan rate × peak multiplier)", () => {
+  // CUSTOM: 一个分组内各模型倍率可能不同，套餐卡不再显示价格比例 / 高峰价格，改为模型广场链接
+  it("shows limits in the balance unit without the group price ratio or peak price", () => {
     const text = mountPlanCard("openai", {
       rate_multiplier: 0.5,
+      daily_limit_usd: 20,
       peak_rate_enabled: true,
       peak_start: "14:00",
       peak_end: "18:00",
       peak_rate_multiplier: 2,
     }).text();
 
-    expect(text).toContain("14:00-18:00 ¥1 = $1");
+    expect(text).toContain("¥20");
+    expect(text).not.toContain("= $1");
+    expect(text).not.toContain("14:00");
+    expect(text).not.toContain("payment.planCard.priceRatio");
+    expect(text).not.toContain("payment.planCard.peakPriceRatio");
+  });
+
+  it("links the plan group to the model plaza", () => {
+    const wrapper = mountPlanCard("openai");
+    expect(wrapper.findComponent(PlazaPriceLink).props("groupId")).toBe(10);
   });
 });

@@ -3,12 +3,16 @@ import { mount } from '@vue/test-utils'
 import PlazaModelPricingTable from '../PlazaModelPricingTable.vue'
 import type { PlazaModel } from '@/api/modelPlaza'
 
+const i18nState = vi.hoisted(() => ({ interpolate: false }))
+
 vi.mock('vue-i18n', async () => {
   const actual = await vi.importActual<typeof import('vue-i18n')>('vue-i18n')
   return {
     ...actual,
     useI18n: () => ({
-      t: (key: string) => key
+      // 默认只回传 key;个别用例打开 interpolate 以核对插值参数
+      t: (key: string, params?: Record<string, unknown>) =>
+        i18nState.interpolate && params ? `${key}|${JSON.stringify(params)}` : key
     })
   }
 })
@@ -50,6 +54,7 @@ function mountTable(
     videoRateMultiplier?: number | null
     peakWindow?: string
     peakRateMultiplier?: number | null
+    fxRate?: number | null
   }
 ) {
   return mount(PlazaModelPricingTable, {
@@ -77,11 +82,9 @@ describe('PlazaModelPricingTable', () => {
     })
     try {
       expect(wrapper.text()).toContain(`¥${(2 * tc.expected).toFixed(2)}`)
+      // CUSTOM: 按次/视频计费与官方 token 价不可比,折扣列为「—」
       const rateCell = wrapper.findAll('tbody tr td').at(-1)!
-      // 生效倍率为 0（免费）时比例显示 "¥0 = $1"
-      const ratio = `¥${tc.expected} = $1`
-      if (tc.enabled) expect(rateCell.text()).toBe(ratio)
-      else expect(rateCell.text()).toContain(ratio)
+      expect(rateCell.text()).toBe('—')
     } finally {
       wrapper.unmount()
     }
@@ -115,16 +118,17 @@ describe('PlazaModelPricingTable', () => {
     // 官方价仍为 $
     expect(text).toContain('$3.00')
     expect(text).toContain('$15.00')
-    // 价格比例列
-    expect(wrapper.findAll('tbody tr td').at(-1)!.text()).toBe('¥1 = $1')
+    // CUSTOM: 相比官方价 = 1 − (¥1 = $1) ÷ 6.8 ≈ -85%
+    expect(wrapper.findAll('tbody tr td').at(-1)!.text()).toBe('-85%')
   })
 
-  it('表头:本站价单位为 ¥ / 1M token,官方价单位为 $ / 1M token,倍率列改为价格比例', () => {
+  it('表头:本站价单位为 ¥ / 1M token,官方价单位为 $ / 1M token,末列为「相比官方价」', () => {
     const wrapper = mountTable([tokenModel()], 1)
     const head = wrapper.find('thead').text()
     expect(head).toContain('modelPlaza.table.paidUnitPerMillion')
     expect(head).toContain('modelPlaza.table.officialUnitPerMillion')
-    expect(head).toContain('modelPlaza.table.priceRatio')
+    expect(head).toContain('modelPlaza.table.vsOfficial')
+    expect(head).not.toContain('modelPlaza.table.priceRatio')
     expect(head).not.toContain('modelPlaza.table.unitPerMillion')
   })
 
@@ -160,22 +164,24 @@ describe('PlazaModelPricingTable', () => {
     // 官方价原值仍在(官方列不乘倍率,保持 $)
     expect(text).toContain('$3.00')
     expect(text).toContain('$15.00')
+    // 1 − 0.5 ÷ 6.8 ≈ 92.6% → -93%;悬停给换算依据
     const rateCell = wrapper.findAll('tbody tr td').at(-1)!
-    expect(rateCell.text()).toBe('¥0.5 = $1')
-    expect(rateCell.find('[title]').attributes('title')).toBe('common.rateRatioTitle')
+    expect(rateCell.text()).toBe('-93%')
+    expect(rateCell.find('[title]').attributes('title')).toBe('modelPlaza.table.discountBasis')
   })
 
-  it('用户专属倍率覆盖分组倍率,并划线展示原倍率', () => {
+  it('旧后端(模型行无倍率字段):用户专属倍率覆盖分组倍率,并划线展示公开折扣', () => {
     const wrapper = mountTable([tokenModel()], 1, 0.8)
     const text = wrapper.text()
     // 实付按 0.8:3 × 0.8 = 2.4
     expect(text).toContain('¥2.40')
     expect(text).toContain('¥12.00')
-    // 比例列:原分组比例划线 + 专属比例
-    const struck = wrapper.find('td .line-through')
+    // 折扣列:公开折扣(1 − 1/6.8)划线 + 专属折扣(1 − 0.8/6.8)
+    const struck = wrapper.find('[data-testid="plaza-discount-public"]')
     expect(struck.exists()).toBe(true)
-    expect(struck.text()).toBe('¥1 = $1')
-    expect(text).toContain('¥0.8 = $1')
+    expect(struck.classes()).toContain('line-through')
+    expect(struck.text()).toBe('-85%')
+    expect(wrapper.get('[data-testid="plaza-discount"]').findAll('span').map((span) => span.text())).toEqual(['-85%', '-88%'])
   })
 
   it('模型按官方输出价从高到低排序,无官方价的排最后', () => {
@@ -452,9 +458,9 @@ describe('PlazaModelPricingTable', () => {
     // 0.02 × 1(独立倍率),而非 0.02 × 0.1
     expect(text).toContain('¥0.02')
     expect(text).not.toContain('¥0.002')
-    // 比例列展示独立倍率 ¥1 = $1,而非分组倍率 ¥0.1 = $1
+    // 按图计费与官方 token 价不可比,折扣列为「—」
     const rateCell = wrapper.findAll('tbody tr td').at(-1)!
-    expect(rateCell.text()).toBe('¥1 = $1')
+    expect(rateCell.text()).toBe('—')
   })
 
   it('生图独立倍率关闭时,按图价格仍乘分组/专属生效倍率', () => {
@@ -477,7 +483,7 @@ describe('PlazaModelPricingTable', () => {
     const text = wrapper.text()
     expect(text).toContain('¥0.02')
     const rateCell = wrapper.findAll('tbody tr td').at(-1)!
-    expect(rateCell.text()).toBe('¥0.1 = $1')
+    expect(rateCell.text()).toBe('—')
   })
 
   it('按图模型主行展示阶梯芯片,不把 image_output_price(每 token)当按次价', () => {
@@ -748,7 +754,7 @@ describe('PlazaModelPricingTable 分时计价', () => {
     })
   }
 
-  it('有分时倍率的模型展开为标准行 + 每时段一行,时段行价格按倍率折算且倍率列显示生效倍率', () => {
+  it('有分时倍率的模型展开为标准行 + 每时段一行,时段行价格与折扣均按时段价格计算', () => {
     const wrapper = mountTable([timePricedModel()], 0.8)
     const trs = wrapper.findAll('tbody tr')
     expect(trs).toHaveLength(3)
@@ -757,7 +763,8 @@ describe('PlazaModelPricingTable 分时计价', () => {
     const baseCells = trs[0].findAll('td')
     expect(baseCells[0].text()).toBe('deepseek-chat')
     expect(baseCells[1].text()).toContain('¥2.40')
-    expect(baseCells[7].text()).toContain('¥0.8 = $1')
+    // 1 − 0.8 ÷ 6.8 → -88%
+    expect(baseCells[7].text()).toBe('-88%')
 
     // 夜间时段行:输入 3 × 0.8 × 0.5,倍率 0.4x,标注时段不含时区
     const nightCells = trs[1].findAll('td')
@@ -769,13 +776,15 @@ describe('PlazaModelPricingTable 分时计价', () => {
     expect(nightCells[1].text()).toContain('¥1.20')
     expect(nightCells[2].text()).toContain('¥6.00')
     expect(nightCells[3].text()).toContain('¥1.50')
-    expect(nightCells[7].text()).toContain('¥0.4 = $1')
+    // 时段价格 = 0.4 × 官方价 → 1 − 0.4 ÷ 6.8 → -94%
+    expect(nightCells[7].text()).toBe('-94%')
 
     // 晚高峰行:3 × 0.8 × 1.2 = 2.88,倍率 0.96x
     const peakCells = trs[2].findAll('td')
     expect(peakCells[0].text()).toContain('18:00–22:00')
     expect(peakCells[1].text()).toContain('¥2.88')
-    expect(peakCells[7].text()).toContain('¥0.96 = $1')
+    // 1 − 0.96 ÷ 6.8 → -86%
+    expect(peakCells[7].text()).toBe('-86%')
 
     // 官方列不受时段影响
     expect(nightCells[4].text()).toContain('$3.00')
@@ -808,10 +817,11 @@ describe('PlazaModelPricingTable 分时计价', () => {
     })
     const nightCells = wrapper.findAll('tbody tr')[1].findAll('td')
     const title = nightCells[0].find('[title*="modelPlaza.table.timePricingRowHint"]').attributes('title')
-    expect(title).toContain('modelPlaza.table.timePricingRowHintPeak')
+    // CUSTOM: 高峰披露为「上浮 x%」,不出现倍率数字
+    expect(title).toContain('modelPlaza.table.timePricingRowHintPeakUp')
     // 行内数字仍是 基础倍率 × 时段倍率(0.8 × 0.5),高峰只进披露不进价格
     expect(nightCells[1].text()).toContain('¥1.20')
-    expect(nightCells[7].text()).toContain('¥0.4 = $1')
+    expect(nightCells[7].text()).toBe('-94%')
   })
 
   it('分组未启用高峰(peakWindow 缺省)时 tooltip 不含高峰披露', () => {
@@ -824,5 +834,139 @@ describe('PlazaModelPricingTable 分时计价', () => {
     const wrapper = mountTable([tokenModel()], 1)
     expect(wrapper.findAll('tbody tr')).toHaveLength(1)
     expect(wrapper.find('[title*="modelPlaza.table.timePricingRowHint"]').exists()).toBe(false)
+  })
+})
+
+describe('PlazaModelPricingTable 按模型倍率与相比官方价(CUSTOM)', () => {
+  function discountCell(wrapper: ReturnType<typeof mountTable>, rowIndex = 0) {
+    return wrapper.findAll('[data-testid="plaza-discount"]')[rowIndex]
+  }
+
+  it('模型单独倍率:本站价与折扣按该模型的倍率,而非分组倍率', () => {
+    const special = tokenModel({ name: 'claude-opus-x', rate_multiplier: 2 })
+    const normal = tokenModel({ name: 'claude-haiku-x', rate_multiplier: 1 })
+    const wrapper = mountTable([special, normal], 1)
+    const rows = wrapper.findAll('tbody tr')
+    const specialRow = rows.find((row) => row.text().includes('claude-opus-x'))!
+    const normalRow = rows.find((row) => row.text().includes('claude-haiku-x'))!
+    // 3 × 2 / 15 × 2
+    expect(specialRow.text()).toContain('¥6.00')
+    expect(specialRow.text()).toContain('¥30.00')
+    // 1 − 2 ÷ 6.8 ≈ 70.6% → -71%
+    expect(specialRow.get('[data-testid="plaza-discount"]').text()).toBe('-71%')
+    expect(normalRow.text()).toContain('¥3.00')
+    expect(normalRow.get('[data-testid="plaza-discount"]').text()).toBe('-85%')
+  })
+
+  it('模型行专属倍率优先;没有专属倍率时模型单独倍率优先于分组专属倍率', () => {
+    const exclusive = tokenModel({ name: 'm-exclusive', rate_multiplier: 1, user_rate_multiplier: 0.5 })
+    const modelRate = tokenModel({ name: 'm-model-rate', rate_multiplier: 2 })
+    // 分组级专属倍率 0.3 只在旧后端回退时使用,新后端行内已给出
+    const wrapper = mountTable([exclusive, modelRate], 1, 0.3)
+    const rows = wrapper.findAll('tbody tr')
+    const exclusiveRow = rows.find((row) => row.text().includes('m-exclusive'))!
+    const modelRateRow = rows.find((row) => row.text().includes('m-model-rate'))!
+    expect(exclusiveRow.text()).toContain('¥1.50')
+    expect(exclusiveRow.get('[data-testid="plaza-discount-public"]').text()).toBe('-85%')
+    expect(exclusiveRow.get('[data-testid="plaza-discount"]').findAll('span').at(-1)!.text()).toBe('-93%')
+    // 公开折扣在上、专属折扣在下(块级上下排列,不撑宽列)
+    expect(exclusiveRow.get('[data-testid="plaza-discount"]').findAll('span').map((s) => s.classes('block'))).toEqual([true, true])
+    expect(modelRateRow.text()).toContain('¥6.00')
+    expect(modelRateRow.find('[data-testid="plaza-discount-public"]').exists()).toBe(false)
+    expect(modelRateRow.get('[data-testid="plaza-discount"]').text()).toBe('-71%')
+  })
+
+  it('专属倍率与公开倍率相同时不划线', () => {
+    const wrapper = mountTable([tokenModel({ rate_multiplier: 0.5, user_rate_multiplier: 0.5 })], 1)
+    expect(wrapper.find('[data-testid="plaza-discount-public"]').exists()).toBe(false)
+    expect(discountCell(wrapper).text()).toBe('-93%')
+  })
+
+  it('输入、输出比例不一致时显示「—」并说明原因', () => {
+    const model = tokenModel()
+    model.pricing!.output_price = 2e-5 // 官方 1.5e-5 → 比例 1.33,输入为 1
+    const cell = discountCell(mountTable([model], 1))
+    expect(cell.text()).toBe('—')
+    expect(cell.find('[title]').attributes('title')).toBe('modelPlaza.table.discountInconsistent')
+  })
+
+  it('输入、输出比例相差在 1% 以内视为一致', () => {
+    const model = tokenModel()
+    model.pricing!.output_price = 1.5e-5 * 1.009
+    expect(discountCell(mountTable([model], 1)).text()).toBe('-85%')
+  })
+
+  it('没有官方价时显示「—」', () => {
+    const cell = discountCell(mountTable([tokenModel({ official_pricing: null })], 1))
+    expect(cell.text()).toBe('—')
+    expect(cell.find('[title]').attributes('title')).toBe('modelPlaza.table.discountNoBasis')
+  })
+
+  it('只有一侧(输入或输出)可比时用该侧比例', () => {
+    const model = tokenModel()
+    model.official_pricing!.output_price = null
+    model.pricing!.output_price = 9e-5 // 不可比的一侧不参与
+    expect(discountCell(mountTable([model], 1)).text()).toBe('-85%')
+  })
+
+  it('有阶梯时取最低档计算比例', () => {
+    const model = tokenModel()
+    model.pricing!.intervals = [
+      { min_tokens: 200000, max_tokens: null, tier_label: '', input_price: 6e-6, output_price: 4.5e-5, cache_write_price: null, cache_read_price: null, per_request_price: null },
+      { min_tokens: 0, max_tokens: 200000, tier_label: '', input_price: 3e-6, output_price: 1.5e-5, cache_write_price: null, cache_read_price: null, per_request_price: null }
+    ]
+    expect(discountCell(mountTable([model], 0.5)).text()).toBe('-93%')
+  })
+
+  it('按汇率换算:¥0.35 = $1、汇率 6.67 → -95%,悬停给出比例与汇率', () => {
+    i18nState.interpolate = true
+    try {
+      const model = tokenModel()
+      const wrapper = mountTable([model], 0.35, null, { fxRate: 6.67 })
+      const cell = discountCell(wrapper)
+      expect(cell.text()).toBe('-95%')
+      const title = cell.find('[title]').attributes('title')!
+      expect(title).toContain('modelPlaza.table.discountBasis')
+      expect(title).toContain('"ratio":"¥0.35 = $1"')
+      expect(title).toContain('"fx":"$1 = ¥6.67"')
+    } finally {
+      i18nState.interpolate = false
+    }
+  })
+
+  it.each([
+    { rate: 6.8, expected: 'modelPlaza.table.samePrice' },
+    { rate: 6.79, expected: 'modelPlaza.table.samePrice' },
+    { rate: 7.14, expected: '+5%' }
+  ])('比官方贵或持平:倍率 $rate → $expected', ({ rate, expected }) => {
+    expect(discountCell(mountTable([tokenModel()], rate)).text()).toBe(expected)
+  })
+
+  it('无效汇率回退为 6.8', () => {
+    expect(discountCell(mountTable([tokenModel()], 1, null, { fxRate: 0 })).text()).toBe('-85%')
+    expect(discountCell(mountTable([tokenModel()], 1, null, { fxRate: 7.25 })).text()).toBe('-86%')
+  })
+
+  it('分时时段行在专属倍率下同样划线公开折扣,两者都按时段价格计算', () => {
+    const model = tokenModel({
+      rate_multiplier: 1,
+      user_rate_multiplier: 0.8,
+      time_pricing: { timezone: 'Asia/Shanghai', periods: [{ start_time: '00:00', end_time: '08:00', multiplier: 0.5 }] }
+    })
+    const wrapper = mountTable([model], 1)
+    const periodCell = discountCell(wrapper, 1)
+    // 公开 1 × 0.5 → -93%;专属 0.8 × 0.5 → -94%
+    expect(periodCell.get('[data-testid="plaza-discount-public"]').text()).toBe('-93%')
+    expect(periodCell.findAll('span').at(-1)!.text()).toBe('-94%')
+    expect(wrapper.findAll('tbody tr')[1].text()).toContain('¥1.20')
+  })
+
+  it('高峰倍率小于 1 时时段行披露为「下调」', () => {
+    const model = tokenModel({
+      time_pricing: { timezone: 'Asia/Shanghai', periods: [{ start_time: '00:00', end_time: '08:00', multiplier: 0.5 }] }
+    })
+    const wrapper = mountTable([model], 1, null, { peakWindow: '14:00-18:00', peakRateMultiplier: 0.8 })
+    const title = wrapper.get('[title*="modelPlaza.table.timePricingRowHint"]').attributes('title')
+    expect(title).toContain('modelPlaza.table.timePricingRowHintPeakDown')
   })
 })

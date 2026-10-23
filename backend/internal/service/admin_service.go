@@ -713,6 +713,8 @@ type adminServiceImpl struct {
 	compositeResolver    *CompositeRouteResolver
 	// 分组平台变更后用来失效渠道缓存；可为 nil（缓存会在 TTL 到期后自然重建）
 	channelCacheInvalidator ChannelCacheInvalidator
+	// CUSTOM: 复制分组时一并复制分组模型倍率（setter 注入，可为 nil）
+	groupModelRateCopier groupModelRateCopier
 }
 
 // ChannelCacheInvalidator 失效渠道缓存。

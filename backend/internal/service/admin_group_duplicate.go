@@ -222,6 +222,7 @@ func (s *adminServiceImpl) DuplicateGroup(ctx context.Context, id int64, actorSc
 		duplicate.CreatedAt = time.Time{}
 		duplicate.UpdatedAt = time.Time{}
 		if err := s.groupDuplicateRepo.CreateFromSource(ctx, duplicate, source.ID); err == nil {
+			s.copyGroupModelRatesAfterDuplicate(ctx, source.ID, duplicate.ID) // CUSTOM: 一并复制分组模型倍率
 			hydrated, loadErr := s.groupRepo.GetByID(ctx, duplicate.ID)
 			if loadErr != nil {
 				return nil, fmt.Errorf("load duplicate group: %w", loadErr)

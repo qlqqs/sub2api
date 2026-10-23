@@ -48,6 +48,8 @@ type inputEntry struct {
 	Accounts      []inputAccount      `json:"accounts"`
 	UserOverrides map[string]*float64 `json:"user_overrides"`
 	Models        []string            `json:"models"`
+	// CUSTOM: 分组模型单独倍率（group_model_rate_multipliers），命中的模型按模型倍率算 D。
+	ModelRates []service.GroupModelRateRule `json:"model_rates"`
 }
 
 type inputDoc struct {
@@ -130,6 +132,9 @@ func main() {
 		for _, model := range models {
 			fmt.Printf("  模型 %-20s 利润门准入账号: 默认D=%d 最低有效D=%d\n",
 				model, report.RemainingByModel[model], report.RemainingByModelMinD[model])
+			if d, ok := report.ModelD[model]; ok { // CUSTOM: 模型单独倍率
+				fmt.Printf("  模型 %-20s 按模型单独倍率: D=%.4f 阈值=%.4f\n", model, d, report.ThresholdByModel[model])
+			}
 		}
 		for _, model := range modelsWithZeroRemaining(report) {
 			fmt.Printf("  警告: 模型 %s 启用后利润门准入账号为 0\n", model)
@@ -205,6 +210,7 @@ func parsePreviewInputs(raw []byte, assumeEnabled bool) ([]service.ProfitPreview
 			UserOverrides: overrides,
 			Models:        entry.Models,
 			AssumeEnabled: assumeEnabled,
+			ModelRates:    entry.ModelRates, // CUSTOM
 		})
 	}
 	return inputs, nil

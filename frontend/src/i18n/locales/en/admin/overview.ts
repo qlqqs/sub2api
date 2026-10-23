@@ -1177,6 +1177,34 @@ export default {
       groupUpdatedSuccess: 'Group updated successfully',
       groupDeletedSuccess: 'Group deleted successfully',
       rateMultiplierHint: 'Cost multiplier for this group (e.g., 1.5 = 150% of base cost)',
+      // CUSTOM: per-model rate multipliers within a group
+      modelRates: {
+        title: 'Per-model rates',
+        hint: 'Set a separate rate for specific models. Matching models are billed at this rate and user-specific rates no longer apply to them; peak rates still stack. A trailing * wildcard is supported (e.g. claude-opus-*), case-insensitive; exact matches win, then the longest wildcard prefix.',
+        add: 'Add',
+        model: 'Model',
+        rate: 'Rate',
+        modelPlaceholder: 'e.g. claude-opus-* or gpt-5.5',
+        ratePlaceholder: 'Rate',
+        remove: 'Remove',
+        empty: 'None set; all models use the group rate',
+        retry: 'Retry',
+        count: '{count} per-model rates',
+        loadFailed: 'Failed to load per-model rates: {error}',
+        saveFailed: 'Group saved, but saving per-model rates failed: {error}',
+        errors: {
+          modelRequired: 'Enter a model name',
+          modelTooLong: 'Model names cannot exceed 255 characters',
+          modelWhitespace: 'Model names cannot contain spaces',
+          wildcardPosition: '* is only allowed at the end, after at least one character',
+          duplicate: 'Duplicate model name (case-insensitive)',
+          rateRequired: 'Enter a rate',
+          rateInvalid: 'The rate must be greater than 0',
+          rateTooLarge: 'The rate cannot exceed {max}',
+          rateTooSmall: 'Rates keep at most 4 decimal places and must stay above 0 after rounding',
+          tooMany: 'At most {max} per-model rates per group'
+        }
+      },
       exclusiveHint: 'Exclusive group, manually assign to specific users',
       exclusiveTooltip: {
         title: 'What is an exclusive group?',

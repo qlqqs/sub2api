@@ -72,6 +72,10 @@ type modelPlazaModel struct {
 	LongContextBasis string `json:"long_context_basis,omitempty"`
 	// TimePricing 分时倍率时段，落在时段内的请求整单乘倍率；无分时省略。
 	TimePricing *modelPlazaTimePricing `json:"time_pricing,omitempty"`
+	// CUSTOM: RateMultiplier 该模型的公开基础倍率 = 模型单独倍率 ?? 分组倍率（不含高峰、分时），始终返回。
+	RateMultiplier float64 `json:"rate_multiplier"`
+	// CUSTOM: UserRateMultiplier 登录用户在该分组有专属倍率、且该模型没有单独倍率时给出；否则省略。
+	UserRateMultiplier *float64 `json:"user_rate_multiplier,omitempty"`
 }
 
 // modelPlazaGroup 广场分组条目（白名单字段）。
@@ -209,6 +213,7 @@ func toModelPlazaGroupDTO(g *service.PlazaGroup, userRates map[int64]float64) mo
 			LongContextBasis: string(m.LongContextBasis),
 			TimePricing:      toModelPlazaTimePricing(m.TimePricing),
 		})
+		applyModelPlazaModelRates(&models[len(models)-1], g, m, userRates) // CUSTOM: 分组模型倍率
 	}
 	dto := modelPlazaGroup{
 		ID:                        g.ID,
@@ -263,5 +268,22 @@ func toModelPlazaOfficialPricing(p *service.PlazaOfficialPricing) *modelPlazaOff
 		CacheWrite1hPrice: p.CacheWrite1hPrice,
 		CacheReadPrice:    p.CacheReadPrice,
 		Intervals:         toUserPricingIntervals(p.Intervals),
+	}
+}
+
+// applyModelPlazaModelRates (CUSTOM) 填充模型级倍率字段（见 design §15.1）：
+//   - rate_multiplier：模型单独倍率 ?? 分组倍率；
+//   - user_rate_multiplier：用户在该分组有专属倍率且该模型没有单独倍率时给出。
+func applyModelPlazaModelRates(dto *modelPlazaModel, g *service.PlazaGroup, m *service.PlazaModel, userRates map[int64]float64) {
+	if dto == nil || g == nil || m == nil {
+		return
+	}
+	if m.HasModelRate {
+		dto.RateMultiplier = m.RateMultiplier
+		return
+	}
+	dto.RateMultiplier = g.RateMultiplier
+	if rate, ok := userRates[g.ID]; ok {
+		dto.UserRateMultiplier = &rate
 	}
 }

@@ -127,6 +127,8 @@ func (h *SettingHandler) GetPublicSettings(c *gin.Context) {
 		RiskControlEnabled: settings.RiskControlEnabled,
 
 		AllowUserViewErrorRequests: settings.AllowUserViewErrorRequests,
+
+		USDCNYRate: settings.USDCNYRate, // CUSTOM: 美元汇率
 	})
 }
 

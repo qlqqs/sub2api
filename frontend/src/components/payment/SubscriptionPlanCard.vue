@@ -43,16 +43,8 @@
         </div>
       </div>
 
-      <!-- Group quota info (compact) -->
+      <!-- Group quota info (compact)（CUSTOM: 不再显示价格比例 / 高峰价格，价格以模型广场为准） -->
       <div class="mb-3 grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg bg-gray-50 px-3 py-2 text-xs dark:bg-dark-700/50">
-        <div class="flex items-center justify-between">
-          <span class="text-gray-400 dark:text-dark-500">{{ t('payment.planCard.priceRatio') }}</span>
-          <span class="font-medium text-gray-700 dark:text-gray-300" :title="rateTitle">{{ rateDisplay }}</span>
-        </div>
-        <div v-if="hasPeakRate" class="col-span-2 flex items-center justify-between gap-2">
-          <span class="text-gray-400 dark:text-dark-500">{{ t('payment.planCard.peakPriceRatio') }}</span>
-          <span class="text-right font-medium text-amber-700 dark:text-amber-300">{{ peakRateDisplay }}</span>
-        </div>
         <div v-if="plan.daily_limit_usd != null" class="flex items-center justify-between">
           <span class="text-gray-400 dark:text-dark-500">{{ t('payment.planCard.dailyLimit') }}</span>
           <span class="font-medium text-gray-700 dark:text-gray-300">{{ BALANCE_SYMBOL }}{{ plan.daily_limit_usd }}</span>
@@ -77,6 +69,9 @@
               {{ scope }}
             </span>
           </div>
+        </div>
+        <div class="col-span-2 flex justify-end">
+          <PlazaPriceLink :group-id="plan.group_id" />
         </div>
       </div>
 
@@ -109,11 +104,10 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SubscriptionPlan } from '@/types/payment'
 import type { UserSubscription } from '@/types'
-import { useAppStore } from '@/stores/app'
-import { hasPeakRate as groupHasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
+import PlazaPriceLink from '@/components/common/PlazaPriceLink.vue'
 import { planValiditySuffix } from './validity'
 import { currencySymbol } from '@/components/payment/currency'
-import { BALANCE_SYMBOL, formatRateRatio, formatRateValue } from '@/utils/balanceCurrency'
+import { BALANCE_SYMBOL } from '@/utils/balanceCurrency'
 import {
   platformAccentBarClass,
   platformBadgeLightClass,
@@ -150,19 +144,7 @@ const discountText = computed(() => {
   return pct > 0 ? `-${pct}%` : ''
 })
 
-// CUSTOM: 倍率展示为「¥x = $1」比例（套餐分组倍率），原倍率放悬停提示
-const planRate = computed(() => props.plan.rate_multiplier ?? 1)
-const rateDisplay = computed(() => formatRateRatio(planRate.value))
-const rateTitle = computed(() => t('common.rateRatioTitle', { rate: formatRateValue(planRate.value) }))
-
-const appStore = useAppStore()
 const planCurrencySymbol = computed(() => currencySymbol(props.plan.currency || 'USD'))
-
-const hasPeakRate = computed(() => groupHasPeakRate(props.plan))
-
-const peakRateDisplay = computed(() => {
-  return formatPeakRateWindow(props.plan, serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset), planRate.value)
-})
 
 const MODEL_SCOPE_LABELS: Record<string, string> = {
   claude: 'Claude',

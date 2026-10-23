@@ -9,13 +9,13 @@ vi.mock('vue-i18n', async () => {
   return {
     ...actual,
     useI18n: () => ({
-      t: (key: string) => key
+      t: (key: string, params?: Record<string, unknown>) => (params ? `${key}|${JSON.stringify(params)}` : key)
     })
   }
 })
 
 vi.mock('@/stores/app', () => ({
-  useAppStore: () => ({ cachedPublicSettings: null })
+  useAppStore: () => ({ cachedPublicSettings: null, usdCnyRate: 7.1 })
 }))
 
 function ladderModel(tiers: number): PlazaModel {
@@ -142,7 +142,7 @@ describe('PlazaGroupSection 高峰配置传递', () => {
     expect(table.props('peakRateMultiplier')).toBe(1.5)
   })
 
-  it('高峰提示按 生效倍率 × 高峰倍率 展示价格比例', () => {
+  it('CUSTOM: 分组徽章与高峰提示都不出现倍率,高峰提示为「价格上浮 x%」', () => {
     const g = group({
       rate_multiplier: 1,
       user_rate_multiplier: 0.4,
@@ -151,19 +151,48 @@ describe('PlazaGroupSection 高峰配置传递', () => {
       peak_end: '18:00',
       peak_rate_multiplier: 1.5
     })
-    // 不 stub GroupBadge,验证徽章上的高峰比例
+    // 不 stub GroupBadge,验证徽章不再显示倍率与高峰比例
     const wrapper = mount(PlazaGroupSection, {
       props: { group: g },
       global: { stubs: { Icon: true, PlatformIcon: true, PlazaModelPricingTable: true } }
     })
-    // 0.4 × 1.5 = 0.6(分组徽章的高峰标签);提示文案挂高峰倍率说明
-    expect(wrapper.text()).toContain('14:00-18:00 ¥0.6 = $1')
-    expect(wrapper.text()).toContain('modelPlaza.detail.peakRatioNote')
-    expect(wrapper.find('[title="modelPlaza.detail.peakRatioHint"]').exists()).toBe(true)
+    const text = wrapper.text()
+    expect(text).not.toContain('= $1')
+    expect(text).not.toContain('×')
+    const note = wrapper.get('[data-testid="plaza-peak-note"]')
+    expect(note.text()).toBe('modelPlaza.detail.peakUpNote|{"window":"14:00–18:00","percent":"50"}')
+    expect(note.attributes('title')).toBeUndefined()
+  })
+
+  it('高峰倍率小于 1 时写「下调」,等于 1 时不提示', () => {
+    const down = mountSection(
+      group({ peak_rate_enabled: true, peak_start: '14:00', peak_end: '18:00', peak_rate_multiplier: 0.8 })
+    )
+    expect(down.get('[data-testid="plaza-peak-note"]').text()).toContain('modelPlaza.detail.peakDownNote')
+    expect(down.text()).toContain('"percent":"20"')
+
+    const same = mountSection(
+      group({ peak_rate_enabled: true, peak_start: '14:00', peak_end: '18:00', peak_rate_multiplier: 1 })
+    )
+    expect(same.find('[data-testid="plaza-peak-note"]').exists()).toBe(false)
   })
 
   it('分组未启用高峰时窗口描述为空串', () => {
     const wrapper = mountSection(group())
     expect(wrapper.findComponent(PlazaModelPricingTable).props('peakWindow')).toBe('')
+  })
+})
+
+describe('PlazaGroupSection 定位与汇率(CUSTOM)', () => {
+  it('分组 section 带 plaza-group-<id> 锚点与滚动留白', () => {
+    const wrapper = mountSection(group({ id: 42 }))
+    const section = wrapper.get('section')
+    expect(section.attributes('id')).toBe('plaza-group-42')
+    expect(section.classes()).toContain('scroll-mt-24')
+  })
+
+  it('把公开设置里的汇率传给价格表', () => {
+    const wrapper = mountSection(group())
+    expect(wrapper.findComponent(PlazaModelPricingTable).props('fxRate')).toBe(7.1)
   })
 })

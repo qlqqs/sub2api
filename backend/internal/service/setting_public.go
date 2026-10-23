@@ -244,6 +244,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyAllowUserViewErrorRequests,
 	}
 	keys = append(keys, affiliateRewardConfigKeys...)
+	keys = append(keys, fxRatePublicSettingKeys...) // CUSTOM: 美元汇率
 
 	settings, err := s.settingRepo.GetMultiple(ctx, keys)
 	if err != nil {
@@ -380,6 +381,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		AllowUserViewErrorRequests: settings[SettingKeyAllowUserViewErrorRequests] == "true",
 	}
 	applyPublicInviteeBonus(public, settings)
+	applyPublicUSDCNYRate(public, settings) // CUSTOM: 美元汇率
 	return public, nil
 }
 
@@ -650,6 +652,7 @@ type PublicSettingsInjectionPayload struct {
 	AffiliateInviteeBonusMax         float64 `json:"affiliate_invitee_bonus_max"`
 	RiskControlEnabled               bool    `json:"risk_control_enabled"`
 	AllowUserViewErrorRequests       bool    `json:"allow_user_view_error_requests"`
+	USDCNYRate                       float64 `json:"usd_cny_rate"` // CUSTOM: 美元汇率
 }
 
 // GetPublicSettingsForInjection returns public settings in a format suitable for HTML injection.
@@ -738,6 +741,7 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		AffiliateInviteeBonusMax:             settings.AffiliateInviteeBonusMax,
 		RiskControlEnabled:                   settings.RiskControlEnabled,
 		AllowUserViewErrorRequests:           settings.AllowUserViewErrorRequests,
+		USDCNYRate:                           settings.USDCNYRate, // CUSTOM: 美元汇率
 	}, nil
 }
 

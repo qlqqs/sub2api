@@ -10,11 +10,14 @@ import (
 // withGatewayProfitControlGate installs the gate only for explicitly marked
 // token requests. This keeps media, metadata, and models-list paths outside
 // the profit-control surface by construction.
-func (s *GatewayService) withGatewayProfitControlGate(ctx context.Context, groupID *int64) context.Context {
+//
+// CUSTOM: model（可选）是本请求的计费模型，D 按其分组模型倍率计算；门按「同一分组且同一模型」复用。
+func (s *GatewayService) withGatewayProfitControlGate(ctx context.Context, groupID *int64, model ...string) context.Context {
 	if _, ok := gatewayTokenRequestPricingAtFromContext(ctx); !ok || groupID == nil || *groupID <= 0 {
 		return ctx
 	}
-	if existing, ok := ctx.Value(openAIProfitControlGateCtxKey{}).(*openAIProfitControlGate); ok && existing != nil && existing.groupID == *groupID {
+	gateModel := profitGateModel(model) // CUSTOM
+	if existing, ok := ctx.Value(openAIProfitControlGateCtxKey{}).(*openAIProfitControlGate); ok && existing != nil && existing.groupID == *groupID && existing.model == gateModel {
 		return ctx
 	}
 
@@ -37,10 +40,14 @@ func (s *GatewayService) withGatewayProfitControlGate(ctx context.Context, group
 		}
 	}
 
-	downstream := billingGroup.RateMultiplier
-	if userID, _ := ctx.Value(ctxkey.UserID).(int64); userID > 0 {
-		downstream = s.ResolveUserGroupRateMultiplier(ctx, userID, billingGroup.ID, billingGroup.RateMultiplier)
-	}
+	// CUSTOM: D 的基础倍率走 resolveBaseRate（分组模型倍率 > 用户专属 > 分组倍率），与计费同源。
+	downstream := resolveBaseRate(ctx, s.groupModelRates, billingGroup.ID, gateModel, func() float64 {
+		rate := billingGroup.RateMultiplier
+		if userID, _ := ctx.Value(ctxkey.UserID).(int64); userID > 0 {
+			rate = s.ResolveUserGroupRateMultiplier(ctx, userID, billingGroup.ID, billingGroup.RateMultiplier)
+		}
+		return rate
+	})
 	downstream *= billingGroup.PeakMultiplierAt(pricingAt)
 	threshold := clampProfitControlThreshold(downstream * (1 - group.ProfitMinMargin - group.ProfitSafetyBuffer))
 
@@ -49,6 +56,7 @@ func (s *GatewayService) withGatewayProfitControlGate(ctx context.Context, group
 		platform:  group.Platform,
 		threshold: threshold,
 		pricingAt: pricingAt,
+		model:     gateModel, // CUSTOM
 	}
 	openAIProfitControlObserverInstance.recordInstall(gate.groupID, gate.platform, gate.threshold)
 	return context.WithValue(ctx, openAIProfitControlGateCtxKey{}, gate)

@@ -1,5 +1,30 @@
 export default {
     settings: {
+      // CUSTOM: 美元汇率（只用于显示「相比官方价」折扣，不参与计费）
+      fxRate: {
+        title: '美元汇率',
+        description: '模型广场「相比官方价」与用户端使用记录的折扣按此汇率把 ¥ 价格换算成美元比较，不参与计费。',
+        effective: '当前生效',
+        fromFetched: '自动获取',
+        fromDefault: '默认汇率',
+        lastFetched: '最近一次获取',
+        neverFetched: '尚未成功获取',
+        lastError: '最近一次失败',
+        autoEnabled: '自动更新',
+        autoEnabledHint: '每 6 小时从公开汇率接口获取一次；从未成功或关闭时使用默认汇率。',
+        defaultRate: '默认汇率（1 美元 = ? 元）',
+        defaultRateHint: '取值 {min}–{max}。',
+        defaultRateInvalid: '默认汇率须在 {min}–{max} 之间',
+        refreshNow: '立即更新',
+        refreshed: '汇率已更新：1 美元 = {rate} 元',
+        refreshFailed: '汇率更新失败：{error}',
+        saved: '汇率设置已保存',
+        saveFailed: '保存汇率设置失败',
+        loadFailed: '汇率设置加载失败：{error}',
+        retry: '重试',
+        stale: '超过 3 天未成功更新汇率，当前按 1 美元 = {rate} 元显示折扣。',
+        staleNever: '尚未成功获取汇率，当前按默认汇率 1 美元 = {rate} 元显示折扣。',
+      },
       title: '系统设置',
       description: '管理注册、邮箱验证、默认值和 SMTP 设置',
       tabs: {
@@ -69,6 +94,8 @@ export default {
           requireAuthHint: '开启后未登录访问将跳转登录页；关闭则公开可见，匿名访客仅展示非专属分组。',
           priceDescription: '价格说明（Markdown）',
           priceDescriptionHint: '展示在模型广场页面顶部，可用于说明计费规则、汇率、优惠活动等。',
+          // CUSTOM: 用户端不再显示分组倍率
+          disabledHint: '关闭后用户无处查看模型价格（用户端已不显示分组倍率，价格以模型广场为准）。',
         },
         pluginManagement: {
           title: '插件管理',

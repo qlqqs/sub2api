@@ -50,6 +50,9 @@ const messages: Record<string, string> = {
   'usage.serviceTierStandard': 'Standard',
   'usage.rate': 'Rate',
   'usage.priceRatio': 'Price ratio',
+  'usage.discount': 'Discount',
+  'usage.samePrice': '≈ original',
+  'usage.unitPrice': 'Unit price',
   'usage.officialPriceTitle': 'Official price',
   'usage.accountMultiplier': 'Account rate',
   'usage.original': 'Original',
@@ -932,6 +935,121 @@ describe('admin UsageTable cost cell', () => {
     const cost = wrapper.findAll('span').find(span => span.text() === '¥0.050000')
     expect(cost).toBeDefined()
     expect(cost!.attributes('title')).toBe('Official price')
+    wrapper.unmount()
+  })
+})
+
+describe('user UsageTable cost breakdown in the balance unit (CUSTOM)', () => {
+  const tokenRow = {
+    request_id: 'req-user-1',
+    model: 'claude-test',
+    billing_mode: 'token',
+    service_tier: null,
+    total_cost: 0.1,
+    actual_cost: 0.05,
+    rate_multiplier: 0.5,
+    account_rate_multiplier: 1,
+    input_cost: 0.02,
+    output_cost: 0.06,
+    cache_creation_cost: 0.015,
+    cache_read_cost: 0.005,
+    input_tokens: 4000,
+    output_tokens: 2000,
+    cache_creation_tokens: 0,
+    cache_read_tokens: 0,
+  }
+
+  async function openUserTooltip(row: Record<string, unknown>) {
+    const wrapper = mount(UsageTable, {
+      props: { data: [row], loading: false, columns: [], showAccountBilling: false },
+      global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
+    })
+    const triggers = wrapper.findAll('.group.relative')
+    await triggers[triggers.length - 1].trigger('mouseenter')
+    await nextTick()
+    return wrapper
+  }
+
+  function amountAfter(wrapper: ReturnType<typeof mount>, label: string): string {
+    const span = wrapper.get('.fixed').findAll('span').find((node) => node.text() === label)
+    expect(span, `label ${label}`).toBeDefined()
+    return span!.element.parentElement!.lastElementChild!.textContent!.trim()
+  }
+
+  it('shows every amount and unit price × k in ¥ so the breakdown adds up to the deducted cost', async () => {
+    const wrapper = await openUserTooltip(tokenRow)
+    // k = 0.05 / 0.1 = 0.5
+    expect(amountAfter(wrapper, 'Input Cost')).toBe('¥0.01000000')
+    expect(amountAfter(wrapper, 'Output Cost')).toBe('¥0.03000000')
+    expect(amountAfter(wrapper, 'Cache Creation Cost')).toBe('¥0.00750000')
+    expect(amountAfter(wrapper, 'Cache Read Cost')).toBe('¥0.00250000')
+    // 单价:0.02 × 0.5 / 4000 × 1M = 2.5;0.06 × 0.5 / 2000 × 1M = 15
+    expect(amountAfter(wrapper, 'Input price')).toBe('¥2.5000 / 1M tokens')
+    expect(amountAfter(wrapper, 'Output price')).toBe('¥15.0000 / 1M tokens')
+    const sum = ['Input Cost', 'Output Cost', 'Cache Creation Cost', 'Cache Read Cost']
+      .map((label) => Number(amountAfter(wrapper, label).replace('¥', '')))
+      .reduce((a, b) => a + b, 0)
+    expect(sum).toBeCloseTo(tokenRow.actual_cost, 10)
+    // 原始费用保持 $,实扣为 ¥
+    expect(amountAfter(wrapper, 'Original')).toBe('$0.10000000')
+    expect(amountAfter(wrapper, 'User billed')).toBe('¥0.05000000')
+    // 用户端不出现美元明细
+    const dollars = wrapper.get('.fixed').findAll('span').map((node) => node.text()).filter((text) => text.startsWith('$'))
+    expect(dollars).toEqual(['$0.10000000'])
+    wrapper.unmount()
+  })
+
+  it('replaces the price ratio row with a discount (1 − k ÷ fx) and shows ¥k = $1 as secondary text', async () => {
+    const wrapper = await openUserTooltip(tokenRow)
+    const tooltip = wrapper.get('.fixed')
+    expect(tooltip.text()).not.toContain('Price ratio')
+    expect(tooltip.text()).toContain('Discount')
+    // 1 − 0.5 ÷ 6.8 ≈ 92.6% → -93%
+    const discount = tooltip.get('[data-testid="usage-discount"]')
+    expect(discount.text()).toContain('-93%')
+    expect(tooltip.get('[data-testid="usage-discount-ratio"]').text()).toBe('¥0.5 = $1')
+    expect(tooltip.text()).not.toContain('Account billed')
+    wrapper.unmount()
+  })
+
+  it('uses the stored rate as k when the original cost is 0, and reports ≈ original near the exchange rate', async () => {
+    const free = await openUserTooltip({ ...tokenRow, total_cost: 0, actual_cost: 0, rate_multiplier: 6.8 })
+    expect(free.get('[data-testid="usage-discount-ratio"]').text()).toBe('¥6.8 = $1')
+    expect(free.get('[data-testid="usage-discount"]').text()).toContain('≈ original')
+    free.unmount()
+
+    const pricier = await openUserTooltip({ ...tokenRow, total_cost: 0.1, actual_cost: 0.714 })
+    expect(pricier.get('[data-testid="usage-discount"]').text()).toContain('+5%')
+    pricier.unmount()
+  })
+
+  it('shows image unit and total prices in ¥ (total equals the deducted cost)', async () => {
+    const wrapper = await openUserTooltip({ ...baseImageRow, total_cost: 0.4, actual_cost: 0.2, image_count: 2 })
+    expect(amountAfter(wrapper, 'Per-image price')).toBe('¥0.10000000')
+    expect(amountAfter(wrapper, 'Image total price')).toBe('¥0.20000000')
+    expect(amountAfter(wrapper, 'User billed')).toBe('¥0.20000000')
+    wrapper.unmount()
+  })
+
+  it('shows the per-request unit price in ¥', async () => {
+    const wrapper = await openUserTooltip({ ...baseImageRow, billing_mode: 'per_request', image_count: 0, total_cost: 0.04, actual_cost: 0.02 })
+    expect(amountAfter(wrapper, 'Unit price')).toBe('¥0.02000000')
+    wrapper.unmount()
+  })
+
+  it('keeps the admin breakdown in $ with the price ratio row', async () => {
+    const wrapper = mount(UsageTable, {
+      props: { data: [tokenRow], loading: false, columns: [] },
+      global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
+    })
+    const triggers = wrapper.findAll('.group.relative')
+    await triggers[triggers.length - 1].trigger('mouseenter')
+    const tooltip = wrapper.get('.fixed')
+    expect(tooltip.text()).toContain('$0.02000000')
+    expect(tooltip.text()).toContain('$5.0000 / 1M tokens')
+    expect(tooltip.text()).toContain('Price ratio')
+    expect(tooltip.text()).toContain('¥0.5 = $1')
+    expect(tooltip.find('[data-testid="usage-discount"]').exists()).toBe(false)
     wrapper.unmount()
   })
 })

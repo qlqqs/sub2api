@@ -126,24 +126,13 @@
               </span>
               <span v-else>{{ t('payment.createOrder') }} {{ formatSelectedPaymentAmount(totalAmount) }}</span>
             </button>
-            <!-- CUSTOM: 各分组价格「¥x = $1」（按用户生效倍率升序）；加载失败或为空时整块隐藏，不影响充值 -->
-            <div v-if="groupPrices.length > 0" class="card p-5" data-testid="group-price-card">
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('payment.groupPrices.title') }}</p>
-              <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{{ t('payment.groupPrices.hint') }}</p>
-              <ul class="mt-3 divide-y divide-gray-100 text-sm dark:divide-dark-700">
-                <li
-                  v-for="item in groupPrices"
-                  :key="item.id"
-                  class="flex items-center justify-between gap-3 py-1.5"
-                  data-testid="group-price-row"
-                >
-                  <span class="min-w-0 truncate text-gray-600 dark:text-gray-300" :title="item.name">{{ item.name }}</span>
-                  <span
-                    class="shrink-0 font-mono font-semibold text-gray-900 dark:text-white"
-                    :title="t('common.rateRatioTitle', { rate: formatRateValue(item.rate) })"
-                  >{{ formatRateRatio(item.rate) }}</span>
-                </li>
-              </ul>
+            <!-- CUSTOM: 价格以模型广场为准:「各分组价格」卡改为一个「查看各分组模型价格」入口;模型广场关闭或无权访问时整块隐藏 -->
+            <div v-if="showPlazaPriceEntry" class="card flex flex-wrap items-center justify-between gap-3 p-5" data-testid="group-price-card">
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('payment.groupPrices.title') }}</p>
+                <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{{ t('payment.groupPrices.hint') }}</p>
+              </div>
+              <PlazaPriceLink :label="t('payment.groupPrices.link')" />
             </div>
             </template>
           </template>
@@ -171,23 +160,8 @@
                 <p v-if="selectedPlan.description" class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
                   {{ selectedPlan.description }}
                 </p>
-                <!-- Rate + Limits grid -->
+                <!-- Limits grid（CUSTOM: 不再显示价格比例 / 高峰价格，价格以模型广场为准） -->
                 <div class="mt-3 grid grid-cols-2 gap-3">
-                  <div>
-                    <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.priceRatio') }}</span>
-                    <div class="flex items-baseline">
-                      <span
-                        :class="['text-lg font-bold', planTextClass]"
-                        :title="t('common.rateRatioTitle', { rate: formatRateValue(selectedPlan.rate_multiplier ?? 1) })"
-                      >{{ formatRateRatio(selectedPlan.rate_multiplier ?? 1) }}</span>
-                    </div>
-                  </div>
-                  <div v-if="planHasPeakRate(selectedPlan)">
-                    <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.peakPriceRatio') }}</span>
-                    <div class="text-sm font-semibold text-amber-700 dark:text-amber-300">
-                      {{ planPeakRateLabel(selectedPlan) }}
-                    </div>
-                  </div>
                   <div v-if="selectedPlan.daily_limit_usd != null">
                     <span class="text-xs text-gray-400 dark:text-gray-500">{{ t('payment.planCard.dailyLimit') }}</span>
                     <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ BALANCE_SYMBOL }}{{ selectedPlan.daily_limit_usd }}</div>
@@ -205,6 +179,7 @@
                     <div class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ t('payment.planCard.unlimited') }}</div>
                   </div>
                 </div>
+                <PlazaPriceLink :group-id="selectedPlan.group_id" class="mt-3" />
               </div>
               <div v-if="enabledMethods.length >= 1" class="card p-6">
                 <PaymentMethodSelector
@@ -260,8 +235,7 @@
                         <span :class="['shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium', platformBadgeLightClass(sub.group?.platform || '')]">{{ platformLabel(sub.group?.platform || '') }}</span>
                       </div>
                       <div class="flex flex-wrap gap-x-3 text-[11px] text-gray-400 dark:text-gray-500">
-                        <span :title="t('common.rateRatioTitle', { rate: formatRateValue(sub.group?.rate_multiplier ?? 1) })">{{ t('payment.planCard.priceRatio') }}: {{ formatRateRatio(sub.group?.rate_multiplier ?? 1) }}</span>
-                        <span v-if="subscriptionHasPeakRate(sub)">{{ t('payment.planCard.peakPriceRatio') }}: {{ subscriptionPeakRateLabel(sub) }}</span>
+                        <PlazaPriceLink :group-id="sub.group_id" class="!text-[11px]" />
                         <span v-if="sub.group?.daily_limit_usd == null && sub.group?.weekly_limit_usd == null && sub.group?.monthly_limit_usd == null">{{ t('payment.planCard.quota') }}: {{ t('payment.planCard.unlimited') }}</span>
                         <span v-if="sub.expires_at">{{ t('userSubscriptions.daysRemaining', { days: getDaysRemaining(sub.expires_at) }) }}</span>
                         <span v-else>{{ t('userSubscriptions.noExpiration') }}</span>
@@ -327,12 +301,12 @@ import { FeatureFlags, resolveFeatureFlag } from '@/utils/featureFlags'
 import { paymentAPI } from '@/api/payment'
 import { extractApiErrorMessage, extractI18nErrorMessage } from '@/utils/apiError'
 import { isMobileDevice } from '@/utils/device'
-import { hasPeakRate, formatPeakRateWindow, serverTimezoneLabel, type PeakRateFields } from '@/utils/peak-rate'
 import type { SubscriptionPlan, CheckoutInfoResponse, CreateOrderResult, OrderType } from '@/types/payment'
 import { formatRechargeBonusNumber, normalizeRechargeBonusMode, normalizeRechargeBonusTiers, quoteRechargeBonus } from '@/utils/rechargeBonus'
 import userAPI from '@/api/user'
-import { userGroupsAPI } from '@/api/groups'
-import { BALANCE_SYMBOL, effectiveRate, formatBalance, formatRateRatio, formatRateValue } from '@/utils/balanceCurrency'
+import { BALANCE_SYMBOL, formatBalance } from '@/utils/balanceCurrency'
+import { canViewModelPlaza } from '@/utils/modelPlazaAccess'
+import PlazaPriceLink from '@/components/common/PlazaPriceLink.vue'
 import { describeInviteeBonusValue, formatUsdShort, isInviteeBonusActive, quoteInviteeBonus, type InviteeBonusLike } from '@/utils/affiliateRewards'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AmountInput from '@/components/payment/AmountInput.vue'
@@ -374,18 +348,6 @@ const activeSubscriptions = computed(() => subscriptionStore.activeSubscriptions
 function getDaysRemaining(expiresAt: string): number {
   const diff = new Date(expiresAt).getTime() - Date.now()
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
-}
-
-function subscriptionHasPeakRate(sub: { group?: PeakRateFields | null }): boolean {
-  return hasPeakRate(sub.group)
-}
-
-function subscriptionPeakRateLabel(sub: { group?: (PeakRateFields & { rate_multiplier?: number }) | null }): string {
-  return formatPeakRateWindow(
-    sub.group,
-    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset),
-    sub.group?.rate_multiplier ?? 1
-  )
 }
 
 const loading = ref(true)
@@ -737,34 +699,9 @@ const firstRechargeShortfall = computed(() => {
   return formatSelectedPaymentAmount(ceilPaymentAmount(missingUsd / balanceRechargeMultiplier.value, selectedCurrency.value))
 })
 
-// CUSTOM: 各分组价格卡片。只列按余额计费的分组（订阅分组走订阅额度，不消耗余额）；
-// 比例按用户生效倍率（专属 ?? 分组）升序。任何失败都只隐藏卡片，不影响充值流程。
-interface GroupPriceItem {
-  id: number
-  name: string
-  rate: number
-}
-const groupPrices = ref<GroupPriceItem[]>([])
-
-async function loadGroupPrices() {
-  try {
-    const [groups, userRates] = await Promise.all([
-      userGroupsAPI.getAvailable(),
-      userGroupsAPI.getUserGroupRates(),
-    ])
-    groupPrices.value = (Array.isArray(groups) ? groups : [])
-      .filter(group => group.subscription_type !== 'subscription')
-      .map(group => ({
-        id: group.id,
-        name: group.name,
-        rate: effectiveRate(group.rate_multiplier, userRates?.[group.id]) ?? 0,
-      }))
-      .filter(item => Number.isFinite(item.rate) && item.rate > 0)
-      .sort((a, b) => a.rate - b.rate || a.name.localeCompare(b.name))
-  } catch {
-    groupPrices.value = []
-  }
-}
+// CUSTOM: 一个分组内各模型倍率可能不同，充值页不再列分组价格，改为模型广场入口。
+// 充值页本身需要登录，按已登录判断可见性（与 PlazaPriceLink 同一口径）。
+const showPlazaPriceEntry = computed(() => canViewModelPlaza(appStore.cachedPublicSettings, true))
 
 async function loadFirstRechargeBonus() {
   if (!resolveFeatureFlag(appStore.cachedPublicSettings, FeatureFlags.affiliate)) return
@@ -899,18 +836,6 @@ const planValiditySuffix = computed(() => {
   if (!selectedPlan.value) return ''
   return validitySuffixOf(selectedPlan.value, t)
 })
-
-function planHasPeakRate(plan: SubscriptionPlan): boolean {
-  return hasPeakRate(plan)
-}
-
-function planPeakRateLabel(plan: SubscriptionPlan): string {
-  return formatPeakRateWindow(
-    plan,
-    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset),
-    plan.rate_multiplier ?? 1
-  )
-}
 
 function selectPlan(plan: SubscriptionPlan) {
   selectedPlan.value = plan
@@ -1271,7 +1196,6 @@ async function resumeWechatPaymentFromQuery() {
 
 onMounted(async () => {
   void loadFirstRechargeBonus()
-  void loadGroupPrices()
   try {
     const res = await paymentAPI.getCheckoutInfo()
     checkout.value = res.data

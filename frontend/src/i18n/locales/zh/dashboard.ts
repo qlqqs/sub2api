@@ -458,6 +458,9 @@ export default {
     rate: '倍率',
     // CUSTOM: 使用记录价格比例与官方价悬停
     priceRatio: '价格比例',
+    // CUSTOM: 用户端费用明细的折扣(相比原价)
+    discount: '折扣',
+    samePrice: '≈ 原价',
     officialPriceTitle: '官方价 {cost}',
     original: '官方价',
     billed: '计费',
@@ -668,11 +671,11 @@ export default {
     empty: '暂无可展示的分组',
     loadFailed: '加载模型广场失败',
     noSearchResult: '没有匹配的模型',
-    anonymousHint: '登录后可查看你的专属分组与专属倍率',
+    // CUSTOM: 不再提「专属倍率」(用户端不显示倍率)
+    anonymousHint: '登录后显示你的专属分组与专属价格',
     filters: {
       platformLabel: '平台',
       groupLabel: '分组',
-      priceRatioLabel: '比例',
       modelLabel: '模型',
       searchPlaceholder: '搜索模型名称',
       all: '全部'
@@ -684,8 +687,9 @@ export default {
     detail: {
       noModels: '该分组暂未配置模型',
       noPricing: '未配置定价',
-      peakRatioNote: '高峰时段 {window}',
-      peakRatioHint: '高峰时段 token 计费倍率再乘 ×{multiplier}',
+      // CUSTOM: 高峰提示不出现倍率数字
+      peakUpNote: '高峰时段 {window} 价格上浮 {percent}%',
+      peakDownNote: '高峰时段 {window} 价格下调 {percent}%',
       longContextDisabledNote: '该分组未启用长上下文阶梯计费，超阈值请求仍按基础档计费，官方阶梯仅供参考'
     },
     table: {
@@ -706,17 +710,31 @@ export default {
       timePricingRowHintWeekdays:
         '按 {timezone} 时间，仅工作日（周一至周五）在该时段内发起的请求按本行价格计费，周末全天按标准价',
       timePricingRowHintPeak: '；本行价格未含高峰倍率，与高峰时段 {window} 重叠的部分实付再乘 ×{multiplier}',
+      // CUSTOM: 高峰披露改为上浮 / 下调百分比
+      timePricingRowHintPeakUp: '；本行价格未含高峰调价，与高峰时段 {window} 重叠的部分价格再上浮 {percent}%',
+      timePricingRowHintPeakDown: '；本行价格未含高峰调价，与高峰时段 {window} 重叠的部分价格再下调 {percent}%',
       timePricingWeekdays: '工作日',
       timePricingRateHint: '生效倍率 {rate} × 时段倍率 {multiplier}',
       paidPrice: '本站价(折后)',
       officialPrice: '官方价',
-      priceRatio: '价格比例',
+      // CUSTOM: 「相比官方价」折扣列
+      vsOfficial: '相比\n官方价',
+      samePrice: '≈ 官方价',
+      discountBasis: '{ratio}，按 {fx} 折算',
+      discountNoBasis: '没有可比的官方价，无法折算',
+      discountInconsistent: '输入、输出价格相对官方价的比例不一致，无法用一个折扣表示',
+      publicDiscountHint: '公开价：{basis}',
       paidUnitPerMillion: '{symbol} / 1M token',
       officialUnitPerMillion: '{symbol} / 1M token',
       perUnitRequest: '/ 次',
       perUnitImage: '/ 张',
       perRequest: '按次计费',
       perImage: '按图片计费'
+    },
+    // CUSTOM: 用户端各页面跳到模型广场的「查看价格」链接
+    priceLink: {
+      view: '查看价格',
+      title: '在模型广场查看各模型价格'
     },
     nav: {
       login: '登录',

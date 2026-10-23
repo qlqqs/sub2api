@@ -475,6 +475,9 @@ type PublicSettings struct {
 	RiskControlEnabled bool `json:"risk_control_enabled"`
 
 	AllowUserViewErrorRequests bool `json:"allow_user_view_error_requests"`
+
+	// CUSTOM: 生效的美元兑人民币汇率（仅用于展示折扣）。
+	USDCNYRate float64 `json:"usd_cny_rate"`
 }
 
 type LoginAgreementDocument struct {

@@ -123,6 +123,11 @@ After implementation:
 
 ---
 
+## Billing Multiplier Paths (sub2api fork)
+
+- [ ] Any new code path that multiplies a price by a group/user rate goes through `resolveBaseRate` with the **billing model** (see `backend/quality-guidelines.md`「计费倍率解析」), including quotes, re-billing, reservations, profit gates and display.
+- [ ] Any new user-facing price display avoids showing multipliers and links to the model plaza instead (see `frontend/component-guidelines.md`「用户端价格展示」).
+
 ## Cross-Platform Template Consistency
 
 In Trellis, command templates (e.g., `record-session.md`) exist in **multiple platforms** with identical or near-identical content. This is a cross-layer boundary.

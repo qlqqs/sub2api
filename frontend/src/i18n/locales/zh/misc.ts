@@ -317,9 +317,11 @@ export default {
     creditedBalance: '到账余额',
     // CUSTOM: 「充 ¥100 → 余额 ¥100」与各分组价格卡片
     creditedSummary: '充 {pay} → 余额 {credited}',
+    // CUSTOM: 各分组价格改为模型广场入口（一个分组内各模型价格可能不同）
     groupPrices: {
-      title: '各分组价格',
-      hint: '按官方价 $1 计，各分组实际扣除的余额'
+      title: '各分组模型价格',
+      hint: '不同分组、不同模型价格不同，以模型广场为准',
+      link: '查看各分组模型价格'
     },
     firstRechargeBonus: {
       notice: '首次充值满 {min} 额外赠送 {bonus}，到账后发放',
@@ -505,8 +507,6 @@ export default {
     selectPlan: '选择套餐',
     planFeatures: '功能特性',
     planCard: {
-      priceRatio: '价格比例',
-      peakPriceRatio: '高峰价格',
       dailyLimit: '日限额',
       weeklyLimit: '周限额',
       monthlyLimit: '月限额',

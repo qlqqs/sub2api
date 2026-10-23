@@ -12,6 +12,7 @@ const {
   getCapacitySummary,
   getLiveCapability,
   listAccounts,
+  listAllModelRates,
   showError,
   showSuccess,
   isCurrentStep,
@@ -25,6 +26,7 @@ const {
   getCapacitySummary: vi.fn(),
   getLiveCapability: vi.fn(),
   listAccounts: vi.fn(),
+  listAllModelRates: vi.fn(),
   showError: vi.fn(),
   showSuccess: vi.fn(),
   isCurrentStep: vi.fn(),
@@ -66,6 +68,12 @@ vi.mock('@/api/admin', () => ({
     },
     accounts: {
       list: listAccounts,
+    },
+    // CUSTOM: 分组内单个模型倍率(倍率列提示与编辑弹窗)
+    groupModelRates: {
+      listAll: listAllModelRates,
+      getForGroup: async () => [],
+      replaceForGroup: async (_groupId: number, rules: unknown[]) => rules,
     },
   },
 }))
@@ -244,6 +252,7 @@ describe('admin GroupsView column settings', () => {
     getCapacitySummary.mockReset()
     getLiveCapability.mockReset()
     listAccounts.mockReset()
+    listAllModelRates.mockReset().mockResolvedValue({})
     showError.mockReset()
     showSuccess.mockReset()
     isCurrentStep.mockReset()
@@ -415,6 +424,18 @@ describe('admin GroupsView column settings', () => {
     await clickColumnToggle(wrapper, 'Capacity')
     expect(getUsageSummary).toHaveBeenCalledTimes(1)
     expect(getCapacitySummary).toHaveBeenCalledTimes(1)
+  })
+
+  // CUSTOM: 倍率列隐藏时不拉取模型单独倍率,重新显示时补拉
+  it('loads per-model rate hints only while the rate column is visible', async () => {
+    localStorage.setItem('group-hidden-columns', JSON.stringify(['rate_multiplier']))
+
+    const wrapper = await mountView()
+    expect(listAllModelRates).not.toHaveBeenCalled()
+
+    await openColumnSettings(wrapper)
+    await clickColumnToggle(wrapper, 'Rate Multiplier')
+    expect(listAllModelRates).toHaveBeenCalledTimes(1)
   })
 
   it('renders yesterday usage between today and total', async () => {

@@ -417,37 +417,37 @@
             <div class="text-xs font-semibold text-gray-300 mb-1">{{ t('usage.costDetails') }}</div>
             <div v-if="tooltipData && tooltipData.input_cost > 0" class="flex items-center justify-between gap-4">
               <span class="text-gray-400">{{ t('admin.usage.inputCost') }}</span>
-              <span class="font-medium text-white">${{ tooltipData.input_cost.toFixed(8) }}</span>
+              <span class="font-medium text-white">{{ detailAmount(tooltipData.input_cost, tooltipData) }}</span>
             </div>
             <div v-if="tooltipData && hasImageInputCost(tooltipData)" class="flex items-center justify-between gap-4">
               <span class="text-gray-400">{{ t('usage.imageInputCost') }}</span>
-              <span class="font-medium text-fuchsia-300">${{ tooltipData.image_input_cost.toFixed(8) }}</span>
+              <span class="font-medium text-fuchsia-300">{{ detailAmount(tooltipData.image_input_cost, tooltipData) }}</span>
             </div>
             <div v-if="tooltipData && tooltipData.output_cost > 0" class="flex items-center justify-between gap-4">
               <span class="text-gray-400">{{ t('admin.usage.outputCost') }}</span>
-              <span class="font-medium text-white">${{ tooltipData.output_cost.toFixed(8) }}</span>
+              <span class="font-medium text-white">{{ detailAmount(tooltipData.output_cost, tooltipData) }}</span>
             </div>
             <div v-if="tooltipData && hasImageOutputCost(tooltipData)" class="flex items-center justify-between gap-4">
               <span class="text-gray-400">{{ t('usage.imageOutputCost') }}</span>
-              <span class="font-medium text-pink-300">${{ tooltipData.image_output_cost.toFixed(8) }}</span>
+              <span class="font-medium text-pink-300">{{ detailAmount(tooltipData.image_output_cost, tooltipData) }}</span>
             </div>
             <!-- Token billing: show unit prices per 1M tokens -->
             <template v-if="tooltipData && !isImageUsage(tooltipData) && (!tooltipData.billing_mode || tooltipData.billing_mode === BILLING_MODE_TOKEN)">
               <div v-if="tooltipData && textInputTokens(tooltipData) > 0" class="flex items-center justify-between gap-4">
                 <span class="text-gray-400">{{ t('usage.inputTokenPrice') }}</span>
-                <span class="font-medium text-sky-300">{{ formatTokenPricePerMillion(tooltipData.input_cost, textInputTokens(tooltipData)) }} {{ t('usage.perMillionTokens') }}</span>
+                <span class="font-medium text-sky-300">{{ detailPerMillion(tooltipData.input_cost, textInputTokens(tooltipData), tooltipData) }} {{ t('usage.perMillionTokens') }}</span>
               </div>
               <div v-if="tooltipData && hasImageInputTokens(tooltipData)" class="flex items-center justify-between gap-4">
                 <span class="text-gray-400">{{ t('usage.imageInputTokenPrice') }}</span>
-                <span class="font-medium text-fuchsia-300">{{ formatTokenPricePerMillion(tooltipData.image_input_cost ?? 0, tooltipData.image_input_tokens) }} {{ t('usage.perMillionTokens') }}</span>
+                <span class="font-medium text-fuchsia-300">{{ detailPerMillion(tooltipData.image_input_cost ?? 0, tooltipData.image_input_tokens, tooltipData) }} {{ t('usage.perMillionTokens') }}</span>
               </div>
               <div v-if="tooltipData && tooltipData.output_cost > 0 && textOutputTokens(tooltipData) > 0" class="flex items-center justify-between gap-4">
                 <span class="text-gray-400">{{ t('usage.outputTokenPrice') }}</span>
-                <span class="font-medium text-violet-300">{{ formatTokenPricePerMillion(tooltipData.output_cost, textOutputTokens(tooltipData)) }} {{ t('usage.perMillionTokens') }}</span>
+                <span class="font-medium text-violet-300">{{ detailPerMillion(tooltipData.output_cost, textOutputTokens(tooltipData), tooltipData) }} {{ t('usage.perMillionTokens') }}</span>
               </div>
               <div v-if="tooltipData && hasImageOutputTokens(tooltipData)" class="flex items-center justify-between gap-4">
                 <span class="text-gray-400">{{ t('usage.imageOutputTokenPrice') }}</span>
-                <span class="font-medium text-pink-300">{{ formatTokenPricePerMillion(tooltipData.image_output_cost ?? 0, tooltipData.image_output_tokens) }} {{ t('usage.perMillionTokens') }}</span>
+                <span class="font-medium text-pink-300">{{ detailPerMillion(tooltipData.image_output_cost ?? 0, tooltipData.image_output_tokens, tooltipData) }} {{ t('usage.perMillionTokens') }}</span>
               </div>
             </template>
             <template v-else-if="tooltipData && isImageUsage(tooltipData)">
@@ -477,24 +477,24 @@
               </div>
               <div class="flex items-center justify-between gap-4">
                 <span class="text-gray-400">{{ t('usage.imageUnitPrice') }}</span>
-                <span class="font-medium text-sky-300">${{ imageUnitPrice(tooltipData).toFixed(8) }}</span>
+                <span class="font-medium text-sky-300">{{ detailAmount(imageUnitPrice(tooltipData), tooltipData) }}</span>
               </div>
               <div class="flex items-center justify-between gap-4">
                 <span class="text-gray-400">{{ t('usage.imageTotalPrice') }}</span>
-                <span class="font-medium text-white">${{ tooltipData.total_cost?.toFixed(8) || '0.00000000' }}</span>
+                <span class="font-medium text-white">{{ detailAmount(tooltipData.total_cost, tooltipData) }}</span>
               </div>
             </template>
             <div v-else class="flex items-center justify-between gap-4">
               <span class="text-gray-400">{{ t('usage.unitPrice') }}</span>
-              <span class="font-medium text-sky-300">${{ tooltipData?.total_cost?.toFixed(8) || '0.00000000' }}</span>
+              <span class="font-medium text-sky-300">{{ detailAmount(tooltipData?.total_cost, tooltipData) }}</span>
             </div>
             <div v-if="tooltipData && tooltipData.cache_creation_cost > 0" class="flex items-center justify-between gap-4">
               <span class="text-gray-400">{{ t('admin.usage.cacheCreationCost') }}</span>
-              <span class="font-medium text-white">${{ tooltipData.cache_creation_cost.toFixed(8) }}</span>
+              <span class="font-medium text-white">{{ detailAmount(tooltipData.cache_creation_cost, tooltipData) }}</span>
             </div>
             <div v-if="tooltipData && tooltipData.cache_read_cost > 0" class="flex items-center justify-between gap-4">
               <span class="text-gray-400">{{ t('admin.usage.cacheReadCost') }}</span>
-              <span class="font-medium text-white">${{ tooltipData.cache_read_cost.toFixed(8) }}</span>
+              <span class="font-medium text-white">{{ detailAmount(tooltipData.cache_read_cost, tooltipData) }}</span>
             </div>
           </div>
           <!-- Rate and Summary -->
@@ -503,9 +503,10 @@
             <span class="font-semibold text-cyan-300">{{ getUsageServiceTierLabel(tooltipData?.service_tier, t) }}</span>
           </div>
           <div class="flex items-center justify-between gap-6">
-            <span class="text-gray-400">{{ t('usage.priceRatio') }}</span>
-            <!-- CUSTOM: 本次请求的价格比例「¥x = $1」 -->
-            <span class="font-semibold text-blue-400">{{ formatRateRatio(tooltipData?.rate_multiplier ?? 1) }}</span>
+            <span class="text-gray-400">{{ showAccountBilling ? t('usage.priceRatio') : t('usage.discount') }}</span>
+            <!-- CUSTOM: 管理端为本次请求的价格比例「¥x = $1」;用户端为相比原价的折扣,次要文字为换算比例「¥k = $1」 -->
+            <span v-if="showAccountBilling" class="font-semibold text-blue-400">{{ formatRateRatio(tooltipData?.rate_multiplier ?? 1) }}</span>
+            <span v-else class="font-semibold text-blue-400" data-testid="usage-discount">{{ userDiscountText(tooltipData) }}<span class="ml-1.5 font-normal text-gray-400" data-testid="usage-discount-ratio">{{ formatRateRatio(balanceFactor(tooltipData)) }}</span></span>
           </div>
           <div class="flex items-center justify-between gap-6">
             <span class="text-gray-400">{{ t('usage.original') }}</span>
@@ -547,6 +548,7 @@ import { formatDateTime, formatReasoningEffort, reasoningEffortValuesEqual } fro
 import { formatCacheTokens, formatMultiplier } from '@/utils/formatters'
 import { formatTokenPricePerMillion } from '@/utils/usagePricing'
 import { BALANCE_SYMBOL, OFFICIAL_SYMBOL, formatRateRatio } from '@/utils/balanceCurrency'
+import { formatDiscount, priceDiscount, resolveUsdCnyRate } from '@/utils/priceDiscount'
 import { getUsageServiceTierLabel } from '@/utils/usageServiceTier'
 import { resolveUsageRequestType } from '@/utils/usageRequestType'
 import {
@@ -628,6 +630,44 @@ const appStore = useAppStore()
 const copiedRequestId = ref<string | null>(null)
 const showAccountBilling = props.showAccountBilling
 const showUpstreamEndpoint = props.showUpstreamEndpoint
+
+// ==================== CUSTOM: 用户端费用明细换成余额单位 ¥ ====================
+// 用户端(showAccountBilling=false)每项 × k(k = 实扣 ÷ 原始费用,原始费用为 0 时用该记录的倍率),
+// 明细合计等于实扣;「价格比例」换成「折扣」。管理端保持美元明细,输出与上游一致。
+
+/** 换算比例 k;无记录时为 1。 */
+const balanceFactor = (row: AdminUsageLog | null): number => {
+  if (!row) return 1
+  const total = row.total_cost
+  if (typeof total === 'number' && Number.isFinite(total) && total > 0) {
+    const actual = typeof row.actual_cost === 'number' && Number.isFinite(row.actual_cost) ? row.actual_cost : 0
+    return actual / total
+  }
+  const rate = row.rate_multiplier
+  return typeof rate === 'number' && Number.isFinite(rate) ? rate : 1
+}
+
+/** 管理端原样返回美元金额;用户端换算成余额单位。 */
+const toBalanceUnits = (usd: number | null | undefined, row: AdminUsageLog | null): number => {
+  const value = typeof usd === 'number' && Number.isFinite(usd) ? usd : 0
+  return showAccountBilling ? value : value * balanceFactor(row)
+}
+
+/** 明细金额,8 位小数:管理端 `$`,用户端 `¥`。 */
+const detailAmount = (usd: number | null | undefined, row: AdminUsageLog | null): string =>
+  `${showAccountBilling ? OFFICIAL_SYMBOL : BALANCE_SYMBOL}${toBalanceUnits(usd, row).toFixed(8)}`
+
+/** 每百万 token 单价,4 位小数:管理端 `$`,用户端 `¥`。 */
+const detailPerMillion = (cost: number | null | undefined, tokens: number | null | undefined, row: AdminUsageLog | null): string => {
+  const text = formatTokenPricePerMillion(cost == null ? cost : toBalanceUnits(cost, row), tokens)
+  return showAccountBilling ? text : text.replace(/^\$/, BALANCE_SYMBOL)
+}
+
+/** 用户端折扣 = 1 − k ÷ 汇率。 */
+const userDiscountText = (row: AdminUsageLog | null): string =>
+  formatDiscount(priceDiscount(balanceFactor(row), resolveUsdCnyRate(appStore.usdCnyRate)), t('usage.samePrice'))
+// ==================== CUSTOM end ====================
+
 const ipGeoBatchLoading = ref(false)
 
 const showIpGeoToolbar = computed(() => props.columns.some((col) => col.key === 'ip_address'))

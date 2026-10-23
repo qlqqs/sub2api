@@ -48,6 +48,12 @@ vi.mock('@/api/admin', () => ({
     accounts: {
       list: vi.fn(),
       getById: vi.fn()
+    },
+    // CUSTOM: 分组内单个模型倍率(倍率列提示与编辑弹窗)
+    groupModelRates: {
+      listAll: async () => ({}),
+      getForGroup: async () => [],
+      replaceForGroup: async (_groupId: number, rules: unknown[]) => rules
     }
   }
 }))

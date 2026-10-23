@@ -66,3 +66,13 @@ go build ./cmd/server
 - **正反例**：同为 `:user_id` 可共存；单独注册补绑无法覆盖共存问题；补绑 `:invitee_id` 与提现 `:user_id` 混用是错误模式。
 - **必要测试**：`internal/server/routes/affiliate_routes_test.go` 同时注册补绑/提现并验证匹配路径和 `user_id`；handler 和审计测试分别验证认证操作者与审计参数。
 - **错误与正确**：不要只消除文本冲突并保留不同 wildcard；应统一路由、handler、审计和测试中的参数名，不改变客户端实际 URL。
+
+## 计费倍率解析（分组模型倍率，fork）
+
+- **适用范围**：新增或修改任何「乘倍率」的路径：网关结算、报价、按响应模型重算、预扣冻结、批量生图、利润门阈值、利润预览、模型广场展示。任务 `10-23-group-model-rate`。
+- **签名**：`resolveBaseRate(ctx, rates *GroupModelRateService, groupID int64, model string, fallback func() float64) float64`（`service/group_model_rate.go`）；`(*GroupModelRateService).Match(ctx, groupID, model) (float64, bool)`；表 `group_model_rate_multipliers`（迁移 253）。
+- **合约**：基础倍率 = 分组模型倍率（按**计费模型**、`normalizeChannelPricingModelName` 后匹配：精确优先，其次前缀最长的末尾 `*`）?? `fallback()`（原「用户专属 ?? 分组倍率」）。高峰因子、渠道分时、生图 / 视频独立倍率在基础倍率之外叠加；独立倍率开启时独立倍率优先。`usage_logs.rate_multiplier` 写入实际采用的倍率。
+- **错误边界**：服务未注入（nil）或规则快照从未加载成功时一律视为未命中，行为与无此功能时相同；加载失败沿用旧快照并 warn。管理端 PUT 校验失败返回 400、reason `GROUP_MODEL_RATE_INVALID`（`*` 只能在末尾且前面至少一个字符、归一化后不重复、0 < 倍率 ≤ 10000、单组 ≤ 200 条）。
+- **正反例**：命中规则 → 不调用 `ResolveUserGroupRateMultiplier`；未命中 → 经 `fallback` 原样调用。按响应模型重算时两侧倍率可能不同，`responseModelBillingAdoptable` 还要比较实扣金额（`responseModelBillingActualCostAdoptable`）。预扣冻结按候选模型逐个算；免费分组只有候选模型命中 > 0 的规则时才预扣。利润门复用键为「分组 + 模型」。
+- **必要测试**：`group_model_rate_test.go`（匹配、校验、快照失效）、`group_model_rate_billing_test.go`（命中时不调用专属解析、同一用户 A→B 不串值、生图独立倍率开 / 关、响应模型实扣比较、预扣逐候选、利润门阈值与复用）；本机 e2e `p7_model_rate.py`（MRT 组）。
+- **错误与正确**：不要把模型倍率当默认值传给 `ResolveUserGroupRateMultiplier`——它会把传入的默认值缓存在 `user:group` 键下，污染该用户在同组其他模型的倍率；应先 `Match`，未命中再走原解析（即 `resolveBaseRate` 的 `fallback`）。

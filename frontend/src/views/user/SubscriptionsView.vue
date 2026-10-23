@@ -49,11 +49,9 @@
                 <p v-if="subscription.group?.description" class="mt-0.5 text-xs text-gray-500 dark:text-dark-400">
                   {{ subscription.group.description }}
                 </p>
+                <!-- CUSTOM: 不再显示价格比例 / 高峰价格，价格以模型广场为准 -->
                 <div class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400 dark:text-gray-500">
-                  <span :title="t('common.rateRatioTitle', { rate: formatRateValue(subscription.group?.rate_multiplier ?? 1) })">{{ t('payment.planCard.priceRatio') }}: {{ formatRateRatio(subscription.group?.rate_multiplier ?? 1) }}</span>
-                  <span v-if="subscriptionHasPeakRate(subscription)" class="text-amber-700 dark:text-amber-300">
-                    {{ t('payment.planCard.peakPriceRatio') }}: {{ subscriptionPeakRateLabel(subscription) }}
-                  </span>
+                  <PlazaPriceLink :group-id="subscription.group_id" />
                 </div>
               </div>
             </div>
@@ -257,8 +255,8 @@ import type { UserSubscription } from '@/types'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { formatDateTimeToMinute } from '@/utils/format'
-import { hasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
-import { formatBalance, formatRateRatio, formatRateValue } from '@/utils/balanceCurrency'
+import { formatBalance } from '@/utils/balanceCurrency'
+import PlazaPriceLink from '@/components/common/PlazaPriceLink.vue'
 import { platformBorderClass, platformBadgeClass, platformButtonClass, platformLabel } from '@/utils/platformColors'
 import {
   getExpirationDateRelation,
@@ -283,18 +281,6 @@ const appStore = useAppStore()
 
 const subscriptions = ref<UserSubscription[]>([])
 const loading = ref(true)
-
-function subscriptionHasPeakRate(subscription: UserSubscription): boolean {
-  return hasPeakRate(subscription.group)
-}
-
-function subscriptionPeakRateLabel(subscription: UserSubscription): string {
-  return formatPeakRateWindow(
-    subscription.group,
-    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset),
-    subscription.group?.rate_multiplier ?? 1
-  )
-}
 
 async function loadSubscriptions() {
   try {

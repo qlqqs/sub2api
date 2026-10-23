@@ -92,6 +92,8 @@ type BatchImagePublicService struct {
 	BillingRepo       UsageBillingRepository
 	AuthCache         APIKeyAuthCacheInvalidator
 	Config            *config.Config
+
+	groupModelRates *GroupModelRateService // CUSTOM: 分组内单个模型倍率（setter 注入，可为 nil）
 }
 
 type BatchImagePricingSnapshot struct {
@@ -1018,7 +1020,9 @@ func (s *BatchImagePublicService) resolvePricingSnapshot(ctx context.Context, ow
 			groupDefaultMultiplier = 0
 		}
 		effectiveGroupMultiplier := groupDefaultMultiplier
-		if s.UserGroupRateRepo != nil {
+		// CUSTOM: 分组模型倍率优先，命中时不查用户专属倍率（未开启生图独立倍率时生效）。
+		modelRate, hasModelRate := s.groupModelRates.Match(ctx, group.ID, req.Model)
+		if s.UserGroupRateRepo != nil && !hasModelRate {
 			userRate, rateErr := s.UserGroupRateRepo.GetByUserAndGroup(ctx, owner.UserID, group.ID)
 			if rateErr != nil {
 				return nil, ErrBatchImageSettlementPricingMissing
@@ -1026,6 +1030,9 @@ func (s *BatchImagePublicService) resolvePricingSnapshot(ctx context.Context, ow
 			if userRate != nil {
 				effectiveGroupMultiplier = *userRate
 			}
+		}
+		if hasModelRate {
+			effectiveGroupMultiplier = modelRate
 		}
 		groupMultiplier = effectiveGroupMultiplier
 		if group.ImageRateIndependent {

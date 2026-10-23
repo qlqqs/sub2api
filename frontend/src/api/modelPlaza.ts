@@ -53,6 +53,13 @@ export interface PlazaModel {
   long_context_basis?: PlazaLongContextBasis
   /** 仅配置了分时倍率的模型返回。 */
   time_pricing?: PlazaTimePricing
+  /**
+   * CUSTOM: 该模型对所有访客相同的公开基础倍率 = 模型单独倍率 ?? 分组倍率（不含高峰、分时）。
+   * 旧后端缺省，前端回退到分组倍率。
+   */
+  rate_multiplier?: number
+  /** CUSTOM: 登录用户在该分组有专属倍率、且该模型没有单独倍率时返回；否则省略。 */
+  user_rate_multiplier?: number | null
 }
 
 export interface ModelPlazaGroup {

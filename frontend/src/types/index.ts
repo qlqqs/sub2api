@@ -524,6 +524,8 @@ export interface PublicSettings {
   payment_balance_disabled: boolean
   model_plaza_enabled: boolean
   model_plaza_require_auth: boolean
+  /** CUSTOM: 生效美元汇率（1 USD = x CNY），只用于显示折扣；旧后端缺省时前端按 6.8。 */
+  usd_cny_rate?: number
   plugin_management_enabled: boolean
   service_quota_enabled: boolean
   affiliate_enabled: boolean

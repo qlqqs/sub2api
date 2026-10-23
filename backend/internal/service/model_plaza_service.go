@@ -29,6 +29,10 @@ type PlazaModel struct {
 	LongContextBasis ContextPricingBasis
 	// TimePricing 计费会生效的分时倍率时段；无分时为 nil。
 	TimePricing *TimePricingSchedule
+	// CUSTOM: RateMultiplier 是该模型对所有访客相同的公开基础倍率 = 分组模型倍率 ?? 分组倍率
+	// （不含高峰、分时）；HasModelRate 表示命中了分组模型倍率（此时用户专属倍率不作用于该模型）。
+	RateMultiplier float64
+	HasModelRate   bool
 }
 
 // PlazaGroup 模型广场中以分组为顶层的条目。
@@ -71,6 +75,8 @@ type ModelPlazaService struct {
 	pricingService *PricingService
 	billingService *BillingService
 	resolver       *ModelPricingResolver
+
+	groupModelRates *GroupModelRateService // CUSTOM: 分组内单个模型倍率（setter 注入，可为 nil）
 }
 
 // NewModelPlazaService 创建模型广场服务。
@@ -214,6 +220,7 @@ func (s *ModelPlazaService) ListGroups(ctx context.Context) ([]PlazaGroup, error
 		for j := range pg.Models {
 			s.fillDisplayPricing(ctx, &pg.Models[j], g)
 			pg.Models[j].OfficialPricing = s.lookupOfficialPricing(ctx, pg.Models[j].Name, officialMemo)
+			s.fillModelRate(ctx, &pg.Models[j], g) // CUSTOM: 分组模型倍率
 		}
 		out = append(out, *pg)
 	}
@@ -374,4 +381,18 @@ func (s *ModelPlazaService) lookupOfficialPricing(ctx context.Context, modelName
 	}
 	memo[modelName] = result
 	return result
+}
+
+// fillModelRate (CUSTOM) 填充模型的公开基础倍率：命中分组模型倍率取模型倍率，否则取分组倍率。
+// 未注入分组模型倍率服务时不填（保持零值，handler DTO 回退分组倍率），行为与引入前相同。
+func (s *ModelPlazaService) fillModelRate(ctx context.Context, m *PlazaModel, g *Group) {
+	if m == nil || g == nil || s.groupModelRates == nil {
+		return
+	}
+	m.RateMultiplier = g.RateMultiplier
+	m.HasModelRate = false
+	if rate, ok := s.groupModelRates.Match(ctx, g.ID, m.Name); ok {
+		m.RateMultiplier = rate
+		m.HasModelRate = true
+	}
 }

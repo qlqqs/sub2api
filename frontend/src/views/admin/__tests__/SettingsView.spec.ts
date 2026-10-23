@@ -36,6 +36,7 @@ const {
   adminSettingsFetch,
   showError,
   showSuccess,
+  getFxRate,
 } = vi.hoisted(() => ({
   getSettings: vi.fn(),
   updateSettings: vi.fn(),
@@ -77,6 +78,19 @@ const {
   adminSettingsFetch: vi.fn(),
   showError: vi.fn(),
   showSuccess: vi.fn(),
+  // CUSTOM: 美元汇率卡片
+  getFxRate: vi.fn().mockResolvedValue({
+    auto_enabled: true,
+    default_rate: 6.8,
+    effective_rate: 6.8,
+    effective_from: "default",
+    fetched_rate: null,
+    fetched_at: null,
+    source: "",
+    stale: true,
+    last_error: "",
+    last_attempt_at: null,
+  }),
 }));
 
 const localeRef = vi.hoisted(() => ({ value: "zh-CN" }));
@@ -115,6 +129,12 @@ vi.mock("@/api", () => ({
       updateProvider,
       createProvider,
       deleteProvider,
+    },
+    // CUSTOM: 美元汇率卡片
+    fxRate: {
+      get: getFxRate,
+      update: vi.fn(),
+      refresh: vi.fn(),
     },
   },
 }));
@@ -765,6 +785,29 @@ describe("admin SettingsView payment visible method controls", () => {
     expect(updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({ compact_home_enabled: true }),
     );
+  });
+
+  // CUSTOM: 用户端不再显示分组倍率,关闭模型广场时提示;汇率卡片独立加载
+  it("warns that users cannot see model prices when the model plaza is off", async () => {
+    getSettings.mockResolvedValue({ ...baseSettingsResponse, model_plaza_enabled: false });
+    const wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="model-plaza-disabled-hint"]').text()).toBe(
+      "admin.settings.features.modelPlaza.disabledHint",
+    );
+    expect(wrapper.find('[data-testid="fx-rate-card"]').exists()).toBe(true);
+    expect(getFxRate).toHaveBeenCalled();
+    expect(wrapper.find('[data-testid="fx-rate-effective"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="fx-rate-load-error"]').exists()).toBe(false);
+  });
+
+  it("hides the model plaza hint when the plaza is on", async () => {
+    getSettings.mockResolvedValue({ ...baseSettingsResponse, model_plaza_enabled: true });
+    const wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="model-plaza-disabled-hint"]').exists()).toBe(false);
   });
 
   it("renders panel rate limit card and saves settings", async () => {

@@ -293,9 +293,11 @@ export default {
     creditedBalance: 'Credited Balance',
     // CUSTOM: "pay ¥100 -> balance ¥100" and the per-group price card
     creditedSummary: 'Pay {pay} → balance {credited}',
+    // CUSTOM: group prices moved to the model plaza (prices can differ per model)
     groupPrices: {
-      title: 'Group prices',
-      hint: 'Balance deducted per $1 of official price in each group'
+      title: 'Model prices by group',
+      hint: 'Prices differ by group and by model; the model plaza is authoritative',
+      link: 'View model prices by group'
     },
     firstRechargeBonus: {
       notice: 'Recharge {min} or more for the first time to get an extra {bonus}, granted once the payment is credited',
@@ -481,8 +483,6 @@ export default {
     selectPlan: 'Select Plan',
     planFeatures: 'Features',
     planCard: {
-      priceRatio: 'Price ratio',
-      peakPriceRatio: 'Peak price',
       dailyLimit: 'Daily',
       weeklyLimit: 'Weekly',
       monthlyLimit: 'Monthly',

@@ -7344,6 +7344,14 @@
                 <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                   {{ t('admin.settings.features.modelPlaza.enabledHint') }}
                 </p>
+                <!-- CUSTOM: 用户端不再显示分组倍率,价格只在模型广场 -->
+                <p
+                  v-if="!form.model_plaza_enabled"
+                  class="mt-1 text-xs text-amber-600 dark:text-amber-400"
+                  data-testid="model-plaza-disabled-hint"
+                >
+                  {{ t('admin.settings.features.modelPlaza.disabledHint') }}
+                </p>
               </div>
               <Toggle v-model="form.model_plaza_enabled" />
             </div>
@@ -7375,6 +7383,9 @@
             </div>
           </div>
         </div>
+
+        <!-- CUSTOM: 美元汇率(模型广场「相比官方价」折扣用,独立保存) -->
+        <FxRateCard />
 
         <div class="card">
           <div class="border-b border-gray-100 px-6 py-4 dark:border-dark-700">
@@ -9210,6 +9221,7 @@ import ImageUpload from "@/components/common/ImageUpload.vue";
 import BackupSettings from "@/views/admin/BackupView.vue";
 import EmailTemplateEditor from "@/views/admin/settings/EmailTemplateEditor.vue";
 import RechargeBonusTierEditor from "@/components/admin/settings/RechargeBonusTierEditor.vue";
+import FxRateCard from "@/components/admin/settings/FxRateCard.vue";
 import {
   normalizeRechargeBonusMode,
   normalizeRechargeBonusTiers,

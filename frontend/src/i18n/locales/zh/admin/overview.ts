@@ -1154,6 +1154,34 @@ export default {
           '公开分组费率 0.8，您可以创建一个费率 0.7 的专属分组，手动分配给 VIP 用户，让他们享受更优惠的价格。'
       },
       rateMultiplierHint: '1.0 = 标准费率，0.5 = 半价，2.0 = 双倍',
+      // CUSTOM: 分组内单个模型倍率
+      modelRates: {
+        title: '模型单独倍率',
+        hint: '为个别模型单独设置倍率，命中的模型按此倍率计费，用户专属倍率不再作用于该模型；高峰倍率照常叠加。模型名支持末尾 * 通配（如 claude-opus-*），大小写不敏感；精确匹配优先，其次取前缀最长的通配规则。',
+        add: '添加',
+        model: '模型名',
+        rate: '倍率',
+        modelPlaceholder: '如 claude-opus-* 或 gpt-5.5',
+        ratePlaceholder: '倍率',
+        remove: '删除',
+        empty: '未设置，所有模型按分组倍率计费',
+        retry: '重试',
+        count: '{count} 个模型单独倍率',
+        loadFailed: '模型单独倍率加载失败：{error}',
+        saveFailed: '分组已保存，模型单独倍率保存失败：{error}',
+        errors: {
+          modelRequired: '请填写模型名',
+          modelTooLong: '模型名不能超过 255 个字符',
+          modelWhitespace: '模型名不能包含空格',
+          wildcardPosition: '* 只能出现在末尾，且前面至少有一个字符',
+          duplicate: '模型名重复（大小写不敏感）',
+          rateRequired: '请填写倍率',
+          rateInvalid: '倍率须大于 0',
+          rateTooLarge: '倍率不能超过 {max}',
+          rateTooSmall: '倍率最多保留 4 位小数，舍入后须大于 0',
+          tooMany: '每个分组最多 {max} 条模型单独倍率'
+        }
+      },
       platforms: {
         all: '全部平台',
         anthropic: 'Anthropic',

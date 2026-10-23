@@ -732,6 +732,11 @@ func responseModelBillingAdoptable(baseline, response *CostBreakdown, baselineCh
 	if response.TotalCost > baseline.TotalCost+responseModelBillingCostEpsilon {
 		return false
 	}
+	// CUSTOM: 两个模型的分组模型倍率可能不同，实扣金额（倍率后）同样不得更贵、不得被归零。
+	// 倍率相同时这两条由上面的 TotalCost 条件蕴含，行为不变。
+	if !responseModelBillingActualCostAdoptable(baseline, response) {
+		return false
+	}
 	if response.TotalCost <= 0 && baseline.TotalCost > 0 {
 		return false
 	}
@@ -788,8 +793,8 @@ func (s *GatewayService) recordUsageCore(ctx context.Context, input *recordUsage
 		cacheTTLOverridden = (result.Usage.CacheCreation5mTokens + result.Usage.CacheCreation1hTokens) > 0
 	}
 
-	multiplier, imageMultiplier, pricingAt := s.recordUsageMultipliers(ctx, apiKey, user, input.PricingAt)
 	billingModel := s.recordUsageBillingModel(ctx, apiKey, result, input.ChannelUsageFields)
+	multiplier, imageMultiplier, pricingAt := s.recordUsageMultipliers(ctx, apiKey, user, input.PricingAt, billingModel) // CUSTOM: 倍率按计费模型解析
 	cacheStorageCost := s.cacheStorageCost(result, billingModel)
 
 	// 确定 RequestedModel（渠道映射前的原始模型）
@@ -811,13 +816,16 @@ func (s *GatewayService) recordUsageCore(ctx context.Context, input *recordUsage
 		result.ImageCount > 0 || result.AudioUsage != nil || result.SearchCount > 0 || result.CacheStorageTokenHours > 0,
 	); responseModel != "" && !strings.EqualFold(responseModel, strings.TrimSpace(billingModel)) {
 		if identified, responseChannelPriced := s.hasIdentifiedResponseModelPricing(ctx, responseModel, apiKey); identified {
-			responseCost := s.calculateRecordUsageCost(ctx, result, apiKey, responseModel, multiplier, imageMultiplier, pricingAt)
+			// CUSTOM: 响应模型按其自身的分组模型倍率重新解析（与基线模型的倍率可能不同）。
+			responseMultiplier, responseImageMultiplier, _ := s.recordUsageMultipliers(ctx, apiKey, user, pricingAt, responseModel)
+			responseCost := s.calculateRecordUsageCost(ctx, result, apiKey, responseModel, responseMultiplier, responseImageMultiplier, pricingAt)
 			baselineChannelPriced := s.resolveChannelPricing(ctx, billingModel, apiKey) != nil
 			if responseModelBillingAdoptable(cost, responseCost, baselineChannelPriced, responseChannelPriced) {
 				// billingModel 到此为止只是定价查表的入参，后续流程只消费 cost，
 				// 因此这里不改写它，改由日志记录实际生效的计费基准。
 				logResponseModelBillingApplied("service.gateway", account, result.RequestID, billingModel, responseModel, cost, responseCost)
 				cost = responseCost
+				multiplier, imageMultiplier = responseMultiplier, responseImageMultiplier // CUSTOM: usage_logs 记录实际采用的倍率
 			}
 		}
 	}
@@ -897,18 +905,23 @@ func (s *GatewayService) recordUsageCore(ctx context.Context, input *recordUsage
 	return nil
 }
 
-// recordUsageMultipliers 返回 token / 图片售价倍率（用户专属 > 分组默认 > 系统默认，token 倍率叠加高峰因子）
-// 与计价时刻；pricingAt 为零值时取当前时刻。
-func (s *GatewayService) recordUsageMultipliers(ctx context.Context, apiKey *APIKey, user *User, pricingAt time.Time) (float64, float64, time.Time) {
+// recordUsageMultipliers 返回 token / 图片售价倍率（CUSTOM: 分组模型倍率 > 用户专属 > 分组默认 > 系统默认，
+// token 倍率叠加高峰因子）与计价时刻；pricingAt 为零值时取当前时刻。model 为计费模型。
+func (s *GatewayService) recordUsageMultipliers(ctx context.Context, apiKey *APIKey, user *User, pricingAt time.Time, model string) (float64, float64, time.Time) {
 	multiplier := 1.0
 	if s.cfg != nil {
 		multiplier = s.cfg.Default.RateMultiplier
 	}
 	if apiKey.GroupID != nil && apiKey.Group != nil {
-		multiplier = apiKey.Group.RateMultiplier
-		if user != nil {
-			multiplier = s.ResolveUserGroupRateMultiplier(ctx, user.ID, *apiKey.GroupID, multiplier)
-		}
+		// CUSTOM: 基础倍率走 resolveBaseRate；命中分组模型倍率时不查专属倍率（避免污染 user:group 缓存）。
+		groupID := *apiKey.GroupID
+		multiplier = resolveBaseRate(ctx, s.groupModelRates, groupID, model, func() float64 {
+			rate := apiKey.Group.RateMultiplier
+			if user != nil {
+				rate = s.ResolveUserGroupRateMultiplier(ctx, user.ID, groupID, rate)
+			}
+			return rate
+		})
 	}
 	// 高峰因子按请求时刻现算，不并入 getUserGroupRateMultiplier，以免污染 user:group 倍率缓存。
 	if pricingAt.IsZero() {
@@ -984,8 +997,8 @@ func (s *GatewayService) QuoteUsageCost(ctx context.Context, input *RecordUsageI
 	if user == nil {
 		user = input.APIKey.User
 	}
-	multiplier, imageMultiplier, pricingAt := s.recordUsageMultipliers(ctx, input.APIKey, user, input.PricingAt)
 	billingModel := s.recordUsageBillingModel(ctx, input.APIKey, input.Result, input.ChannelUsageFields)
+	multiplier, imageMultiplier, pricingAt := s.recordUsageMultipliers(ctx, input.APIKey, user, input.PricingAt, billingModel) // CUSTOM: 倍率按计费模型解析
 	cost := s.calculateRecordUsageCost(ctx, input.Result, input.APIKey, billingModel, multiplier, imageMultiplier, pricingAt)
 	if cost == nil {
 		return 0

@@ -13,6 +13,7 @@ import {
   type ReleaseInfo
 } from '@/api/admin/system'
 import { getPublicSettings as fetchPublicSettingsAPI } from '@/api/auth'
+import { resolveUsdCnyRate } from '@/utils/priceDiscount'
 
 export const useAppStore = defineStore('app', () => {
   // ==================== State ====================
@@ -51,6 +52,8 @@ export const useAppStore = defineStore('app', () => {
 
   const hasActiveToasts = computed(() => toasts.value.length > 0)
   const backendModeEnabled = computed(() => cachedPublicSettings.value?.backend_mode_enabled ?? false)
+  // CUSTOM: 生效美元汇率（只用于显示折扣），缺省或无效时按 6.8
+  const usdCnyRate = computed(() => resolveUsdCnyRate(cachedPublicSettings.value?.usd_cny_rate))
 
   const loadingCount = ref<number>(0)
 
@@ -466,6 +469,7 @@ export const useAppStore = defineStore('app', () => {
     // Computed
     hasActiveToasts,
     backendModeEnabled,
+    usdCnyRate,
 
     // Actions
     toggleSidebar,

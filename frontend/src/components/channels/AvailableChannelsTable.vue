@@ -99,18 +99,8 @@
                     :name="g.name"
                     :platform="g.platform as GroupPlatform"
                     :subscription-type="(g.subscription_type || 'standard') as SubscriptionType"
-                    :rate-multiplier="g.rate_multiplier"
-                    :user-rate-multiplier="userGroupRates[g.id] ?? null"
-                    always-show-rate
                   />
-                  <span
-                    v-if="hasPeakRate(g)"
-                    class="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
-                    :title="peakRateTitle(g)"
-                  >
-                    <Icon name="clock" size="xs" class="h-3 w-3" />
-                    {{ peakRateLabel(g) }}
-                  </span>
+                  <PlazaPriceLink :group-id="g.id" />
                 </div>
               </div>
               <div
@@ -133,18 +123,8 @@
                     :name="g.name"
                     :platform="g.platform as GroupPlatform"
                     :subscription-type="(g.subscription_type || 'standard') as SubscriptionType"
-                    :rate-multiplier="g.rate_multiplier"
-                    :user-rate-multiplier="userGroupRates[g.id] ?? null"
-                    always-show-rate
                   />
-                  <span
-                    v-if="hasPeakRate(g)"
-                    class="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
-                    :title="peakRateTitle(g)"
-                  >
-                    <Icon name="clock" size="xs" class="h-3 w-3" />
-                    {{ peakRateLabel(g) }}
-                  </span>
+                  <PlazaPriceLink :group-id="g.id" />
                 </div>
               </div>
               <span v-if="section.groups.length === 0" class="text-xs text-gray-400">-</span>
@@ -238,18 +218,8 @@
                         :name="g.name"
                         :platform="g.platform as GroupPlatform"
                         :subscription-type="(g.subscription_type || 'standard') as SubscriptionType"
-                        :rate-multiplier="g.rate_multiplier"
-                        :user-rate-multiplier="userGroupRates[g.id] ?? null"
-                        always-show-rate
                       />
-                      <span
-                        v-if="hasPeakRate(g)"
-                        class="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
-                        :title="peakRateTitle(g)"
-                      >
-                        <Icon name="clock" size="xs" class="h-3 w-3" />
-                        {{ peakRateLabel(g) }}
-                      </span>
+                      <PlazaPriceLink :group-id="g.id" />
                     </div>
                   </div>
                   <div
@@ -273,18 +243,8 @@
                         :name="g.name"
                         :platform="g.platform as GroupPlatform"
                         :subscription-type="(g.subscription_type || 'standard') as SubscriptionType"
-                        :rate-multiplier="g.rate_multiplier"
-                        :user-rate-multiplier="userGroupRates[g.id] ?? null"
-                        always-show-rate
                       />
-                      <span
-                        v-if="hasPeakRate(g)"
-                        class="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
-                        :title="peakRateTitle(g)"
-                      >
-                        <Icon name="clock" size="xs" class="h-3 w-3" />
-                        {{ peakRateLabel(g) }}
-                      </span>
+                      <PlazaPriceLink :group-id="g.id" />
                     </div>
                   </div>
                   <span v-if="section.groups.length === 0" class="text-xs text-gray-400">-</span>
@@ -324,15 +284,14 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import PlatformIcon from '@/components/common/PlatformIcon.vue'
 import GroupBadge from '@/components/common/GroupBadge.vue'
+import PlazaPriceLink from '@/components/common/PlazaPriceLink.vue'
 import SupportedModelChip from './SupportedModelChip.vue'
 import type { UserAvailableChannel, UserAvailableGroup, UserChannelPlatformSection } from '@/api/channels'
 import type { GroupPlatform, SubscriptionType } from '@/types'
 import { platformBadgeClass } from '@/utils/platformColors'
-import { useAppStore } from '@/stores/app'
-import { hasPeakRate as groupHasPeakRate, formatPeakRateWindow, serverTimezoneLabel } from '@/utils/peak-rate'
-import { effectiveRate } from '@/utils/balanceCurrency'
 
-const props = defineProps<{
+// CUSTOM: 分组不再显示倍率与高峰比例(一个分组内各模型倍率可能不同),改为「查看价格」链接到模型广场。
+defineProps<{
   columns: {
     name: string
     description: string
@@ -346,13 +305,7 @@ const props = defineProps<{
   noPricingLabel: string
   noModelsLabel: string
   emptyLabel: string
-  /** 用户专属倍率（group_id → multiplier）；无专属时由 GroupBadge 仅显示默认倍率。 */
-  userGroupRates: Record<number, number>
 }>()
-
-// Suppress unused warning — props is accessed via template automatically but
-// the explicit reference here keeps the linter from flagging userGroupRates.
-void props.userGroupRates
 
 const { t } = useI18n()
 
@@ -362,24 +315,5 @@ function exclusiveGroups(section: UserChannelPlatformSection): UserAvailableGrou
 
 function publicGroups(section: UserChannelPlatformSection): UserAvailableGroup[] {
   return section.groups.filter((g) => !g.is_exclusive)
-}
-
-const appStore = useAppStore()
-
-function hasPeakRate(group: UserAvailableGroup): boolean {
-  return groupHasPeakRate(group)
-}
-
-function peakRateLabel(group: UserAvailableGroup): string {
-  // CUSTOM: 高峰比例按该用户的生效倍率（专属 ?? 分组）× 高峰倍率
-  return formatPeakRateWindow(
-    group,
-    serverTimezoneLabel(appStore.cachedPublicSettings?.server_utc_offset),
-    effectiveRate(group.rate_multiplier, props.userGroupRates[group.id])
-  )
-}
-
-function peakRateTitle(group: UserAvailableGroup): string {
-  return t('common.peakRateTooltip', { window: peakRateLabel(group) }) + t('common.peakRateImageNote')
 }
 </script>

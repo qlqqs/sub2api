@@ -34,6 +34,9 @@ type ProfitPreviewGroupInput struct {
 	// AssumeEnabled 在分组当前关闭时仍按其保存配置启用利润门，供部署前执行
 	// “先关组、预演、逐组重开”。
 	AssumeEnabled bool
+	// CUSTOM: ModelRates 为该分组的模型单独倍率；命中的主力模型按模型倍率单独算 D
+	// （用户覆盖倍率不作用于这些模型）。
+	ModelRates []GroupModelRateRule
 }
 
 // 预演账号分类与线上否决原因一一对应。
@@ -76,6 +79,10 @@ type ProfitPreviewGroupReport struct {
 	RemainingByModel     map[string]int                `json:"profit_admitted_by_model"`
 	RemainingByModelMinD map[string]int                `json:"profit_admitted_by_model_min_d"`
 	Verdicts             []ProfitPreviewAccountVerdict `json:"verdicts"`
+	// CUSTOM: 命中模型单独倍率的主力模型各自的 D 与阈值（含 evalAt 高峰因子）；
+	// 这些模型的 RemainingByModel / RemainingByModelMinD 按各自阈值计算。
+	ModelD           map[string]float64 `json:"model_d,omitempty"`
+	ThresholdByModel map[string]float64 `json:"threshold_by_model,omitempty"`
 }
 
 // PreviewProfitAdmission 对五大平台分组推演利润门准入结果。未启用的分组仅在
@@ -121,6 +128,7 @@ func PreviewProfitAdmission(inputs []ProfitPreviewGroupInput, evalAt time.Time) 
 		report.MinEffectiveD = minD
 		report.ThresholdDefault = thresholdDefault
 		report.ThresholdMinD = thresholdMinD
+		modelThresholds := applyProfitPreviewModelRates(&report, in, peak, deduction) // CUSTOM: 按模型分别算 D
 
 		for _, account := range in.Accounts {
 			if account == nil {
@@ -134,10 +142,15 @@ func PreviewProfitAdmission(inputs []ProfitPreviewGroupInput, evalAt time.Time) 
 					continue
 				}
 				verdict.SupportedModels = append(verdict.SupportedModels, model)
-				if admittedDefault {
+				modelAdmittedDefault, modelAdmittedMinD := admittedDefault, admittedMinD
+				if threshold, ok := modelThresholds[model]; ok { // CUSTOM: 模型单独倍率的阈值
+					modelAdmittedDefault = profitPreviewAdmittedAt(account, effectiveGate, threshold)
+					modelAdmittedMinD = modelAdmittedDefault
+				}
+				if modelAdmittedDefault {
 					report.RemainingByModel[model]++
 				}
-				if admittedMinD {
+				if modelAdmittedMinD {
 					report.RemainingByModelMinD[model]++
 				}
 			}
@@ -208,4 +221,47 @@ func profitPreviewProbeWarnings(account *Account, evalAt time.Time) []string {
 		}
 	}
 	return nil
+}
+
+// applyProfitPreviewModelRates (CUSTOM) 为命中模型单独倍率的主力模型计算各自的 D 与阈值，
+// 写入报告并返回 model → 阈值。用户覆盖倍率不作用于这些模型，因此最低有效 D 与默认 D 相同。
+func applyProfitPreviewModelRates(report *ProfitPreviewGroupReport, in ProfitPreviewGroupInput, peak, deduction float64) map[string]float64 {
+	if len(in.ModelRates) == 0 || len(in.Models) == 0 {
+		return nil
+	}
+	idx := newGroupModelRateIndex(in.ModelRates)
+	if idx.empty() {
+		return nil
+	}
+	thresholds := make(map[string]float64)
+	for _, model := range in.Models {
+		rate, ok := idx.match(normalizeGroupModelRateName(model))
+		if !ok {
+			continue
+		}
+		if report.ModelD == nil {
+			report.ModelD = make(map[string]float64)
+			report.ThresholdByModel = make(map[string]float64)
+		}
+		d := rate * peak
+		threshold := clampProfitControlThreshold(d * (1 - deduction))
+		report.ModelD[model] = d
+		report.ThresholdByModel[model] = threshold
+		thresholds[model] = threshold
+	}
+	return thresholds
+}
+
+// profitPreviewAdmittedAt (CUSTOM) 按给定阈值判定账号能否通过利润门（与线上否决点同一语义）。
+func profitPreviewAdmittedAt(account *Account, effectiveGate bool, threshold float64) bool {
+	if !effectiveGate {
+		return true
+	}
+	if account.RateMultiplier == nil ||
+		math.IsNaN(*account.RateMultiplier) ||
+		math.IsInf(*account.RateMultiplier, 0) ||
+		*account.RateMultiplier < 0 {
+		return false
+	}
+	return !profitControlOverThreshold(*account.RateMultiplier, threshold)
 }

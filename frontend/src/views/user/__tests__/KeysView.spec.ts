@@ -243,6 +243,11 @@ const mountView = async () => {
         EndpointPopover: true,
         GroupBadge: true,
         GroupOptionItem: true,
+        // CUSTOM: 「查看价格」链接(模型广场),只核对传入的分组
+        PlazaPriceLink: {
+          props: ['groupId'],
+          template: '<a data-test="plaza-price-link" :data-group-id="groupId" />',
+        },
         Teleport: true,
       },
     },
@@ -612,6 +617,14 @@ describe('user KeysView column settings', () => {
       await flushPromises()
       expect(keysAPI.create).toHaveBeenCalledOnce()
       expect(vi.mocked(keysAPI.create).mock.calls[0].slice(0, 2)).toEqual(['My key', 5])
+    })
+
+    it('CUSTOM: shows a model plaza price link for the selected group instead of group rates', async () => {
+      const wrapper = await openCreate()
+      expect(wrapper.find('[data-test="plaza-price-link"]').exists()).toBe(false)
+      await groupSelect(wrapper).vm.$emit('update:modelValue', 1)
+      expect(wrapper.get('[data-test="plaza-price-link"]').attributes('data-group-id')).toBe('1')
+      expect(getUserGroupRates).not.toHaveBeenCalled()
     })
 
     it('defaults to a provider with available groups and disables empty categories', async () => {

@@ -398,6 +398,8 @@ type inflightEstimateDeps struct {
 	// 仅在首选/渠道候选均无法定价（或 composite 分组）时才调用；实现只读调度器快照，
 	// 不在请求路径上直接查库，也不按模型名缓存（内存不随请求模型名增长）。
 	accountMappedModels func(ctx context.Context, apiKey *APIKey, model string) []string
+	// CUSTOM: 分组模型倍率（可为 nil）：倍率按候选计费模型逐个解析。
+	groupModelRates *GroupModelRateService
 }
 
 // inflightSnapshotLister 调度器快照读取（与账号选择同源：Redis 快照，未命中时由快照服务自身回源并回填）。
@@ -644,15 +646,21 @@ func (d inflightEstimateDeps) estimate(ctx context.Context, apiKey *APIKey, req 
 		return 0, true
 	}
 	textRate, imageRate := d.rates(ctx, apiKey)
-	if textRate <= 0 && imageRate <= 0 {
+	freeGroup := textRate <= 0 && imageRate <= 0
+	if freeGroup && !d.inflightGroupHasModelRates(ctx, apiKey) { // CUSTOM: 分组有模型倍率时不能整组跳过
 		// 免费分组：不计费，也无需预留。
 		return 0, true
 	}
 	primary, fallbacks, upstreamInput := inflightBillingModelCandidates(ctx, d, apiKey, req.Model)
+	// CUSTOM: 免费分组只有在候选计费模型命中 > 0 的模型倍率时才需要预留。
+	if freeGroup && !d.inflightAnyCandidateHasModelRate(ctx, apiKey, primary, fallbacks) {
+		return 0, true
+	}
 	bestOf := func(models []string) float64 {
 		best := 0.0
 		for _, m := range models {
-			if c := d.estimateOne(ctx, apiKey, m, req, textRate, imageRate); c > best {
+			mText, mImage := d.inflightModelRates(ctx, apiKey, m, textRate, imageRate) // CUSTOM: 倍率按候选模型逐个解析
+			if c := d.estimateOne(ctx, apiKey, m, req, mText, mImage); c > best {
 				best = c
 			}
 		}
@@ -717,6 +725,7 @@ func (s *GatewayService) inflightEstimateDeps() inflightEstimateDeps {
 		d.resolveMapping = s.channelService.ResolveChannelMapping
 	}
 	d.userGroupRate = s.getUserGroupRateMultiplier
+	d.groupModelRates = s.groupModelRates // CUSTOM: 分组模型倍率
 	if s.schedulerSnapshot != nil {
 		snap := s.schedulerSnapshot
 		d.accountMappedModels = inflightAccountMappedModelsFromSnapshot(
@@ -748,6 +757,7 @@ func (s *OpenAIGatewayService) inflightEstimateDeps() inflightEstimateDeps {
 		d.resolveMapping = s.channelService.ResolveChannelMapping
 	}
 	d.userGroupRate = s.ResolveUserGroupRateMultiplier
+	d.groupModelRates = s.groupModelRates // CUSTOM: 分组模型倍率
 	if s.schedulerSnapshot != nil {
 		snap := s.schedulerSnapshot
 		d.accountMappedModels = inflightAccountMappedModelsFromSnapshot(

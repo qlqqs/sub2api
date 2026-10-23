@@ -95,6 +95,8 @@ var ProviderSet = wire.NewSet(
 	NewUserAttributeDefinitionRepository,
 	NewUserAttributeValueRepository,
 	NewUserGroupRateRepository,
+	NewGroupModelRateRepository, // CUSTOM: 分组内单个模型倍率
+	ProvideFxRateClient,         // CUSTOM: 美元汇率来源客户端
 	NewErrorPassthroughRepository,
 	NewTLSFingerprintProfileRepository,
 	NewPluginRepository,

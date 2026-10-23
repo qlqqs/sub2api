@@ -132,6 +132,7 @@ func provideCleanup(
 	openAIAutoReset *service.OpenAIQuotaAutoResetService,
 	promptAudit *securityaudit.PromptService,
 	pluginManager *service.PluginManager,
+	fxRate *service.FxRateService, // CUSTOM: 美元汇率后台循环
 ) func() {
 	return func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -367,6 +368,12 @@ func provideCleanup(
 			{"AffiliateRebateSettleService", func() error {
 				if affiliateRebateSettle != nil {
 					affiliateRebateSettle.Stop()
+				}
+				return nil
+			}},
+			{"FxRateService", func() error { // CUSTOM
+				if fxRate != nil {
+					fxRate.Stop()
 				}
 				return nil
 			}},

@@ -446,6 +446,9 @@ type PublicSettings struct {
 
 	// 允许终端用户在用量页查看自己的失败请求
 	AllowUserViewErrorRequests bool `json:"allow_user_view_error_requests"`
+
+	// CUSTOM: 生效的美元兑人民币汇率（仅用于展示折扣，见 fx_rate.go）。
+	USDCNYRate float64 `json:"usd_cny_rate"`
 }
 
 type LoginAgreementDocument struct {

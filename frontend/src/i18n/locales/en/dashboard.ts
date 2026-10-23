@@ -453,6 +453,9 @@ export default {
     rate: 'Rate',
     // CUSTOM: usage price ratio and official price tooltip
     priceRatio: 'Price ratio',
+    // CUSTOM: user-side cost breakdown discount (vs. original price)
+    discount: 'Discount',
+    samePrice: '≈ original',
     officialPriceTitle: 'Official price {cost}',
     original: 'Official price',
     billed: 'Billed',
@@ -663,11 +666,11 @@ export default {
     empty: 'No groups to display',
     loadFailed: 'Failed to load model plaza',
     noSearchResult: 'No matching models',
-    anonymousHint: 'Sign in to see your exclusive groups and personal rates',
+    // CUSTOM: no longer mentions rates (user pages never show multipliers)
+    anonymousHint: 'Sign in to see your exclusive groups and personal prices',
     filters: {
       platformLabel: 'Platform',
       groupLabel: 'Group',
-      priceRatioLabel: 'Ratio',
       modelLabel: 'Model',
       searchPlaceholder: 'Search models',
       all: 'All'
@@ -679,8 +682,9 @@ export default {
     detail: {
       noModels: 'No models configured for this group',
       noPricing: 'Pricing not configured',
-      peakRatioNote: 'Peak hours {window}',
-      peakRatioHint: 'During peak hours the token billing rate is multiplied by ×{multiplier}',
+      // CUSTOM: peak notes never show raw multipliers
+      peakUpNote: 'Peak hours {window}: prices {percent}% higher',
+      peakDownNote: 'Peak hours {window}: prices {percent}% lower',
       longContextDisabledNote: 'Long-context tier pricing is disabled for this group: requests above the threshold are billed at the base tier; official tiers are for reference only'
     },
     table: {
@@ -702,17 +706,33 @@ export default {
         'On weekdays (Mon–Fri) only, requests made within this period ({timezone} time) are billed at the prices in this row; weekends use the standard prices',
       timePricingRowHintPeak:
         '; prices in this row exclude the peak-hour rate — where this period overlaps the peak hours {window}, the overlapping portion is additionally multiplied by ×{multiplier}',
+      // CUSTOM: peak disclosure as a percentage change
+      timePricingRowHintPeakUp:
+        '; prices in this row exclude peak-hour pricing — where this period overlaps the peak hours {window}, the overlapping portion costs {percent}% more',
+      timePricingRowHintPeakDown:
+        '; prices in this row exclude peak-hour pricing — where this period overlaps the peak hours {window}, the overlapping portion costs {percent}% less',
       timePricingWeekdays: 'Weekdays',
       timePricingRateHint: 'Effective rate {rate} × period multiplier {multiplier}',
       paidPrice: 'Our Price (Discounted)',
       officialPrice: 'Official Price',
-      priceRatio: 'Price ratio',
+      // CUSTOM: "vs. official" discount column
+      vsOfficial: 'vs.\nOfficial',
+      samePrice: '≈ official',
+      discountBasis: '{ratio}, converted at {fx}',
+      discountNoBasis: 'No comparable official price',
+      discountInconsistent: 'Input and output prices differ from the official prices by different ratios; no single discount applies',
+      publicDiscountHint: 'Public price: {basis}',
       paidUnitPerMillion: '{symbol} / 1M tokens',
       officialUnitPerMillion: '{symbol} / 1M tokens',
       perUnitRequest: '/ request',
       perUnitImage: '/ image',
       perRequest: 'Per request',
       perImage: 'Per image'
+    },
+    // CUSTOM: "View prices" link from user pages to the model plaza
+    priceLink: {
+      view: 'View prices',
+      title: 'See per-model prices in the model plaza'
     },
     nav: {
       login: 'Sign In',

@@ -456,9 +456,11 @@ describe('PaymentView recharge credited summary', () => {
 })
 
 describe('PaymentView group price card', () => {
+  // CUSTOM: 一个分组内各模型倍率可能不同，充值页不再列分组价格，改为一个模型广场入口。
   afterEach(() => {
     getAvailableGroups.mockReset().mockResolvedValue([])
     getUserGroupRates.mockReset().mockResolvedValue({})
+    appStoreState.setPublicSettings(undefined)
   })
 
   async function mountRechargePage() {
@@ -479,48 +481,49 @@ describe('PaymentView group price card', () => {
     return wrapper
   }
 
-  it('lists balance groups as "¥x = $1" sorted ascending by the effective (exclusive ?? group) rate', async () => {
-    getAvailableGroups.mockReset().mockResolvedValue([
-      { id: 1, name: 'Standard', rate_multiplier: 1, subscription_type: 'standard' },
-      { id: 2, name: 'Discount', rate_multiplier: 0.5, subscription_type: 'standard' },
-      { id: 3, name: 'VIP', rate_multiplier: 0.8, subscription_type: 'standard' },
-      { id: 4, name: 'Monthly plan', rate_multiplier: 0.1, subscription_type: 'subscription' },
-    ])
-    // 用户在 VIP 上有专属倍率 0.3
-    getUserGroupRates.mockReset().mockResolvedValue({ 3: 0.3 })
+  it('shows a single "model prices by group" entry linking to the model plaza when it is enabled', async () => {
+    appStoreState.setPublicSettings({ model_plaza_enabled: true })
 
     const wrapper = await mountRechargePage()
 
     const card = wrapper.get('[data-testid="group-price-card"]')
-    const rows = card.findAll('[data-testid="group-price-row"]').map(row =>
-      row.findAll('span').map(span => span.text()),
-    )
-    expect(rows).toEqual([
-      ['VIP', '¥0.3 = $1'],
-      ['Discount', '¥0.5 = $1'],
-      ['Standard', '¥1 = $1'],
-    ])
     expect(card.text()).toContain('payment.groupPrices.title')
+    expect(card.text()).toContain('payment.groupPrices.hint')
+    const link = card.findComponent({ name: 'PlazaPriceLink' })
+    expect(link.exists()).toBe(true)
+    expect(link.props('groupId') ?? null).toBeNull()
+    expect(translate).toHaveBeenCalledWith('payment.groupPrices.link')
+    // 不再列出分组，也不再请求分组 / 专属倍率
+    expect(card.findAll('[data-testid="group-price-row"]')).toHaveLength(0)
+    expect(card.text()).not.toContain('= $1')
+    expect(getAvailableGroups).not.toHaveBeenCalled()
+    expect(getUserGroupRates).not.toHaveBeenCalled()
   })
 
-  it('hides the card when loading fails, without blocking checkout', async () => {
-    getAvailableGroups.mockReset().mockRejectedValue(new Error('boom'))
+  it.each([
+    ['disabled', { model_plaza_enabled: false }],
+    ['not loaded (opt-in flag)', undefined],
+  ])('hides the entry when the model plaza is %s, without blocking checkout', async (_label, settings) => {
+    appStoreState.setPublicSettings(settings)
 
     const wrapper = await mountRechargePage()
 
     expect(wrapper.find('[data-testid="group-price-card"]').exists()).toBe(false)
     expect(wrapper.findComponent(AmountInput).exists()).toBe(true)
-    expect(showError).not.toHaveBeenCalledWith(expect.stringContaining('boom'))
   })
+})
 
-  it('hides the card when there are no balance groups', async () => {
-    getAvailableGroups.mockReset().mockResolvedValue([
-      { id: 4, name: 'Monthly plan', rate_multiplier: 0.1, subscription_type: 'subscription' },
-    ])
+describe('PaymentView subscription confirmation without group rates', () => {
+  it('drops the price ratio and peak price rows and links the plan group to the model plaza', async () => {
+    translate.mockClear()
+    const wrapper = await mountSubscriptionConfirm()
 
-    const wrapper = await mountRechargePage()
-
-    expect(wrapper.find('[data-testid="group-price-card"]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('= $1')
+    expect(translate).not.toHaveBeenCalledWith('payment.planCard.priceRatio')
+    expect(translate).not.toHaveBeenCalledWith('payment.planCard.peakPriceRatio')
+    const link = wrapper.findComponent({ name: 'PlazaPriceLink' })
+    expect(link.exists()).toBe(true)
+    expect(link.props('groupId')).toBe(3)
   })
 })
 

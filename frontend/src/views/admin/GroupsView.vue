@@ -261,9 +261,17 @@
             </div>
           </template>
 
-          <template #cell-rate_multiplier="{ value }">
+          <template #cell-rate_multiplier="{ value, row }">
             <span class="text-sm text-gray-700 dark:text-gray-300"
               >{{ value }}x</span
+            >
+            <!-- CUSTOM: 有模型单独倍率时提示条数,悬停列出明细 -->
+            <span
+              v-if="modelRateRules(row.id).length > 0"
+              class="mt-0.5 block cursor-help text-xs text-primary-600 dark:text-primary-400"
+              :title="modelRateRulesTitle(row.id)"
+              data-testid="group-model-rates-summary"
+              >{{ t("admin.groups.modelRates.count", { count: modelRateRules(row.id).length }) }}</span
             >
           </template>
 
@@ -626,6 +634,11 @@
           />
           <p class="input-hint">{{ t("admin.groups.rateMultiplierHint") }}</p>
         </div>
+        <!-- CUSTOM: 模型单独倍率(分组保存成功后单独保存) -->
+        <GroupModelRatesEditor
+          ref="createModelRatesRef"
+          :suggestions="createModelRateSuggestions"
+        />
         <div>
           <label class="input-label">{{ t("admin.groups.form.rpmLimit") }}</label>
           <input
@@ -2264,6 +2277,12 @@
             data-tour="group-form-multiplier"
           />
         </div>
+        <!-- CUSTOM: 模型单独倍率(分组保存成功后单独保存) -->
+        <GroupModelRatesEditor
+          ref="editModelRatesRef"
+          :group-id="editingGroup.id"
+          :suggestions="editModelRateSuggestions"
+        />
         <div>
           <label class="input-label">{{ t("admin.groups.form.rpmLimit") }}</label>
           <input
@@ -4304,6 +4323,8 @@ import Icon from "@/components/icons/Icon.vue";
 import GroupI18nField from "@/components/admin/group/GroupI18nField.vue";
 import GroupRateMultipliersModal from "@/components/admin/group/GroupRateMultipliersModal.vue";
 import GroupRPMOverridesModal from "@/components/admin/group/GroupRPMOverridesModal.vue";
+import GroupModelRatesEditor from "@/components/admin/group/GroupModelRatesEditor.vue";
+import type { GroupModelRateRule } from "@/api/admin/groupModelRates";
 import GroupCapacityBadge from "@/components/common/GroupCapacityBadge.vue";
 import ReasoningEffortPolicyFields from "@/components/admin/group/ReasoningEffortPolicyFields.vue";
 import CodexManifestAccountsField from "@/components/admin/group/CodexManifestAccountsField.vue";
@@ -4589,6 +4610,9 @@ const toggleColumn = (key: string) => {
   }
   if (wasHidden && key === "capacity") {
     loadCapacitySummary();
+  }
+  if (wasHidden && key === "rate_multiplier") {
+    void loadModelRateSummary(); // CUSTOM: 模型单独倍率提示
   }
 };
 
@@ -4883,6 +4907,9 @@ const createMessagesDispatchDefaults = createDefaultMessagesDispatchFormState();
 const editMessagesDispatchDefaults = createDefaultMessagesDispatchFormState();
 const createModelAllowlistState = reactive(createInitialModelAllowlistState());
 const editModelAllowlistState = reactive(createInitialModelAllowlistState());
+// CUSTOM: 模型单独倍率的模型名输入建议取分组可用模型候选
+const createModelRateSuggestions = computed(() => createModelAllowlistState.items.map((item) => item.id));
+const editModelRateSuggestions = computed(() => editModelAllowlistState.items.map((item) => item.id));
 const createModelAllowlistLoading = ref(false);
 const editModelAllowlistLoading = ref(false);
 type ReasoningEffortPolicyFieldsExpose = {
@@ -4891,6 +4918,58 @@ type ReasoningEffortPolicyFieldsExpose = {
 };
 const createReasoningEffortPolicyRef = ref<ReasoningEffortPolicyFieldsExpose | null>(null);
 const editReasoningEffortPolicyRef = ref<ReasoningEffortPolicyFieldsExpose | null>(null);
+
+// ==================== CUSTOM: 模型单独倍率 ====================
+type GroupModelRatesEditorExpose = {
+  save: (groupId: number) => Promise<void>;
+  validate: () => string | null;
+};
+const createModelRatesRef = ref<GroupModelRatesEditorExpose | null>(null);
+const editModelRatesRef = ref<GroupModelRatesEditorExpose | null>(null);
+const modelRateSummary = ref<Record<string, GroupModelRateRule[]>>({});
+
+const modelRateRules = (groupId: number): GroupModelRateRule[] =>
+  modelRateSummary.value[String(groupId)] ?? [];
+
+const modelRateRulesTitle = (groupId: number): string =>
+  modelRateRules(groupId)
+    .map((rule) => `${rule.model}: ${rule.rate_multiplier}x`)
+    .join("\n");
+
+/** 列表页倍率列提示用;失败(如旧后端)时不提示,不影响列表。 */
+const loadModelRateSummary = async () => {
+  if (authStore.isSimpleMode) return;
+  try {
+    modelRateSummary.value = await adminAPI.groupModelRates.listAll();
+  } catch (error) {
+    console.error("Error loading group model rates:", error);
+  }
+};
+
+/** 提交分组前校验模型单独倍率;不合法时提示并返回 false。 */
+const validateModelRates = (editor: GroupModelRatesEditorExpose | null): boolean => {
+  if (authStore.isSimpleMode || !editor) return true;
+  const message = editor.validate();
+  if (message) {
+    appStore.showError(message);
+    return false;
+  }
+  return true;
+};
+
+/** 分组保存成功后保存模型单独倍率;失败只提示,不回滚已保存的分组。 */
+const saveModelRates = async (editor: GroupModelRatesEditorExpose | null, groupId: number) => {
+  if (authStore.isSimpleMode || !editor) return;
+  try {
+    await editor.save(groupId);
+  } catch (error) {
+    appStore.showError(
+      t("admin.groups.modelRates.saveFailed", {
+        error: extractApiErrorMessage(error, t("common.unknownError")),
+      }),
+    );
+  }
+};
 
 // 固定账号获取 Codex Model Manifest（仅 openai 分组编辑对话框）
 type CodexManifestAccountsFieldExpose = {
@@ -5633,6 +5712,9 @@ const loadGroups = async () => {
     if (hasVisibleCapacityColumn.value) {
       loadCapacitySummary();
     }
+    if (isColumnVisible("rate_multiplier")) {
+      void loadModelRateSummary(); // CUSTOM
+    }
   } catch (error: any) {
     if (
       signal.aborted ||
@@ -5908,6 +5990,7 @@ const handleCreateGroup = async () => {
     appStore.showError(t("admin.groups.modelAllowlist.emptySelectionError"));
     return;
   }
+  if (!validateModelRates(createModelRatesRef.value)) return; // CUSTOM
   submitting.value = true;
   try {
     const {
@@ -6033,8 +6116,10 @@ const handleCreateGroup = async () => {
           platform: createForm.platform,
         }
       : requestData;
-    await adminAPI.groups.create(payload);
+    const createdGroup = await adminAPI.groups.create(payload);
     appStore.showSuccess(t("admin.groups.groupCreated"));
+    // CUSTOM: 分组创建成功后保存模型单独倍率(须在关闭弹窗、卸载编辑器之前)
+    if (createdGroup?.id) await saveModelRates(createModelRatesRef.value, createdGroup.id);
     closeCreateModal();
     loadGroups();
     // Only advance tour if active, on submit step, and creation succeeded
@@ -6247,6 +6332,7 @@ const handleUpdateGroup = async () => {
     appStore.showError(t("admin.groups.modelAllowlist.emptySelectionError"));
     return;
   }
+  if (!validateModelRates(editModelRatesRef.value)) return; // CUSTOM
   // 固定账号 manifest：开启后至少一个账号，前端阻止提交并提示。
   if (
     editForm.platform === "openai" &&
@@ -6390,8 +6476,11 @@ const handleUpdateGroup = async () => {
           i18n: editForm.i18n,
         }
       : payload;
-    await adminAPI.groups.update(editingGroup.value.id, requestData);
+    const updatedGroupId = editingGroup.value.id;
+    await adminAPI.groups.update(updatedGroupId, requestData);
     appStore.showSuccess(t("admin.groups.groupUpdated"));
+    // CUSTOM: 分组更新成功后保存模型单独倍率(须在关闭弹窗、卸载编辑器之前)
+    await saveModelRates(editModelRatesRef.value, updatedGroupId);
     closeEditModal();
     loadGroups();
   } catch (error: any) {

@@ -37,6 +37,9 @@ import riskControlAPI from './riskControl'
 import adminComplianceAPI from './compliance'
 import auditAPI from './audit'
 import pluginsAPI from './plugins'
+// CUSTOM: 分组内单个模型倍率、美元汇率
+import groupModelRatesAPI from './groupModelRates'
+import fxRateAPI from './fxRate'
 
 /**
  * Unified admin API object for convenient access
@@ -75,7 +78,9 @@ export const adminAPI = {
   riskControl: riskControlAPI,
   compliance: adminComplianceAPI,
   audit: auditAPI,
-  plugins: pluginsAPI
+  plugins: pluginsAPI,
+  groupModelRates: groupModelRatesAPI,
+  fxRate: fxRateAPI
 }
 
 export {
@@ -112,7 +117,9 @@ export {
   riskControlAPI,
   adminComplianceAPI,
   auditAPI,
-  pluginsAPI
+  pluginsAPI,
+  groupModelRatesAPI,
+  fxRateAPI
 }
 
 export default adminAPI

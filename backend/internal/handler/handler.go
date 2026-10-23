@@ -43,6 +43,8 @@ type AdminHandlers struct {
 	Affiliate              *admin.AffiliateHandler
 	Compliance             *admin.ComplianceHandler
 	AuditLog               *admin.AuditLogHandler
+	GroupModelRate         *admin.GroupModelRateHandler // CUSTOM: 分组内单个模型倍率
+	FxRate                 *admin.FxRateHandler         // CUSTOM: 美元汇率
 }
 
 // Handlers contains all HTTP handlers

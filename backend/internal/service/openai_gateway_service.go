@@ -456,6 +456,7 @@ type OpenAIGatewayService struct {
 	rateLimitService      *RateLimitService
 	billingCacheService   *BillingCacheService
 	userGroupRateResolver *userGroupRateResolver
+	groupModelRates       *GroupModelRateService // CUSTOM: 分组内单个模型倍率（setter 注入，可为 nil）
 	httpUpstream          HTTPUpstream
 	pluginManager         *PluginManager
 	deferredService       *DeferredService

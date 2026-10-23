@@ -1,22 +1,18 @@
 <template>
+  <!-- CUSTOM: id 供 /model-plaza?group=<id> 定位,scroll-mt 避开吸顶导航 -->
   <section
-    class="overflow-hidden rounded-2xl border bg-white shadow-card dark:bg-dark-800/50"
+    :id="`plaza-group-${group.id}`"
+    class="scroll-mt-24 overflow-hidden rounded-2xl border bg-white shadow-card dark:bg-dark-800/50"
     :class="[platformBorderStrongClass(group.platform)]"
   >
-    <!-- 分组头部:名称/平台/倍率徽章/专属/订阅徽章 + 描述 -->
+    <!-- 分组头部:名称/平台/专属/订阅徽章 + 描述(CUSTOM: 不显示分组倍率,价格以下表为准) -->
     <header class="border-b border-gray-100 px-5 py-4 dark:border-dark-700/60">
       <div class="flex flex-wrap items-center gap-2">
         <GroupBadge
           :name="group.name"
           :platform="group.platform as GroupPlatform"
           :subscription-type="(group.subscription_type || 'standard') as SubscriptionType"
-          :rate-multiplier="group.rate_multiplier"
-          :user-rate-multiplier="group.user_rate_multiplier ?? null"
-          :peak-rate-enabled="group.peak_rate_enabled"
-          :peak-start="group.peak_start"
-          :peak-end="group.peak_end"
-          :peak-rate-multiplier="group.peak_rate_multiplier"
-          always-show-rate
+          :show-rate="false"
         />
         <span
           v-if="group.is_exclusive"
@@ -38,7 +34,7 @@
       <p
         v-if="peakNote"
         class="mt-1.5 inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400"
-        :title="peakNoteTitle"
+        data-testid="plaza-peak-note"
       >
         <Icon name="clock" size="xs" class="h-3 w-3" />
         {{ peakNote }}
@@ -66,6 +62,7 @@
         :video-rate-multiplier="group.video_rate_multiplier"
         :peak-window="peakWindow"
         :peak-rate-multiplier="group.peak_rate_multiplier"
+        :fx-rate="appStore.usdCnyRate"
       />
       <p v-else class="px-5 py-4 text-center text-sm text-gray-400 dark:text-dark-500">
         {{ t('modelPlaza.detail.noModels') }}
@@ -83,8 +80,8 @@ import PlazaModelPricingTable from './PlazaModelPricingTable.vue'
 import type { ModelPlazaGroup } from '@/api/modelPlaza'
 import type { GroupPlatform, SubscriptionType } from '@/types'
 import { platformBorderStrongClass } from '@/utils/platformColors'
-import { hasPeakRate, formatPeakRateWindow, formatPeakTimeWindow, serverTimezoneLabel } from '@/utils/peak-rate'
-import { effectiveRate } from '@/utils/balanceCurrency'
+import { hasPeakRate, formatPeakTimeWindow, serverTimezoneLabel } from '@/utils/peak-rate'
+import { peakAdjustment } from '@/utils/priceDiscount'
 import { useAppStore } from '@/stores/app'
 
 const props = defineProps<{
@@ -105,21 +102,19 @@ const peakWindow = computed(() => {
   return formatPeakTimeWindow(props.group, tzLabel.value)
 })
 
-/** CUSTOM: 高峰提示展示该时段的价格比例「¥x = $1」(生效倍率 × 高峰倍率),高峰倍率放悬停提示。 */
+/**
+ * CUSTOM: 高峰提示「高峰时段 14:00–18:00 (UTC+08:00) 价格上浮 50%」,不出现倍率数字;
+ * 高峰倍率小于 1 时写「下调」,等于 1 时不提示。
+ */
 const peakNote = computed(() => {
   if (!peakWindow.value) return ''
-  return t('modelPlaza.detail.peakRatioNote', {
-    window: formatPeakRateWindow(
-      props.group,
-      tzLabel.value,
-      effectiveRate(props.group.rate_multiplier, props.group.user_rate_multiplier)
-    )
+  const adjustment = peakAdjustment(props.group.peak_rate_multiplier)
+  if (adjustment.direction === 'none') return ''
+  const range = `${props.group.peak_start}–${props.group.peak_end}`
+  return t(adjustment.direction === 'up' ? 'modelPlaza.detail.peakUpNote' : 'modelPlaza.detail.peakDownNote', {
+    window: tzLabel.value ? `${range} (${tzLabel.value})` : range,
+    percent: adjustment.percent
   })
-})
-
-const peakNoteTitle = computed(() => {
-  if (!peakWindow.value) return undefined
-  return t('modelPlaza.detail.peakRatioHint', { multiplier: props.group.peak_rate_multiplier ?? 1 })
 })
 
 /**

@@ -84,7 +84,6 @@ const baseProps = {
   noPricingLabel: 'No pricing',
   noModelsLabel: 'No models',
   emptyLabel: 'No channels',
-  userGroupRates: { 1: 0.8 },
 }
 
 function mountTable(props = {}) {
@@ -96,9 +95,13 @@ function mountTable(props = {}) {
         Icon: { props: ['name'], template: '<i :data-icon="name" />' },
         PlatformIcon: { template: '<i data-platform-icon />' },
         GroupBadge: {
-          props: ['name', 'rateMultiplier', 'userRateMultiplier'],
+          props: ['name', 'rateMultiplier', 'userRateMultiplier', 'peakRateEnabled', 'alwaysShowRate'],
           template:
-            '<span data-group-badge>{{ name }}:{{ rateMultiplier }}:{{ userRateMultiplier }}</span>',
+            '<span data-group-badge>{{ name }}:{{ rateMultiplier }}:{{ userRateMultiplier }}:{{ peakRateEnabled }}:{{ alwaysShowRate }}</span>',
+        },
+        PlazaPriceLink: {
+          props: ['groupId'],
+          template: '<a data-plaza-price-link :data-group-id="groupId" />',
         },
         SupportedModelChip: {
           props: ['model', 'noPricingLabel'],
@@ -122,10 +125,13 @@ describe('AvailableChannelsTable responsive surfaces', () => {
     expect(desktop.text()).toContain('Primary channel')
     expect(desktop.text()).toContain('Fast and reliable access')
     expect(desktop.findAll('[data-group-badge]')).toHaveLength(2)
+    expect(desktop.findAll('[data-plaza-price-link]').map((a) => a.attributes('data-group-id'))).toEqual(['1', '2'])
+    expect(desktop.find('[data-icon="clock"]').exists()).toBe(false)
+    expect(desktop.text()).not.toContain('= $1')
     expect(desktop.get('[data-model-chip]').text()).toContain('claude-test:No pricing')
   })
 
-  it('renders a mobile-only readable surface with groups, rates, peaks, and model pricing chips', () => {
+  it('renders a mobile-only readable surface with groups, price links, and model pricing chips', () => {
     const wrapper = mountTable()
     const mobile = wrapper.get('[data-testid="mobile-channels"]')
 
@@ -137,14 +143,13 @@ describe('AvailableChannelsTable responsive surfaces', () => {
     expect(mobile.text()).toContain('Models and pricing')
     expect(mobile.text()).toContain('availableChannels.exclusive')
     expect(mobile.text()).toContain('availableChannels.public')
-    expect(mobile.get('[data-group-badge]').text()).toBe('Exclusive Pro:1.2:0.8')
+    // CUSTOM: 分组徽章不带倍率 / 专属倍率 / 高峰参数,也不显示高峰比例;改为模型广场链接
+    expect(mobile.get('[data-group-badge]').text()).toBe('Exclusive Pro::::')
     expect(mobile.findAll('[data-group-badge]')).toHaveLength(2)
-    expect(mobile.get('[data-icon="clock"]')).toBeTruthy()
-    expect(mobile.text()).toContain('08:00')
-    expect(mobile.text()).toContain('10:00')
-    // 高峰比例 = 专属倍率 0.8 × 高峰倍率 1.5
-    expect(mobile.text()).toContain('¥1.2 = $1')
-    expect(mobile.text()).not.toContain('×1.5')
+    expect(mobile.find('[data-icon="clock"]').exists()).toBe(false)
+    expect(mobile.text()).not.toContain('08:00')
+    expect(mobile.text()).not.toContain('= $1')
+    expect(mobile.findAll('[data-plaza-price-link]').map((a) => a.attributes('data-group-id'))).toEqual(['1', '2'])
     expect(mobile.get('[data-model-chip]').text()).toBe('claude-test:No pricing')
     expect(mobile.findAll('.max-w-full')).not.toHaveLength(0)
   })

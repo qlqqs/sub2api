@@ -64,3 +64,10 @@ const emit = defineEmits<{
 - 把可点击 `div` 当按钮却没有键盘语义。
 - 在模板中拼接未过滤的 HTML、SVG 或管理端可配置 URL。
 - 只实现桌面尺寸，或只用颜色表达状态。
+
+## 用户端价格展示（fork，任务 `10-23-group-model-rate`）
+
+- 一个分组内各模型倍率可能不同，**用户端页面不显示分组倍率与高峰倍率**；价格一律以模型广场为准，需要时放 `components/common/PlazaPriceLink.vue`（`groupId` 可选；广场关闭或当前用户无权访问时不渲染，可见性与目标路由见 `utils/modelPlazaAccess.ts`）。管理端照常显示倍率。
+- 调用共享的 `GroupBadge` / `GroupOptionItem` 时，去掉倍率参数必须同时去掉高峰参数（否则按基准 1 算出错误的高峰比例）；不要为此修改这两个共享组件。
+- 「相比官方价」类折扣统一用 `utils/priceDiscount.ts`：`d = 1 − (¥/$ 比例) ÷ 汇率`，四舍五入为 0% 时显示「≈ 官方价 / ≈ 原价」，无效输入显示「—」；汇率取 `appStore.usdCnyRate`（公开设置 `usd_cny_rate`），缺省 6.8。不要把倍率直接写成折扣（¥ 与 $ 不同币种）。
+- 模型广场每行倍率 = `user_rate_multiplier ?? rate_multiplier ?? 分组生效倍率`（后者兼容旧后端）。用户端使用记录明细每项 × `实扣 ÷ 原始费用` 显示 ¥，合计等于实扣；管理端保持美元明细。

@@ -33,18 +33,15 @@
       {{ t('modelPlaza.loadFailed') }}
     </div>
     <template v-else>
-      <!-- 筛选区:平台 → 分组 → 倍率 -->
+      <!-- 筛选区:平台 → 分组 → 模型(CUSTOM: 去掉倍率筛选) -->
       <PlazaFilterBar
         :platforms="platforms"
         :groups="groupOptions"
-        :rates="rates"
         :platform="selectedPlatform"
         :group-id="selectedGroupId"
-        :rate="selectedRate"
         :search="searchQuery"
         @update:platform="selectedPlatform = $event"
         @update:group-id="selectedGroupId = $event"
-        @update:rate="selectedRate = $event"
         @update:search="searchQuery = $event"
       />
 
@@ -63,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
@@ -80,6 +77,8 @@ const props = defineProps<{
   error?: boolean
   /** 后台内嵌形态(AppLayout 内):隐藏页头。 */
   embedded?: boolean
+  /** CUSTOM: 数据加载完后滚动到该分组(来自 ?group=<id>);分组不可见时忽略。 */
+  focusGroupId?: number | null
 }>()
 
 const { t } = useI18n()
@@ -88,7 +87,6 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 const selectedPlatform = ref<string>('all')
 const selectedGroupId = ref<number | 'all'>('all')
-const selectedRate = ref<number | 'all'>('all')
 const searchQuery = ref('')
 
 const searchActive = computed(() => searchQuery.value.trim() !== '')
@@ -99,7 +97,7 @@ const descriptionHtml = computed(() => {
   return DOMPurify.sanitize(marked.parse(md) as string)
 })
 
-/** 生效倍率 = 用户专属倍率 ?? 分组默认倍率。 */
+/** 生效倍率 = 用户专属倍率 ?? 分组默认倍率;仅用于分组排序(CUSTOM: 不再展示)。 */
 function effectiveRate(g: ModelPlazaGroup): number {
   return resolveEffectiveRate(g.rate_multiplier, g.user_rate_multiplier) ?? g.rate_multiplier
 }
@@ -112,22 +110,9 @@ const groupOptions = computed(() =>
   (props.response?.groups ?? []).map((g) => ({
     id: g.id,
     name: g.name,
-    platform: g.platform,
-    rate: effectiveRate(g)
+    platform: g.platform
   }))
 )
-
-/** 全量生效倍率;当前组合下不可用的项由 FilterBar 置灰而非隐藏。 */
-const rates = computed(() =>
-  [...new Set((props.response?.groups ?? []).map(effectiveRate))].sort((a, b) => a - b)
-)
-
-/** 数据刷新后选中的倍率可能不复存在,重置为全部。 */
-watch(rates, (list) => {
-  if (selectedRate.value !== 'all' && !list.includes(selectedRate.value)) {
-    selectedRate.value = 'all'
-  }
-})
 
 const filteredGroups = computed(() => {
   let groups = props.response?.groups ?? []
@@ -136,9 +121,6 @@ const filteredGroups = computed(() => {
   }
   if (selectedGroupId.value !== 'all') {
     groups = groups.filter((g) => g.id === selectedGroupId.value)
-  }
-  if (selectedRate.value !== 'all') {
-    groups = groups.filter((g) => effectiveRate(g) === selectedRate.value)
   }
   // 模型名搜索:分组内只留命中的模型,整组无命中则隐藏该分组。
   const q = searchQuery.value.trim().toLowerCase()
@@ -152,6 +134,25 @@ const filteredGroups = computed(() => {
     (a, b) => effectiveRate(a) - effectiveRate(b) || a.name.localeCompare(b.name)
   )
 })
+
+/**
+ * CUSTOM: ?group=<id> 定位。数据首次就绪后滚动一次;分组不在列表中(专属分组、未登录等)时忽略。
+ */
+let focusHandled = false
+watch(
+  () => [props.loading, props.response, props.focusGroupId] as const,
+  async ([loading, response, focusGroupId]) => {
+    if (focusHandled || loading || !response || focusGroupId == null) return
+    focusHandled = true
+    if (!response.groups.some((g) => g.id === focusGroupId)) return
+    await nextTick()
+    const el = typeof document === 'undefined' ? null : document.getElementById(`plaza-group-${focusGroupId}`)
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

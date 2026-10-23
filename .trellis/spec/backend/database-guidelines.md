@@ -70,6 +70,13 @@ return tx.Commit()
 - 开销（本机 PG 18，`research/perf.md`，任务 `10-23-admin-team-consumption`）：每个语句约多 0.05–0.08 ms；但同一事务内对同一汇总行反复更新会拉长版本链，单行插入循环 5000 次时每条约 1–1.5 ms。批量写入同一键的明细时合并成一条语句。
 - 核对汇总与明细用按主键 `FULL JOIN` 比较，不要对两个大的聚合结果做 `EXCEPT`（260 万行流水上 `EXCEPT` 十几分钟不结束，`FULL JOIN` 2.5 s）。
 
+## fork 自有配置小表
+
+- fork 新增的配置数据（如 `group_model_rate_multipliers`，迁移 253）用**独立新表 + 原生 SQL 仓储**，不改上游 Ent schema 和 `groups` 等上游表：上游频繁改动的 schema、认证缓存快照和仓储文件一加字段就会在每次合并时冲突。上游的 `user_group_rate_multipliers` 也是同样做法。
+- 外键 `REFERENCES groups(id) ON DELETE CASCADE`；分组是软删除，读全表时 `JOIN groups ... WHERE groups.deleted_at IS NULL`。整组替换在一个事务里「先删后插」。
+- 请求热路径读这类小表时用进程内整表快照（`map[groupID]` 索引，30 秒过期 + singleflight），管理端保存后清本进程快照；多实例最多 30 秒后生效。不要为它改认证缓存快照或升快照版本。
+- 设置类数据（如美元汇率 `fx_usd_cny_*`）直接用 `settings` 表的 key，key 常量定义在 fork 文件里。
+
 ## 常见错误
 
 - 改了 schema 却未运行/提交 Ent 生成代码。

@@ -102,6 +102,7 @@ type Config struct {
 	Timezone                string                        `mapstructure:"timezone"` // e.g. "Asia/Shanghai", "UTC"
 	Gemini                  GeminiConfig                  `mapstructure:"gemini"`
 	Update                  UpdateConfig                  `mapstructure:"update"`
+	FX                      FXConfig                      `mapstructure:"fx"` // CUSTOM: 美元汇率来源
 	Idempotency             IdempotencyConfig             `mapstructure:"idempotency"`
 	BatchImage              BatchImageConfig              `mapstructure:"batch_image"`
 	ImageStorage            ImageStorageConfig            `mapstructure:"image_storage"`
@@ -186,6 +187,13 @@ type UpdateConfig struct {
 	// 支持 http/https/socks5/socks5h 协议
 	// 例如: "http://127.0.0.1:7890", "socks5://127.0.0.1:1080"
 	ProxyURL string `mapstructure:"proxy_url"`
+}
+
+// FXConfig 美元兑人民币汇率（CUSTOM，fork）：仅用于展示折扣，不参与计费。
+type FXConfig struct {
+	// SourceURLs 非空时替换内置的三个汇率来源（按顺序尝试，第一个成功即用）。
+	// 环境变量 FX_SOURCE_URLS 用逗号或空白分隔；响应格式按内容识别（rates.CNY 或 usd.cny）。
+	SourceURLs []string `mapstructure:"source_urls"`
 }
 
 type IdempotencyConfig struct {
@@ -2651,6 +2659,7 @@ func setEnvReachableDefaults() {
 	viper.SetDefault("gateway.session_idle_timeout_minutes", 0)
 	viper.SetDefault("gateway.user_message_queue.mode", "")
 	viper.SetDefault("update.proxy_url", "")
+	viper.SetDefault("fx.source_urls", []string{}) // CUSTOM: 让 FX_SOURCE_URLS 可经环境变量注入
 
 	// sticky_escape_enabled is the one exception to the zero-value rule: its
 	// effective default is true, applied post-unmarshal via a viper.IsSet guard.
