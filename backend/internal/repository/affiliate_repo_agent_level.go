@@ -312,14 +312,17 @@ WHERE user_id = $1`, userID, nullableInt64Arg(ownerID), service.AffiliateAgentLe
 	return nil
 }
 
-// CountAgentAppointments 统计某一级代理当前任命且仍为二级的人数。
+// CountAgentAppointments 统计占用某一级代理任命名额的人数：由他任命、仍为二级、仍归属他且账号
+// 未删除，即他还能取消的二级。被管理员改挂走或账号已删除的二级他取消不了，不再占名额。
 func (r *affiliateRepository) CountAgentAppointments(ctx context.Context, appointerID int64) (int, error) {
 	client := clientFromContext(ctx, r.client)
 	n, err := scanInt64(ctx, client, `
 SELECT COUNT(*)
-FROM user_affiliates
-WHERE agent_level = 2
-  AND agent_level_source = $2
-  AND agent_level_updated_by = $1`, appointerID, service.AffiliateAgentLevelSourceAgent)
+FROM user_affiliates ua
+JOIN users u ON u.id = ua.user_id AND u.deleted_at IS NULL
+WHERE ua.agent_level = 2
+  AND ua.agent_level_source = $2
+  AND ua.agent_level_updated_by = $1
+  AND ua.agent_owner_id = $1`, appointerID, service.AffiliateAgentLevelSourceAgent)
 	return int(n), err
 }

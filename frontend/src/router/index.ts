@@ -264,6 +264,44 @@ const routes: RouteRecordRaw[] = [
       descriptionKey: 'affiliate.description'
     }
   },
+  // 代理团队消费页：三个路由名共用同一视图（团队总览 / 某二级代理的团队 / 单个客户），权限由后端判断。
+  // 顶栏沿用「邀请返利」作为所属栏目，页内面包屑即页面标题，避免两处重复「团队消费」。
+  {
+    path: '/affiliate/team',
+    name: 'AffiliateTeam',
+    component: () => import('@/views/user/AffiliateTeamView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
+  {
+    path: '/affiliate/team/agents/:id',
+    name: 'AffiliateTeamAgent',
+    component: () => import('@/views/user/AffiliateTeamView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
+  {
+    path: '/affiliate/team/customers/:id',
+    name: 'AffiliateTeamCustomer',
+    component: () => import('@/views/user/AffiliateTeamView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
   {
     path: '/available-channels',
     name: 'UserAvailableChannels',

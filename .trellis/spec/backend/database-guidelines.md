@@ -54,6 +54,18 @@ return tx.Commit()
 - runner 不解析 goose 的 Up/Down 段；同一文件中不要放可执行的 Down SQL。
 - DDL 尽量幂等，说明数据回填、安全检查或锁影响。复杂迁移增加针对 SQL 或最终 schema 的 integration test；参考 `migrations_schema_integration_test.go` 和 `openai_long_context_billing_migration_integration_test.go`。
 
+## 触发器维护的汇总表
+
+`usage_logs` 上有两类汇总：222/223 的分组日汇总（水位 + 定时重建），和 251 的用户日汇总 `usage_user_daily_rollups`（语句级触发器增量维护，代理团队消费页使用）。新增类似汇总时按 251 的约定：
+
+- 用 `AFTER INSERT/DELETE/UPDATE ... REFERENCING NEW/OLD TABLE ... FOR EACH STATEMENT`，一个函数按 `TG_OP` 先扣旧行再加新行；带转换表的触发器不能写列清单。
+- 增量 upsert 先 `GROUP BY` 主键（同一语句同一键只能出现一次），再 `ORDER BY` 主键（并发批次同序加锁，避免死锁）。
+- 函数体包 `EXCEPTION WHEN OTHERS THEN RAISE WARNING`：汇总失败不能让计费明细写入失败。
+- 日界固定写 `(created_at AT TIME ZONE 'Asia/Shanghai')::date`，Go 侧用 `service.AffiliateTeamLocation`（固定 +8，不依赖 tzdata）。
+- 迁移内先建触发器再回填（同一事务，无空档）；回填与运维修复复用同一个 SQL 函数，例如 `SELECT rebuild_usage_user_daily_rollups(DATE '2026-10-01', DATE '2026-10-22');`（先删区间再 `ON CONFLICT` 累加，可与并发写入同时执行）。
+- 整月删分区不经过触发器：保留期清理（`CleanupUsageLogs`）里按日期删除过期汇总。
+- 多维读取尽量一次扫描：`GROUP BY GROUPING SETS ((bucket_date), (model), (user_id))` 同时出趋势、分布和按用户汇总（见 `affiliate_team_repo.go` 的 `GetAggregates`）。
+
 ## 常见错误
 
 - 改了 schema 却未运行/提交 Ent 生成代码。

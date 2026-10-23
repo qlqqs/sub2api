@@ -15,7 +15,10 @@ import type {
   NotifyEmailEntry,
   UserAuthProvider,
   UserAffiliateDetail,
+  AffiliateInvitee,
   AffiliateTransferResponse,
+  BasePaginationResponse,
+  FetchOptions,
   SetInviteeAgentLevelResponse,
   PlatformQuotasResponse,
 } from '@/types'
@@ -182,6 +185,27 @@ export async function getAffiliateDetail(): Promise<UserAffiliateDetail> {
   return data
 }
 
+export interface AffiliateInviteeListParams {
+  /** 昵称模糊匹配，或完整邮箱精确匹配。 */
+  search?: string
+  page?: number
+  page_size?: number
+}
+
+/**
+ * 我的直属邀请人（昵称 + 脱敏邮箱），分页、可搜索；默认每页 20，最大 100。
+ */
+export async function listAffiliateInvitees(
+  params: AffiliateInviteeListParams,
+  options: FetchOptions = {}
+): Promise<BasePaginationResponse<AffiliateInvitee>> {
+  const { data } = await apiClient.get<BasePaginationResponse<AffiliateInvitee>>('/user/aff/invitees', {
+    params,
+    signal: options.signal
+  })
+  return data
+}
+
 export async function transferAffiliateQuota(): Promise<AffiliateTransferResponse> {
   const { data } = await apiClient.post<AffiliateTransferResponse>('/user/aff/transfer')
   return data
@@ -223,6 +247,7 @@ export const userAPI = {
   buildOAuthBindingStartURL,
   startOAuthBinding,
   getAffiliateDetail,
+  listAffiliateInvitees,
   transferAffiliateQuota,
   setInviteeAgentLevel,
   getMyPlatformQuotas,

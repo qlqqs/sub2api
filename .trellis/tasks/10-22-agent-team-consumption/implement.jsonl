@@ -1,0 +1,11 @@
+{"file": ".trellis/spec/backend/index.md", "reason": "后端分层与开发前检查"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "迁移、触发器、原生 SQL 与软删除条件"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "routes→handler→service 端口→repo，wire_gen 只能生成"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "稳定错误码与 response 帮助函数"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "测试标签、手写桩同步、Gin 参数名规则"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "前端开发前检查"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "复用 DataTable/Pagination，明暗主题，中英文同步"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "深链筛选写入 route query"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "AbortController 与卸载清理"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "snake_case 字段与排序字面量类型"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "复用现有格式化函数与组件"}

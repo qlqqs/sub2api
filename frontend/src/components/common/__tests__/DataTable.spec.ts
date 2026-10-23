@@ -357,4 +357,25 @@ describe('DataTable', () => {
 
     expect(wrapper.emitted('update:selectedKeys')?.at(-1)?.[0]).toEqual([99, 1, 2])
   })
+
+  it('keeps the scrollable table with a sticky first column on narrow viewports when alwaysTable is set', () => {
+    stubMobileMatchMedia()
+    const props = {
+      columns: [
+        { key: 'name', label: 'Name' },
+        { key: 'cost', label: 'Cost' }
+      ],
+      data: [{ id: 1, name: 'One', cost: 2 }]
+    }
+
+    const cards = mount(DataTable, { props })
+    expect(cards.find('table').exists()).toBe(false)
+
+    const table = mount(DataTable, { props: { ...props, alwaysTable: true } })
+    expect(table.find('table').exists()).toBe(true)
+    expect(table.get('tbody td').classes()).toContain('sticky-col-left')
+
+    cards.unmount()
+    table.unmount()
+  })
 })

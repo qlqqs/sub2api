@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!isDesktopViewport" class="space-y-3">
+  <div v-if="!useTableLayout" class="space-y-3">
     <template v-if="loading">
       <div v-for="i in 5" :key="i" class="rounded-lg border border-gray-200 bg-white p-4 dark:border-dark-700 dark:bg-dark-900">
         <div class="space-y-3">
@@ -471,6 +471,11 @@ interface Props {
   selectedKeys?: Array<string | number>
   /** Accessible label for a row selection checkbox. */
   selectionLabel?: string | ((row: any) => string)
+  /**
+   * Keep the horizontally scrollable table (with the sticky first column) on narrow
+   * viewports instead of switching to the mobile card list.
+   */
+  alwaysTable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -481,8 +486,11 @@ const props = withDefaults(defineProps<Props>(), {
   defaultSortOrder: 'asc',
   serverSideSort: false,
   selectable: false,
-  selectedKeys: () => []
+  selectedKeys: () => [],
+  alwaysTable: false
 })
+
+const useTableLayout = computed(() => props.alwaysTable || isDesktopViewport.value)
 
 const sortKey = ref<string>('')
 const sortOrder = ref<'asc' | 'desc'>('asc')
@@ -640,7 +648,7 @@ const columnsSignature = computed(() =>
 )
 
 watch(
-  isDesktopViewport,
+  useTableLayout,
   async (isDesktop) => {
     detachDesktopTableTracking()
     if (!isDesktop) return
@@ -754,7 +762,7 @@ const toggleAllVisible = (checked: boolean) => {
 // 是否启用虚拟化:仅桌面端且行数超过阈值时开启。小列表全量渲染,彻底绕开虚拟器的
 // 估算/测量/滚动补偿链路,消除可变行高导致的滚动抖动。
 const shouldVirtualize = computed(() =>
-  isDesktopViewport.value && (sortedData.value?.length ?? 0) > (props.virtualizeThreshold ?? 100)
+  useTableLayout.value && (sortedData.value?.length ?? 0) > (props.virtualizeThreshold ?? 100)
 )
 
 const rowVirtualizer = useVirtualizer(computed(() => ({

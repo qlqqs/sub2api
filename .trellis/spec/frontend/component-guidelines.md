@@ -31,7 +31,7 @@ const emit = defineEmits<{
 - 主要使用 Tailwind utilities，并复用 `style.css` 中的语义类，如 `btn`、`input`、`modal-*`、`table-*`。
 - 同时提供 light/dark 类；主色使用 Tailwind 配置中的 `primary`，中性色使用 gray/dark 体系。
 - 复用已有 `Icon`、`BaseDialog`、`DataTable`、`Pagination`、表单控件和 layout，不复制一套相近交互。
-- 保持移动端和桌面行为。`DataTable.vue` 在窄屏改为卡片列表，在桌面保留表格和虚拟化，是复杂响应式组件的参考。
+- 保持移动端和桌面行为。`DataTable.vue` 在窄屏改为卡片列表，在桌面保留表格和虚拟化，是复杂响应式组件的参考；行多、列少的统计表可传 `always-table`，窄屏也保留横向滚动表格与固定首列（见团队消费页）。
 - 状态变化不应改变固定控件的占位尺寸，避免 loading、图标或长文本造成布局跳动/覆盖。
 
 ## 文案与安全

@@ -8,6 +8,9 @@
       </div>
 
       <template v-else-if="detail">
+        <!-- 分区：邀请 | 团队消费（只对能进入团队消费页的用户显示） -->
+        <AffiliateSectionTabs v-if="detail.team_access" />
+
         <!-- 代理：档位与比例 -->
         <div v-if="isAgent" class="card p-5" data-test="affiliate-agent-card">
           <p class="text-lg font-semibold text-gray-900 dark:text-white" data-test="affiliate-agent-level">
@@ -107,24 +110,42 @@
           </div>
         </div>
 
-        <!-- 邀请列表 -->
-        <div class="card p-6" data-test="affiliate-invitees">
-          <div class="flex flex-wrap items-center justify-between gap-2">
+        <!-- 邀请列表：分页 + 搜索（昵称模糊 / 完整邮箱） -->
+        <div class="card overflow-hidden p-6" data-test="affiliate-invitees">
+          <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <h3 class="text-base font-semibold text-gray-900 dark:text-white">{{ t('affiliate.invitees.title') }}</h3>
-            <p v-if="appoint" class="text-sm text-gray-600 dark:text-gray-300" data-test="affiliate-appoint-summary">
-              {{ t('affiliate.invitees.appointSummary', { used: appoint.used, max: appoint.max > 0 ? appoint.max : t('affiliate.invitees.unlimited') }) }}
-            </p>
+            <div class="flex w-full flex-wrap items-center justify-end gap-x-4 gap-y-2 sm:w-auto">
+              <p v-if="appoint" class="text-sm text-gray-600 dark:text-gray-300" data-test="affiliate-appoint-summary">
+                {{ t('affiliate.invitees.appointSummary', { used: appoint.used, max: appoint.max > 0 ? appoint.max : t('affiliate.invitees.unlimited') }) }}
+              </p>
+              <div v-if="inviteeTotal > 0 || inviteeSearch" class="w-full sm:w-64" data-test="affiliate-invitee-search">
+                <SearchInput
+                  v-model="inviteeSearchDraft"
+                  :placeholder="t('affiliate.team.searchPlaceholder')"
+                  :debounce-ms="300"
+                  @search="onInviteeSearch"
+                />
+              </div>
+            </div>
           </div>
           <p v-if="appointLimitReached" class="mt-1 text-xs text-amber-600 dark:text-amber-400" data-test="affiliate-appoint-limit">
             {{ t('affiliate.invitees.limitReached') }}
           </p>
-          <div v-if="detail.invitees.length === 0" class="mt-4 rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-dark-700 dark:text-dark-400">
-            {{ t('affiliate.invitees.empty') }}
+          <div v-if="!inviteesLoaded" class="mt-4 space-y-3" aria-hidden="true">
+            <div v-for="i in 3" :key="i" class="h-5 animate-pulse rounded bg-gray-100 dark:bg-dark-700/60"></div>
           </div>
-          <div v-else class="mt-4 overflow-x-auto">
-            <table class="w-full min-w-[560px] text-left text-sm">
+          <div
+            v-else-if="invitees.length === 0"
+            class="mt-4 rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-dark-700 dark:text-dark-400"
+            data-test="affiliate-invitees-empty"
+          >
+            {{ inviteeSearch ? t('affiliate.invitees.noMatches') : t('affiliate.invitees.empty') }}
+          </div>
+          <div v-else :class="['mt-4 overflow-x-auto transition-opacity', inviteesLoading && 'opacity-60']">
+            <table class="w-full min-w-[640px] whitespace-nowrap text-left text-sm">
               <thead>
                 <tr class="border-b border-gray-200 text-gray-500 dark:border-dark-700 dark:text-dark-400">
+                  <th scope="col" class="px-3 py-2 font-medium" data-test="affiliate-col-nickname">{{ t('affiliate.invitees.columns.nickname') }}</th>
                   <th scope="col" class="px-3 py-2 font-medium">{{ t('affiliate.invitees.columns.email') }}</th>
                   <th scope="col" class="px-3 py-2 font-medium">{{ t('affiliate.invitees.columns.joinedAt') }}</th>
                   <th v-if="isAgent" scope="col" class="px-3 py-2 font-medium" data-test="affiliate-col-ownership">{{ t('affiliate.invitees.columns.ownership') }}</th>
@@ -134,12 +155,13 @@
               </thead>
               <tbody>
                 <tr
-                  v-for="item in detail.invitees"
+                  v-for="item in invitees"
                   :key="item.user_id"
                   class="border-b border-gray-100 last:border-b-0 dark:border-dark-800"
                   :data-test="'affiliate-invitee-' + item.user_id"
                 >
-                  <td class="px-3 py-3 text-gray-900 dark:text-white">{{ item.email || '-' }}</td>
+                  <td class="px-3 py-3 font-medium text-gray-900 dark:text-white" data-test="affiliate-invitee-nickname">{{ item.username || '-' }}</td>
+                  <td class="px-3 py-3 text-gray-500 dark:text-dark-400">{{ item.email || '-' }}</td>
                   <td class="px-3 py-3 text-gray-700 dark:text-gray-300">{{ formatDateTime(item.created_at) || '-' }}</td>
                   <td v-if="isAgent" class="px-3 py-3 text-gray-700 dark:text-gray-300" data-test="affiliate-invitee-ownership">
                     {{ item.owned_by_me ? t('affiliate.invitees.ownedByMe') : t('affiliate.invitees.ownedByOther') }}
@@ -179,6 +201,15 @@
               </tbody>
             </table>
           </div>
+          <Pagination
+            v-if="inviteeTotal > INVITEE_PAGE_SIZE"
+            class="-mx-6 -mb-6 mt-4"
+            :total="inviteeTotal"
+            :page="inviteePage"
+            :page-size="INVITEE_PAGE_SIZE"
+            :show-page-size-selector="false"
+            @update:page="onInviteePage"
+          />
         </div>
       </template>
     </div>
@@ -194,11 +225,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
+import Pagination from '@/components/common/Pagination.vue'
+import SearchInput from '@/components/common/SearchInput.vue'
 import Icon from '@/components/icons/Icon.vue'
+import AffiliateSectionTabs from '@/components/user/AffiliateSectionTabs.vue'
 import userAPI from '@/api/user'
 import type { AffiliateInvitee, UserAffiliateDetail } from '@/types'
 import { useAppStore } from '@/stores/app'
@@ -317,6 +351,65 @@ async function loadAffiliateDetail(silent = false): Promise<void> {
   }
 }
 
+// ---------- 邀请列表（分页 + 搜索） ----------
+const INVITEE_PAGE_SIZE = 20
+const invitees = ref<AffiliateInvitee[]>([])
+const inviteeTotal = ref(0)
+const inviteePage = ref(1)
+/** 已生效的搜索词；inviteeSearchDraft 是输入框里的草稿（防抖后才生效）。 */
+const inviteeSearch = ref('')
+const inviteeSearchDraft = ref('')
+const inviteesLoaded = ref(false)
+const inviteesLoading = ref(false)
+let inviteeController: AbortController | null = null
+
+function isCancel(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+  const e = error as { name?: unknown; code?: unknown }
+  return e.name === 'AbortError' || e.name === 'CanceledError' || e.code === 'ERR_CANCELED'
+}
+
+async function loadInvitees(): Promise<void> {
+  inviteeController?.abort()
+  const controller = new AbortController()
+  inviteeController = controller
+  inviteesLoading.value = true
+  try {
+    const res = await userAPI.listAffiliateInvitees(
+      { search: inviteeSearch.value || undefined, page: inviteePage.value, page_size: INVITEE_PAGE_SIZE },
+      { signal: controller.signal }
+    )
+    if (inviteeController !== controller) return
+    invitees.value = res.items ?? []
+    inviteeTotal.value = res.total ?? 0
+    inviteesLoaded.value = true
+    // 取消任命等操作后当前页可能已越界：回到最后一页。
+    if (invitees.value.length === 0 && inviteeTotal.value > 0 && inviteePage.value > 1) {
+      inviteePage.value = Math.max(1, res.pages)
+      void loadInvitees()
+    }
+  } catch (error) {
+    if (inviteeController !== controller || isCancel(error)) return
+    appStore.showError(extractApiErrorMessage(error, t('affiliate.loadFailed')))
+  } finally {
+    if (inviteeController === controller) {
+      inviteeController = null
+      inviteesLoading.value = false
+    }
+  }
+}
+
+function onInviteeSearch(value: string) {
+  inviteeSearch.value = value.trim()
+  inviteePage.value = 1
+  void loadInvitees()
+}
+
+function onInviteePage(page: number) {
+  inviteePage.value = page
+  void loadInvitees()
+}
+
 async function copyCode(): Promise<void> {
   if (!detail.value?.aff_code) return
   await copyToClipboard(detail.value.aff_code, t('affiliate.codeCopied'))
@@ -377,7 +470,8 @@ async function setInviteeLevel(invitee: AffiliateInvitee, level: 2 | 3, successK
   try {
     await userAPI.setInviteeAgentLevel(invitee.user_id, level)
     appStore.showSuccess(t(successKey))
-    await loadAffiliateDetail(true)
+    // 任命计数在详情里，身份与按钮在当前页列表里，两者都刷新。
+    await Promise.all([loadAffiliateDetail(true), loadInvitees()])
   } catch (error) {
     appStore.showError(extractI18nErrorMessage(error, t, 'affiliate.errors', t('common.error')))
   } finally {
@@ -404,5 +498,10 @@ function askRevoke(invitee: AffiliateInvitee) {
 
 onMounted(() => {
   void loadAffiliateDetail()
+  void loadInvitees()
+})
+
+onBeforeUnmount(() => {
+  inviteeController?.abort()
 })
 </script>

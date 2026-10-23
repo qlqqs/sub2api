@@ -84,22 +84,6 @@ func (s *AffiliateService) GetAffiliateDetail(ctx context.Context, userID int64)
 		}
 		detail.Appoint = &AffiliateAppointInfo{Max: cfg.AppointMax, Used: used}
 	}
-
-	invitees, err := s.listInvitees(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	for i := range invitees {
-		inv := &invitees[i]
-		inv.AgentLevel = normalizeAgentLevel(inv.AgentLevel)
-		inv.OwnedByMe = inv.AgentOwnerID != nil && *inv.AgentOwnerID == userID
-		inv.AppointedByMe = appointedBy(inv.AgentLevel, inv.AgentLevelSource, inv.AgentLevelUpdatedBy, userID)
-		// Appointable 只表示资格；是否已达任命上限由前端按 appoint.used / appoint.max 判断。
-		inv.Appointable = detail.Appoint != nil && inv.OwnedByMe &&
-			inv.AgentLevel == AffiliateAgentLevelDefault &&
-			!lockedByAdmin(inv.AgentLevelLocked, inv.AgentLevelSource)
-	}
-	detail.Invitees = invitees
 	return detail, nil
 }
 

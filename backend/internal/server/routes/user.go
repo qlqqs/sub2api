@@ -33,7 +33,18 @@ func RegisterUserRoutes(
 			user.PUT("", h.User.UpdateProfile)
 			user.GET("/aff", h.User.GetAffiliate)
 			user.POST("/aff/transfer", h.User.TransferAffiliateQuota)
+			user.GET("/aff/invitees", h.User.ListAffiliateInvitees)
 			user.POST("/aff/invitees/:user_id/agent-level", h.User.SetInviteeAgentLevel)
+
+			// 代理团队消费页：多客户聚合查询，计入重型限流
+			team := user.Group("/aff/team")
+			team.Use(panelRateLimiter.Heavy())
+			{
+				team.GET("/overview", h.AffiliateTeam.Overview)
+				team.GET("/customers", h.AffiliateTeam.ListCustomers)
+				team.GET("/agents", h.AffiliateTeam.ListAgents)
+				team.GET("/customers/:user_id/requests", h.AffiliateTeam.ListRequests)
+			}
 			user.POST("/account-bindings/email/send-code", h.User.SendEmailBindingCode)
 			user.POST("/account-bindings/email", h.User.BindEmailIdentity)
 			user.DELETE("/account-bindings/:provider", h.User.UnbindIdentity)

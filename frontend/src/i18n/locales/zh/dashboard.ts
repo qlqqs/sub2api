@@ -760,6 +760,9 @@ export default {
       inviteeBonus: '好友首充额外送 {bonus}',
       inviteeBonusWithMin: '好友首充满 {min} 额外送 {bonus}'
     },
+    tabs: {
+      invite: '邀请'
+    },
     becomeAgent: {
       title: '成为代理',
       progress: '再邀请 {remaining} 人升为{level}（{count}/{threshold}）',
@@ -789,8 +792,10 @@ export default {
     invitees: {
       title: '邀请列表',
       empty: '暂无邀请记录',
+      noMatches: '没有匹配的好友',
       columns: {
-        email: '好友',
+        nickname: '昵称',
+        email: '邮箱',
         joinedAt: '注册时间',
         ownership: '归属',
         rebate: '为你带来的收益',
@@ -822,6 +827,90 @@ export default {
       line1: '将邀请码或邀请链接分享给好友注册。',
       line2: '收益进入返利余额，可随时转入账户余额。',
       line3: '新产生的收益需要经过冻结期后才能转出。'
+    },
+    team: {
+      title: '团队消费',
+      breadcrumb: '层级',
+      downgradedNotice: '你当前不是代理，以下为代理期间归属你的客户，分润照常',
+      rangeClamped: '时间范围最长 {days} 天，已调整开始日期',
+      loadFailed: '加载团队消费数据失败',
+      notFound: '客户不存在或无权查看',
+      forbidden: '团队消费仅对代理开放',
+      backToTeam: '返回团队消费',
+      backToAffiliate: '返回邀请返利',
+      deleted: '已删除',
+      subAgent: '二级代理',
+      historical: '历史',
+      historicalHint: 'TA 已不是你的二级代理，之前的客户仍为你带来差额收益',
+      myCustomer: '我的客户',
+      customerOf: '{name}的客户',
+      agentCustomers: '{name}的客户',
+      boundAt: '{date} 绑定',
+      lifetimeEarnings: '累计收益 {amount}',
+      requestsTitle: '请求明细',
+      searchPlaceholder: '昵称或完整邮箱',
+      summary: {
+        cost: '消费',
+        split: '直属 {direct} · 下级 {sub}',
+        earnings: '收益',
+        earningsHint: '按入账时间统计；消费每 {n} 分钟结算一次，最近的消费可能尚未入账',
+        activeCustomers: '活跃客户',
+        requests: '请求',
+        tokens: 'Token'
+      },
+      chart: {
+        cost: '消费',
+        earnings: '收益',
+        empty: '该时间段没有消费'
+      },
+      models: {
+        title: '模型',
+        other: '其他'
+      },
+      tabs: {
+        customers: '我的客户',
+        agents: '下级代理'
+      },
+      columns: {
+        customer: '客户',
+        cost: '消费',
+        requests: '请求',
+        earnings: '收益',
+        lastUsed: '最近使用',
+        agent: '代理',
+        activeCustomers: '活跃 / 客户',
+        teamCost: '团队消费',
+        time: '时间',
+        model: '模型',
+        group: '分组',
+        tokens: 'Token',
+        charge: '扣费'
+      },
+      filters: {
+        model: '模型',
+        group: '分组',
+        all: '全部',
+        noGroup: '无分组'
+      },
+      tokens: {
+        input: '输入',
+        output: '输出',
+        cacheRead: '缓存读取',
+        cacheWrite: '缓存写入',
+        total: '合计',
+        images: '{n} 张',
+        videos: '{n} 条'
+      },
+      empty: {
+        noCustomers: '还没有客户',
+        invite: '去邀请',
+        noMatches: '没有匹配的客户',
+        noAgents: '还没有下级代理',
+        noRequests: '该时间段没有请求'
+      },
+      errors: {
+        AFFILIATE_TEAM_INVALID_RANGE: '时间范围需在 1 到 90 天之间'
+      }
     }
   },
 

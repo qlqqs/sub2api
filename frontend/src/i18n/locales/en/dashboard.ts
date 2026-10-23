@@ -756,6 +756,9 @@ export default {
       inviteeBonus: 'Friends get an extra {bonus} on their first recharge',
       inviteeBonusWithMin: 'Friends get an extra {bonus} on a first recharge of {min} or more'
     },
+    tabs: {
+      invite: 'Invite'
+    },
     becomeAgent: {
       title: 'Become an Agent',
       progress: 'Invite {remaining} more to become a {level} ({count}/{threshold})',
@@ -785,8 +788,10 @@ export default {
     invitees: {
       title: 'Invited Friends',
       empty: 'No invited users yet',
+      noMatches: 'No matching friends',
       columns: {
-        email: 'Friend',
+        nickname: 'Nickname',
+        email: 'Email',
         joinedAt: 'Joined At',
         ownership: 'Ownership',
         rebate: 'Earned For You',
@@ -818,6 +823,90 @@ export default {
       line1: 'Share your affiliate code or invite link with friends.',
       line2: 'Earnings go to your rebate balance and can be moved into your account balance at any time.',
       line3: 'Newly earned rewards have a freeze period before they can be transferred.'
+    },
+    team: {
+      title: 'Team Spend',
+      breadcrumb: 'Hierarchy',
+      downgradedNotice: 'You are no longer an agent. These are the customers you owned as an agent; profit sharing continues as usual.',
+      rangeClamped: 'The range is limited to {days} days; the start date was adjusted',
+      loadFailed: 'Failed to load team spend',
+      notFound: 'This customer does not exist or you cannot view it',
+      forbidden: 'Team spend is only available to agents',
+      backToTeam: 'Back to team spend',
+      backToAffiliate: 'Back to affiliate rewards',
+      deleted: 'Deleted',
+      subAgent: 'Level-2 agent',
+      historical: 'Former',
+      historicalHint: 'No longer your level-2 agent; their earlier customers still earn you the difference',
+      myCustomer: 'My customer',
+      customerOf: 'Customer of {name}',
+      agentCustomers: '{name}\'s customers',
+      boundAt: 'Bound {date}',
+      lifetimeEarnings: 'Lifetime earnings {amount}',
+      requestsTitle: 'Requests',
+      searchPlaceholder: 'Nickname or full email',
+      summary: {
+        cost: 'Spend',
+        split: 'Direct {direct} · Sub-agents {sub}',
+        earnings: 'Earnings',
+        earningsHint: 'Counted by settlement time. Spend is settled every {n} minutes, so the latest spend may not be credited yet.',
+        activeCustomers: 'Active customers',
+        requests: 'Requests',
+        tokens: 'Tokens'
+      },
+      chart: {
+        cost: 'Spend',
+        earnings: 'Earnings',
+        empty: 'No spend in this period'
+      },
+      models: {
+        title: 'Models',
+        other: 'Others'
+      },
+      tabs: {
+        customers: 'My customers',
+        agents: 'Sub-agents'
+      },
+      columns: {
+        customer: 'Customer',
+        cost: 'Spend',
+        requests: 'Requests',
+        earnings: 'Earnings',
+        lastUsed: 'Last used',
+        agent: 'Agent',
+        activeCustomers: 'Active / Customers',
+        teamCost: 'Team spend',
+        time: 'Time',
+        model: 'Model',
+        group: 'Group',
+        tokens: 'Tokens',
+        charge: 'Charge'
+      },
+      filters: {
+        model: 'Model',
+        group: 'Group',
+        all: 'All',
+        noGroup: 'No group'
+      },
+      tokens: {
+        input: 'Input',
+        output: 'Output',
+        cacheRead: 'Cache read',
+        cacheWrite: 'Cache write',
+        total: 'Total',
+        images: '{n} image | {n} images',
+        videos: '{n} video | {n} videos'
+      },
+      empty: {
+        noCustomers: 'No customers yet',
+        invite: 'Invite friends',
+        noMatches: 'No matching customers',
+        noAgents: 'No sub-agents yet',
+        noRequests: 'No requests in this period'
+      },
+      errors: {
+        AFFILIATE_TEAM_INVALID_RANGE: 'The date range must cover 1 to 90 days'
+      }
     }
   },
 

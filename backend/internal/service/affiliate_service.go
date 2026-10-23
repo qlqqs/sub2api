@@ -28,7 +28,6 @@ var (
 )
 
 const (
-	affiliateInviteesLimit = 100
 	// AffiliateCodeMinLength / AffiliateCodeMaxLength bound both system-generated
 	// 12-char codes and admin-customized codes (e.g. "VIP2026").
 	AffiliateCodeMinLength = 4
@@ -196,6 +195,14 @@ type AffiliateInvitee struct {
 	AgentLevelSource    string `json:"-"`
 	AgentLevelLocked    bool   `json:"-"`
 	AgentLevelUpdatedBy *int64 `json:"-"`
+	Deleted             bool   `json:"-"` // 账号已删除：仍留在列表里，但不能再任命或取消
+}
+
+// AffiliateInviteeQuery 是用户端邀请列表的搜索与分页：昵称模糊匹配，邮箱只做完整匹配（列表展示的是脱敏邮箱）。
+type AffiliateInviteeQuery struct {
+	Search   string
+	Page     int
+	PageSize int
 }
 
 // AffiliateInviteRewardInfo 是普通用户邀请好友后自己能得的奖励（展示用）。
@@ -249,7 +256,8 @@ type AffiliateDetail struct {
 	FirstRechargeBonus *AffiliateInviteeBonusInfo `json:"first_recharge_bonus,omitempty"`
 	RewardTotals       AffiliateRewardTotals      `json:"reward_totals"`
 	Appoint            *AffiliateAppointInfo      `json:"appoint,omitempty"`
-	Invitees           []AffiliateInvitee         `json:"invitees"`
+	// TeamAccess：能否进入代理团队消费页（当前是代理，或名下仍有快照客户）。
+	TeamAccess bool `json:"team_access"`
 }
 
 type AffiliateRepository interface {
@@ -273,7 +281,7 @@ type AffiliateRepository interface {
 	ThawFrozenQuota(ctx context.Context, userID int64) (float64, error)
 	TransferQuotaToBalance(ctx context.Context, userID int64) (float64, float64, error)
 	WithdrawQuota(ctx context.Context, userID int64, amount float64, operationID string) (*AffiliateWithdrawResult, error)
-	ListInvitees(ctx context.Context, inviterID int64, limit int) ([]AffiliateInvitee, error)
+	ListInvitees(ctx context.Context, inviterID int64, query AffiliateInviteeQuery) ([]AffiliateInvitee, int64, error)
 
 	// 代理等级
 	// CountQualifiedInvitees 统计直属邀请人数；rechargedOnly 时只算有过真实支付充值的。
@@ -289,7 +297,7 @@ type AffiliateRepository interface {
 	SetAgentOwnerByAdmin(ctx context.Context, userID int64, ownerID *int64, adminID int64) error
 	// SetAgentLevelByAgent 一级代理任命 / 取消二级：来源记为 agent，locked 控制是否锁定自动升级。
 	SetAgentLevelByAgent(ctx context.Context, targetID int64, level int, appointerID int64, locked bool) error
-	// CountAgentAppointments 统计某一级代理当前任命的二级人数。
+	// CountAgentAppointments 统计占用某一级代理任命名额的人数（他任命、仍归属他、账号未删除的二级）。
 	CountAgentAppointments(ctx context.Context, appointerID int64) (int, error)
 	SetAgentLevelLocked(ctx context.Context, userIDs []int64, locked bool) error
 	// ListInviterIDs 按 user_id 升序分页列出有直属下级的用户，用于重新评估等级。
@@ -556,18 +564,38 @@ func (s *AffiliateService) TransferAffiliateQuota(ctx context.Context, userID in
 	return transferred, balance, nil
 }
 
-func (s *AffiliateService) listInvitees(ctx context.Context, inviterID int64) ([]AffiliateInvitee, error) {
+// ListInvitees 分页返回当前用户的直属邀请人（昵称 + 脱敏邮箱），并标注归属与可任命状态。
+func (s *AffiliateService) ListInvitees(ctx context.Context, userID int64, query AffiliateInviteeQuery) ([]AffiliateInvitee, int64, error) {
 	if s == nil || s.repo == nil {
-		return nil, infraerrors.ServiceUnavailable("SERVICE_UNAVAILABLE", "affiliate service unavailable")
+		return nil, 0, infraerrors.ServiceUnavailable("SERVICE_UNAVAILABLE", "affiliate service unavailable")
 	}
-	invitees, err := s.repo.ListInvitees(ctx, inviterID, affiliateInviteesLimit)
+	summary, err := s.EnsureUserAffiliate(ctx, userID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+	query.Page, query.PageSize = NormalizeAffiliatePaging(query.Page, query.PageSize)
+	query.Search = strings.TrimSpace(query.Search)
+	invitees, total, err := s.repo.ListInvitees(ctx, userID, query)
+	if err != nil {
+		return nil, 0, err
+	}
+	// 与 GetAffiliateDetail 的 Appoint 一致：一级代理且开启任命时才可任命。
+	canAppoint := normalizeAgentLevel(summary.AgentLevel) == AffiliateAgentLevelTop && s.rewardConfig(ctx).AppointEnabled
 	for i := range invitees {
-		invitees[i].Email = maskEmail(invitees[i].Email)
+		inv := &invitees[i]
+		inv.Email = maskEmail(inv.Email)
+		inv.AgentLevel = normalizeAgentLevel(inv.AgentLevel)
+		inv.OwnedByMe = inv.AgentOwnerID != nil && *inv.AgentOwnerID == userID
+		// 与 AppointAgentLevel 的校验和任命名额的统计一致：二级被管理员改挂给其他一级、或账号已删除后，
+		// 原任命人不能再取消，不显示「取消」；已删除的账号也不能任命。
+		inv.AppointedByMe = !inv.Deleted && inv.OwnedByMe &&
+			appointedBy(inv.AgentLevel, inv.AgentLevelSource, inv.AgentLevelUpdatedBy, userID)
+		// Appointable 只表示资格；是否已达任命上限由前端按 appoint.used / appoint.max 判断。
+		inv.Appointable = canAppoint && !inv.Deleted && inv.OwnedByMe &&
+			inv.AgentLevel == AffiliateAgentLevelDefault &&
+			!lockedByAdmin(inv.AgentLevelLocked, inv.AgentLevelSource)
 	}
-	return invitees, nil
+	return invitees, total, nil
 }
 
 func roundTo(v float64, scale int) float64 {

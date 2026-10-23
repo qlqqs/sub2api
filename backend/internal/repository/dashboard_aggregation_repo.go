@@ -245,6 +245,10 @@ func (r *dashboardAggregationRepository) CleanupUsageLogs(ctx context.Context, c
 	if err := r.cleanupUsageLogsBatches(ctx, cutoff); err != nil {
 		return err
 	}
+	// 用户日汇总：批量删除已由触发器扣减；整月删分区不经过触发器，这里按日期统一收尾。
+	if _, err := r.sql.ExecContext(ctx, "DELETE FROM usage_user_daily_rollups WHERE bucket_date < $1::date", service.UsageUserRollupDate(cutoff)); err != nil {
+		return err
+	}
 	return r.SyncGroupUsageRollups(ctx, service.GroupUsageTodayStart(r.now()))
 }
 

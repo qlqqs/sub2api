@@ -216,8 +216,137 @@ export interface UserAffiliateDetail {
   reward_totals?: AffiliateRewardTotals | null
   /** 仅一级代理且任命开关开启时出现；max = 0 不限。 */
   appoint?: { max: number; used: number } | null
-  invitees: AffiliateInvitee[]
+  /** 能否进入代理团队消费页：当前是代理，或名下仍有快照客户（被降级者看老客户）。 */
+  team_access: boolean
 }
+
+// ==================== Affiliate Team (代理团队消费页) ====================
+
+/** 展示给代理的用户：昵称 + 脱敏邮箱；账号已删除时两者都为空串。 */
+export interface AffiliateTeamUser {
+  user_id: number
+  nickname: string
+  email: string
+  deleted: boolean
+}
+
+export interface AffiliateTeamViewer {
+  agent_level: number
+  /** 当前不是代理，但名下仍有快照客户。 */
+  downgraded: boolean
+  settle_interval_minutes: number
+}
+
+export interface AffiliateTeamCounts {
+  direct_customers: number
+  sub_agents: number
+}
+
+export interface AffiliateTeamAgentSubject {
+  user: AffiliateTeamUser
+  /** 已不再是我当前的二级代理。 */
+  historical: boolean
+}
+
+export type AffiliateTeamRelation = 'owner' | 'upline'
+
+export interface AffiliateTeamCustomerSubject {
+  user: AffiliateTeamUser
+  agent_level: number
+  /** owner = 我的客户；upline = 我下级代理的客户。 */
+  relation: AffiliateTeamRelation
+  owner_agent: AffiliateTeamUser | null
+  /** 该客户本身属于我的下级代理集合。 */
+  is_sub_agent: boolean
+  bound_at: string | null
+  lifetime_earnings: number
+}
+
+export interface AffiliateTeamSummary {
+  cost: number
+  direct_cost: number
+  sub_cost: number
+  earnings: number
+  active_customers: number
+  customers: number
+  requests: number
+  tokens: number
+}
+
+export interface AffiliateTeamTrendPoint {
+  date: string
+  cost: number
+  earnings: number
+}
+
+/** model 为空串表示「其他」。 */
+export interface AffiliateTeamModelShare {
+  model: string
+  cost: number
+  share: number
+}
+
+/** id 0 表示无分组。 */
+export interface AffiliateTeamGroup {
+  id: number
+  name: string
+}
+
+export interface AffiliateTeamFilters {
+  models: string[]
+  groups: AffiliateTeamGroup[]
+}
+
+/** 三种视角各用一个可空字段：counts（团队）/ agent（二级团队）/ customer（单个客户）。 */
+export interface AffiliateTeamOverview {
+  viewer: AffiliateTeamViewer
+  counts: AffiliateTeamCounts | null
+  agent: AffiliateTeamAgentSubject | null
+  customer: AffiliateTeamCustomerSubject | null
+  summary: AffiliateTeamSummary
+  trend: AffiliateTeamTrendPoint[]
+  models: AffiliateTeamModelShare[]
+  filters: AffiliateTeamFilters | null
+}
+
+export interface AffiliateTeamCustomer {
+  user: AffiliateTeamUser
+  agent_level: number
+  cost: number
+  requests: number
+  earnings: number
+  last_used_at: string | null
+  /** 占当前范围团队消费的比例（0-1）。 */
+  cost_share: number
+}
+
+export interface AffiliateTeamAgent {
+  user: AffiliateTeamUser
+  historical: boolean
+  customers: number
+  active_customers: number
+  team_cost: number
+  earnings: number
+  cost_share: number
+}
+
+export interface AffiliateTeamRequest {
+  created_at: string
+  model: string
+  group_name: string
+  billing_mode: string
+  input_tokens: number
+  output_tokens: number
+  cache_creation_tokens: number
+  cache_read_tokens: number
+  image_count: number
+  video_count: number
+  cost: number
+}
+
+export type AffiliateTeamCustomerSort = 'cost' | 'requests' | 'earnings' | 'last_used_at'
+export type AffiliateTeamAgentSort = 'team_cost' | 'earnings' | 'active_customers'
+export type AffiliateTeamSortOrder = 'asc' | 'desc'
 
 export interface SetInviteeAgentLevelResponse {
   user_id: number

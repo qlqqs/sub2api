@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "后端质量门槛"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "SQL 与迁移检查项"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "错误响应检查"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "前端质量门槛与覆盖率"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "组件与 i18n 检查"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "前后端契约一致性"}

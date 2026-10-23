@@ -686,11 +686,21 @@ WHERE operation_id = $1`, operationID, userID, amount)
 	return result, nil
 }
 
-func (r *affiliateRepository) ListInvitees(ctx context.Context, inviterID int64, limit int) ([]service.AffiliateInvitee, error) {
-	if limit <= 0 {
-		limit = 100
-	}
+func (r *affiliateRepository) ListInvitees(ctx context.Context, inviterID int64, query service.AffiliateInviteeQuery) ([]service.AffiliateInvitee, int64, error) {
 	client := clientFromContext(ctx, r.client)
+	where := "ua.inviter_id = $1"
+	args := []any{inviterID}
+	if query.Search != "" {
+		args = append(args, "%"+escapeLike(query.Search)+"%", query.Search)
+		where += ` AND u.deleted_at IS NULL AND (u.username ILIKE $2 ESCAPE '\' OR LOWER(u.email) = LOWER($3))`
+	}
+	total, err := scanInt64(ctx, client, `
+SELECT COUNT(*) FROM user_affiliates ua LEFT JOIN users u ON u.id = ua.user_id WHERE `+where, args...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("count invitees: %w", err)
+	}
+	limitArg, offsetArg := len(args)+1, len(args)+2
+	args = append(args, query.PageSize, (query.Page-1)*query.PageSize)
 	rows, err := client.QueryContext(ctx, `
 SELECT ua.user_id,
        COALESCE(u.email, ''),
@@ -707,14 +717,15 @@ SELECT ua.user_id,
        ua.agent_owner_id,
        ua.agent_level_source,
        ua.agent_level_locked,
-       ua.agent_level_updated_by
+       ua.agent_level_updated_by,
+       (u.id IS NULL OR u.deleted_at IS NOT NULL) AS deleted
 FROM user_affiliates ua
 LEFT JOIN users u ON u.id = ua.user_id
-WHERE ua.inviter_id = $1
-ORDER BY COALESCE(ua.inviter_bound_at, ua.created_at) DESC
-LIMIT $2`, inviterID, limit)
+WHERE `+where+`
+ORDER BY COALESCE(ua.inviter_bound_at, ua.created_at) DESC, ua.user_id DESC
+LIMIT $`+fmt.Sprint(limitArg)+` OFFSET $`+fmt.Sprint(offsetArg), args...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -724,8 +735,8 @@ LIMIT $2`, inviterID, limit)
 		var createdAt time.Time
 		var ownerID, updatedBy sql.NullInt64
 		if err := rows.Scan(&item.UserID, &item.Email, &item.Username, &createdAt, &item.TotalRebate,
-			&item.AgentLevel, &ownerID, &item.AgentLevelSource, &item.AgentLevelLocked, &updatedBy); err != nil {
-			return nil, err
+			&item.AgentLevel, &ownerID, &item.AgentLevelSource, &item.AgentLevelLocked, &updatedBy, &item.Deleted); err != nil {
+			return nil, 0, err
 		}
 		item.CreatedAt = &createdAt
 		item.AgentOwnerID = nullableInt64Ptr(ownerID)
@@ -733,9 +744,9 @@ LIMIT $2`, inviterID, limit)
 		invitees = append(invitees, item)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return invitees, nil
+	return invitees, total, nil
 }
 
 func (r *affiliateRepository) ListAffiliateInviteRecords(ctx context.Context, filter service.AffiliateRecordFilter) ([]service.AffiliateInviteRecord, int64, error) {

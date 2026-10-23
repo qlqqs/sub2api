@@ -292,14 +292,43 @@ func TestAffiliateRepository_AgentAppointmentsAndLevelFilter(t *testing.T) {
 	repo := NewAffiliateRepository(client, integrationDB)
 
 	appointer := mustCreateAffiliateWithdrawUser(t, client, "appointer")
+	other := mustCreateAffiliateWithdrawUser(t, client, "appointer-other")
 	target := mustCreateAffiliateWithdrawUser(t, client, "appointee")
 	_, err := repo.GetAffiliateForUpdate(txCtx, target.ID)
 	require.NoError(t, err)
+	top := service.AffiliateAgentLevelTop
+	_, bound, err := repo.BindInviter(txCtx, target.ID, appointer.ID, service.AffiliateInviterBinding{
+		Source: "registration",
+		Owner:  service.AffiliateOwnerSnapshot{OwnerID: &appointer.ID, OwnerLevel: &top},
+	})
+	require.NoError(t, err)
+	require.True(t, bound)
 
 	require.NoError(t, repo.SetAgentLevelByAgent(txCtx, target.ID, 2, appointer.ID, false))
 	n, err := repo.CountAgentAppointments(txCtx, appointer.ID)
 	require.NoError(t, err)
 	require.Equal(t, 1, n)
+
+	// 只计任命人还能取消的二级：被管理员改挂走（或清除归属）、账号已删除的不占名额。
+	count := func() int {
+		n, err := repo.CountAgentAppointments(txCtx, appointer.ID)
+		require.NoError(t, err)
+		return n
+	}
+	setDeleted := func(deleted bool) {
+		_, err := client.ExecContext(txCtx, "UPDATE users SET deleted_at = CASE WHEN $2 THEN NOW() END WHERE id = $1", target.ID, deleted)
+		require.NoError(t, err)
+	}
+	require.NoError(t, repo.SetAgentOwnerByAdmin(txCtx, target.ID, &other.ID, other.ID))
+	require.Zero(t, count())
+	require.NoError(t, repo.SetAgentOwnerByAdmin(txCtx, target.ID, nil, other.ID))
+	require.Zero(t, count())
+	require.NoError(t, repo.SetAgentOwnerByAdmin(txCtx, target.ID, &appointer.ID, other.ID))
+	require.Equal(t, 1, count())
+	setDeleted(true)
+	require.Zero(t, count())
+	setDeleted(false)
+	require.Equal(t, 1, count())
 
 	entries, _, err := repo.ListUsersWithCustomSettings(txCtx, service.AffiliateAdminFilter{Search: target.Email, AgentLevel: 2, Page: 1, PageSize: 10})
 	require.NoError(t, err)

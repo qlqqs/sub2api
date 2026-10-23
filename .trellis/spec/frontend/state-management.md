@@ -33,6 +33,7 @@
 - localStorage 只放跨刷新需要的状态。读取 JSON 必须容错，版本/缺字段要有默认值。
 - token 等既有认证键只能通过 auth/client 流程操作；不要创建未审计的凭据副本。
 - 组件/store 卸载或登出时终止 polling、timeout 与在途请求，防止旧会话结果写入新状态。
+- 多层下钻页参考 `composables/useAffiliateTeamQuery.ts`：query 键白名单解析、非法值回落默认值、默认值不写入 URL；页内变化用 `router.replace`，下钻用新路由且只携带需要延续的筛选（如时间范围），浏览器返回即回到上一层的完整状态。
 
 ## 常见错误
 

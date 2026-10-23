@@ -411,7 +411,7 @@ func (r *oauthEmailAffiliateRepoStub) WithdrawQuota(context.Context, int64, floa
 	panic("unexpected WithdrawQuota call")
 }
 
-func (r *oauthEmailAffiliateRepoStub) ListInvitees(context.Context, int64, int) ([]service.AffiliateInvitee, error) {
+func (r *oauthEmailAffiliateRepoStub) ListInvitees(context.Context, int64, service.AffiliateInviteeQuery) ([]service.AffiliateInvitee, int64, error) {
 	panic("unexpected ListInvitees call")
 }
 

@@ -215,7 +215,7 @@ func (r *fakeAffiliateRepo) WithdrawQuota(context.Context, int64, float64, strin
 	return nil, nil
 }
 
-func (r *fakeAffiliateRepo) ListInvitees(_ context.Context, inviterID int64, _ int) ([]AffiliateInvitee, error) {
+func (r *fakeAffiliateRepo) ListInvitees(_ context.Context, inviterID int64, _ AffiliateInviteeQuery) ([]AffiliateInvitee, int64, error) {
 	out := []AffiliateInvitee{}
 	for _, row := range r.rows {
 		if row.InviterID == nil || *row.InviterID != inviterID {
@@ -227,10 +227,11 @@ func (r *fakeAffiliateRepo) ListInvitees(_ context.Context, inviterID int64, _ i
 			UserID: row.UserID, Email: fmt.Sprintf("u%d@x.com", row.UserID), TotalRebate: total,
 			AgentLevel: row.AgentLevel, AgentOwnerID: row.AgentOwnerID, AgentLevelSource: row.AgentLevelSource,
 			AgentLevelLocked: row.AgentLevelLocked, AgentLevelUpdatedBy: row.AgentLevelUpdatedBy,
+			Deleted: r.deleted[row.UserID],
 		})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].UserID < out[j].UserID })
-	return out, nil
+	return out, int64(len(out)), nil
 }
 
 func (r *fakeAffiliateRepo) CountQualifiedInvitees(_ context.Context, _ int64, rechargedOnly bool) (int, error) {
@@ -311,7 +312,8 @@ func (r *fakeAffiliateRepo) CountAgentAppointments(_ context.Context, appointerI
 	n := 0
 	for _, row := range r.rows {
 		if row.AgentLevel == AffiliateAgentLevel2 && row.AgentLevelSource == AffiliateAgentLevelSourceAgent &&
-			row.AgentLevelUpdatedBy != nil && *row.AgentLevelUpdatedBy == appointerID {
+			row.AgentLevelUpdatedBy != nil && *row.AgentLevelUpdatedBy == appointerID &&
+			row.AgentOwnerID != nil && *row.AgentOwnerID == appointerID && !r.deleted[row.UserID] {
 			n++
 		}
 	}
@@ -385,7 +387,9 @@ var _ AffiliateRepository = (*fakeAffiliateRepo)(nil)
 // twoTierSettingRepo 支持 GetMultiple，奖励配置一次读取全部键。
 type twoTierSettingRepo struct{ values map[string]string }
 
-func (s *twoTierSettingRepo) Get(context.Context, string) (*Setting, error) { return nil, ErrSettingNotFound }
+func (s *twoTierSettingRepo) Get(context.Context, string) (*Setting, error) {
+	return nil, ErrSettingNotFound
+}
 func (s *twoTierSettingRepo) GetValue(_ context.Context, key string) (string, error) {
 	v, ok := s.values[key]
 	if !ok {
@@ -410,7 +414,10 @@ func (s *twoTierSettingRepo) SetMultiple(_ context.Context, m map[string]string)
 	return nil
 }
 func (s *twoTierSettingRepo) GetAll(context.Context) (map[string]string, error) { return s.values, nil }
-func (s *twoTierSettingRepo) Delete(_ context.Context, k string) error         { delete(s.values, k); return nil }
+func (s *twoTierSettingRepo) Delete(_ context.Context, k string) error {
+	delete(s.values, k)
+	return nil
+}
 
 // newTwoTierService 默认：开启、充值基数、P=30、R2=20。
 func newTwoTierService(repo *fakeAffiliateRepo, overrides map[string]string) (*AffiliateService, *twoTierSettingRepo) {
@@ -964,9 +971,11 @@ func TestDetail_RoleSpecificFields(t *testing.T) {
 	require.Equal(t, 30.0, *top.AgentRatePercent)
 	require.NotNil(t, top.Appoint)
 	require.Nil(t, top.FirstRechargeBonus) // 没有邀请人
-	require.Len(t, top.Invitees, 1)
-	require.True(t, top.Invitees[0].OwnedByMe)
-	require.False(t, top.Invitees[0].Appointable) // A 已经是二级
+	invitees, total, err := svc.ListInvitees(ctx, userB, AffiliateInviteeQuery{})
+	require.NoError(t, err)
+	require.Equal(t, int64(1), total)
+	require.True(t, invitees[0].OwnedByMe)
+	require.False(t, invitees[0].Appointable) // A 已经是二级
 
 	_, err = svc.ApplyFirstRechargeRewards(ctx, userU1, 100, nil)
 	require.NoError(t, err)
@@ -983,13 +992,85 @@ func TestDetail_AppointableFlags(t *testing.T) {
 	detail, err := svc.GetAffiliateDetail(context.Background(), 1)
 	require.NoError(t, err)
 	require.Equal(t, &AffiliateAppointInfo{Max: 0, Used: 1}, detail.Appoint)
+	invitees, _, err := svc.ListInvitees(context.Background(), 1, AffiliateInviteeQuery{})
+	require.NoError(t, err)
 	byID := map[int64]AffiliateInvitee{}
-	for _, inv := range detail.Invitees {
+	for _, inv := range invitees {
 		byID[inv.UserID] = inv
 	}
 	require.True(t, byID[2].AppointedByMe)
 	require.False(t, byID[2].Appointable)
 	require.True(t, byID[3].Appointable)
+}
+
+func TestListInvitees_MovedAgentIsNotRevocable(t *testing.T) {
+	t.Parallel()
+	svc, repo := newAppointFixture(t, nil)
+	ctx := context.Background()
+	require.NoError(t, svc.AppointAgentLevel(ctx, 1, 2, 2))
+	// 管理员把 2 改挂到另一个一级 4：1 不能再取消任命，列表也不再提供「取消」。
+	other := int64(4)
+	repo.rows[2].AgentOwnerID = &other
+	require.ErrorIs(t, svc.AppointAgentLevel(ctx, 1, 2, 3), ErrAffiliateAppointTargetInvalid)
+	invitees, _, err := svc.ListInvitees(ctx, 1, AffiliateInviteeQuery{})
+	require.NoError(t, err)
+	for _, inv := range invitees {
+		if inv.UserID == 2 {
+			require.False(t, inv.OwnedByMe)
+			require.False(t, inv.AppointedByMe)
+			require.False(t, inv.Appointable)
+		}
+	}
+}
+
+// 任命名额只计任命人还能取消的二级：被管理员改挂走或账号已删除的不再占名额，列表也不再提供操作。
+func TestAppoint_QuotaCountsOnlyRevocableAgents(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	svc, repo := newAppointFixture(t, map[string]string{SettingKeyAffiliateAgentAppointMax: "1"})
+	used := func() int {
+		detail, err := svc.GetAffiliateDetail(ctx, 1)
+		require.NoError(t, err)
+		return detail.Appoint.Used
+	}
+	flags := func(userID int64) [2]bool {
+		invitees, _, err := svc.ListInvitees(ctx, 1, AffiliateInviteeQuery{})
+		require.NoError(t, err)
+		for _, inv := range invitees {
+			if inv.UserID == userID {
+				return [2]bool{inv.AppointedByMe, inv.Appointable}
+			}
+		}
+		t.Fatalf("invitee %d not listed", userID)
+		return [2]bool{}
+	}
+
+	require.NoError(t, svc.AppointAgentLevel(ctx, 1, 2, 2))
+	require.Equal(t, 1, used())
+	require.ErrorIs(t, svc.AppointAgentLevel(ctx, 1, 3, 2), ErrAffiliateAppointLimitReached)
+
+	// 管理员把 2 改挂到一级 4：名额释放，可以再任命 3；改挂回来后重新计入（可能超过上限，只挡新的任命）。
+	setLevel(t, svc, 4, 1)
+	four, one := int64(4), int64(1)
+	require.NoError(t, svc.AdminSetAgentOwner(ctx, 2, &four, 99))
+	require.Zero(t, used())
+	require.NoError(t, svc.AppointAgentLevel(ctx, 1, 3, 2))
+	require.NoError(t, svc.AdminSetAgentOwner(ctx, 2, &one, 99))
+	require.Equal(t, 2, used())
+	require.NoError(t, svc.AdminSetAgentOwner(ctx, 2, nil, 99))
+	require.Equal(t, 1, used())
+
+	// 3 的账号被删除：谁都取消不了，名额释放，列表里不再显示「取消」。
+	repo.deleted[3] = true
+	require.Zero(t, used())
+	require.Equal(t, [2]bool{false, false}, flags(3))
+	require.ErrorIs(t, svc.AppointAgentLevel(ctx, 1, 3, 3), ErrUserNotFound)
+
+	// 已删除的普通客户不显示「设为二级」。
+	bind(t, svc, 6, 1)
+	require.Equal(t, [2]bool{false, true}, flags(6))
+	repo.deleted[6] = true
+	require.Equal(t, [2]bool{false, false}, flags(6))
 }
 
 // ---- settings ----

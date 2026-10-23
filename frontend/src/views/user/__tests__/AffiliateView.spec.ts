@@ -1,11 +1,12 @@
-import { flushPromises, mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { flushPromises, mount, RouterLinkStub } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import AffiliateView from '../AffiliateView.vue'
 
-const { copyToClipboard, getAffiliateDetail, setInviteeAgentLevel, showError, showSuccess } = vi.hoisted(() => ({
+const { copyToClipboard, getAffiliateDetail, listAffiliateInvitees, setInviteeAgentLevel, showError, showSuccess } = vi.hoisted(() => ({
   copyToClipboard: vi.fn(),
   getAffiliateDetail: vi.fn(),
+  listAffiliateInvitees: vi.fn(),
   setInviteeAgentLevel: vi.fn(),
   showError: vi.fn(),
   showSuccess: vi.fn(),
@@ -14,6 +15,7 @@ const { copyToClipboard, getAffiliateDetail, setInviteeAgentLevel, showError, sh
 vi.mock('@/api/user', () => ({
   default: {
     getAffiliateDetail,
+    listAffiliateInvitees,
     transferAffiliateQuota: vi.fn(),
     setInviteeAgentLevel,
   },
@@ -61,9 +63,19 @@ function mountView() {
         AppLayout: { template: '<main><slot /></main>' },
         Icon: true,
         ConfirmDialog: ConfirmDialogStub,
+        RouterLink: RouterLinkStub,
+        // 分区 Tab 依赖路由，单独测试（AffiliateSectionTabs.spec.ts）。
+        AffiliateSectionTabs: { template: '<nav data-test="affiliate-section-tabs" />' },
       },
     },
   })
+}
+
+type InviteeFixture = Record<string, unknown> & { user_id: number }
+
+/** listAffiliateInvitees 的分页响应。 */
+function inviteePage(items: InviteeFixture[], total = items.length, page = 1) {
+  return { items, total, page, page_size: 20, pages: Math.max(1, Math.ceil(total / 20)) }
 }
 
 function baseDetail(overrides: Record<string, unknown> = {}) {
@@ -82,7 +94,7 @@ function baseDetail(overrides: Record<string, unknown> = {}) {
     current_invite_count: 0,
     owned_customer_count: 0,
     reward_totals: { agent: 0, invite: 0, invitee_bonus: 0 },
-    invitees: [],
+    team_access: false,
     ...overrides,
   }
 }
@@ -94,6 +106,11 @@ describe('AffiliateView', () => {
     vi.clearAllMocks()
     copyToClipboard.mockResolvedValue(true)
     getAffiliateDetail.mockResolvedValue(baseDetail({ aff_code: affiliateCode, agent_level: 2, agent_rate_percent: 10 }))
+    listAffiliateInvitees.mockResolvedValue(inviteePage([]))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('stacks long values and copy controls on mobile while retaining desktop rows', async () => {
@@ -150,8 +167,10 @@ describe('AffiliateView', () => {
       current_invite_count: 2,
       invite_reward: { mode: 'first_recharge', rate_percent: 0, duration_days: 0, per_invitee_cap: 0, fixed_amount: 2, min_recharge: 10 },
       invitee_bonus: { mode: 'percent', value: 10, min_recharge: 0, max: 0 },
-      invitees: [{ user_id: 9, email: 'b***@x.com', username: 'b', created_at: '2026-10-01T00:00:00Z', total_rebate: 2, owned_by_me: false }],
     }))
+    listAffiliateInvitees.mockResolvedValueOnce(inviteePage([
+      { user_id: 9, email: 'b***@x.com', username: 'b', created_at: '2026-10-01T00:00:00Z', total_rebate: 2, owned_by_me: false },
+    ]))
 
     const wrapper = mountView()
     await flushPromises()
@@ -203,11 +222,11 @@ describe('AffiliateView', () => {
       // Even if the backend sent it, an agent never sees the inviter reward.
       invite_reward: { mode: 'first_recharge', rate_percent: 0, duration_days: 0, per_invitee_cap: 0, fixed_amount: 2, min_recharge: 10 },
       invitee_bonus: { mode: 'percent', value: 10, min_recharge: 10, max: 20 },
-      invitees: [
-        { user_id: 9, email: 'b***@x.com', username: 'b', total_rebate: 12, owned_by_me: true },
-        { user_id: 10, email: 'c***@x.com', username: 'c', total_rebate: 0, owned_by_me: false },
-      ],
     }))
+    listAffiliateInvitees.mockResolvedValueOnce(inviteePage([
+      { user_id: 9, email: 'b***@x.com', username: 'b', total_rebate: 12, owned_by_me: true },
+      { user_id: 10, email: 'c***@x.com', username: 'c', total_rebate: 0, owned_by_me: false },
+    ]))
 
     const wrapper = mountView()
     await flushPromises()
@@ -235,13 +254,13 @@ describe('AffiliateView', () => {
       agent_level: 1,
       agent_rate_percent: 30,
       appoint: { max: 0, used: 1 },
-      invitees: [
-        { user_id: 9, email: 'b***@x.com', username: 'b', total_rebate: 12, owned_by_me: true, agent_level: 2, appointed_by_me: true, appointable: false },
-        { user_id: 10, email: 'c***@x.com', username: 'c', total_rebate: 3, owned_by_me: true, agent_level: 3, appointed_by_me: false, appointable: true },
-        { user_id: 11, email: 'd***@x.com', username: 'd', total_rebate: 0, owned_by_me: false, agent_level: 3, appointed_by_me: false, appointable: false },
-      ],
     })
     getAffiliateDetail.mockResolvedValue(level1)
+    listAffiliateInvitees.mockResolvedValue(inviteePage([
+      { user_id: 9, email: 'b***@x.com', username: 'b', total_rebate: 12, owned_by_me: true, agent_level: 2, appointed_by_me: true, appointable: false },
+      { user_id: 10, email: 'c***@x.com', username: 'c', total_rebate: 3, owned_by_me: true, agent_level: 3, appointed_by_me: false, appointable: true },
+      { user_id: 11, email: 'd***@x.com', username: 'd', total_rebate: 0, owned_by_me: false, agent_level: 3, appointed_by_me: false, appointable: false },
+    ]))
     setInviteeAgentLevel.mockResolvedValue({ user_id: 10, agent_level: 2 })
 
     const wrapper = mountView()
@@ -262,6 +281,13 @@ describe('AffiliateView', () => {
     await flushPromises()
     expect(setInviteeAgentLevel).toHaveBeenCalledWith(10, 2)
     expect(showSuccess).toHaveBeenCalledWith('affiliate.invitees.appointSuccess')
+    // 任命后同时刷新详情（任命计数）与当前页列表（身份与按钮）。
+    expect(getAffiliateDetail).toHaveBeenCalledTimes(2)
+    expect(listAffiliateInvitees).toHaveBeenCalledTimes(2)
+    expect(listAffiliateInvitees).toHaveBeenLastCalledWith(
+      { search: undefined, page: 1, page_size: 20 },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    )
 
     await wrapper.get('[data-test="affiliate-invitee-9"] [data-test="affiliate-revoke"]').trigger('click')
     expect(wrapper.get('[data-test="confirm-message"]').text()).toBe('affiliate.invitees.revokeConfirm')
@@ -275,10 +301,10 @@ describe('AffiliateView', () => {
       agent_level: 1,
       agent_rate_percent: 30,
       appoint: { max: 2, used: 2 },
-      invitees: [
-        { user_id: 10, email: 'c***@x.com', username: 'c', total_rebate: 3, owned_by_me: true, agent_level: 3, appointed_by_me: false, appointable: true },
-      ],
     }))
+    listAffiliateInvitees.mockResolvedValueOnce(inviteePage([
+      { user_id: 10, email: 'c***@x.com', username: 'c', total_rebate: 3, owned_by_me: true, agent_level: 3, appointed_by_me: false, appointable: true },
+    ]))
 
     const wrapper = mountView()
     await flushPromises()
@@ -288,5 +314,124 @@ describe('AffiliateView', () => {
     const button = wrapper.get('[data-test="affiliate-appoint"]')
     expect(button.attributes('disabled')).toBeDefined()
     expect(button.attributes('title')).toBe('affiliate.invitees.limitReached')
+  })
+
+  describe('section tabs', () => {
+    it('shows the 邀请 | 团队消费 tabs as the first row only with team access, without the old entry links', async () => {
+      getAffiliateDetail.mockResolvedValueOnce(baseDetail({ agent_level: 1, agent_rate_percent: 30, team_access: true }))
+      const wrapper = mountView()
+      await flushPromises()
+
+      const firstRow = wrapper.find('main > div > *')
+      expect(firstRow.attributes('data-test')).toBe('affiliate-section-tabs')
+      expect(wrapper.find('[data-test="affiliate-team-entry"]').exists()).toBe(false)
+      expect(wrapper.get('[data-test="affiliate-agent-card"]').findComponent(RouterLinkStub).exists()).toBe(false)
+    })
+
+    it('keeps the become-agent card free of team links for downgraded users', async () => {
+      getAffiliateDetail.mockResolvedValueOnce(baseDetail({ agent_level: 3, team_access: true }))
+      const wrapper = mountView()
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="affiliate-section-tabs"]').exists()).toBe(true)
+      expect(wrapper.get('[data-test="affiliate-become-agent"]').findComponent(RouterLinkStub).exists()).toBe(false)
+      expect(wrapper.find('[data-test="affiliate-team-entry-downgraded"]').exists()).toBe(false)
+    })
+
+    it('hides the tabs when team access is false', async () => {
+      getAffiliateDetail.mockResolvedValueOnce(baseDetail({ agent_level: 3, team_access: false }))
+      const wrapper = mountView()
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="affiliate-section-tabs"]').exists()).toBe(false)
+    })
+  })
+
+  describe('invite list', () => {
+    it('loads invitees from the paginated API and shows a separate nickname column', async () => {
+      listAffiliateInvitees.mockResolvedValueOnce(inviteePage([
+        { user_id: 9, email: 'b***@x.com', username: '小白', total_rebate: 2, owned_by_me: true },
+        { user_id: 10, email: 'c***@x.com', username: '', total_rebate: 0, owned_by_me: true },
+      ]))
+      const wrapper = mountView()
+      await flushPromises()
+
+      expect(listAffiliateInvitees).toHaveBeenCalledWith(
+        { search: undefined, page: 1, page_size: 20 },
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      )
+      const headers = wrapper.findAll('[data-test="affiliate-invitees"] thead th').map((th) => th.text())
+      expect(headers.slice(0, 3)).toEqual([
+        'affiliate.invitees.columns.nickname',
+        'affiliate.invitees.columns.email',
+        'affiliate.invitees.columns.joinedAt',
+      ])
+      expect(wrapper.get('[data-test="affiliate-invitee-9"] [data-test="affiliate-invitee-nickname"]').text()).toBe('小白')
+      expect(wrapper.get('[data-test="affiliate-invitee-10"] [data-test="affiliate-invitee-nickname"]').text()).toBe('-')
+      expect(wrapper.get('[data-test="affiliate-invitee-9"]').text()).toContain('b***@x.com')
+      // 只有一页：不显示分页。
+      expect(wrapper.find('[data-test="affiliate-invitees"] nav[aria-label="Pagination"]').exists()).toBe(false)
+    })
+
+    it('searches after typing stops and resets to page 1', async () => {
+      listAffiliateInvitees.mockResolvedValue(inviteePage(
+        [{ user_id: 9, email: 'b***@x.com', username: 'b', total_rebate: 0, owned_by_me: true }],
+        45,
+      ))
+      const wrapper = mountView()
+      await flushPromises()
+
+      await wrapper.findAll('[data-test="affiliate-invitees"] nav[aria-label="Pagination"] button')
+        .find((button) => button.text() === '2')!
+        .trigger('click')
+      await flushPromises()
+      expect(listAffiliateInvitees).toHaveBeenLastCalledWith({ search: undefined, page: 2, page_size: 20 }, expect.anything())
+
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      await wrapper.get('[data-test="affiliate-invitee-search"] input').setValue(' 客户12 ')
+      expect(listAffiliateInvitees).toHaveBeenCalledTimes(2)
+      vi.advanceTimersByTime(300)
+      vi.useRealTimers()
+      await flushPromises()
+
+      expect(listAffiliateInvitees).toHaveBeenCalledTimes(3)
+      expect(listAffiliateInvitees).toHaveBeenLastCalledWith({ search: '客户12', page: 1, page_size: 20 }, expect.anything())
+    })
+
+    it('pages through invitees with the shared pagination footer', async () => {
+      listAffiliateInvitees
+        .mockResolvedValueOnce(inviteePage([{ user_id: 9, email: 'b***@x.com', username: 'b', total_rebate: 0 }], 45))
+        .mockResolvedValueOnce(inviteePage([{ user_id: 29, email: 'z***@x.com', username: 'z', total_rebate: 0 }], 45, 3))
+      const wrapper = mountView()
+      await flushPromises()
+
+      const pager = wrapper.get('[data-test="affiliate-invitees"] nav[aria-label="Pagination"]')
+      expect(wrapper.find('[data-test="affiliate-invitees"]').text()).not.toContain('pagination.perPage')
+      await pager.findAll('button').find((button) => button.text() === '3')!.trigger('click')
+      await flushPromises()
+
+      expect(listAffiliateInvitees).toHaveBeenLastCalledWith({ search: undefined, page: 3, page_size: 20 }, expect.anything())
+      expect(wrapper.find('[data-test="affiliate-invitee-29"]').exists()).toBe(true)
+    })
+
+    it('distinguishes no invitees from a search without matches', async () => {
+      const wrapper = mountView()
+      await flushPromises()
+      expect(wrapper.get('[data-test="affiliate-invitees-empty"]').text()).toBe('affiliate.invitees.empty')
+      // 没有任何好友时不显示搜索框。
+      expect(wrapper.find('[data-test="affiliate-invitee-search"]').exists()).toBe(false)
+
+      listAffiliateInvitees.mockResolvedValueOnce(inviteePage([{ user_id: 9, email: 'b***@x.com', username: 'b', total_rebate: 0 }]))
+      const withFriends = mountView()
+      await flushPromises()
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      await withFriends.get('[data-test="affiliate-invitee-search"] input').setValue('nobody')
+      vi.advanceTimersByTime(300)
+      vi.useRealTimers()
+      await flushPromises()
+
+      expect(withFriends.get('[data-test="affiliate-invitees-empty"]').text()).toBe('affiliate.invitees.noMatches')
+      expect(withFriends.find('[data-test="affiliate-invitee-search"]').exists()).toBe(true)
+    })
   })
 })

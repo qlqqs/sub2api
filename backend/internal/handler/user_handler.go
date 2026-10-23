@@ -23,6 +23,7 @@ type UserHandler struct {
 	emailService          *service.EmailService
 	emailCache            service.EmailCache
 	affiliateService      *service.AffiliateService
+	affiliateTeamService  *service.AffiliateTeamService
 	userPlatformQuotaRepo service.UserPlatformQuotaRepository
 }
 
@@ -33,6 +34,7 @@ func NewUserHandler(
 	emailService *service.EmailService,
 	emailCache service.EmailCache,
 	affiliateService *service.AffiliateService,
+	affiliateTeamService *service.AffiliateTeamService,
 	userPlatformQuotaRepo service.UserPlatformQuotaRepository,
 ) *UserHandler {
 	return &UserHandler{
@@ -41,6 +43,7 @@ func NewUserHandler(
 		emailService:          emailService,
 		emailCache:            emailCache,
 		affiliateService:      affiliateService,
+		affiliateTeamService:  affiliateTeamService,
 		userPlatformQuotaRepo: userPlatformQuotaRepo,
 	}
 }
@@ -210,7 +213,35 @@ func (h *UserHandler) GetAffiliate(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
+	// 团队消费页入口只是展示开关：判断失败时隐藏入口，不影响邀请页本身。
+	if h.affiliateTeamService != nil {
+		if access, accessErr := h.affiliateTeamService.HasTeamAccess(c.Request.Context(), subject.UserID); accessErr == nil {
+			detail.TeamAccess = access
+		}
+	}
 	response.Success(c, detail)
+}
+
+// ListAffiliateInvitees returns the current user's direct invitees, paginated and searchable
+// by nickname (fuzzy) or full email (exact).
+// GET /api/v1/user/aff/invitees?search&page&page_size
+func (h *UserHandler) ListAffiliateInvitees(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not authenticated")
+		return
+	}
+	page, pageSize := service.NormalizeAffiliatePaging(response.ParsePagination(c))
+	items, total, err := h.affiliateService.ListInvitees(c.Request.Context(), subject.UserID, service.AffiliateInviteeQuery{
+		Search:   c.Query("search"),
+		Page:     page,
+		PageSize: pageSize,
+	})
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Paginated(c, items, total, page, pageSize)
 }
 
 // SetInviteeAgentLevelRequest is the body for a level-1 agent appointing (2) or

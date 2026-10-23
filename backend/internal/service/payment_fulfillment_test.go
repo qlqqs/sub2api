@@ -200,7 +200,7 @@ func (r *paymentFulfillmentAffiliateRepoStub) WithdrawQuota(context.Context, int
 	panic("unexpected WithdrawQuota call")
 }
 
-func (r *paymentFulfillmentAffiliateRepoStub) ListInvitees(context.Context, int64, int) ([]AffiliateInvitee, error) {
+func (r *paymentFulfillmentAffiliateRepoStub) ListInvitees(context.Context, int64, AffiliateInviteeQuery) ([]AffiliateInvitee, int64, error) {
 	panic("unexpected ListInvitees call")
 }
 
@@ -1450,4 +1450,5 @@ func TestExecuteSubscriptionFulfillmentDoesNotDuplicateWorkAfterLegacySuccessAud
 var _ AffiliateRepository = (*paymentFulfillmentAffiliateRepoStub)(nil)
 
 func ptrIntValue(v int) *int { return &v }
+
 var _ SettingRepository = (*paymentFulfillmentSettingRepoStub)(nil)
