@@ -119,3 +119,44 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 9: 管理端团队消费页：实现、提交、部署一号机
+<!-- trellis-session: v=2 fp=82b2702f822496d4 -->
+
+**Date**: 2026-10-23
+**Task**: 管理端团队消费页：实现、提交、部署一号机
+**Branch**: `sub2api-custom`
+
+### Summary
+
+实现管理端团队消费页（汇总页 + 任意代理视角）与迁移 252 分润日汇总；本机全量验证后提交、推送，CI 通过后部署一号机并核对迁移回填。
+
+### Main Changes
+
+- 迁移 252：affiliate_agent_reward_daily_rollups，语句级触发器维护（插入/删除/更新），rebuild 先加 SHARE 锁，迁移内回填
+- 后端：affiliateTeamAudience 区分代理端/管理端；管理端汇总 overview / agents 与代理视角四个接口（/admin/affiliates/team/...）
+- 前端：TeamConsumptionPage + provide/inject 上下文复用代理端组件；汇总页、代理视角四路由、侧边栏最长前缀高亮、代理管理「⋯」入口
+- 规范：database-guidelines（汇总表与触发器、251 rebuild 避开当天）、组件与状态管理、目录结构
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ea8008afd` | feat(affiliate): add daily agent reward rollups |
+| `e5ff63561` | feat(affiliate): admin team consumption page |
+
+### Testing
+
+- [OK] 后端 unit + integration（Affiliate）全部通过；前端 lint / typecheck / vitest 2996 / i18n / build 通过，锁文件未变
+- [OK] 本机 e2e 全量 238/238（新增 TADM 16、TAUI 15、TROL-02）；性能：2.7M usage_logs / 2.6M 流水，接口均 < 1 s，252 回填约 3.5 s/百万行
+- [OK] 一号机：CI 通过后部署 e5ff63561，迁移 251/252 应用，两张汇总表与原始数据逐行一致（0 差异），新路由未登录返回 401
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 一号机登录态复测可用 10-22-e2e-affiliate-payment/scripts 远端脚本（跑完执行 cleanup）
+- 部署前备份在一号机 /tmp/sub2api-custom-pre252-20261023081559.sql.gz，重启会被清掉
