@@ -160,3 +160,25 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 
 - 一号机登录态复测可用 10-22-e2e-affiliate-payment/scripts 远端脚本（跑完执行 cleanup）
 - 部署前备份在一号机 /tmp/sub2api-custom-pre252-20261023081559.sql.gz，重启会被清掉
+
+
+## Session 10: 分组内单个模型倍率与美元汇率
+<!-- trellis-session: v=2 fp=8626c7c44aca092c -->
+
+**Date**: 2026-10-23
+**Task**: 分组内单个模型倍率与美元汇率
+**Branch**: `sub2api-custom`
+
+### Summary
+
+分组可为单个模型设倍率（迁移 253，计费 / 预扣 / 利润门 / 模型广场按计费模型生效，优先于用户专属倍率）；美元汇率定时获取（默认 6.8 兜底）；模型广场按模型 ¥ 价与「相比官方价」折扣；用户端不再显示分组倍率、使用记录明细改 ¥。本机全量 e2e 291 条通过，CI 通过，已部署一号机 sub2api-custom（汇率 6.6702 来自 Frankfurter）。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `85ea1f415` | feat(billing): per-model rate multipliers within groups |
+
+### Status
+
+[OK] **Completed**

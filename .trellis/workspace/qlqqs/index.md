@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 9
+- **Total Sessions**: 10
 - **Last Active**: 2026-10-23
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~162 | Active |
+| `journal-1.md` | ~184 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 10 | 2026-10-23 | 分组内单个模型倍率与美元汇率 | `85ea1f415` | `sub2api-custom` |
 | 9 | 2026-10-23 | 管理端团队消费页：实现、提交、部署一号机 | `ea8008afd`, `e5ff63561` | `sub2api-custom` |
 | 8 | 2026-10-22 | 人民币显示与代理上级提交、CI 与一号机更新 | `017854fff`, `9b62c73b2` | `sub2api-custom` |
 | 7 | 2026-10-21 | 代理等级与按消费结算的两层返利（实现完成，待提交） | - | `sub2api-custom` |
