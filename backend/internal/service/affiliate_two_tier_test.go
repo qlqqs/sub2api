@@ -1211,7 +1211,7 @@ func TestSettleConsumptionRebates_DistributesAndAdvancesWatermark(t *testing.T) 
 		UserID: userU2, SettledAt: until.Add(-time.Hour), UntilAt: until, DeltaCost: 80, PaidTotal: 50,
 	}
 	from := len(repo.ledger)
-	result, err := svc.SettleConsumptionRebates(context.Background())
+	result, err := svc.SettleConsumptionRebates(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, 1, result.Users)
 	// 计入返利的消费按真实充值封顶为 50。

@@ -102,7 +102,8 @@ type Config struct {
 	Timezone                string                        `mapstructure:"timezone"` // e.g. "Asia/Shanghai", "UTC"
 	Gemini                  GeminiConfig                  `mapstructure:"gemini"`
 	Update                  UpdateConfig                  `mapstructure:"update"`
-	FX                      FXConfig                      `mapstructure:"fx"` // CUSTOM: 美元汇率来源
+	FX                      FXConfig                      `mapstructure:"fx"`        // CUSTOM: 美元汇率来源
+	Affiliate               AffiliateConfig               `mapstructure:"affiliate"` // CUSTOM: 仅测试环境的结算加速
 	Idempotency             IdempotencyConfig             `mapstructure:"idempotency"`
 	BatchImage              BatchImageConfig              `mapstructure:"batch_image"`
 	ImageStorage            ImageStorageConfig            `mapstructure:"image_storage"`
@@ -194,6 +195,17 @@ type FXConfig struct {
 	// SourceURLs 非空时替换内置的三个汇率来源（按顺序尝试，第一个成功即用）。
 	// 环境变量 FX_SOURCE_URLS 用逗号或空白分隔；响应格式按内容识别（rates.CNY 或 usd.cny）。
 	SourceURLs []string `mapstructure:"source_urls"`
+}
+
+// AffiliateConfig 消费返利结算的测试覆盖（CUSTOM，fork）：只给本机 e2e 缩短等待，
+// 生产不设置（0 表示不覆盖，沿用后台「结算周期」与 2 分钟滞后窗口）。
+type AffiliateConfig struct {
+	// SettleIntervalOverride 大于 0 时取代后台结算周期（含最少 5 分钟的限制），检查节拍同步缩短。
+	// 环境变量 AFFILIATE_SETTLE_INTERVAL_OVERRIDE，如 10s。
+	SettleIntervalOverride time.Duration `mapstructure:"settle_interval_override"`
+	// SettleLagOverride 大于 0 时取代 2 分钟的滞后窗口（只结算这么久以前的消费）。
+	// 环境变量 AFFILIATE_SETTLE_LAG_OVERRIDE，如 10s。
+	SettleLagOverride time.Duration `mapstructure:"settle_lag_override"`
 }
 
 type IdempotencyConfig struct {
@@ -2660,6 +2672,9 @@ func setEnvReachableDefaults() {
 	viper.SetDefault("gateway.user_message_queue.mode", "")
 	viper.SetDefault("update.proxy_url", "")
 	viper.SetDefault("fx.source_urls", []string{}) // CUSTOM: 让 FX_SOURCE_URLS 可经环境变量注入
+	// CUSTOM: 让 AFFILIATE_SETTLE_*_OVERRIDE 可经环境变量注入（仅本机测试环境设置）
+	viper.SetDefault("affiliate.settle_interval_override", time.Duration(0))
+	viper.SetDefault("affiliate.settle_lag_override", time.Duration(0))
 
 	// sticky_escape_enabled is the one exception to the zero-value rule: its
 	// effective default is true, applied post-unmarshal via a viper.IsSet guard.

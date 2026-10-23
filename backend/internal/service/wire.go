@@ -1021,9 +1021,12 @@ func ProvidePaymentService(entClient *dbent.Client, registry *payment.Registry, 
 }
 
 // ProvideAffiliateRebateSettleService creates and starts the consumption rebate settlement job.
-func ProvideAffiliateRebateSettleService(affiliateSvc *AffiliateService, settingSvc *SettingService, lockCache LeaderLockCache, db *sql.DB) *AffiliateRebateSettleService {
+func ProvideAffiliateRebateSettleService(affiliateSvc *AffiliateService, settingSvc *SettingService, lockCache LeaderLockCache, db *sql.DB, cfg *config.Config) *AffiliateRebateSettleService {
 	svc := NewAffiliateRebateSettleService(affiliateSvc, settingSvc)
 	svc.SetLeaderLock(lockCache, db)
+	if cfg != nil {
+		svc.SetSettleOverrides(cfg.Affiliate.SettleIntervalOverride, cfg.Affiliate.SettleLagOverride)
+	}
 	svc.Start()
 	return svc
 }
