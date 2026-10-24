@@ -1113,12 +1113,12 @@ func (s *OpenAIGatewayService) handleOpenAIImagesStreamingResponse(
 			var rewritten bytes.Buffer
 			for _, rawLine := range strings.Split(pendingRaw.String(), "\n") {
 				if trimmed := strings.TrimRight(rawLine, "\r"); strings.HasPrefix(trimmed, "event:") {
-					rewritten.WriteString(trimmed + "\n")
+					_, _ = rewritten.WriteString(trimmed + "\n")
 				}
 			}
-			rewritten.WriteString("data: ")
-			rewritten.Write(pendingRewrite)
-			rewritten.WriteString("\n\n")
+			_, _ = rewritten.WriteString("data: ")
+			_, _ = rewritten.Write(pendingRewrite)
+			_, _ = rewritten.WriteString("\n\n")
 			out = rewritten.Bytes()
 		}
 		if !clientDisconnected {
