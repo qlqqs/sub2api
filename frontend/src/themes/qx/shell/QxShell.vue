@@ -3,7 +3,7 @@
     <QxSidebar />
     <div class="qx-shell-col">
       <AppHeader />
-      <main class="qx-shell-main p-4 md:p-6 lg:p-8">
+      <main class="qx-shell-main" :class="route.meta?.qxFullBleed ? 'qx-shell-main--bleed' : 'p-4 md:p-6 lg:p-8'">
         <slot />
       </main>
     </div>

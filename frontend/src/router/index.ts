@@ -216,6 +216,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/studio',
+    name: 'Studio',
+    component: () => import('@/themes/qx/studio/StudioView.vue'), // CUSTOM: 创作工作台（Nova Studio）
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Studio',
+      titleKey: 'qxTheme.studio.title',
+      qxFullBleed: true
+    }
+  },
+  {
     path: '/batch-image',
     name: 'BatchImageGuide',
     alias: '/docs/batch-image',

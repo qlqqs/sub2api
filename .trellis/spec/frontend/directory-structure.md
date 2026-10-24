@@ -50,6 +50,7 @@ frontend/src/
 - 控制台外壳（侧栏 + 顶栏）：上游 `components/layout/AppLayout.vue` 被各页面直接引用，接入点是它模板里的 `<QxShell v-if>` / `v-else`（CUSTOM），脚本里的新手引导保持不变。`themes/qx/shell/QxSidebar.vue` 自绘分组侧栏，顶栏复用上游 `AppHeader.vue` 只改样式。菜单数据 `shell/useQxNav.ts` 照搬自 `AppSidebar.vue`（功能开关、简洁模式、自定义菜单、引导选择器），`useQxNav.drift.spec.ts` 会检查上游侧栏里的每个路径在主题菜单里都有：合并上游后它失败，就把新菜单项补进 `useQxNav.ts`。
 - 需要重做结构的页面（如仪表盘 `themes/qx/dashboard/`）和首页一样在路由里接入主题入口组件，主题关闭时渲染上游原页面。
 - 只换样式、不改结构的用户页面（极简线条风格）写在 `themes/qx/pages/`：`QxShell` 在非 `/admin` 路由给 `<html>` 加 `qx-line` 类和 `data-qx-page=<路由名>`（放在 `<html>` 上，传送到 body 的弹窗也能匹配）。`line.css` 是公共类和组件层，限定在 `html.qx-app.qx-line` 下；`pages-console.css` / `pages-account.css` 按 `[data-qx-page="…"]` 覆盖各页面模板里直接写的 Tailwind 阴影、渐变、底色块。合并上游后这些选择器可能失配，失配时页面退回主题原样而不会出错，截图检查即可。
+- 嵌入的外部应用（如创作工作台 `themes/qx/studio/`）只放一个同源 iframe，父页经 `postMessage` 传会话（令牌、用户、角色、深浅色），并校验消息的 origin 与 source 窗口；主题跟随用 `composables/documentDark` 的响应式 `isDocumentDark()`，变化时重发会话。iframe 内的配色在对方仓库按控制台 token 覆盖（极简线条、淡色），不在本仓库写样式穿透。
 - 合并上游后检查被替换组件（如 `views/HomeView.vue`、`views/user/DashboardView.vue`、`components/layout/AuthLayout.vue`、`AppSidebar.vue`、`AppHeader.vue`）的新改动，需要的话手动搬进主题；同时检查 `tailwind.config.js`、`style.css` 有没有新加写死的颜色（新色阶、新渐变或阴影），需要的话同样改成变量并在 `app/tokens.css` 里给主题值。
 
 ## 命名和导入

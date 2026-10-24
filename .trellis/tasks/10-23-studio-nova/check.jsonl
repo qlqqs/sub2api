@@ -1,0 +1,12 @@
+{"file": ".trellis/spec/backend/index.md", "reason": "后端规范入口：转发中间件、配置项"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "fork 自有文件放置与一行挂接"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "503/401 错误响应格式"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "单测与质量要求"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "前端规范入口：/studio 页面与选择区"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "themes/qx 下的 fork 自有视图"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "选择区组件"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "auth store、余额刷新"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "postMessage 契约类型"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "lint/typecheck/vitest"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "sub2api ↔ Nova ↔ 网关跨层契约"}
+{"file": ".trellis/tasks/10-23-studio-nova/research/selection.md", "reason": "选型与两侧代码要点"}

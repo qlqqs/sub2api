@@ -41,6 +41,8 @@ server/routes -> handler -> service-owned interface -> repository -> Ent/Postgre
 
 管理端复用用户端的同一套查询时（例如团队消费页的「代理视角」），在用户端 handler 上加管理端方法、路由注册到管理员路由组：`handler` 包引用了 `handler/admin`，后者不能反向复用前者的参数解析。参见 `handler/affiliate_team_admin_handler.go` 与 `routes/admin.go` 的 `registerAffiliateRoutes`；业务上的差异（准入、脱敏、搜索）放在 service 的受众参数里，不在 handler 分叉。
 
+嵌入外部应用（如创作工作台 Nova Studio）走同源反向代理，见 `internal/server/studio_proxy.go`：静态资源前缀（`/_nova/*`）挂成全局中间件并在前端 SPA 中间件之前安装，否则会被回退成首页；接口前缀（`/api/nova/*`）注册为路由以串上 JWT 校验，再由本站注入用户 ID / 角色 / 真实 IP 头，客户端自带的同名头一律剥离。只给该前缀换成允许同源嵌入的 CSP / `X-Frame-Options`，不放宽全站策略；未配置或上游不可达时返回 503。
+
 `UserService`/`userRepository` 是完整纵向样例：端口在 `internal/service/user_service.go`，实现位于 `internal/repository/user_repo.go`，HTTP 边界位于 `internal/handler/user_handler.go` 与 `internal/handler/admin/user_handler.go`。`ProxyService`/`proxyRepository` 展示了相同的依赖反转和事务复用方式。
 
 ## 命名约定

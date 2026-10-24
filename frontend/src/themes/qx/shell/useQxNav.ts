@@ -12,6 +12,7 @@ import { FeatureFlags, makeSidebarFlag } from '@/utils/featureFlags'
 import { resolveSiteBillingMode } from '@/utils/siteBillingMode'
 import { useBatchImageAccess } from '@/composables/useBatchImageAccess'
 import type { QxNavIconName } from './navIcons'
+import { useStudioEnabled } from '../studio/studioStatus'
 
 export interface QxNavItem {
   path: string
@@ -75,6 +76,9 @@ export function useQxNav() {
   const flagOpsMonitoring = () => adminSettingsStore.opsMonitoringEnabled
   const flagAdminPayment = () => adminSettingsStore.paymentEnabled
   const flagBatchImageAccess = () => canUseBatchImage.value
+  // CUSTOM: 创作工作台（部署时配置了 Nova Studio 才显示）
+  const studioEnabled = useStudioEnabled()
+  const flagStudio = () => studioEnabled.value === true
 
   // 购买入口文案随站点计费模式切换（与上游一致）。
   const purchaseLabel = computed(() => {
@@ -124,6 +128,7 @@ export function useQxNav() {
     if (withDashboard) console.push({ path: '/dashboard', label: t('nav.dashboard'), icon: 'dashboard' })
     console.push(
       { path: '/keys', label: t('nav.apiKeys'), icon: 'key' },
+      { path: '/studio', label: t('qxTheme.studio.title'), icon: 'studio', featureFlag: flagStudio },
       { path: '/batch-image', label: t('nav.batchImage'), icon: 'batchImage', hideInSimpleMode: true, featureFlag: flagBatchImageAccess },
       { path: '/usage', label: t('nav.usage'), icon: 'usage', hideInSimpleMode: true },
       { path: '/available-channels', label: t('nav.availableChannels'), icon: 'channel', hideInSimpleMode: true, featureFlag: flagAvailableChannels },

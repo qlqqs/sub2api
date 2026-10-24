@@ -1,10 +1,12 @@
 // CUSTOM: QxAPI theme copy (imported by i18n/locales/en/index.ts).
 import nav from '../shell/locales/en'
 import dashboard from '../dashboard/locales/en'
+import studio from '../studio/locales/en'
 export default {
   qxTheme: {
     nav,
     dashboard,
+    studio,
     listSeparator: ', ',
     hero: {
       description: 'Create an API key after signing up, then enter the base URL in {tools} or similar tools to call the models. Usage is deducted from your balance.',

@@ -12,6 +12,7 @@ export type QxNavIconDef = { icon: IconName } | { paths: readonly string[] }
 export const QX_NAV_ICONS = {
   dashboard: { icon: 'grid' },
   key: { icon: 'key' },
+  studio: { icon: 'sparkles' },
   usage: { icon: 'chart' },
   ops: { icon: 'trendingUp' },
   auditLog: { icon: 'document' },
