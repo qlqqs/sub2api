@@ -159,7 +159,7 @@ describe('AffiliateView', () => {
     )
   })
 
-  it('shows a normal user the generated invite rewards and auto-upgrade progress, never agent rates', async () => {
+  it('shows a normal user the generated invite rewards, but no become-agent card or agent rates', async () => {
     getAffiliateDetail.mockResolvedValueOnce(baseDetail({
       agent_upgrade_mode: 'auto',
       next_agent_level: 2,
@@ -182,10 +182,8 @@ describe('AffiliateView', () => {
     expect(inviteText).toContain('affiliate.invite.separator')
     expect(inviteText).toContain('affiliate.invite.inviteeBonus{"bonus":"10%"}')
 
-    const progress = wrapper.get('[data-test="affiliate-become-agent"] [data-test="affiliate-upgrade-progress"]').text()
-    expect(progress).toContain('affiliate.becomeAgent.progress')
-    expect(progress).toContain('"remaining":3')
-    expect(progress).toContain('"level":"affiliate.levels.2"')
+    expect(wrapper.find('[data-test="affiliate-become-agent"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="affiliate-upgrade-progress"]').exists()).toBe(false)
 
     // Normal users get neither the ownership column nor the appoint column.
     expect(wrapper.find('[data-test="affiliate-col-ownership"]').exists()).toBe(false)
@@ -193,18 +191,12 @@ describe('AffiliateView', () => {
     expect(wrapper.text()).not.toContain('affiliate.agent.rate')
   })
 
-  it('tells a normal user agent status is admin-granted in manual mode or when locked', async () => {
-    getAffiliateDetail.mockResolvedValueOnce(baseDetail({
-      agent_upgrade_mode: 'auto',
-      agent_level_locked: true,
-      next_agent_level: 2,
-      next_level_threshold: 5,
-    }))
+  it('tells a normal user with no rewards configured to just share the invite', async () => {
+    getAffiliateDetail.mockResolvedValueOnce(baseDetail())
 
     const wrapper = mountView()
     await flushPromises()
 
-    expect(wrapper.get('[data-test="affiliate-become-agent"]').text()).toContain('affiliate.becomeAgent.adminOnly')
     expect(wrapper.get('[data-test="affiliate-invite-text"]').text()).toBe('affiliate.invite.noReward')
   })
 
@@ -296,6 +288,15 @@ describe('AffiliateView', () => {
     expect(setInviteeAgentLevel).toHaveBeenLastCalledWith(9, 3)
   })
 
+  it('splits a level-1 agent rate into direct customers and sub-agent teams', async () => {
+    getAffiliateDetail.mockResolvedValueOnce(baseDetail({ agent_level: 1, agent_rate_percent: 11, team_rate_percent: 4 }))
+    const wrapper = mountView()
+    await flushPromises()
+    expect(wrapper.get('[data-test="affiliate-agent-rate"]').text()).toBe(
+      'affiliate.agent.rateTopConsumption{"rate":"11","team":"4"}',
+    )
+  })
+
   it('greys out appointing at the limit', async () => {
     getAffiliateDetail.mockResolvedValueOnce(baseDetail({
       agent_level: 1,
@@ -328,13 +329,13 @@ describe('AffiliateView', () => {
       expect(wrapper.get('[data-test="affiliate-agent-card"]').findComponent(RouterLinkStub).exists()).toBe(false)
     })
 
-    it('keeps the become-agent card free of team links for downgraded users', async () => {
+    it('shows downgraded users the tabs but no extra team links', async () => {
       getAffiliateDetail.mockResolvedValueOnce(baseDetail({ agent_level: 3, team_access: true }))
       const wrapper = mountView()
       await flushPromises()
 
       expect(wrapper.find('[data-test="affiliate-section-tabs"]').exists()).toBe(true)
-      expect(wrapper.get('[data-test="affiliate-become-agent"]').findComponent(RouterLinkStub).exists()).toBe(false)
+      expect(wrapper.find('[data-test="affiliate-become-agent"]').exists()).toBe(false)
       expect(wrapper.find('[data-test="affiliate-team-entry-downgraded"]').exists()).toBe(false)
     })
 

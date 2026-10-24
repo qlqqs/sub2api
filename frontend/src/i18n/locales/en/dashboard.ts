@@ -782,14 +782,11 @@ export default {
     tabs: {
       invite: 'Invite'
     },
-    becomeAgent: {
-      title: 'Become an Agent',
-      progress: 'Invite {remaining} more to become a {level} ({count}/{threshold})',
-      adminOnly: 'Agent status is granted by the administrator'
-    },
     agent: {
       rateConsumption: '{rate}% of customer spend',
       rateRecharge: '{rate}% of customer recharges',
+      rateTopConsumption: '{rate}% from direct customers, {team}% from sub-agent teams',
+      rateTopRecharge: '{rate}% of direct customer recharges, {team}% of sub-agent team recharges',
       customers: '{n} customers',
       progress: 'Invite {remaining} more to become a {level} ({count}/{threshold})'
     },

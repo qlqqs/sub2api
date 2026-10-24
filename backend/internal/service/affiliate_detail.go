@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"math"
 )
 
 // GetAffiliateDetail 返回用户「我的邀请」页数据。普通用户不下发任何代理比例；代理不下发
@@ -47,6 +48,10 @@ func (s *AffiliateService) GetAffiliateDetail(ctx context.Context, userID int64)
 	if isAgentLevel(level) {
 		rate := agentTierRate(cfg, level, summary.AffRebateRatePercent)
 		detail.AgentRatePercent = &rate
+		if level == AffiliateAgentLevelTop {
+			team := math.Max(0, rate-cfg.Level2Rate)
+			detail.TeamRatePercent = &team
+		}
 	} else if cfg.InviteMode != AffiliateInviteRewardModeOff {
 		detail.InviteReward = &AffiliateInviteRewardInfo{
 			Mode:          cfg.InviteMode,

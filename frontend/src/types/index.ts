@@ -206,6 +206,8 @@ export interface UserAffiliateDetail {
   current_invite_count: number
   /** 仅代理（1/2）出现：已套专属比例的本档比例。 */
   agent_rate_percent?: number | null
+  /** 仅一级代理：下级二级代理团队客户消费的级差比例 */
+  team_rate_percent?: number | null
   owned_customer_count?: number
   /** 仅普通用户且模式非 off 时出现。 */
   invite_reward?: AffiliateInviteRewardInfo | null

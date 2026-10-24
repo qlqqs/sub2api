@@ -784,14 +784,11 @@ export default {
     tabs: {
       invite: '邀请'
     },
-    becomeAgent: {
-      title: '成为代理',
-      progress: '再邀请 {remaining} 人升为{level}（{count}/{threshold}）',
-      adminOnly: '代理资格由管理员开通'
-    },
     agent: {
       rateConsumption: '客户消费的 {rate}%',
       rateRecharge: '客户充值的 {rate}%',
+      rateTopConsumption: '直属客户的 {rate}%，下级代理团队的 {team}%',
+      rateTopRecharge: '直属客户充值的 {rate}%，下级代理团队充值的 {team}%',
       customers: '归属客户 {n} 人',
       progress: '再邀请 {remaining} 人升为{level}（{count}/{threshold}）'
     },

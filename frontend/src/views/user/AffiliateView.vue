@@ -68,15 +68,7 @@
           </ul>
         </div>
 
-        <div :class="['grid gap-4', isAgent ? 'sm:grid-cols-2' : 'sm:grid-cols-3']">
-          <!-- 成为代理（普通用户，不展示代理比例） -->
-          <div v-if="!isAgent" class="card p-5" data-test="affiliate-become-agent">
-            <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.becomeAgent.title') }}</p>
-            <p class="mt-2 text-sm font-medium text-gray-900 dark:text-white" data-test="affiliate-upgrade-progress">
-              {{ upgradeProgressText || t('affiliate.becomeAgent.adminOnly') }}
-            </p>
-          </div>
-
+        <div class="grid gap-4 sm:grid-cols-2">
           <!-- 返利余额 -->
           <div class="card p-5">
             <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.stats.availableQuota') }}</p>
@@ -289,15 +281,23 @@ const agentRateText = computed(() => {
   const d = detail.value
   if (!d || d.agent_rate_percent == null) return ''
   const rate = formatRatePercent(d.agent_rate_percent)
-  return d.rebate_base === 'recharge'
+  const recharge = d.rebate_base === 'recharge'
+  // 一级代理同时从直属客户和下级二级代理团队拿利润，分开写清楚两个比例。
+  if (d.agent_level === 1 && d.team_rate_percent != null && d.team_rate_percent > 0) {
+    const team = formatRatePercent(d.team_rate_percent)
+    return recharge
+      ? t('affiliate.agent.rateTopRecharge', { rate, team })
+      : t('affiliate.agent.rateTopConsumption', { rate, team })
+  }
+  return recharge
     ? t('affiliate.agent.rateRecharge', { rate })
     : t('affiliate.agent.rateConsumption', { rate })
 })
 
-// Upgrade progress only exists in auto mode for unlocked users with a next level.
+// Upgrade progress only exists in auto mode for unlocked agents with a next level.
 const upgradeProgressText = computed(() => {
   const d = detail.value
-  if (!d || d.agent_upgrade_mode !== 'auto' || d.agent_level_locked) return ''
+  if (!d || !isAgent.value || d.agent_upgrade_mode !== 'auto' || d.agent_level_locked) return ''
   if (d.next_agent_level == null || d.next_level_threshold == null) return ''
   const params = {
     remaining: Math.max(0, d.next_level_threshold - d.current_invite_count),
@@ -305,7 +305,7 @@ const upgradeProgressText = computed(() => {
     count: d.current_invite_count,
     threshold: d.next_level_threshold,
   }
-  return isAgent.value ? t('affiliate.agent.progress', params) : t('affiliate.becomeAgent.progress', params)
+  return t('affiliate.agent.progress', params)
 })
 
 // 「好友首充满 ¥10，你得 ¥2；好友首充额外送 10%」— generated from the enabled rewards.

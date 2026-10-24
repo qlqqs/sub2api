@@ -954,6 +954,7 @@ func TestDetail_RoleSpecificFields(t *testing.T) {
 	normal, err := svc.GetAffiliateDetail(ctx, userU1)
 	require.NoError(t, err)
 	require.Nil(t, normal.AgentRatePercent)
+	require.Nil(t, normal.TeamRatePercent)
 	require.NotNil(t, normal.InviteReward)
 	require.Equal(t, 5.0, normal.InviteReward.RatePercent)
 	require.NotNil(t, normal.InviteeBonus)
@@ -962,6 +963,7 @@ func TestDetail_RoleSpecificFields(t *testing.T) {
 	agent, err := svc.GetAffiliateDetail(ctx, userA)
 	require.NoError(t, err)
 	require.Equal(t, 20.0, *agent.AgentRatePercent)
+	require.Nil(t, agent.TeamRatePercent)
 	require.Nil(t, agent.InviteReward)
 	require.Equal(t, 2, agent.OwnedCustomerCount)
 	require.Nil(t, agent.Appoint)
@@ -969,6 +971,7 @@ func TestDetail_RoleSpecificFields(t *testing.T) {
 	top, err := svc.GetAffiliateDetail(ctx, userB)
 	require.NoError(t, err)
 	require.Equal(t, 30.0, *top.AgentRatePercent)
+	require.Equal(t, 10.0, *top.TeamRatePercent)
 	require.NotNil(t, top.Appoint)
 	require.Nil(t, top.FirstRechargeBonus) // 没有邀请人
 	invitees, total, err := svc.ListInvitees(ctx, userB, AffiliateInviteeQuery{})

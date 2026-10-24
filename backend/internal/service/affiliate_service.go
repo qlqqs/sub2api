@@ -247,7 +247,9 @@ type AffiliateDetail struct {
 	NextLevelThreshold *int   `json:"next_level_threshold,omitempty"`
 	CurrentInviteCount int    `json:"current_invite_count"`
 	// AgentRatePercent 仅代理可见：已套专属比例的本档比例。普通用户不下发任何代理比例。
-	AgentRatePercent   *float64 `json:"agent_rate_percent,omitempty"`
+	AgentRatePercent *float64 `json:"agent_rate_percent,omitempty"`
+	// TeamRatePercent 仅一级代理有值：从下级二级代理团队客户消费里拿的级差（本人比例 - 二级默认比例，不为负）。
+	TeamRatePercent    *float64 `json:"team_rate_percent,omitempty"`
 	OwnedCustomerCount int      `json:"owned_customer_count"`
 	// InviteReward 仅普通用户且模式非 off 时下发；代理邀请的人只产生分润。
 	InviteReward *AffiliateInviteRewardInfo `json:"invite_reward,omitempty"`
