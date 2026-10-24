@@ -379,3 +379,95 @@ func TestOpenAIGatewayServiceForwardImages_APIKeyLeavesURLOnlyResponseWhenDisabl
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.Equal(t, upstreamBody, rec.Body.String())
 }
+
+func TestOpenAIGatewayServiceForwardImages_APIKeyStreamBackfillsB64JSONFromURL(t *testing.T) {
+	wantB64 := base64.StdEncoding.EncodeToString(b64BackfillPNGBytes)
+	partial := "event: image_generation.partial_image\ndata: {\"type\":\"image_generation.partial_image\",\"partial_image_index\":0,\"url\":\"https://cdn.example.com/partial.png\"}\n\n"
+
+	tests := []struct {
+		name          string
+		enabled       bool
+		completed     string
+		wantDownloads int
+		check         func(t *testing.T, body string)
+	}{
+		{
+			name:          "顶层 url 的完成事件回填 b64_json，其余事件原样透传",
+			enabled:       true,
+			completed:     "event: image_generation.completed\ndata: {\"type\":\"image_generation.completed\",\"url\":\"https://cdn.example.com/cat.png\",\"usage\":{\"input_tokens\":10,\"output_tokens\":20}}\n\n",
+			wantDownloads: 1,
+			check: func(t *testing.T, body string) {
+				require.True(t, strings.HasPrefix(body, partial))
+				rest := strings.TrimPrefix(body, partial)
+				require.True(t, strings.HasPrefix(rest, "event: image_generation.completed\ndata: "))
+				data := strings.TrimSuffix(strings.TrimPrefix(rest, "event: image_generation.completed\ndata: "), "\n\n")
+				require.Equal(t, wantB64, gjson.Get(data, "b64_json").String())
+				require.Equal(t, "https://cdn.example.com/cat.png", gjson.Get(data, "url").String())
+				require.Equal(t, int64(20), gjson.Get(data, "usage.output_tokens").Int())
+			},
+		},
+		{
+			name:          "data 数组形式的完成事件逐项回填",
+			enabled:       true,
+			completed:     "data: {\"created\":1,\"data\":[{\"url\":\"https://cdn.example.com/cat.png\"}]}\n\ndata: [DONE]\n\n",
+			wantDownloads: 1,
+			check: func(t *testing.T, body string) {
+				rest := strings.TrimPrefix(body, partial)
+				require.True(t, strings.HasSuffix(rest, "\n\ndata: [DONE]\n\n"))
+				data := strings.TrimSuffix(strings.TrimPrefix(rest, "data: "), "\n\ndata: [DONE]\n\n")
+				require.Equal(t, wantB64, gjson.Get(data, "data.0.b64_json").String())
+			},
+		},
+		{
+			name:          "开关关闭时整段原样透传",
+			enabled:       false,
+			completed:     "event: image_generation.completed\ndata: {\"type\":\"image_generation.completed\",\"url\":\"https://cdn.example.com/cat.png\"}\n\n",
+			wantDownloads: 0,
+			check: func(t *testing.T, body string) {
+				require.Equal(t, partial+"event: image_generation.completed\ndata: {\"type\":\"image_generation.completed\",\"url\":\"https://cdn.example.com/cat.png\"}\n\n", body)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gin.SetMode(gin.TestMode)
+			body := []byte(`{"model":"gpt-image-2","prompt":"draw a cat","size":"1024x1024","stream":true}`)
+			req := httptest.NewRequest(http.MethodPost, "/v1/images/generations", bytes.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+			rec := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(rec)
+			c.Request = req
+			c.Set("api_key", &APIKey{ID: 42})
+
+			svc := &OpenAIGatewayService{cfg: &config.Config{}}
+			parsed, err := svc.ParseOpenAIImagesRequest(c, body)
+			require.NoError(t, err)
+			require.True(t, parsed.Stream)
+
+			upstream := &httpUpstreamRecorder{
+				responses: []*http.Response{
+					{
+						StatusCode: http.StatusOK,
+						Header:     http.Header{"Content-Type": []string{"text/event-stream"}},
+						Body:       io.NopCloser(strings.NewReader(partial + tt.completed)),
+					},
+					b64BackfillImageResponse(http.StatusOK, "image/png", b64BackfillPNGBytes),
+				},
+			}
+			svc.httpUpstream = upstream
+
+			result, err := svc.ForwardImages(context.Background(), c, b64BackfillAccount(tt.enabled), body, parsed, "")
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.True(t, result.Stream)
+			require.Equal(t, 1, result.ImageCount)
+			require.Len(t, upstream.requests, 1+tt.wantDownloads)
+			if tt.wantDownloads > 0 {
+				require.Equal(t, "https://cdn.example.com/cat.png", upstream.requests[1].URL.String())
+				require.True(t, HTTPUpstreamPublicHostsOnly(upstream.requests[1].Context()))
+			}
+			tt.check(t, rec.Body.String())
+		})
+	}
+}

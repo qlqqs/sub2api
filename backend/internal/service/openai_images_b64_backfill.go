@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"errors"
@@ -17,7 +18,7 @@ import (
 	"github.com/tidwall/sjson"
 )
 
-// AccountExtraImagesURLToB64JSON 是账户 extra 中的开关键。开启后，Images 端点的非流式响应里
+// AccountExtraImagesURLToB64JSON 是账户 extra 中的开关键。开启后，Images 端点响应（含流式的完成事件）里
 // b64_json 缺失或为空但 url 非空的图片项，由网关下载 url 内容并以 base64 回填到 b64_json。
 const AccountExtraImagesURLToB64JSON = "images_url_to_b64_json"
 
@@ -89,6 +90,60 @@ func (s *OpenAIGatewayService) backfillOpenAIImagesB64JSON(
 		body = updated
 	}
 	return body
+}
+
+// openAIImagesStreamBackfill 是流式响应里 url 转 b64_json 回填所需的上下文；nil 表示不回填。
+type openAIImagesStreamBackfill struct {
+	ctx     context.Context
+	account *Account
+}
+
+// newOpenAIImagesStreamBackfill 在账户开启回填且客户端未显式要求 url 时返回回填上下文。
+func newOpenAIImagesStreamBackfill(ctx context.Context, account *Account, parsed *OpenAIImagesRequest) *openAIImagesStreamBackfill {
+	if !ImagesURLToB64JSONEnabled(account) {
+		return nil
+	}
+	if parsed != nil && parsed.ResponseFormat == "url" {
+		return nil
+	}
+	return &openAIImagesStreamBackfill{ctx: ctx, account: account}
+}
+
+// backfillOpenAIImagesStreamEventB64JSON 对流式响应的单个事件做 url 转 b64_json 回填。
+//
+// 只处理完成事件（type 以 .completed 结尾或缺省 type）：顶层 b64_json 缺失或为空且 url 非空时回填顶层，
+// data[i] 形式的图片项与非流式规则一致。返回值第二项表示事件是否被改写。
+func (s *OpenAIGatewayService) backfillOpenAIImagesStreamEventB64JSON(backfill *openAIImagesStreamBackfill, payload []byte) ([]byte, bool) {
+	if backfill == nil || len(payload) == 0 || !gjson.ValidBytes(payload) {
+		return payload, false
+	}
+	eventType := strings.TrimSpace(gjson.GetBytes(payload, "type").String())
+	if eventType != "" && !strings.HasSuffix(eventType, ".completed") {
+		return payload, false
+	}
+	body := payload
+	if strings.TrimSpace(gjson.GetBytes(body, "b64_json").String()) == "" {
+		if rawURL := strings.TrimSpace(gjson.GetBytes(body, "url").String()); rawURL != "" {
+			encoded, err := s.fetchOpenAIImageURLBase64(backfill.ctx, backfill.account, rawURL)
+			if err == nil {
+				if updated, setErr := sjson.SetBytes(body, "b64_json", encoded); setErr == nil {
+					body = updated
+				} else {
+					err = setErr
+				}
+			}
+			if err != nil {
+				logger.LegacyPrintf(
+					"service.openai_gateway",
+					"[OpenAI] Images stream b64_json backfill skipped account_id=%d err=%s",
+					backfill.account.ID,
+					sanitizeUpstreamErrorMessage(err.Error()),
+				)
+			}
+		}
+	}
+	body = s.backfillOpenAIImagesB64JSON(backfill.ctx, backfill.account, nil, body)
+	return body, !bytes.Equal(body, payload)
 }
 
 // fetchOpenAIImageURLBase64 取得图片 url 内容的标准 base64 编码。

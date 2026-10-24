@@ -744,7 +744,8 @@ func (s *OpenAIGatewayService) forwardOpenAIImagesAPIKey(
 	imageCount := parsed.N
 	var firstTokenMs *int
 	if parsed.Stream && isEventStreamResponse(resp.Header) {
-		streamUsage, streamCount, streamSizes, ttft, err := s.handleOpenAIImagesStreamingResponse(resp, c, startTime, nil)
+		streamBackfill := newOpenAIImagesStreamBackfill(upstreamCtx, account, parsed)
+		streamUsage, streamCount, streamSizes, ttft, err := s.handleOpenAIImagesStreamingResponse(resp, c, startTime, nil, streamBackfill)
 		if err != nil {
 			if streamCount > 0 {
 				return &OpenAIForwardResult{
@@ -987,8 +988,13 @@ func (s *OpenAIGatewayService) handleOpenAIImagesStreamingResponse(
 	c *gin.Context,
 	startTime time.Time,
 	direct *OpenAIImagesRequest,
+	backfill *openAIImagesStreamBackfill,
 ) (OpenAIUsage, int, []string, *int, error) {
 	responseheaders.WriteFilteredHeaders(c.Writer.Header(), resp.Header, s.responseHeaderFilter)
+	// 透传模式下开启回填时，按事件暂存原始行，事件结束后原样或改写后再下发。
+	if direct != nil {
+		backfill = nil
+	}
 	contentType := strings.TrimSpace(resp.Header.Get("Content-Type"))
 	if contentType == "" {
 		contentType = "text/event-stream"
@@ -1013,6 +1019,8 @@ func (s *OpenAIGatewayService) handleOpenAIImagesStreamingResponse(
 	fallbackTooLarge := false
 	var sseData openAISSEDataAccumulator
 	var streamErr error
+	var pendingRaw bytes.Buffer
+	var pendingRewrite []byte
 	finish := func() error {
 		if direct == nil {
 			return nil
@@ -1040,6 +1048,11 @@ func (s *OpenAIGatewayService) handleOpenAIImagesStreamingResponse(
 		}
 		mergeOpenAIUsage(&usage, dataBytes)
 		imageCounter.AddSSEData(dataBytes)
+		if backfill != nil {
+			if updated, changed := s.backfillOpenAIImagesStreamEventB64JSON(backfill, dataBytes); changed {
+				pendingRewrite = updated
+			}
+		}
 		if direct == nil || string(dataBytes) == "[DONE]" {
 			return
 		}
@@ -1089,8 +1102,41 @@ func (s *OpenAIGatewayService) handleOpenAIImagesStreamingResponse(
 		}
 	}
 
+	// flushPending 下发暂存的事件：被回填改写的事件按 event/data 重写，其余原样透传。
+	flushPending := func() {
+		if pendingRaw.Len() == 0 {
+			pendingRewrite = nil
+			return
+		}
+		out := pendingRaw.Bytes()
+		if pendingRewrite != nil {
+			var rewritten bytes.Buffer
+			for _, rawLine := range strings.Split(pendingRaw.String(), "\n") {
+				if trimmed := strings.TrimRight(rawLine, "\r"); strings.HasPrefix(trimmed, "event:") {
+					rewritten.WriteString(trimmed + "\n")
+				}
+			}
+			rewritten.WriteString("data: ")
+			rewritten.Write(pendingRewrite)
+			rewritten.WriteString("\n\n")
+			out = rewritten.Bytes()
+		}
+		if !clientDisconnected {
+			if _, writeErr := c.Writer.Write(out); writeErr != nil {
+				clientDisconnected = true
+				logger.LegacyPrintf("service.openai_gateway", "[OpenAI] Images stream client disconnected, continue draining upstream for billing")
+			} else {
+				flusher.Flush()
+				lastDownstreamWriteAt = time.Now()
+			}
+		}
+		pendingRaw.Reset()
+		pendingRewrite = nil
+	}
+
 	flushSSEEvent := func() {
 		sseData.Flush(processSSEData)
+		flushPending()
 	}
 
 	processLine := func(line []byte) {
@@ -1101,7 +1147,9 @@ func (s *OpenAIGatewayService) handleOpenAIImagesStreamingResponse(
 			ms := int(time.Since(startTime).Milliseconds())
 			firstTokenMs = &ms
 		}
-		if !clientDisconnected && direct == nil {
+		if backfill != nil {
+			_, _ = pendingRaw.Write(line)
+		} else if !clientDisconnected && direct == nil {
 			if _, writeErr := c.Writer.Write(line); writeErr != nil {
 				clientDisconnected = true
 				logger.LegacyPrintf("service.openai_gateway", "[OpenAI] Images stream client disconnected, continue draining upstream for billing")
@@ -1114,6 +1162,9 @@ func (s *OpenAIGatewayService) handleOpenAIImagesStreamingResponse(
 		trimmedLine := strings.TrimRight(string(line), "\r\n")
 		if _, ok := extractOpenAISSEDataLine(trimmedLine); ok || strings.TrimSpace(trimmedLine) == "" {
 			sseData.AddLine(trimmedLine, processSSEData)
+			if backfill != nil && strings.TrimSpace(trimmedLine) == "" {
+				flushPending()
+			}
 			return
 		}
 		if !seenSSEData && !fallbackTooLarge {
@@ -1241,11 +1292,13 @@ func (s *OpenAIGatewayService) handleOpenAIImagesStreamingResponse(
 			if clientDisconnected {
 				return usage, imageCounter.Count(), imageCounter.Sizes(), firstTokenMs, fmt.Errorf("image stream incomplete after timeout")
 			}
+			flushPending()
 			logger.LegacyPrintf("service.openai_gateway", "[OpenAI] Images stream data interval timeout: interval=%s", streamInterval)
 			_ = s.writeOpenAIImagesStreamEvent(c, flusher, "error", buildOpenAIImagesStreamErrorBody(fmt.Sprintf("upstream image stream idle for %s", streamInterval)))
 			return usage, imageCounter.Count(), imageCounter.Sizes(), firstTokenMs, fmt.Errorf("image stream data interval timeout")
 		case <-keepaliveCh:
-			if clientDisconnected || time.Since(lastDownstreamWriteAt) < keepaliveInterval {
+			// 暂存中的事件尚未结束，插入空行会把它截断。
+			if clientDisconnected || pendingRaw.Len() > 0 || time.Since(lastDownstreamWriteAt) < keepaliveInterval {
 				continue
 			}
 			if _, writeErr := io.WriteString(c.Writer, ":\n\n"); writeErr != nil {
