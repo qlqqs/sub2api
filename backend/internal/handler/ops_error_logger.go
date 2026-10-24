@@ -444,6 +444,7 @@ func setOpsRequestContext(c *gin.Context, model string, stream bool) {
 		return
 	}
 	model = strings.TrimSpace(model)
+	setClientResponseModel(c, model)
 	c.Set(opsModelKey, model)
 	c.Set(opsStreamKey, stream)
 	if c.Request != nil && model != "" {

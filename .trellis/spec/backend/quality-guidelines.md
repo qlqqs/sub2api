@@ -76,3 +76,13 @@ go build ./cmd/server
 - **正反例**：命中规则 → 不调用 `ResolveUserGroupRateMultiplier`；未命中 → 经 `fallback` 原样调用。按响应模型重算时两侧倍率可能不同，`responseModelBillingAdoptable` 还要比较实扣金额（`responseModelBillingActualCostAdoptable`）。预扣冻结按候选模型逐个算；免费分组只有候选模型命中 > 0 的规则时才预扣。利润门复用键为「分组 + 模型」。
 - **必要测试**：`group_model_rate_test.go`（匹配、校验、快照失效）、`group_model_rate_billing_test.go`（命中时不调用专属解析、同一用户 A→B 不串值、生图独立倍率开 / 关、响应模型实扣比较、预扣逐候选、利润门阈值与复用）；本机 e2e `p7_model_rate.py`（MRT 组）。
 - **错误与正确**：不要把模型倍率当默认值传给 `ResolveUserGroupRateMultiplier`——它会把传入的默认值缓存在 `user:group` 键下，污染该用户在同组其他模型的倍率；应先 `Match`，未命中再走原解析（即 `resolveBaseRate` 的 `fallback`）。
+
+## HTTP 网关响应模型名（fork）
+
+- **适用范围**：网关 POST 成功响应（JSON / SSE），包括根路径别名、Codex HTTP 与 Gemini/Antigravity；WebSocket 帧不经过此 HTTP 中间件。
+- **签名**：`handler.ClientResponseModelMiddleware() gin.HandlerFunc`；`setOpsRequestContext` 首次收到非空模型时调用 `setClientResponseModel`，合成路由优先使用 `RequestedPublicModelFromContext`。
+- **合约**：仅在客户端写出边界将已存在的字符串 `model`、`response.model`、`message.model`、`modelVersion`、`response.modelVersion` 还原为请求模型；Gemini JSON 数组处理各项的 `modelVersion`。不递归替换正文、工具参数或 metadata，不新增模型字段。上游观察、路由、计费和 `usage_logs.upstream_response_model` 保持原样。
+- **校验与错误边界**：非 2xx、无请求模型、非 JSON/SSE 和压缩字节原样转发；无效 JSON 或非字符串字段不改；写出错误保留。模型字节长度可能改变，写头前移除原 Content-Length。SSE 跨 Write 的半行暂存，但完整事件、注释心跳及 JSON 空白心跳不能等待请求结束才发送。
+- **正反例**：请求 `public`、上游返回 `vendor/version` → 客户端模型为 `public`，内部仍记录 `vendor/version`；即使请求没有配置模型映射也要还原。GET 模型列表与错误消息不改。
+- **必要测试**：`client_response_model_test.go` 覆盖协议字段、精确保留其他字节、合成路由、分片/SSE/心跳、错误与压缩绕过；路由覆盖见 `TestGatewayRoutesClientResponseModelMountedOnEveryHTTPChain`。本机模拟上游还需验证客户端模型与 usage 原始上游模型分离。
+- **错误与正确**：不要改写上游响应后再送入计费观察器，也不要仅以“请求模型与映射模型不同”作为还原条件；应在所有解析/观察之后的 HTTP 写出边界处理。
