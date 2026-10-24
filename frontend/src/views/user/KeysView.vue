@@ -396,14 +396,20 @@
                 <Icon name="terminal" size="sm" />
                 <span class="text-xs">{{ t('keys.useKey') }}</span>
               </button>
-              <!-- Import to CC Switch Button -->
+              <!-- One-click import: pick CC Switch or Magpie -->
               <button
                 v-if="!publicSettings?.hide_ccs_import_button"
-                @click="importToCcswitch(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+                @click="openImportMenu(row, $event)"
+                :class="[
+                  'import-menu-trigger flex flex-col items-center gap-0.5 rounded-lg p-1.5 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400',
+                  importMenuKey?.id === row.id ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' : 'text-gray-500'
+                ]"
               >
                 <Icon name="upload" size="sm" />
-                <span class="text-xs">{{ t('keys.importToCcSwitch') }}</span>
+                <span class="inline-flex items-center gap-0.5 text-xs">
+                  {{ t('keys.oneClickImport') }}
+                  <Icon name="chevronDown" size="xs" />
+                </span>
               </button>
               <!-- Toggle Status Button -->
               <button
@@ -1113,6 +1119,30 @@
       </template>
     </BaseDialog>
 
+    <!-- One-click Import Menu (Teleported to body to avoid overflow clipping) -->
+    <Teleport to="body">
+      <div
+        v-if="importMenuKey && importMenuPosition"
+        ref="importMenuRef"
+        class="fixed z-[100000020] w-60 overflow-hidden rounded-xl bg-white p-1.5 shadow-lg ring-1 ring-black/5 dark:bg-dark-800 dark:ring-white/10"
+        :style="{
+          top: importMenuPosition.top !== undefined ? importMenuPosition.top + 'px' : undefined,
+          bottom: importMenuPosition.bottom !== undefined ? importMenuPosition.bottom + 'px' : undefined,
+          left: importMenuPosition.left + 'px'
+        }"
+      >
+        <button
+          v-for="target in importTargets"
+          :key="target.id"
+          @click="handleImportTarget(target.id)"
+          class="flex w-full flex-col items-start rounded-lg px-3 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-dark-700"
+        >
+          <span class="text-sm font-medium text-gray-900 dark:text-white">{{ target.label }}</span>
+          <span class="text-xs text-gray-500 dark:text-gray-400">{{ target.description }}</span>
+        </button>
+      </div>
+    </Teleport>
+
     <!-- Group Selector Dropdown (Teleported to body to avoid overflow clipping) -->
     <Teleport to="body">
       <div
@@ -1218,6 +1248,7 @@ import {
   buildCcSwitchImportDeeplink,
   type CcSwitchClientType
 } from '@/utils/ccswitchImport'
+import { buildMagpieImportDeeplink } from '@/utils/magpieImport'
 
 // Helper to format date for datetime-local input
 const formatDateTimeLocal = (isoDate: string): string => {
@@ -1386,6 +1417,9 @@ const showUseKeyModal = ref(false)
 const showCcsClientSelect = ref(false)
 const showColumnDropdown = ref(false)
 const pendingCcsRow = ref<ApiKey | null>(null)
+const importMenuKey = ref<ApiKey | null>(null)
+const importMenuRef = ref<HTMLElement | null>(null)
+const importMenuPosition = ref<{ top?: number; bottom?: number; left: number } | null>(null)
 const selectedKey = ref<ApiKey | null>(null)
 const copiedKeyId = ref<number | null>(null)
 const groupSelectorKeyId = ref<number | null>(null)
@@ -1762,6 +1796,9 @@ const closeGroupSelector = (event: MouseEvent) => {
   if (columnDropdownRef.value && !columnDropdownRef.value.contains(target)) {
     showColumnDropdown.value = false
   }
+  if (!target.closest('.import-menu-trigger') && !importMenuRef.value?.contains(target)) {
+    closeImportMenu()
+  }
 }
 
 const confirmDelete = (key: ApiKey) => {
@@ -1981,6 +2018,78 @@ const resetRateLimitUsage = async () => {
   }
 }
 
+type ImportTarget = 'ccswitch' | 'magpie'
+
+const importTargets = computed<{ id: ImportTarget; label: string; description: string }[]>(() => [
+  { id: 'ccswitch', label: 'CC Switch', description: t('keys.importTargets.ccSwitchDesc') },
+  { id: 'magpie', label: 'Magpie', description: t('keys.importTargets.magpieDesc') }
+])
+
+const openImportMenu = (row: ApiKey, event: MouseEvent) => {
+  if (importMenuKey.value?.id === row.id) {
+    closeImportMenu()
+    return
+  }
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const menuEstHeight = 140
+  const menuWidth = 240
+  const left = Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8))
+  importMenuPosition.value =
+    window.innerHeight - rect.bottom < menuEstHeight && rect.top > window.innerHeight - rect.bottom
+      ? { bottom: window.innerHeight - rect.top + 4, left }
+      : { top: rect.bottom + 4, left }
+  importMenuKey.value = row
+}
+
+const closeImportMenu = () => {
+  importMenuKey.value = null
+  importMenuPosition.value = null
+}
+
+const handleImportTarget = (target: ImportTarget) => {
+  const row = importMenuKey.value
+  closeImportMenu()
+  if (!row) return
+  if (target === 'magpie') {
+    importToMagpie(row)
+  } else {
+    importToCcswitch(row)
+  }
+}
+
+// Opens a client's import link; still having focus shortly after means no
+// protocol handler took it.
+const openImportDeeplink = (deeplink: string, notInstalledMessage: string) => {
+  try {
+    window.open(deeplink, '_self')
+    setTimeout(() => {
+      if (document.hasFocus()) {
+        appStore.showError(notInstalledMessage)
+      }
+    }, 100)
+  } catch (error) {
+    appStore.showError(notInstalledMessage)
+  }
+}
+
+const importToMagpie = (row: ApiKey) => {
+  const baseUrl = publicSettings.value?.api_base_url || window.location.origin
+  const siteName = (publicSettings.value?.site_name || 'sub2api').trim() || 'sub2api'
+  const keyName = row.name?.trim()
+  const deeplink = buildMagpieImportDeeplink({
+    baseUrl,
+    platform: row.group?.platform || 'anthropic',
+    providerName: keyName ? `${siteName} · ${keyName}` : siteName,
+    // One Magpie provider per key: importing the same key again replaces it,
+    // another key (maybe of another group) sits beside it.
+    providerId: `${window.location.hostname}-key-${row.id}`,
+    apiKey: row.key,
+    website: window.location.origin,
+    keysUrl: `${window.location.origin}/keys`
+  })
+  openImportDeeplink(deeplink, t('keys.magpieNotInstalled'))
+}
+
 const importToCcswitch = (row: ApiKey) => {
   const platform = row.group?.platform || 'anthropic'
 
@@ -2010,19 +2119,7 @@ const executeCcsImport = (row: ApiKey, clientType: CcSwitchClientType) => {
     usageScript
   })
 
-  try {
-    window.open(deeplink, '_self')
-
-    // Check if the protocol handler worked by detecting if we're still focused
-    setTimeout(() => {
-      if (document.hasFocus()) {
-        // Still focused means the protocol handler likely failed
-        appStore.showError(t('keys.ccSwitchNotInstalled'))
-      }
-    }, 100)
-  } catch (error) {
-    appStore.showError(t('keys.ccSwitchNotInstalled'))
-  }
+  openImportDeeplink(deeplink, t('keys.ccSwitchNotInstalled'))
 }
 
 const handleCcsClientSelect = (clientType: CcSwitchClientType) => {
@@ -2056,11 +2153,16 @@ onMounted(() => {
   loadGroups()
   loadPublicSettings()
   document.addEventListener('click', closeGroupSelector)
+  // The import menu is fixed-positioned: close it once its button moves away.
+  window.addEventListener('scroll', closeImportMenu, true)
+  window.addEventListener('resize', closeImportMenu)
   resetTimer = setInterval(() => { now.value = new Date() }, 60000)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', closeGroupSelector)
+  window.removeEventListener('scroll', closeImportMenu, true)
+  window.removeEventListener('resize', closeImportMenu)
   if (resetTimer) clearInterval(resetTimer)
 })
 </script>

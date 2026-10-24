@@ -52,7 +52,7 @@ export default {
         label: '一键导入',
         badge: '推荐',
         title: 'CC Switch',
-        description: '在「API 密钥」页点密钥旁的「导入到 CCS」，自动填好接口地址和密钥',
+        description: '在「API 密钥」页点密钥旁的「一键导入」，选择 CC Switch 或 Magpie，自动填好接口地址和密钥',
         keys: '前往 API 密钥',
         download: '下载 CC Switch'
       },

@@ -52,7 +52,7 @@ export default {
         label: 'One-click import',
         badge: 'Recommended',
         title: 'CC Switch',
-        description: 'Click "Import to CCS" next to your key on the API Keys page to fill in the base URL and key',
+        description: 'Click "Import" next to your key on the API Keys page and pick CC Switch or Magpie to fill in the base URL and key',
         keys: 'Go to API Keys',
         download: 'Download CC Switch'
       },

@@ -114,7 +114,11 @@ export default {
     created: 'Created',
     copyToClipboard: 'Copy to clipboard',
     copied: 'Copied!',
-    importToCcSwitch: 'Import to CCS',
+    oneClickImport: 'Import',
+    importTargets: {
+      ccSwitchDesc: 'Import as a Claude Code / Codex / Gemini client config, with balance query',
+      magpieDesc: 'Import as a Magpie provider, with endpoints filled in from the group'
+    },
     enable: 'Enable',
     disable: 'Disable',
     nameLabel: 'Name',
@@ -281,6 +285,8 @@ export default {
     ipBlacklistPlaceholder: '1.2.3.4\n5.6.0.0/16',
     ipBlacklistHint: 'One IP or CIDR per line. These IPs will be blocked from using this key.',
     ipRestrictionEnabled: 'IP restriction enabled',
+    magpieNotInstalled:
+      'Magpie is not installed or the protocol handler is not registered (0.1.8 or newer is required). Please install Magpie first or manually copy the API key.',
     ccSwitchNotInstalled: 'CC-Switch is not installed or the protocol handler is not registered. Please install CC-Switch first or manually copy the API key.',
     ccsClientSelect: {
       title: 'Select Client',
