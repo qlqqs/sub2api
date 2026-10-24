@@ -126,7 +126,8 @@
   background: var(--qx-tint);
   color: var(--qx-ink);
 }
-.qx-nav-icon {
+.qx-nav .qx-nav-icon {
+  /* 仅用于公开页导航按钮，避免 SPA 登录后挤压侧栏同名 SVG 图标。 */
   padding: 8px;
 }
 .qx-nav .qx-btn {
@@ -549,7 +550,8 @@
 }
 .qx-flow-main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr) minmax(190px, 1.1fr) minmax(0, 1.7fr);
+  /* 分叉列至少容纳整条标签（标签不换行），否则英文标签会压到右侧终点方框 */
+  grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr) minmax(max-content, 1.1fr) minmax(0, 1.7fr);
   align-items: center;
   padding: 36px 32px;
 }

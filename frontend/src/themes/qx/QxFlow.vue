@@ -84,7 +84,7 @@ defineProps<{
 
 const { t } = useI18n()
 
-const CC_SWITCH_DOWNLOAD_URL = 'https://github.com/farion1231/cc-switch/releases'
+const CC_SWITCH_DOWNLOAD_URL = 'https://ccswitch.io/en/download'
 
 function stepLabel(n: number): string {
   return `STEP ${String(n).padStart(2, '0')}`

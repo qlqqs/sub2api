@@ -71,3 +71,8 @@ const emit = defineEmits<{
 - 调用共享的 `GroupBadge` / `GroupOptionItem` 时，去掉倍率参数必须同时去掉高峰参数（否则按基准 1 算出错误的高峰比例）；不要为此修改这两个共享组件。
 - 「相比官方价」类折扣统一用 `utils/priceDiscount.ts`：`d = 1 − (¥/$ 比例) ÷ 汇率`，四舍五入为 0% 时显示「≈ 官方价 / ≈ 原价」，无效输入显示「—」；汇率取 `appStore.usdCnyRate`（公开设置 `usd_cny_rate`），缺省 6.8。不要把倍率直接写成折扣（¥ 与 $ 不同币种）。
 - 模型广场每行倍率 = `user_rate_multiplier ?? rate_multiplier ?? 分组生效倍率`（后者兼容旧后端）。用户端使用记录明细每项 × `实扣 ÷ 原始费用` 显示 ¥，合计等于实扣；管理端保持美元明细。
+
+## Qx 主题的跨路由样式隔离
+
+- 公开页 `themes/qx/theme.css` 会在 SPA 跳转后保留，不能假定离开登录页后 CSS 被卸载。公开页专用规则需用所属容器限制；例如顶部按钮的 padding 用 `.qx-nav .qx-nav-icon`，不能用裸 `.qx-nav-icon`（侧栏 SVG 同名，18px 图标会被 8px padding 挤成小点）。
+- 样式修复必须验证「新浏览器会话 → 登录表单 → 自动跳到控制台」和直接刷新控制台两条路径，确认 `.qx-side-nav .qx-nav-icon` 的 padding 都为 0；不能只用 `page.goto('/dashboard')` 截图。选择器回归测试见 `themes/qx/__tests__/theme.spec.ts`。

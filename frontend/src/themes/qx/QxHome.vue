@@ -46,20 +46,20 @@
     </div>
 
     <main>
+      <section class="qx-section">
+        <div class="qx-wrap">
+          <span class="qx-kicker">{{ t('qxTheme.steps.kicker') }}</span>
+          <h2>{{ t('qxTheme.steps.title') }}</h2>
+          <QxFlow :protocols="protocols" :api-origin="apiOrigin" :ccs-import-visible="ccsImportVisible" />
+        </div>
+      </section>
+
       <section v-if="groups.length > 0" class="qx-section">
         <div class="qx-wrap">
           <span class="qx-kicker">{{ t('qxTheme.pricing.kicker') }}</span>
           <h2>{{ t('qxTheme.pricing.title') }}</h2>
           <p class="qx-lead">{{ t('qxTheme.pricing.lead') }}</p>
           <QxPricing :groups="groups" />
-        </div>
-      </section>
-
-      <section class="qx-section">
-        <div class="qx-wrap">
-          <span class="qx-kicker">{{ t('qxTheme.steps.kicker') }}</span>
-          <h2>{{ t('qxTheme.steps.title') }}</h2>
-          <QxFlow :protocols="protocols" :api-origin="apiOrigin" :ccs-import-visible="ccsImportVisible" />
         </div>
       </section>
     </main>

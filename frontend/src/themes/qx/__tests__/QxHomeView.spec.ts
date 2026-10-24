@@ -119,6 +119,47 @@ describe('QxHomeView', () => {
     expect(wrapper.find('.qx-flow-foot').text()).toContain('/v1/messages')
   })
 
+  it('places setup before pricing and links to the CC Switch download page', async () => {
+    const wrapper = mountHome()
+    await flushPromises()
+    expect(wrapper.findAll('main > section h2').map((heading) => heading.text())).toEqual([
+      'qxTheme.steps.title',
+      'qxTheme.pricing.title'
+    ])
+    expect(wrapper.find('.qx-flow-links a[target="_blank"]').attributes('href'))
+      .toBe('https://ccswitch.io/en/download')
+  })
+
+  it('shows curl examples for both protocols without duplicating v1', async () => {
+    appStore.apiBaseUrl = 'https://api.example.com/v1/'
+    const wrapper = mountHome()
+    await flushPromises()
+    const console = wrapper.find('.qx-console')
+    expect(console.find('pre').text()).toContain('curl https://api.example.com/v1/responses')
+    await console.findAll('[role="tab"]')[1].trigger('click')
+    const example = console.find('pre').text()
+    expect(example).toContain('curl https://api.example.com/v1/messages')
+    expect(example).toContain('"x-api-key: $API_KEY"')
+    expect(example).toContain('"anthropic-version: 2023-06-01"')
+    expect(example).not.toContain('export ANTHROPIC_')
+    const payload = JSON.parse(example.match(/-d '([\s\S]+)'/)![1])
+    expect(payload).toEqual({
+      model: 'gpt-6.1-sol',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: 'qxTheme.console.prompt' }]
+    })
+    await console.findAll('[role="tab"]')[0].trigger('click')
+    expect(console.find('pre').text()).toContain('curl https://api.example.com/v1/responses')
+  })
+
+  it('keeps a model placeholder in the Anthropic example if prices are unavailable', async () => {
+    getModelPlaza.mockRejectedValue(new Error('404'))
+    const wrapper = mountHome()
+    await flushPromises()
+    await wrapper.findAll('.qx-console [role="tab"]')[1].trigger('click')
+    expect(wrapper.find('.qx-console pre').text()).toContain('"model": "MODEL"')
+  })
+
   it('keeps only manual setup when the CCS import button is hidden', async () => {
     const wrapper = mountHome({ hide_ccs_import_button: true })
     await flushPromises()

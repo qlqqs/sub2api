@@ -29,9 +29,14 @@
     -d <span class="qx-c-str">'{"model": "{{ model }}",
          "input": "{{ t('qxTheme.console.prompt') }}"}'</span></pre>
     <pre v-else><span class="qx-c-muted"># {{ t('qxTheme.console.keyHint') }}</span>
-<span class="qx-c-prompt">$</span> export ANTHROPIC_BASE_URL=<span class="qx-c-str">{{ endpoint }}</span>
-<span class="qx-c-prompt">$</span> export ANTHROPIC_AUTH_TOKEN=<span class="qx-c-str">$API_KEY</span>
-<span class="qx-c-prompt">$</span> claude</pre>
+<span class="qx-c-prompt">$</span> curl {{ endpoint }}/v1/messages \
+    -H <span class="qx-c-str">"x-api-key: $API_KEY"</span> \
+    -H <span class="qx-c-str">"anthropic-version: 2023-06-01"</span> \
+    -H <span class="qx-c-str">"Content-Type: application/json"</span> \
+    -d <span class="qx-c-str">'{"model": "{{ model }}",
+         "max_tokens": 1024,
+         "messages": [{"role": "user",
+                       "content": "{{ t('qxTheme.console.prompt') }}"}]}'</span></pre>
   </div>
 </template>
 
