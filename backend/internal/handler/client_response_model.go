@@ -40,7 +40,7 @@ func ClientResponseModelMiddleware() gin.HandlerFunc {
 		defer func() { c.Writer = original }()
 		c.Next()
 		if err := w.finish(); err != nil {
-			c.Error(err)
+			_ = c.Error(err)
 		}
 	}
 }
