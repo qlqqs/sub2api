@@ -182,3 +182,33 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 11: Qx 首页小修与首次登录侧栏图标修复
+<!-- trellis-session: v=2 fp=c7c530d86f8479b2 -->
+
+**Date**: 2026-10-24
+**Task**: Qx 首页小修与首次登录侧栏图标修复
+**Branch**: `sub2api-custom`
+
+### Summary
+
+完成 CC Switch 下载链接、三步与价格顺序、分叉标签宽度、Anthropic curl 示例及公开页 CSS 泄漏导致首次登录侧栏图标挤成点的问题；已推送。GitHub 手动触发 CI 返回 422 Actions has been disabled for this repository，故未更新一号机。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `00692db18` | fix(qx): polish home setup and prevent sidebar icon style leakage |
+
+### Testing
+
+- [OK] Qx 67 项测试、针对性 ESLint、本机 build.sh 通过；中英文 6 屏宽和首次登录/刷新 Playwright 回归通过。按用户要求未运行本机全量测试。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 恢复仓库 Actions 后为 00692db18 构建镜像，通过 CI 再更新一号机 /root/sub2api-custom。
