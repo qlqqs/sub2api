@@ -44,7 +44,8 @@ type modelPlazaOfficialPricing struct {
 	CacheWrite1hPrice *float64 `json:"cache_write_1h_price,omitempty"`
 	CacheReadPrice    *float64 `json:"cache_read_price"`
 	// Intervals 官方长上下文阶梯，仅多档模型给出。
-	Intervals []userPricingIntervalDTO `json:"intervals,omitempty"`
+	Intervals   []userPricingIntervalDTO `json:"intervals,omitempty"`
+	TimePricing *modelPlazaTimePricing   `json:"time_pricing,omitempty"`
 }
 
 // modelPlazaTimePricingPeriod 分时倍率时段（配置时区当天 [start, end)）。
@@ -268,6 +269,7 @@ func toModelPlazaOfficialPricing(p *service.PlazaOfficialPricing) *modelPlazaOff
 		CacheWrite1hPrice: p.CacheWrite1hPrice,
 		CacheReadPrice:    p.CacheReadPrice,
 		Intervals:         toUserPricingIntervals(p.Intervals),
+		TimePricing:       toModelPlazaTimePricing(p.TimePricing),
 	}
 }
 

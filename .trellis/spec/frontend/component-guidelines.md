@@ -76,3 +76,13 @@ const emit = defineEmits<{
 
 - 公开页 `themes/qx/theme.css` 会在 SPA 跳转后保留，不能假定离开登录页后 CSS 被卸载。公开页专用规则需用所属容器限制；例如顶部按钮的 padding 用 `.qx-nav .qx-nav-icon`，不能用裸 `.qx-nav-icon`（侧栏 SVG 同名，18px 图标会被 8px padding 挤成小点）。
 - 样式修复必须验证「新浏览器会话 → 登录表单 → 自动跳到控制台」和直接刷新控制台两条路径，确认 `.qx-side-nav .qx-nav-icon` 的 padding 都为 0；不能只用 `page.goto('/dashboard')` 截图。选择器回归测试见 `themes/qx/__tests__/theme.spec.ts`。
+
+## 模型广场官方峰闲价合约
+
+- **范围**：官方参考价与本站价同时存在分时时段时，不能沿用“官方价始终是一个固定数字”的假设。
+- **签名**：`GET /api/v1/model-plaza` 的 `models[].official_pricing.time_pricing?`；前端 `plazaPriceTimeRows(paid?, official?)`（`utils/modelPlazaTimePricing.ts`）。
+- **合约**：基础官方价仍是 USD/token；官方时段只来自官方规则，不来自渠道配置。本站单价乘本站倍率与本站时段因子，官方单价只乘官方时段因子；折扣比较同一时段的两套价格。
+- **错误/兼容**：无官方分时字段时保持旧行为；双方不同时区时独立列出官方时刻表，折扣显示 `—`，不猜测换算；不为此增加说明段落。
+- **用例**：双方相同时段均翻倍时折扣不变；窗口部分重叠时按边界切分；每日规则与仅周一至周五规则分开显示周末。
+- **回归**：`model_plaza_service_test.go` 验证官方规则不取渠道规则；`model_plaza_handler_test.go` 验证嵌套 JSON 与缺省省略；`modelPlazaTimePricing.spec.ts` / `PlazaModelPricingTable.spec.ts` 验证价格、折扣与旧接口兼容。
+- **错误与正确**：错误是将渠道高峰倍率直接乘到官方价，或高峰本站价仍比较空闲官方价；正确是各自解析时段后对齐比较。此展示修复不改实际扣费和节假日能力。

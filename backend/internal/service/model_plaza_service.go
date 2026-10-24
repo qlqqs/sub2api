@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 )
 
 // PlazaOfficialPricing 模型广场展示用的官方参考价（USD per token），与计费同源：
@@ -17,6 +18,8 @@ type PlazaOfficialPricing struct {
 	CacheReadPrice    *float64
 	// Intervals 官方长上下文阶梯（多档时给出），不受分组开关影响。
 	Intervals []PricingInterval
+	// TimePricing 是官方自身的分时规则，不取渠道配置或分组倍率。
+	TimePricing *TimePricingSchedule
 }
 
 // PlazaModel 模型广场中单个模型条目：按实收口径合成的展示定价 + 官方参考价。
@@ -364,6 +367,9 @@ func (s *ModelPlazaService) lookupOfficialPricing(ctx context.Context, modelName
 			CacheWritePrice: nonZeroPtr(mp.CacheCreationPricePerToken),
 			CacheReadPrice:  nonZeroPtr(mp.CacheReadPricePerToken),
 		}
+		if isDeepSeekModel(modelName) {
+			result.TimePricing = deepseekOfficialTimePricing()
+		}
 		// 计费只在支持 5m/1h 分档时使用 1h 价，其余情况 1h 价对用户无意义。
 		if mp.SupportsCacheBreakdown {
 			result.CacheWrite1hPrice = nonZeroPtr(mp.CacheCreation1hPrice)
@@ -381,6 +387,27 @@ func (s *ModelPlazaService) lookupOfficialPricing(ctx context.Context, modelName
 	}
 	memo[modelName] = result
 	return result
+}
+
+// deepseekOfficialTimePricing 从既有计费时段判定生成官方时刻表，避免在展示层复制高峰窗口。
+// 判定函数按小时划分窗口；取北京时间周一逐小时探测，并合并相邻的同倍率时段。
+func deepseekOfficialTimePricing() *TimePricingSchedule {
+	out := &TimePricingSchedule{Timezone: "Asia/Shanghai", WeekdaysOnly: true}
+	day := time.Date(2026, time.January, 5, 0, 0, 0, 0, time.FixedZone("Asia/Shanghai", 8*3600))
+	for hour := 0; hour < 24; hour++ {
+		multiplier := deepseekPeakMultiplierAt(day.Add(time.Duration(hour) * time.Hour))
+		if multiplier == 1 {
+			continue
+		}
+		start, end := fmt.Sprintf("%02d:00", hour), fmt.Sprintf("%02d:00", hour+1)
+		last := len(out.Periods) - 1
+		if last >= 0 && out.Periods[last].EndTime == start && out.Periods[last].Multiplier == multiplier {
+			out.Periods[last].EndTime = end
+			continue
+		}
+		out.Periods = append(out.Periods, TimePricingPeriod{StartTime: start, EndTime: end, Multiplier: multiplier})
+	}
+	return out
 }
 
 // fillModelRate (CUSTOM) 填充模型的公开基础倍率：命中分组模型倍率取模型倍率，否则取分组倍率。

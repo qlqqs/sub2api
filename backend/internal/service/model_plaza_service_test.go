@@ -509,3 +509,43 @@ func TestListGroups_TimePricingPassthrough(t *testing.T) {
 	// 展示单价为标准时段价
 	require.InDelta(t, 0.28e-6, *m.Pricing.InputPrice, 1e-15)
 }
+
+func TestListGroups_OfficialTimePricingIndependentOfChannel(t *testing.T) {
+	custom := &ChannelTimePricing{Timezone: "Asia/Shanghai", Periods: []ChannelTimePricingPeriod{
+		{StartTime: "00:30", EndTime: "08:30", Multiplier: 0.5},
+	}}
+	channels := []Channel{{
+		ID: 1, Name: "ch", Status: StatusActive, GroupIDs: []int64{10},
+		ModelPricing: []ChannelModelPricing{{
+			Platform: PlatformOpenAI, Models: []string{"deepseek-v4.1-flash", "deepseek-v4-1-flash", "gpt-5.4"},
+			BillingMode: BillingModeToken, InputPrice: testPtrFloat64(1e-6), OutputPrice: testPtrFloat64(4e-6),
+			TimePricing: custom,
+		}},
+	}}
+	groups := []Group{{ID: 10, Platform: PlatformOpenAI, RateMultiplier: 4.6}}
+	svc := newPlazaServiceWithBilling(channels, groups, map[int64]string{10: PlatformOpenAI}, nil)
+	out, err := svc.ListGroups(context.Background())
+	require.NoError(t, err)
+	models := plazaModelsByName(out[0].Models)
+	for _, name := range []string{"deepseek-v4.1-flash", "deepseek-v4-1-flash"} {
+		m := models[name]
+		require.NotNil(t, m.OfficialPricing)
+		require.InDelta(t, 1.5e-7, *m.OfficialPricing.InputPrice, 1e-15)
+		require.InDelta(t, 6e-7, *m.OfficialPricing.OutputPrice, 1e-15)
+		require.InDelta(t, 3e-9, *m.OfficialPricing.CacheReadPrice, 1e-15)
+		require.Equal(t, &TimePricingSchedule{
+			Timezone: "Asia/Shanghai", WeekdaysOnly: true,
+			Periods: []TimePricingPeriod{
+				{StartTime: "09:00", EndTime: "12:00", Multiplier: 2},
+				{StartTime: "14:00", EndTime: "18:00", Multiplier: 2},
+			},
+		}, m.OfficialPricing.TimePricing)
+		require.NotNil(t, m.TimePricing)
+		require.Len(t, m.TimePricing.Periods, 1)
+		require.Equal(t, 0.5, m.TimePricing.Periods[0].Multiplier, "本站仍保留渠道配置")
+		require.InDelta(t, 1e-6, *m.Pricing.InputPrice, 1e-15)
+	}
+	require.NotNil(t, models["gpt-5.4"].OfficialPricing)
+	require.Nil(t, models["gpt-5.4"].OfficialPricing.TimePricing, "非 DeepSeek 官方价不能套用渠道分时")
+	require.Equal(t, 0.5, custom.Periods[0].Multiplier, "聚合不能修改共享渠道配置")
+}

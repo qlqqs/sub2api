@@ -970,3 +970,101 @@ describe('PlazaModelPricingTable 按模型倍率与相比官方价(CUSTOM)', () 
     expect(title).toContain('modelPlaza.table.timePricingRowHintPeakDown')
   })
 })
+
+describe('PlazaModelPricingTable 官方峰闲参考价', () => {
+  function flashModel(): PlazaModel {
+    const model = tokenModel({ name: 'deepseek-v4.1-flash', platform: 'openai', rate_multiplier: 4.6 })
+    Object.assign(model.pricing!, { input_price: 1.5e-7, output_price: 6e-7, cache_read_price: 3e-9, cache_write_price: null })
+    model.official_pricing = {
+      input_price: 1.5e-7, output_price: 6e-7, cache_read_price: 3e-9, cache_write_price: null,
+      time_pricing: {
+        timezone: 'Asia/Shanghai', weekdays_only: true,
+        periods: [
+          { start_time: '09:00', end_time: '12:00', multiplier: 2 },
+          { start_time: '14:00', end_time: '18:00', multiplier: 2 }
+        ]
+      }
+    }
+    model.time_pricing = {
+      timezone: 'Asia/Shanghai', weekdays_only: true,
+      periods: model.official_pricing.time_pricing!.periods.map(p => ({ ...p, start_time: p.start_time + ':00', end_time: p.end_time + ':00' }))
+    }
+    return model
+  }
+
+  it('官方高峰输入/输出/缓存同时翻倍，两边同倍率时折扣不变，不乘本站倍率', () => {
+    const model = flashModel()
+    const original = JSON.stringify(model)
+    const wrapper = mountTable([model], 4.6)
+    const rows = wrapper.findAll('tbody tr')
+    expect(rows).toHaveLength(3)
+    const base = rows[0].findAll('td')
+    expect(base[0].text()).toContain('modelPlaza.table.standardTimePrice')
+    expect(base[1].text()).toContain('¥0.69')
+    expect(base[4].text()).toBe('$0.15')
+    expect(base[5].text()).toBe('$0.60')
+    expect(base[6].text()).toContain('$0.003')
+    for (const row of rows.slice(1)) {
+      const cells = row.findAll('td')
+      expect(cells[1].text()).toContain('¥1.38')
+      expect(cells[4].text()).toBe('$0.30')
+      expect(cells[5].text()).toBe('$1.20')
+      expect(cells[6].text()).toContain('$0.006')
+      expect(cells[7].text()).toBe(base[7].text())
+    }
+    expect(rows[1].text()).toContain('09:00–12:00')
+    expect(rows[2].text()).toContain('14:00–18:00')
+    expect(JSON.stringify(model)).toBe(original)
+  })
+
+  it('只配置官方分时时也展示官方峰价，本站固定价保持不变', () => {
+    const model = flashModel()
+    delete model.time_pricing
+    const wrapper = mountTable([model], 4.6)
+    const rows = wrapper.findAll('tbody tr')
+    expect(rows).toHaveLength(3)
+    const base = rows[0].findAll('td')
+    const peak = rows[1].findAll('td')
+    expect(peak[1].text()).toBe(base[1].text())
+    expect(peak[4].text()).toBe('$0.30')
+    expect(base[7].text()).toBe('-32%')
+    expect(peak[7].text()).toBe('-66%')
+  })
+
+  it('官方与渠道窗口部分重叠时展示交集，不把渠道折扣套到官方', () => {
+    const model = flashModel()
+    model.time_pricing!.periods = [{ start_time: '10:00', end_time: '15:00', multiplier: 0.5 }]
+    const rows = mountTable([model], 4.6).findAll('tbody tr')
+    expect(rows).toHaveLength(6)
+    const before = rows[1].findAll('td')
+    expect(before[0].text()).toContain('09:00–10:00')
+    expect(before[1].text()).toContain('¥0.69')
+    expect(before[4].text()).toBe('$0.30')
+    const gap = rows[3].findAll('td')
+    expect(gap[0].text()).toContain('12:00–14:00')
+    expect(gap[1].text()).toContain('¥0.345')
+    expect(gap[4].text()).toBe('$0.15')
+  })
+
+  it('官方倍率同样用于专属用户的公开划线折扣和实际折扣', () => {
+    const model = flashModel()
+    model.user_rate_multiplier = 2.3
+    const rows = mountTable([model], 4.6).findAll('tbody tr')
+    const discounts = rows.map(row => row.get('[data-testid="plaza-discount"]').text())
+    expect(discounts[1]).toBe(discounts[0])
+    expect(discounts[2]).toBe(discounts[0])
+    expect(rows[1].get('[data-testid="plaza-discount-public"]').text()).toBe('-32%')
+  })
+
+  it('跨时区不伪造同一时段比较，独立展示官方价格与原始时区', () => {
+    const model = flashModel()
+    model.time_pricing!.timezone = 'UTC'
+    const wrapper = mountTable([model], 4.6)
+    const row = wrapper.findAll('tbody tr')[1]
+    expect(row.findAll('td')[4].text()).toContain('$0.15')
+    expect(row.findAll('td')[4].text()).toContain('$0.30')
+    expect(row.findAll('td')[4].text()).toContain('Asia/Shanghai')
+    expect(row.get('[data-testid="plaza-discount"]').text()).toBe('—')
+    expect(row.get('[data-testid="plaza-discount"] [title]').attributes('title')).toBe('modelPlaza.table.discountNoBasis')
+  })
+})

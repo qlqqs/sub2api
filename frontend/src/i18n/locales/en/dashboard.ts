@@ -712,6 +712,9 @@ export default {
       timePricingRowHintPeakDown:
         '; prices in this row exclude peak-hour pricing — where this period overlaps the peak hours {window}, the overlapping portion costs {percent}% less',
       timePricingWeekdays: 'Weekdays',
+      timePricingWeekends: 'Weekends',
+      timePricingRowHintWeekends: 'Prices in this row apply during this period on Saturdays and Sundays ({timezone} time)',
+      standardTimePrice: 'Off-peak',
       timePricingRateHint: 'Effective rate {rate} × period multiplier {multiplier}',
       paidPrice: 'Our Price (Discounted)',
       officialPrice: 'Official Price',

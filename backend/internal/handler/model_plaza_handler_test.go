@@ -305,3 +305,33 @@ func TestModelPlazaHandler_VaryKeepsCORSOrigin(t *testing.T) {
 		require.Equal(t, []string{"Origin", "Accept-Language"}, w.Header().Values("Vary"))
 	}
 }
+
+func TestToModelPlazaOfficialPricing_TimePricingJSON(t *testing.T) {
+	p := &service.PlazaOfficialPricing{
+		InputPrice: testPtr(1.5e-7), OutputPrice: testPtr(6e-7), CacheReadPrice: testPtr(3e-9),
+		TimePricing: &service.TimePricingSchedule{
+			Timezone: "Asia/Shanghai", WeekdaysOnly: true,
+			Periods: []service.TimePricingPeriod{
+				{StartTime: "09:00", EndTime: "12:00", Multiplier: 2},
+				{StartTime: "14:00", EndTime: "18:00", Multiplier: 2},
+			},
+		},
+	}
+	raw, err := json.Marshal(toModelPlazaOfficialPricing(p))
+	require.NoError(t, err)
+	require.JSONEq(t, `{
+		"input_price": 0.00000015, "output_price": 0.0000006,
+		"cache_write_price": null, "cache_read_price": 0.000000003,
+		"time_pricing": {
+			"timezone": "Asia/Shanghai", "weekdays_only": true,
+			"periods": [
+				{"start_time":"09:00", "end_time":"12:00", "multiplier":2},
+				{"start_time":"14:00", "end_time":"18:00", "multiplier":2}
+			]
+		}
+	}`, string(raw))
+	p.TimePricing = nil
+	raw, err = json.Marshal(toModelPlazaOfficialPricing(p))
+	require.NoError(t, err)
+	require.NotContains(t, string(raw), "time_pricing", "无官方时段时省略字段以兼容旧客户端")
+}

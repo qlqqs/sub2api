@@ -18,6 +18,8 @@ export interface PlazaOfficialPricing {
   cache_read_price: number | null
   /** 官方长上下文阶梯（多档模型才有），不受分组开关影响。 */
   intervals?: UserPricingInterval[]
+  /** 官方自身的峰闲规则，与本站渠道分时独立；单价为标准/空闲时段价。 */
+  time_pricing?: PlazaTimePricing
 }
 
 /**

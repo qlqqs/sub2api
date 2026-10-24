@@ -63,7 +63,7 @@
       </thead>
       <tbody>
         <tr
-          v-for="{ model: m, period, key, rate, discount } in rows"
+          v-for="{ model: m, period, schedule, weekendsOnly, key, rate, discount, referencePrices } in rows"
           :key="key"
           class="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-gray-50/70 dark:border-dark-800 dark:hover:bg-dark-800/50"
         >
@@ -75,12 +75,16 @@
               <span
                 v-if="period"
                 class="inline-flex items-center whitespace-nowrap rounded-md bg-gray-100 px-1 py-0.5 font-mono text-[10px] font-medium text-gray-500 dark:bg-dark-700/70 dark:text-dark-300"
-                :title="timePricingRowHint(m)"
+                :title="timePricingRowHint(schedule, weekendsOnly)"
               >
-                <span v-if="m.time_pricing?.weekdays_only" class="mr-1 font-sans">{{
+                <span v-if="schedule?.weekdays_only" class="mr-1 font-sans">{{
                   t('modelPlaza.table.timePricingWeekdays')
                 }}</span>
+                <span v-if="weekendsOnly" class="mr-1 font-sans">{{ t('modelPlaza.table.timePricingWeekends') }}</span>
                 {{ formatTimeWindow(period) }}
+              </span>
+              <span v-if="!period && m.official_pricing?.time_pricing" class="text-[10px] text-gray-500 dark:text-dark-400">
+                {{ t('modelPlaza.table.standardTimePrice') }}
               </span>
               <span
                 v-if="platform && m.platform !== platform"
@@ -217,7 +221,7 @@
             </td>
           </template>
 
-          <!-- 官方价格(参考价,不乘倍率;官方有阶梯时每档一行) -->
+          <!-- 官方参考价只乘官方分时因子，不能使用本站/渠道倍率。 -->
           <td v-if="hasOfficialContext" class="pz-context border-l border-gray-100 py-2.5 pl-3 align-middle dark:border-dark-700/60">
             <div v-for="(iv, idx) in officialIntervals(m)" :key="idx" class="whitespace-nowrap text-xs leading-5">
               <span class="font-sans text-gray-400 dark:text-dark-500" :title="t('modelPlaza.table.tierHint')">{{ tierLabel(iv) }}</span>
@@ -227,69 +231,78 @@
             class="px-3 py-2.5 text-left align-middle font-mono text-xs text-gray-500 dark:text-dark-400"
             :class="{ 'border-l border-gray-100 dark:border-dark-700/60': !hasOfficialContext }"
           >
-            <template v-if="officialIntervals(m).length">
-              <div
-                v-for="(iv, idx) in officialIntervals(m)"
-                :key="idx"
-                class="whitespace-nowrap leading-5"
-              >
-                <span>{{ official(iv.input_price) }}</span>
-              </div>
-            </template>
-            <template v-else>{{ official(m.official_pricing?.input_price) }}</template>
+            <div v-for="(reference, referenceIndex) in referencePrices" :key="referenceIndex">
+              <div v-if="reference.label" class="font-sans text-[10px] text-gray-400 dark:text-dark-500">{{ reference.label }}</div>
+              <template v-if="officialIntervals(m).length">
+                <div
+                  v-for="(iv, idx) in officialIntervals(m)"
+                  :key="idx"
+                  class="whitespace-nowrap leading-5"
+                >
+                  <span>{{ official(iv.input_price, reference.multiplier) }}</span>
+                </div>
+              </template>
+              <template v-else>{{ official(m.official_pricing?.input_price, reference.multiplier) }}</template>
+            </div>
           </td>
           <td class="px-3 py-2.5 align-middle font-mono text-xs text-gray-500 dark:text-dark-400">
-            <template v-if="officialIntervals(m).length">
-              <div
-                v-for="(iv, idx) in officialIntervals(m)"
-                :key="idx"
-                class="whitespace-nowrap leading-5"
-                :title="t('modelPlaza.table.tierHint')"
-              >
-                {{ official(iv.output_price) }}
-              </div>
-            </template>
-            <template v-else>{{ official(m.official_pricing?.output_price) }}</template>
+            <div v-for="(reference, referenceIndex) in referencePrices" :key="referenceIndex">
+              <div v-if="reference.label" class="font-sans text-[10px] text-gray-400 dark:text-dark-500">{{ reference.label }}</div>
+              <template v-if="officialIntervals(m).length">
+                <div
+                  v-for="(iv, idx) in officialIntervals(m)"
+                  :key="idx"
+                  class="whitespace-nowrap leading-5"
+                  :title="t('modelPlaza.table.tierHint')"
+                >
+                  {{ official(iv.output_price, reference.multiplier) }}
+                </div>
+              </template>
+              <template v-else>{{ official(m.official_pricing?.output_price, reference.multiplier) }}</template>
+            </div>
           </td>
           <td class="px-3 py-2.5 align-middle">
-            <template v-if="hasTierCachePricing(officialIntervals(m))">
+            <div v-for="(reference, referenceIndex) in referencePrices" :key="referenceIndex">
+              <div v-if="reference.label" class="font-sans text-[10px] text-gray-400 dark:text-dark-500">{{ reference.label }}</div>
+              <template v-if="hasTierCachePricing(officialIntervals(m))">
+                <div
+                  v-for="(iv, idx) in officialIntervals(m)"
+                  :key="idx"
+                  class="whitespace-nowrap font-mono text-xs leading-5 text-gray-500 dark:text-dark-400"
+                  :title="t('modelPlaza.table.tierHint')"
+                >
+                  <template v-if="iv.cache_write_price != null || iv.cache_write_1h_price != null || iv.cache_read_price != null">
+                    <span class="font-sans text-gray-400 dark:text-dark-500">{{ t('modelPlaza.table.cacheWriteShort') }}</span>
+                    {{ official(iv.cache_write_price, reference.multiplier) }}
+                    <template v-if="iv.cache_write_1h_price != null"
+                      ><span class="font-sans text-gray-400 dark:text-dark-500"> (1h </span>{{ official(iv.cache_write_1h_price, reference.multiplier)
+                      }}<span class="font-sans text-gray-400 dark:text-dark-500">)</span></template
+                    >
+                    <span class="ml-1 font-sans text-gray-400 dark:text-dark-500">{{ t('modelPlaza.table.cacheReadShort') }}</span>
+                    {{ official(iv.cache_read_price, reference.multiplier) }}
+                  </template>
+                  <span v-else class="text-gray-400 dark:text-dark-500">-</span>
+                </div>
+              </template>
               <div
-                v-for="(iv, idx) in officialIntervals(m)"
-                :key="idx"
-                class="whitespace-nowrap font-mono text-xs leading-5 text-gray-500 dark:text-dark-400"
-                :title="t('modelPlaza.table.tierHint')"
+                v-else-if="m.official_pricing && hasOfficialCache(m.official_pricing)"
+                class="space-y-0.5 font-mono text-xs text-gray-500 dark:text-dark-400"
               >
-                <template v-if="iv.cache_write_price != null || iv.cache_write_1h_price != null || iv.cache_read_price != null">
-                  <span class="font-sans text-gray-400 dark:text-dark-500">{{ t('modelPlaza.table.cacheWriteShort') }}</span>
-                  {{ official(iv.cache_write_price) }}
-                  <template v-if="iv.cache_write_1h_price != null"
-                    ><span class="font-sans text-gray-400 dark:text-dark-500"> (1h </span>{{ official(iv.cache_write_1h_price)
+                <div>
+                  <span class="mr-1 font-sans font-normal text-gray-400 dark:text-dark-500">{{ t('modelPlaza.table.cacheWrite') }}</span>
+                  {{ official(m.official_pricing.cache_write_price, reference.multiplier)
+                  }}<template v-if="m.official_pricing.cache_write_1h_price != null"
+                    ><span class="font-sans text-gray-400 dark:text-dark-500"> (1h </span>{{ official(m.official_pricing.cache_write_1h_price, reference.multiplier)
                     }}<span class="font-sans text-gray-400 dark:text-dark-500">)</span></template
                   >
-                  <span class="ml-1 font-sans text-gray-400 dark:text-dark-500">{{ t('modelPlaza.table.cacheReadShort') }}</span>
-                  {{ official(iv.cache_read_price) }}
-                </template>
-                <span v-else class="text-gray-400 dark:text-dark-500">-</span>
+                </div>
+                <div>
+                  <span class="mr-1 font-sans font-normal text-gray-400 dark:text-dark-500">{{ t('modelPlaza.table.cacheRead') }}</span>
+                  {{ official(m.official_pricing.cache_read_price, reference.multiplier) }}
+                </div>
               </div>
-            </template>
-            <div
-              v-else-if="m.official_pricing && hasOfficialCache(m.official_pricing)"
-              class="space-y-0.5 font-mono text-xs text-gray-500 dark:text-dark-400"
-            >
-              <div>
-                <span class="mr-1 font-sans font-normal text-gray-400 dark:text-dark-500">{{ t('modelPlaza.table.cacheWrite') }}</span>
-                {{ official(m.official_pricing.cache_write_price)
-                }}<template v-if="m.official_pricing.cache_write_1h_price != null"
-                  ><span class="font-sans text-gray-400 dark:text-dark-500"> (1h </span>{{ official(m.official_pricing.cache_write_1h_price)
-                  }}<span class="font-sans text-gray-400 dark:text-dark-500">)</span></template
-                >
-              </div>
-              <div>
-                <span class="mr-1 font-sans font-normal text-gray-400 dark:text-dark-500">{{ t('modelPlaza.table.cacheRead') }}</span>
-                {{ official(m.official_pricing.cache_read_price) }}
-              </div>
+              <span v-else class="text-gray-400 dark:text-dark-500">-</span>
             </div>
-            <span v-else class="text-gray-400 dark:text-dark-500">-</span>
           </td>
 
           <!-- CUSTOM: 相比官方价的折扣(本站 ¥ ÷ 官方 $ ÷ 汇率);专属倍率生效的行划线展示公开折扣
@@ -338,7 +351,8 @@ import {
   REASONING_EFFORT_LEVELS,
   type BillingMode
 } from '@/constants/channel'
-import type { PlazaModel, PlazaTimePricingPeriod } from '@/api/modelPlaza'
+import type { PlazaModel, PlazaTimePricing, PlazaTimePricingPeriod } from '@/api/modelPlaza'
+import { plazaPriceTimeRows } from '@/utils/modelPlazaTimePricing'
 import type { UserPricingInterval } from '@/api/channels'
 
 function reasoningEffortMultipliers(model: PlazaModel): [string, number][] {
@@ -440,6 +454,9 @@ const MIN_DECIMALS = 2
 interface PlazaRow {
   model: PlazaModel
   period: PlazaTimePricingPeriod | null
+  schedule?: PlazaTimePricing
+  weekendsOnly?: boolean
+  referencePrices: Array<{ multiplier: number; label?: string }>
   key: string
   /** CUSTOM: 本行实付倍率 = 该模型生效倍率(时段行再乘时段倍率)。 */
   rate: number
@@ -448,17 +465,32 @@ interface PlazaRow {
 }
 
 const rows = computed<PlazaRow[]>(() =>
-  sortedModels.value.flatMap((m) => {
-    const periods: Array<PlazaTimePricingPeriod | null> = [null, ...timePeriods(m)]
-    return periods.map<PlazaRow>((period, idx) => ({
+  sortedModels.value.flatMap((m) =>
+    plazaPriceTimeRows(m.time_pricing, m.official_pricing?.time_pricing).map<PlazaRow>((row, idx) => ({
       model: m,
-      period,
-      key: period ? `${m.platform}:${m.name}:${idx - 1}` : `${m.platform}:${m.name}`,
-      rate: periodRate(rowRate(m), period),
-      discount: discountCell(m, period)
+      period: row.period,
+      schedule: row.schedule,
+      weekendsOnly: row.weekendsOnly,
+      key: `${m.platform}:${m.name}:${idx}`,
+      rate: periodRate(rowRate(m), row.period),
+      discount: discountCell(m, row.period, row.officialMultiplier),
+      referencePrices: officialReferences(m, row.officialMultiplier)
     }))
-  })
+  )
 )
+
+/** 跨时区规则无法作为同一时段比较；独立列出官方时刻表，而不是猜测换算。 */
+function officialReferences(m: PlazaModel, multiplier: number | null): PlazaRow['referencePrices'] {
+  if (multiplier != null) return [{ multiplier }]
+  const schedule = m.official_pricing?.time_pricing
+  return [
+    { multiplier: 1, label: t('modelPlaza.table.standardTimePrice') },
+    ...(schedule?.periods ?? []).map(period => ({
+      multiplier: period.multiplier,
+      label: `${schedule?.weekdays_only ? t('modelPlaza.table.timePricingWeekdays') + ' ' : ''}${formatTimeWindow(period)} (${schedule?.timezone})`
+    }))
+  ]
+}
 
 /** 时段行的倍率 = 基础倍率 × 时段倍率(去掉浮点噪声);标准行原样返回。 */
 function periodRate(rate: number, period: PlazaTimePricingPeriod | null): number {
@@ -488,10 +520,10 @@ function paidRequestPrice(m: PlazaModel, value: number | null | undefined): stri
   return formatScaled(value * requestRate(m), 1, MIN_DECIMALS, BALANCE_SYMBOL)
 }
 
-/** 官方参考价不乘倍率,保持 $。 */
-function official(value: number | null | undefined): string {
+/** 官方参考价只乘官方时段因子，保持 $。 */
+function official(value: number | null | undefined, multiplier: number): string {
   if (value == null) return '-'
-  return formatScaled(value, PER_MILLION, MIN_DECIMALS, OFFICIAL_SYMBOL)
+  return formatScaled(value * multiplier, PER_MILLION, MIN_DECIMALS, OFFICIAL_SYMBOL)
 }
 
 // ==================== CUSTOM: 相比官方价 ====================
@@ -536,7 +568,10 @@ function discountText(ratio: number): { text: string; tone: DiscountTone; title:
   }
 }
 
-function discountCell(m: PlazaModel, period: PlazaTimePricingPeriod | null): DiscountCell {
+function discountCell(m: PlazaModel, period: PlazaTimePricingPeriod | null, officialMultiplier: number | null): DiscountCell {
+  if (officialMultiplier == null) {
+    return { text: formatDiscount(null, ''), tone: 'none', title: t('modelPlaza.table.discountNoBasis') }
+  }
   const base = baseRatio(m)
   if (!base.ok) {
     return {
@@ -546,10 +581,10 @@ function discountCell(m: PlazaModel, period: PlazaTimePricingPeriod | null): Dis
     }
   }
   const rate = periodRate(rowRate(m), period)
-  const cell: DiscountCell = discountText(base.ratio * rate)
+  const cell: DiscountCell = discountText(base.ratio * rate / officialMultiplier)
   const pubRate = periodRate(publicRate(m), period)
   if (pubRate !== rate) {
-    const pub = discountText(base.ratio * pubRate)
+    const pub = discountText(base.ratio * pubRate / officialMultiplier)
     cell.publicText = pub.text
     cell.publicTitle = t('modelPlaza.table.publicDiscountHint', { basis: pub.title })
   }
@@ -584,20 +619,17 @@ function hasOfficialCache(o: NonNullable<PlazaModel['official_pricing']>): boole
   return o.cache_write_price != null || o.cache_read_price != null || o.cache_write_1h_price != null
 }
 
-/** 分时倍率时段(后端只给出倍率 ≠ 1 的时段,已升序)。 */
-function timePeriods(m: PlazaModel): PlazaTimePricingPeriod[] {
-  return m.time_pricing?.periods ?? []
-}
-
 /**
  * 时段行 tooltip:仅工作日生效的配置换用带周末回落说明的文案;
  * 分组启用高峰倍率时追加披露——本行价格不含高峰因子,与高峰窗口重叠的部分实付再乘高峰倍率。
  */
-function timePricingRowHint(m: PlazaModel): string {
-  const key = m.time_pricing?.weekdays_only
-    ? 'modelPlaza.table.timePricingRowHintWeekdays'
-    : 'modelPlaza.table.timePricingRowHint'
-  let hint = t(key, { timezone: m.time_pricing?.timezone })
+function timePricingRowHint(schedule?: PlazaTimePricing, weekendsOnly = false): string {
+  const key = weekendsOnly
+    ? 'modelPlaza.table.timePricingRowHintWeekends'
+    : schedule?.weekdays_only
+      ? 'modelPlaza.table.timePricingRowHintWeekdays'
+      : 'modelPlaza.table.timePricingRowHint'
+  let hint = t(key, { timezone: schedule?.timezone })
   // CUSTOM: 高峰披露改为「价格上浮 / 下调 x%」,不出现倍率数字
   const peak = peakAdjustment(props.peakRateMultiplier)
   if (props.peakWindow && peak.direction !== 'none') {
