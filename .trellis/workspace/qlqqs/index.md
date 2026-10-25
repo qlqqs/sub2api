@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 11
-- **Last Active**: 2026-10-24
+- **Total Sessions**: 12
+- **Last Active**: 2026-10-25
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~214 | Active |
+| `journal-1.md` | ~244 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 12 | 2026-10-25 | 对话工作台生图修复发布与真机复测 | `58ac00ad2c69b172449b1c3f8f9354bfb5546fe4` | `sub2api-custom` |
 | 11 | 2026-10-24 | Qx 首页小修与首次登录侧栏图标修复 | `00692db18` | `sub2api-custom` |
 | 10 | 2026-10-23 | 分组内单个模型倍率与美元汇率 | `85ea1f415` | `sub2api-custom` |
 | 9 | 2026-10-23 | 管理端团队消费页：实现、提交、部署一号机 | `ea8008afd`, `e5ff63561` | `sub2api-custom` |

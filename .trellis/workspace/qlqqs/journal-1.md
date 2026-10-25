@@ -212,3 +212,33 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Next Steps
 
 - 恢复仓库 Actions 后为 00692db18 构建镜像，通过 CI 再更新一号机 /root/sub2api-custom。
+
+
+## Session 12: 对话工作台生图修复发布与真机复测
+<!-- trellis-session: v=2 fp=029fb5ce9d0264b6 -->
+
+**Date**: 2026-10-25
+**Task**: 对话工作台生图修复发布与真机复测
+**Branch**: `sub2api-custom`
+
+### Summary
+
+发布 Open WebUI 59fd038/126b01b；CI 通过，只更新一号机配套 chat。生图刷新可见、搜索引用及价格布局通过；6 条真实记录共 $0.157474992（1 张图 $0.15）。撤销测试 Key/会话、轮换临时密码并删除临时凭据。用户最终视觉确认未单独收到，任务暂不归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `58ac00ad2c69b172449b1c3f8f9354bfb5546fe4` | docs(chat): record image fix rollout and verified production retest |
+
+### Testing
+
+- [OK] 本机 p0–p9 336/336；fork 后端 438、前端 65；真实网页 4 步通过，无 CSP/pageerror/外站请求；上游类型错误未新增。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 用户确认已展示的最终截图后，归档 10-24-chat-openwebui。
