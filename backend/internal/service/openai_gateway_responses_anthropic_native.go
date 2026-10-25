@@ -240,6 +240,7 @@ func (s *OpenAIGatewayService) handleResponsesBufferedFromNativeAnthropic(
 		if event.Type == "content_block_start" && event.ContentBlock != nil && finalResp != nil {
 			finalResp.Content = append(finalResp.Content, *event.ContentBlock)
 		}
+		apicompat.AccumulateAnthropicCitation(finalResp, &event) // CUSTOM: preserve search citations in buffered replies
 		if event.Type == "content_block_delta" && event.Delta != nil && finalResp != nil && event.Index != nil {
 			idx := *event.Index
 			if idx >= 0 && idx < len(finalResp.Content) {

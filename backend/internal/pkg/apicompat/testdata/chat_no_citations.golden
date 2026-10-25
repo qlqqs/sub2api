@@ -1,0 +1,47 @@
+{"id":"msg_fixture","object":"response","created_at":1,"model":"claude-sonnet-4-5","status":"completed","output":[{"type":"message","id":"item_fixture","role":"assistant","content":[{"type":"output_text","text":"你好 "},{"type":"output_text","text":"world"}],"status":"completed"}],"usage":{"input_tokens":10,"output_tokens":5,"total_tokens":15}}
+{"id":"msg_fixture","object":"chat.completion","created":1,"model":"client-model","choices":[{"index":0,"message":{"role":"assistant","content":"你好 world"},"finish_reason":"stop"}],"usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}
+{"id":"msg_fixture","object":"response","created_at":1,"model":"claude-opus-4-5","status":"completed","output":[{"type":"reasoning","id":"item_fixture","summary":[{"type":"summary_text","text":"reason"}]},{"type":"function_call","id":"item_fixture","status":"completed","call_id":"toolu_1","name":"lookup","arguments":"{\"q\":\"test\"}"},{"type":"message","id":"item_fixture","role":"assistant","content":[{"type":"output_text","text":"Before tool"}],"status":"completed"}],"usage":{"input_tokens":13,"output_tokens":5,"total_tokens":18,"input_tokens_details":{"cached_tokens":3}}}
+{"id":"msg_fixture","object":"chat.completion","created":1,"model":"client-model","choices":[{"index":0,"message":{"role":"assistant","content":"Before tool","reasoning_content":"reason","tool_calls":[{"id":"toolu_1","type":"function","function":{"name":"lookup","arguments":"{\"q\":\"test\"}"}}]},"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":13,"completion_tokens":5,"total_tokens":18,"prompt_tokens_details":{"cached_tokens":3}}}
+{"type":"response.created","response":{"id":"msg_fixture","object":"response","created_at":1,"model":"claude-sonnet-4-5","status":"in_progress","output":[]},"sequence_number":0}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[{"index":0,"delta":{"role":"assistant"},"finish_reason":null}]}
+{"item":{"content":[],"id":"item_fixture","role":"assistant","status":"in_progress","type":"message"},"output_index":0,"sequence_number":1,"type":"response.output_item.added"}
+{"content_index":0,"item_id":"item_fixture","output_index":0,"part":{"annotations":[],"logprobs":[],"text":"","type":"output_text"},"sequence_number":2,"type":"response.content_part.added"}
+{"content_index":0,"delta":"你好 ","item_id":"item_fixture","output_index":0,"sequence_number":3,"type":"response.output_text.delta"}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[{"index":0,"delta":{"content":"你好 "},"finish_reason":null}]}
+{"content_index":0,"delta":"world","item_id":"item_fixture","output_index":0,"sequence_number":4,"type":"response.output_text.delta"}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[{"index":0,"delta":{"content":"world"},"finish_reason":null}]}
+{"content_index":0,"item_id":"item_fixture","output_index":0,"sequence_number":5,"text":"你好 world","type":"response.output_text.done"}
+{"content_index":0,"item_id":"item_fixture","output_index":0,"part":{"annotations":[],"logprobs":[],"text":"你好 world","type":"output_text"},"sequence_number":6,"type":"response.content_part.done"}
+{"content_index":1,"item_id":"item_fixture","output_index":0,"part":{"annotations":[],"logprobs":[],"text":"","type":"output_text"},"sequence_number":7,"type":"response.content_part.added"}
+{"content_index":1,"delta":"!","item_id":"item_fixture","output_index":0,"sequence_number":8,"type":"response.output_text.delta"}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[{"index":0,"delta":{"content":"!"},"finish_reason":null}]}
+{"content_index":1,"item_id":"item_fixture","output_index":0,"sequence_number":9,"text":"!","type":"response.output_text.done"}
+{"content_index":1,"item_id":"item_fixture","output_index":0,"part":{"annotations":[],"logprobs":[],"text":"!","type":"output_text"},"sequence_number":10,"type":"response.content_part.done"}
+{"item":{"content":[{"text":"你好 world","type":"output_text"},{"text":"!","type":"output_text"}],"id":"item_fixture","role":"assistant","status":"completed","type":"message"},"output_index":0,"sequence_number":11,"type":"response.output_item.done"}
+{"type":"response.completed","response":{"id":"msg_fixture","object":"response","created_at":1,"model":"claude-sonnet-4-5","status":"completed","output":[{"type":"message","id":"item_fixture","role":"assistant","content":[{"type":"output_text","text":"你好 world"},{"type":"output_text","text":"!"}],"status":"completed"}],"usage":{"input_tokens":10,"output_tokens":5,"total_tokens":15}},"sequence_number":12}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[{"index":0,"delta":{"content":""},"finish_reason":"stop"}]}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[],"usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}
+{"type":"response.created","response":{"id":"msg_fixture","object":"response","created_at":1,"model":"claude-sonnet-4-5","status":"in_progress","output":[]},"sequence_number":0}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[{"index":0,"delta":{"role":"assistant"},"finish_reason":null}]}
+{"item":{"content":[],"id":"item_fixture","role":"assistant","status":"in_progress","type":"message"},"output_index":0,"sequence_number":1,"type":"response.output_item.added"}
+{"content_index":0,"item_id":"item_fixture","output_index":0,"part":{"annotations":[],"logprobs":[],"text":"","type":"output_text"},"sequence_number":2,"type":"response.content_part.added"}
+{"content_index":0,"delta":"Searching.","item_id":"item_fixture","output_index":0,"sequence_number":3,"type":"response.output_text.delta"}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[{"index":0,"delta":{"content":"Searching."},"finish_reason":null}]}
+{"content_index":0,"item_id":"item_fixture","output_index":0,"sequence_number":4,"text":"Searching.","type":"response.output_text.done"}
+{"content_index":0,"item_id":"item_fixture","output_index":0,"part":{"annotations":[],"logprobs":[],"text":"Searching.","type":"output_text"},"sequence_number":5,"type":"response.content_part.done"}
+{"delta":"{}","item_id":"item_fixture","output_index":0,"sequence_number":6,"type":"response.function_call_arguments.delta"}
+{"content_index":1,"item_id":"item_fixture","output_index":0,"sequence_number":7,"text":"","type":"response.output_text.done"}
+{"content_index":1,"item_id":"item_fixture","output_index":0,"part":{"annotations":[],"logprobs":[],"text":"","type":"output_text"},"sequence_number":8,"type":"response.content_part.done"}
+{"content_index":2,"item_id":"item_fixture","output_index":0,"sequence_number":9,"text":"","type":"response.output_text.done"}
+{"content_index":2,"item_id":"item_fixture","output_index":0,"part":{"annotations":[],"logprobs":[],"text":"","type":"output_text"},"sequence_number":10,"type":"response.content_part.done"}
+{"content_index":3,"item_id":"item_fixture","output_index":0,"part":{"annotations":[],"logprobs":[],"text":"","type":"output_text"},"sequence_number":11,"type":"response.content_part.added"}
+{"content_index":3,"delta":"No citations","item_id":"item_fixture","output_index":0,"sequence_number":12,"type":"response.output_text.delta"}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[{"index":0,"delta":{"content":"No citations"},"finish_reason":null}]}
+{"content_index":3,"delta":" here.","item_id":"item_fixture","output_index":0,"sequence_number":13,"type":"response.output_text.delta"}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[{"index":0,"delta":{"content":" here."},"finish_reason":null}]}
+{"content_index":3,"item_id":"item_fixture","output_index":0,"sequence_number":14,"text":"No citations here.","type":"response.output_text.done"}
+{"content_index":3,"item_id":"item_fixture","output_index":0,"part":{"annotations":[],"logprobs":[],"text":"No citations here.","type":"output_text"},"sequence_number":15,"type":"response.content_part.done"}
+{"item":{"content":[{"text":"Searching.","type":"output_text"},{"text":"","type":"output_text"},{"text":"","type":"output_text"},{"text":"No citations here.","type":"output_text"}],"id":"item_fixture","role":"assistant","status":"completed","type":"message"},"output_index":0,"sequence_number":16,"type":"response.output_item.done"}
+{"type":"response.completed","response":{"id":"msg_fixture","object":"response","created_at":1,"model":"claude-sonnet-4-5","status":"completed","output":[{"type":"message","id":"item_fixture","role":"assistant","content":[{"type":"output_text","text":"Searching."},{"type":"output_text"},{"type":"output_text"},{"type":"output_text","text":"No citations here."}],"status":"completed"}],"usage":{"input_tokens":10,"output_tokens":5,"total_tokens":15}},"sequence_number":17}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[{"index":0,"delta":{"content":""},"finish_reason":"stop"}]}
+{"id":"msg_fixture","object":"chat.completion.chunk","created":1,"model":"claude-sonnet-4-5","choices":[],"usage":{"prompt_tokens":10,"completion_tokens":5,"total_tokens":15}}

@@ -23,6 +23,14 @@ import "encoding/json"
 // events.
 func (e ResponsesStreamEvent) MarshalJSON() ([]byte, error) {
 	switch e.Type {
+	case "response.output_text.annotation.added":
+		m := e.wireBase()
+		e.putItemID(m)
+		m["output_index"] = e.OutputIndex
+		m["content_index"] = e.ContentIndex
+		m["annotation_index"] = e.AnnotationIndex
+		m["annotation"] = e.Annotation
+		return json.Marshal(m)
 	case "response.output_text.delta", "response.output_text.done":
 		m := e.wireBase()
 		e.putItemID(m)
@@ -132,10 +140,14 @@ func outputTextPartWire(part *ResponsesContentPart) map[string]any {
 	if part != nil {
 		text = part.Text
 	}
+	var annotations any = []any{}
+	if part != nil && len(part.Annotations) > 0 {
+		annotations = part.Annotations
+	}
 	return map[string]any{
 		"type":        "output_text",
 		"text":        text,
-		"annotations": []any{},
+		"annotations": annotations,
 		"logprobs":    []any{},
 	}
 }
@@ -214,7 +226,11 @@ func messageContentWire(parts []ResponsesContentPart) []map[string]any {
 		if typ == "" {
 			typ = "output_text"
 		}
-		out = append(out, map[string]any{"type": typ, "text": p.Text})
+		part := map[string]any{"type": typ, "text": p.Text}
+		if len(p.Annotations) > 0 {
+			part["annotations"] = p.Annotations
+		}
+		out = append(out, part)
 	}
 	return out
 }

@@ -59,7 +59,8 @@ type AnthropicContentBlock struct {
 	CacheControl *AnthropicCacheControl `json:"cache_control,omitempty"`
 
 	// type=text
-	Text string `json:"text,omitempty"`
+	Text      string              `json:"text,omitempty"`
+	Citations []AnthropicCitation `json:"citations,omitempty"`
 
 	// type=thinking
 	Thinking string `json:"thinking,omitempty"`
@@ -206,7 +207,8 @@ type AnthropicStreamEvent struct {
 
 // AnthropicDelta carries incremental content in streaming events.
 type AnthropicDelta struct {
-	Type string `json:"type,omitempty"` // "text_delta" | "input_json_delta" | "thinking_delta" | "signature_delta"
+	Citation *AnthropicCitation `json:"citation,omitempty"`
+	Type     string             `json:"type,omitempty"` // "text_delta" | "input_json_delta" | "thinking_delta" | "signature_delta"
 
 	// text_delta
 	Text string `json:"text,omitempty"`
@@ -315,11 +317,12 @@ func (i *ResponsesInputItem) UnmarshalJSON(data []byte) error {
 
 // ResponsesContentPart is a typed content part in a Responses message.
 type ResponsesContentPart struct {
-	PromptCacheBreakpoint json.RawMessage `json:"prompt_cache_breakpoint,omitempty"`
-	Type                  string          `json:"type"` // "input_text" | "output_text" | "refusal" | "input_image" | "input_file"
-	Text                  string          `json:"text,omitempty"`
-	Refusal               string          `json:"refusal,omitempty"`   // type=refusal
-	ImageURL              string          `json:"image_url,omitempty"` // data URI for input_image
+	Annotations           []ResponsesAnnotation `json:"annotations,omitempty"`
+	PromptCacheBreakpoint json.RawMessage       `json:"prompt_cache_breakpoint,omitempty"`
+	Type                  string                `json:"type"` // "input_text" | "output_text" | "refusal" | "input_image" | "input_file"
+	Text                  string                `json:"text,omitempty"`
+	Refusal               string                `json:"refusal,omitempty"`   // type=refusal
+	ImageURL              string                `json:"image_url,omitempty"` // data URI for input_image
 
 	// input_file fields.
 	Filename string `json:"filename,omitempty"`
@@ -613,7 +616,9 @@ type ResponsesOutputTokensDetails struct {
 // ResponsesStreamEvent is a single SSE event in the Responses streaming protocol.
 // The Type field corresponds to the "type" in the JSON payload.
 type ResponsesStreamEvent struct {
-	Type string `json:"type"`
+	Annotation      *ResponsesAnnotation `json:"annotation,omitempty"`
+	AnnotationIndex int                  `json:"annotation_index,omitempty"`
+	Type            string               `json:"type"`
 
 	// response.created / response.completed / response.done / response.failed / response.incomplete
 	Response *ResponsesResponse `json:"response,omitempty"`
@@ -693,14 +698,15 @@ type ChatStreamOptions struct {
 
 // ChatMessage is a single message in the Chat Completions conversation.
 type ChatMessage struct {
-	Role             string          `json:"role"` // "system" | "user" | "assistant" | "tool" | "function"
-	Content          json.RawMessage `json:"content,omitempty"`
-	Refusal          string          `json:"refusal,omitempty"`
-	ReasoningContent string          `json:"reasoning_content,omitempty"`
-	Reasoning        string          `json:"reasoning,omitempty"`
-	Name             string          `json:"name,omitempty"`
-	ToolCalls        []ChatToolCall  `json:"tool_calls,omitempty"`
-	ToolCallID       string          `json:"tool_call_id,omitempty"`
+	Annotations      []ChatAnnotation `json:"annotations,omitempty"`
+	Role             string           `json:"role"` // "system" | "user" | "assistant" | "tool" | "function"
+	Content          json.RawMessage  `json:"content,omitempty"`
+	Refusal          string           `json:"refusal,omitempty"`
+	ReasoningContent string           `json:"reasoning_content,omitempty"`
+	Reasoning        string           `json:"reasoning,omitempty"`
+	Name             string           `json:"name,omitempty"`
+	ToolCalls        []ChatToolCall   `json:"tool_calls,omitempty"`
+	ToolCallID       string           `json:"tool_call_id,omitempty"`
 
 	// Legacy function calling
 	FunctionCall *ChatFunctionCall `json:"function_call,omitempty"`
@@ -834,12 +840,13 @@ type ChatChunkChoice struct {
 
 // ChatDelta carries incremental content in a streaming chunk.
 type ChatDelta struct {
-	Role             string         `json:"role,omitempty"`
-	Content          *string        `json:"content,omitempty"` // pointer: omit when not present, null vs "" matters
-	Refusal          *string        `json:"refusal,omitempty"`
-	ReasoningContent *string        `json:"reasoning_content,omitempty"`
-	Reasoning        *string        `json:"reasoning,omitempty"`
-	ToolCalls        []ChatToolCall `json:"tool_calls,omitempty"`
+	Annotations      []ChatAnnotation `json:"annotations,omitempty"`
+	Role             string           `json:"role,omitempty"`
+	Content          *string          `json:"content,omitempty"` // pointer: omit when not present, null vs "" matters
+	Refusal          *string          `json:"refusal,omitempty"`
+	ReasoningContent *string          `json:"reasoning_content,omitempty"`
+	Reasoning        *string          `json:"reasoning,omitempty"`
+	ToolCalls        []ChatToolCall   `json:"tool_calls,omitempty"`
 }
 
 func (m ChatMessage) reasoningText() string {

@@ -35,6 +35,9 @@ func ResponsesToChatCompletions(resp *ResponsesResponse, model string) *ChatComp
 	var refusalText string
 	var reasoningText string
 	var toolCalls []ChatToolCall
+	var annotations []ChatAnnotation
+	searchBoundary := false
+	hasCitations := responsesHaveURLCitations(resp.Output)
 
 	for _, item := range resp.Output {
 		switch item.Type {
@@ -42,6 +45,11 @@ func ResponsesToChatCompletions(resp *ResponsesResponse, model string) *ChatComp
 			for _, part := range item.Content {
 				switch {
 				case part.Type == "output_text" && part.Text != "":
+					if searchBoundary && hasCitations && contentText != "" && !strings.HasPrefix(part.Text, "\n\n") {
+						contentText += "\n\n"
+					}
+					searchBoundary = false
+					annotations = append(annotations, chatAnnotations(part.Annotations, citationTextLength(contentText))...)
 					contentText += part.Text
 				case part.Type == "refusal" && part.Refusal != "":
 					refusalText += part.Refusal
@@ -63,11 +71,11 @@ func ResponsesToChatCompletions(resp *ResponsesResponse, model string) *ChatComp
 				}
 			}
 		case "web_search_call":
-			// silently consumed — results already incorporated into text output
+			searchBoundary = true // only a paragraph boundary; never expose tool internals
 		}
 	}
 
-	msg := ChatMessage{Role: "assistant", Refusal: refusalText}
+	msg := ChatMessage{Role: "assistant", Refusal: refusalText, Annotations: annotations}
 	if len(toolCalls) > 0 {
 		msg.ToolCalls = toolCalls
 	}
@@ -121,6 +129,8 @@ func responsesStatusToChatFinishReason(status string, details *ResponsesIncomple
 // ResponsesEventToChatState tracks state for converting a sequence of Responses
 // SSE events into Chat Completions SSE chunks.
 type ResponsesEventToChatState struct {
+	search                 responsesChatSearchState
+	citations              responsesCitationTracker
 	ID                     string
 	Model                  string
 	Created                int64
@@ -149,7 +159,21 @@ func NewResponsesEventToChatState() *ResponsesEventToChatState {
 // ResponsesEventToChatChunks converts a single Responses SSE event into zero
 // or more Chat Completions chunks, updating state as it goes.
 func ResponsesEventToChatChunks(evt *ResponsesStreamEvent, state *ResponsesEventToChatState) []ChatCompletionsChunk {
+	var chunks []ChatCompletionsChunk
+	for _, event := range state.search.events(*evt, state.citations.total > 0) {
+		chunks = append(chunks, responsesEventToChatChunks(&event, state)...)
+	}
+	return chunks
+}
+func responsesEventToChatChunks(evt *ResponsesStreamEvent, state *ResponsesEventToChatState) []ChatCompletionsChunk {
+	annotations := state.citations.process(evt)
+	var citationChunks []ChatCompletionsChunk
+	if len(annotations) > 0 {
+		citationChunks = []ChatCompletionsChunk{makeChatDeltaChunk(state, ChatDelta{Annotations: annotations})}
+	}
 	switch evt.Type {
+	case "response.output_text.annotation.added", "response.output_item.done":
+		return citationChunks
 	case "response.created":
 		return resToChatHandleCreated(evt, state)
 	case "response.output_text.delta":
@@ -175,7 +199,7 @@ func ResponsesEventToChatChunks(evt *ResponsesStreamEvent, state *ResponsesEvent
 	// response.done 是 Realtime/WS 与项目透传路径使用的终止别名；
 	// 普通 Responses HTTP SSE 的公开终止事件仍以 response.completed 为主。
 	case "response.completed", "response.done", "response.incomplete", "response.failed":
-		return resToChatHandleCompleted(evt, state)
+		return append(citationChunks, resToChatHandleCompleted(evt, state)...)
 	default:
 		return nil
 	}
@@ -189,6 +213,10 @@ func FinalizeResponsesChatStream(state *ResponsesEventToChatState) []ChatComplet
 	if state.Finalized {
 		return nil
 	}
+	var pendingChunks []ChatCompletionsChunk
+	for _, event := range state.search.flush(false) {
+		pendingChunks = append(pendingChunks, responsesEventToChatChunks(&event, state)...)
+	}
 	state.Finalized = true
 
 	finishReason := "stop"
@@ -196,7 +224,7 @@ func FinalizeResponsesChatStream(state *ResponsesEventToChatState) []ChatComplet
 		finishReason = "tool_calls"
 	}
 
-	chunks := []ChatCompletionsChunk{makeChatFinishChunk(state, finishReason)}
+	chunks := append(pendingChunks, makeChatFinishChunk(state, finishReason))
 
 	if state.IncludeUsage && state.Usage != nil {
 		chunks = append(chunks, ChatCompletionsChunk{
@@ -510,6 +538,9 @@ type bufferedFuncCall struct {
 // so that non-streaming handlers can reconstruct output when the terminal event
 // (response.completed / response.done) carries an empty output array.
 type BufferedResponseAccumulator struct {
+	search               responsesChatSearchState
+	citations            responsesCitationTracker
+	annotations          []ResponsesAnnotation
 	text                 strings.Builder
 	refusal              strings.Builder
 	reasoning            strings.Builder
@@ -528,6 +559,15 @@ func NewBufferedResponseAccumulator() *BufferedResponseAccumulator {
 // content it carries. Only delta events that contribute to the final output
 // are handled; all other event types are silently ignored.
 func (a *BufferedResponseAccumulator) ProcessEvent(event *ResponsesStreamEvent) {
+	for _, e := range a.search.events(*event, a.citations.total > 0) {
+		a.processEvent(&e)
+	}
+}
+func (a *BufferedResponseAccumulator) processEvent(event *ResponsesStreamEvent) {
+	for _, annotation := range a.citations.process(event) {
+		c := annotation.URLCitation
+		a.annotations = append(a.annotations, ResponsesAnnotation{Type: "url_citation", URL: c.URL, Title: c.Title, StartIndex: c.StartIndex, EndIndex: c.EndIndex})
+	}
 	switch event.Type {
 	case "response.output_text.delta":
 		if event.Delta != "" {
@@ -595,7 +635,7 @@ func (a *BufferedResponseAccumulator) BuildOutput() []ResponsesOutput {
 	if a.text.Len() > 0 || a.refusal.Len() > 0 {
 		var content []ResponsesContentPart
 		if a.text.Len() > 0 {
-			content = append(content, ResponsesContentPart{Type: "output_text", Text: a.text.String()})
+			content = append(content, ResponsesContentPart{Type: "output_text", Text: a.text.String(), Annotations: a.annotations})
 		}
 		if a.refusal.Len() > 0 {
 			content = append(content, ResponsesContentPart{Type: "refusal", Refusal: a.refusal.String()})
@@ -626,6 +666,7 @@ func (a *BufferedResponseAccumulator) SupplementResponseOutput(resp *ResponsesRe
 	if resp == nil {
 		return
 	}
+	defer a.supplementCitations(resp)
 	if len(resp.Output) == 0 {
 		if a.HasContent() {
 			resp.Output = a.BuildOutput()

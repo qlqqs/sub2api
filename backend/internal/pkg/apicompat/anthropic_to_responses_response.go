@@ -49,6 +49,7 @@ func AnthropicToResponsesResponse(resp *AnthropicResponse) *ResponsesResponse {
 
 	var outputs []ResponsesOutput
 	var msgParts []ResponsesContentPart
+	citationState := newAnthropicCitationResponseState(resp.Content)
 
 	for _, block := range resp.Content {
 		switch block.Type {
@@ -71,16 +72,16 @@ func AnthropicToResponsesResponse(resp *AnthropicResponse) *ResponsesResponse {
 					}},
 				})
 			}
+		case "server_tool_use", "web_search_tool_result":
+			citationState.search = true
 		case "text":
+			part := citationState.textPart(block)
 			if (claude.IsOpus55(resp.Model) || claude.IsSonnet55(resp.Model) || claude.IsHaiku55(resp.Model)) && block.Text != "" {
-				outputs = append(outputs, ResponsesOutput{Type: "message", ID: generateItemID(), Role: "assistant", Status: "completed", Content: []ResponsesContentPart{{Type: "output_text", Text: block.Text}}})
+				outputs = append(outputs, ResponsesOutput{Type: "message", ID: generateItemID(), Role: "assistant", Status: "completed", Content: []ResponsesContentPart{part}})
 				continue
 			}
 			if block.Text != "" {
-				msgParts = append(msgParts, ResponsesContentPart{
-					Type: "output_text",
-					Text: block.Text,
-				})
+				msgParts = append(msgParts, part)
 			}
 		case "tool_use":
 			args := "{}"
@@ -167,6 +168,7 @@ func anthropicStopReasonToResponsesStatus(stopReason string, blocks []AnthropicC
 // AnthropicEventToResponsesState tracks state for converting a sequence of
 // Anthropic SSE events into Responses SSE events.
 type AnthropicEventToResponsesState struct {
+	citations      anthropicCitationStreamState
 	ResponseID     string
 	Model          string
 	Created        int64
@@ -235,6 +237,7 @@ func AnthropicEventToResponsesEvents(
 	evt *AnthropicStreamEvent,
 	state *AnthropicEventToResponsesState,
 ) []ResponsesStreamEvent {
+	observeAnthropicSearchEvent(evt, state)
 	switch evt.Type {
 	case "message_start":
 		return anthToResHandleMessageStart(evt, state)
@@ -263,6 +266,7 @@ func FinalizeAnthropicResponsesStream(state *AnthropicEventToResponsesState) []R
 	var events []ResponsesStreamEvent
 
 	// Close any open item
+	events = append(events, flushAnthropicCitationText(state, false)...)
 	events = append(events, closeCurrentResponsesItem(state)...)
 
 	status, incompleteDetails := anthropicResponsesStreamTerminalState(state.StopReason)
@@ -380,6 +384,15 @@ func anthToResHandleContentBlockStart(evt *AnthropicStreamEvent, state *Anthropi
 			Part:         &ResponsesContentPart{Type: "output_text", Text: ""},
 		}))
 		state.TextAccum = ""
+		state.citations.annotations = nil
+		state.citations.pendingBreak = state.citations.search && state.citations.sawText
+		state.citations.search = false
+		if len(evt.ContentBlock.Citations) > 0 {
+			events = append(events, anthropicCitationTextDelta(state, evt.ContentBlock.Text)...)
+			for i := range evt.ContentBlock.Citations {
+				events = append(events, anthropicCitationDelta(state, &evt.ContentBlock.Citations[i])...)
+			}
+		}
 
 	case "tool_use":
 		// Close previous item if any
@@ -421,13 +434,9 @@ func anthToResHandleContentBlockDelta(evt *AnthropicStreamEvent, state *Anthropi
 		if evt.Delta.Text == "" {
 			return nil
 		}
-		state.TextAccum += evt.Delta.Text
-		return []ResponsesStreamEvent{makeResponsesEvent(state, "response.output_text.delta", &ResponsesStreamEvent{
-			OutputIndex:  state.OutputIndex,
-			ContentIndex: state.ContentIndex,
-			Delta:        evt.Delta.Text,
-			ItemID:       state.CurrentItemID,
-		})}
+		return anthropicCitationTextDelta(state, evt.Delta.Text)
+	case "citations_delta":
+		return anthropicCitationDelta(state, evt.Delta.Citation)
 
 	case "thinking_delta":
 		if evt.Delta.Thinking == "" {
@@ -516,13 +525,16 @@ func anthToResHandleContentBlockStop(evt *AnthropicStreamEvent, state *Anthropic
 		return events
 
 	case "message":
+		pending := flushAnthropicCitationText(state, false)
+		annotations := state.citations.annotations
+		state.citations.annotations = nil
 		// Text block is done: emit output_text.done then content_part.done (the
 		// order OpenAI uses), both carrying the part's full text. The message
 		// item itself stays open since more blocks may follow.
 		text := state.TextAccum
 		state.TextAccum = ""
 		contentIndex := state.ContentIndex
-		state.CurrentContent = append(state.CurrentContent, ResponsesContentPart{Type: "output_text", Text: text})
+		state.CurrentContent = append(state.CurrentContent, ResponsesContentPart{Type: "output_text", Text: text, Annotations: annotations})
 		// 关掉一个 part 就推进 content_index：上面那句注释说的「item 保持打开，
 		// 因为后面可能还有块」正是这里的触发条件。不推进的话，同一 item 里第二个
 		// text 块会再发一次 content_part.added(content_index=0)，与第一个 part 撞在
@@ -530,7 +542,7 @@ func anthToResHandleContentBlockStop(evt *AnthropicStreamEvent, state *Anthropic
 		// 后一个 part 直接覆盖前一个，可见文本丢失。
 		// 只在这里推进：新 item 的 content_index 由 closeCurrentResponsesItem 归 0。
 		state.ContentIndex++
-		return []ResponsesStreamEvent{
+		return append(pending, []ResponsesStreamEvent{
 			makeResponsesEvent(state, "response.output_text.done", &ResponsesStreamEvent{
 				OutputIndex:  state.OutputIndex,
 				ContentIndex: contentIndex,
@@ -541,9 +553,9 @@ func anthToResHandleContentBlockStop(evt *AnthropicStreamEvent, state *Anthropic
 				OutputIndex:  state.OutputIndex,
 				ContentIndex: contentIndex,
 				ItemID:       state.CurrentItemID,
-				Part:         &ResponsesContentPart{Type: "output_text", Text: text},
+				Part:         &ResponsesContentPart{Type: "output_text", Text: text, Annotations: annotations},
 			}),
-		}
+		}...)
 	}
 
 	return nil
