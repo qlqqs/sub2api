@@ -3,11 +3,13 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -398,7 +400,7 @@ func TestChatProxyLocationCookiesAndBodyLimits(t *testing.T) {
 		p    string
 		size int
 		code int
-	}{{"/_chat/api/x", 5 << 20, 200}, {"/_chat/api/x", (5 << 20) + 1, 413}, {"/_chat/api/v1/files/", (5 << 20) + 1, 200}, {"/_chat/api/v1/files/", (25 << 20) + 1, 413}} {
+	}{{"/_chat/api/x", 5 << 20, 200}, {"/_chat/api/x", (5 << 20) + 1, 413}, {"/_chat/api/v1/files/", (5 << 20) + 1, 200}, {"/_chat/api/v1/files/", (25 << 20) + 1, 200}, {"/_chat/api/v1/files/", 26 << 20, 200}, {"/_chat/api/v1/files/", (26 << 20) + 1, 413}} {
 		before := hits.Load()
 		w = chatRequest(t, r, "POST", tc.p, strings.Repeat("x", tc.size), h)
 		require.Equal(t, tc.code, w.Code)
@@ -527,4 +529,51 @@ func TestChatProxyStaticWithoutCookieAndTrustedIP(t *testing.T) {
 	require.Equal(t, "42", got.Get("X-Sub2API-User-Id"))
 	require.Equal(t, "user", got.Get("X-Sub2API-User-Role"))
 	require.Equal(t, "Alice", got.Get("X-Sub2API-Name"))
+}
+
+// A legal maximum-size file must not be rejected because of its multipart envelope.
+func TestChatProxyMultipartFileLimit(t *testing.T) {
+	var hits atomic.Int64
+	up := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits.Add(1)
+		mr, err := r.MultipartReader()
+		require.NoError(t, err)
+		part, err := mr.NextPart()
+		require.NoError(t, err)
+		n, err := io.Copy(io.Discard, part)
+		require.NoError(t, err)
+		require.EqualValues(t, 25<<20, n)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer up.Close()
+	r := chatTestRouter(t, up.URL, newChatFake())
+	var body bytes.Buffer
+	mw := multipart.NewWriter(&body)
+	part, err := mw.CreateFormFile("file", "image.png")
+	require.NoError(t, err)
+	_, err = io.Copy(part, strings.NewReader(strings.Repeat("x", 25<<20)))
+	require.NoError(t, err)
+	require.NoError(t, mw.Close())
+	for _, chunked := range []bool{false, true} {
+		req := httptest.NewRequest("POST", "/_chat/api/v1/files/", bytes.NewReader(body.Bytes()))
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		req = req.WithContext(ctx)
+		req.Header.Set("Cookie", "s2a_chat=valid")
+		req.Header.Set("Content-Type", mw.FormDataContentType())
+		if chunked {
+			req.ContentLength = -1
+		}
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		require.Equal(t, http.StatusOK, w.Code)
+	}
+	require.EqualValues(t, 2, hits.Load())
+	req := httptest.NewRequest("POST", "/_chat/api/v1/files/", strings.NewReader(strings.Repeat("x", (26<<20)+1)))
+	req.ContentLength = -1
+	req.Header.Set("Cookie", "s2a_chat=valid")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	require.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
+	require.EqualValues(t, 2, hits.Load())
 }

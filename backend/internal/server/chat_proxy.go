@@ -263,7 +263,9 @@ func limitChatBody(c *gin.Context) bool {
 	req := c.Request
 	limit := int64(5 << 20)
 	if strings.HasPrefix(req.URL.Path, chatPrefix+"/api/v1/files/") {
-		limit = 25 << 20
+		// Allow a 25 MiB file plus multipart headers/metadata. The fork still
+		// enforces the per-file 25 MiB limit. Other requests remain at 5 MiB.
+		limit = 26 << 20
 	}
 	if req.ContentLength > limit {
 		chatError(c, 413, "BODY_TOO_LARGE", "请求体超过大小限制")

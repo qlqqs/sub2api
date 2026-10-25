@@ -86,3 +86,13 @@ go build ./cmd/server
 - **正反例**：请求 `public`、上游返回 `vendor/version` → 客户端模型为 `public`，内部仍记录 `vendor/version`；即使请求没有配置模型映射也要还原。GET 模型列表与错误消息不改。
 - **必要测试**：`client_response_model_test.go` 覆盖协议字段、精确保留其他字节、合成路由、分片/SSE/心跳、错误与压缩绕过；路由覆盖见 `TestGatewayRoutesClientResponseModelMountedOnEveryHTTPChain`。本机模拟上游还需验证客户端模型与 usage 原始上游模型分离。
 - **错误与正确**：不要改写上游响应后再送入计费观察器，也不要仅以“请求模型与映射模型不同”作为还原条件；应在所有解析/观察之后的 HTTP 写出边界处理。
+
+## 嵌入对话附件请求体（2026-10-25）
+
+- **Scope / Trigger**：修改 `/_chat` 反代大小限制或 fork 的附件处理时。
+- **Signatures**：`server.limitChatBody(*gin.Context) bool`；fork `src/lib/embed/image-upload.ts::{readImageDataURL,imageDataURLToFile,canvasImageFile}`。
+- **Contracts**：`/_chat/api/v1/files/*` 请求体上限 26 MiB = 默认 25 MiB 文件 + 1 MiB multipart 余量；其他请求 5 MiB。fork `rag.file.max_size` 保持 25 MiB，两个上限不可混淆。严格 `connect-src 'self'` 不变。
+- **Validation / Errors**：已知/未知 Content-Length 同样有界读取；超限返回 413 `BODY_TOO_LARGE` 且不得触达上游。文件本身 >25 MiB 即便请求 <26 MiB 也由 fork 返回 413。FileReader error/abort 或编码失败须给上传失败提示，不留未处理 Promise。
+- **Good / Base / Bad**：25 MiB 文件附 multipart 头允许；普通 5 MiB 请求允许；26 MiB+1 上传请求拒绝。无压缩图片原 File 复用；压缩结果 MIME 来自实际编码；截图直接 toBlob。
+- **Tests Required**：`TestChatProxyMultipartFileLimit` 覆盖实际 multipart 文件大小与已知/未知长度；`TestChatProxyLocationCookiesAndBodyLimits` 覆盖请求边界和其他路由不变。浏览器覆盖图片选择/粘贴/拖拽、压缩、临时聊天、发送回显与失败重试，捕获 CSP 违规；只测文件 API 不能证明图片选择流程可用。
+- **Wrong vs Correct**：错：把请求上限和文件上限都设为 25 MiB，或为修复 fetch(data:) 开放 CSP；对：为封装留有界余量，并在浏览器本地转换数据，不做虚假的网络请求。

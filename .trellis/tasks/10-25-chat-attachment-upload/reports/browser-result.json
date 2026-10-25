@@ -1,0 +1,76 @@
+{
+  "steps": {
+    "choose-png": {
+      "ok": true,
+      "bytes": 102400,
+      "exactOriginalBytes": true
+    },
+    "choose-jpeg": {
+      "ok": true,
+      "bytes": 11883,
+      "exactOriginalBytes": true
+    },
+    "choose-webp": {
+      "ok": true,
+      "bytes": 4700,
+      "exactOriginalBytes": true
+    },
+    "drop-png": {
+      "ok": true,
+      "bytes": 102400
+    },
+    "paste-png": {
+      "ok": true,
+      "bytes": 102400
+    },
+    "compression": {
+      "ok": true,
+      "dimensions": [
+        200,
+        150
+      ],
+      "bytes": 3029
+    },
+    "read-error-retry": {
+      "ok": true,
+      "recovered": true
+    },
+    "screenshot": {
+      "ok": true,
+      "uploaded": true,
+      "captureSource": "browser canvas MediaStream (OS picker simulated)"
+    },
+    "pdf": {
+      "ok": true,
+      "extractedText": true,
+      "bytes": 590
+    },
+    "txt-and-send-reload": {
+      "ok": true,
+      "sentWithImage": true,
+      "reloaded": true
+    },
+    "temporary-chat": {
+      "ok": true,
+      "uploads": 0,
+      "sentInline": true
+    },
+    "25MiB-boundary": {
+      "ok": true,
+      "bytes": 26214400,
+      "multipartAccepted": true
+    },
+    "over-limit-backend": {
+      "ok": true,
+      "status": 413,
+      "rejectedByFileLimit": true
+    },
+    "over-limit-ui": {
+      "ok": true,
+      "rejected": true
+    }
+  },
+  "csp": [],
+  "errors": [],
+  "ok": true
+}

@@ -1,0 +1,23 @@
+{
+  "current_errors": 5694,
+  "baseline_errors": 5696,
+  "added": [],
+  "removed": [
+    [
+      [
+        "/src/lib/components/chat/MessageInput.svelte",
+        "Error: 'event.target' is possibly 'null'. (ts)"
+      ],
+      1
+    ],
+    [
+      [
+        "/src/lib/components/chat/MessageInput.svelte",
+        "Error: No overload matches this call."
+      ],
+      1
+    ]
+  ],
+  "warnings": 188,
+  "note": "Baseline copy uses HEAD MessageInput.svelte and otherwise same working files; normalize both checkout and resolved symlink paths, compare file + diagnostic text ignoring line numbers."
+}
