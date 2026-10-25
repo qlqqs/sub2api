@@ -1065,6 +1065,22 @@ describe('PaymentView first-recharge bonus prompt', () => {
     expect(translate).toHaveBeenCalledWith('payment.firstRechargeBonus.rowValue', { amount: '¥20' })
   })
 
+  it('tags the 5 quick amount with the first-recharge bonus only when 5 meets the threshold', async () => {
+    appStoreState.setPublicSettings({ affiliate_enabled: true })
+    getAffiliateDetail.mockResolvedValue({
+      first_recharge_bonus: { mode: 'fixed', value: 1, min_recharge: 5, max: 0 },
+    })
+    const wrapper = await mountRecharge()
+    expect(wrapper.getComponent(AmountInput).props('cornerTags')).toEqual({ 5: 'payment.firstRechargeBonus.quickTag' })
+    expect(translate).toHaveBeenCalledWith('payment.firstRechargeBonus.quickTag', { amount: '¥1' })
+
+    getAffiliateDetail.mockResolvedValue({
+      first_recharge_bonus: { mode: 'fixed', value: 1, min_recharge: 10, max: 0 },
+    })
+    const above = await mountRecharge()
+    expect(above.getComponent(AmountInput).props('cornerTags')).toEqual({})
+  })
+
   it('stays silent when the affiliate feature is off or no bonus is available', async () => {
     const wrapper = await mountRecharge()
     expect(getAffiliateDetail).not.toHaveBeenCalled()
@@ -1077,5 +1093,6 @@ describe('PaymentView first-recharge bonus prompt', () => {
     await flushPromises()
     expect(second.find('[data-testid="first-recharge-bonus-notice"]').exists()).toBe(false)
     expect(second.find('[data-testid="first-recharge-bonus-row"]').exists()).toBe(false)
+    expect(second.getComponent(AmountInput).props('cornerTags')).toEqual({})
   })
 })

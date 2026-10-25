@@ -194,6 +194,10 @@
               :placeholder="t('auth.invitationCodePlaceholder')"
             />
           </div>
+          <!-- CUSTOM: 恒定提示，不填邀请码就没有新用户（首充）福利 -->
+          <p class="mt-1.5 text-xs text-amber-600 dark:text-amber-400" data-testid="affiliate-invitation-empty-hint">
+            {{ t('auth.invitationCodeEmptyHint') }}
+          </p>
         </div>
 
         <!-- Promo Code Input (Optional) -->

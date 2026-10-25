@@ -73,6 +73,7 @@
                 :bonus-mode="rechargeBonusMode"
                 :multiplier="balanceRechargeMultiplier"
                 :currency="selectedCurrency"
+                :corner-tags="firstRechargeQuickTags"
               />
               <p v-if="amountError" class="mt-2 text-xs text-amber-600 dark:text-amber-300">{{ amountError }}</p>
             </div>
@@ -690,6 +691,19 @@ const firstRechargeNotice = computed(() => {
     : t('payment.firstRechargeBonus.noticeNoMin', { bonus: value })
 })
 const firstRechargeBonusAmount = computed(() => quoteInviteeBonus(firstRechargeBonus.value, bonusQuote.value.base))
+// 快捷金额 5 的右上角标出首充奖励（如「送¥1」）；5 未达门槛时不标。
+const FIRST_RECHARGE_TAG_AMOUNT = 5
+const firstRechargeQuickTags = computed<Record<number, string>>(() => {
+  const base = quoteRechargeBonus(rechargeBonusTiers.value, FIRST_RECHARGE_TAG_AMOUNT, {
+    multiplier: balanceRechargeMultiplier.value,
+    mode: rechargeBonusMode.value,
+    currencyDigits: currencyFractionDigits(selectedCurrency.value),
+  }).base
+  const amount = quoteInviteeBonus(firstRechargeBonus.value, base)
+  const tags: Record<number, string> = {}
+  if (amount > 0) tags[FIRST_RECHARGE_TAG_AMOUNT] = t('payment.firstRechargeBonus.quickTag', { amount: formatUsdShort(amount) })
+  return tags
+})
 const firstRechargeShortfall = computed(() => {
   const bonus = firstRechargeBonus.value
   if (!isInviteeBonusActive(bonus) || validAmount.value <= 0) return ''

@@ -308,6 +308,7 @@ export default {
       noticeNoMin: 'Get an extra {bonus} on your first recharge, granted once the payment is credited',
       rowLabel: 'First-recharge bonus',
       rowValue: '+{amount} (after crediting)',
+      quickTag: '+{amount} free',
       shortfall: 'Add {amount} more to get the first-recharge bonus'
     },
     rechargeBonus: {

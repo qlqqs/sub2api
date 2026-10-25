@@ -34,6 +34,15 @@
               <span class="h-1 w-1 shrink-0 rounded-full bg-white"></span>
             </span>
           </span>
+          <!-- 额外角标（如首充奖励「送¥1」）：与促销价签同在时放到左上角，避免重叠 -->
+          <span
+            v-if="cornerTags[amt]"
+            :class="[
+              'pointer-events-none absolute -top-3 z-10 whitespace-nowrap rounded-full bg-emerald-500 px-1.5 py-0.5 text-[11px] font-bold leading-tight text-white shadow-md ring-2 ring-white dark:bg-emerald-600 dark:ring-dark-800',
+              quoteFor(amt).percent > 0 ? '-left-2 -rotate-12' : '-right-2 rotate-12',
+            ]"
+            data-testid="quick-amount-corner-tag"
+          >{{ cornerTags[amt] }}</span>
           <span class="block">{{ amt }}</span>
           <!-- 配置了优惠阶梯时，所有按钮都显示第二行，保持高度一致：赠金显示到账余额（¥），折扣显示折后实付 -->
           <span
@@ -92,6 +101,8 @@ const props = withDefaults(defineProps<{
   multiplier?: number
   /** 支付币种（折扣模式第二行实付金额的币种与精度） */
   currency?: string
+  /** 按快捷金额附加的角标文案（如首充奖励「送¥1」）；无文案的金额不显示 */
+  cornerTags?: Record<number, string>
 }>(), {
   amounts: () => [1, 5, 10, 30, 50, 100],
   min: 0,
@@ -100,6 +111,7 @@ const props = withDefaults(defineProps<{
   bonusMode: 'bonus',
   multiplier: 1,
   currency: undefined,
+  cornerTags: () => ({}),
 })
 
 const emit = defineEmits<{

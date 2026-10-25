@@ -222,6 +222,7 @@ describe('RegisterView', () => {
 
     expect(invitationField.get('input').attributes('id')).toBe('affiliate_code')
     expect(invitationField.text()).toContain('common.optional')
+    expect(invitationField.get('[data-testid="affiliate-invitation-empty-hint"]').text()).toBe('auth.invitationCodeEmptyHint')
     expect(
       invitationField.element.compareDocumentPosition(turnstile.element) &
         Node.DOCUMENT_POSITION_FOLLOWING

@@ -332,6 +332,7 @@ export default {
       noticeNoMin: '首次充值额外赠送 {bonus}，到账后发放',
       rowLabel: '首充奖励',
       rowValue: '+{amount}（到账后发放）',
+      quickTag: '送{amount}',
       shortfall: '再充 {amount} 可获得首充奖励'
     },
     rechargeBonus: {

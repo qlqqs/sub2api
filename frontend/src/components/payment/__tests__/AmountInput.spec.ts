@@ -67,6 +67,17 @@ describe('recharge bonus hints on quick amounts', () => {
     expect(second.get('[data-testid="quick-amount-credited"]').text()).toContain('¥650.00')
   })
 
+  it('shows corner tags only on the given amounts, moving left when a price tag is present', () => {
+    const wrapper = mount(AmountInput, {
+      props: { modelValue: null, amounts: [5, 50, 100], bonusTiers: tiers, cornerTags: { 5: '送¥1', 100: '送¥2' } },
+    })
+    const five = wrapper.get('[data-testid="quick-amount-5"]').get('[data-testid="quick-amount-corner-tag"]')
+    expect(five.text()).toBe('送¥1')
+    expect(five.classes()).toContain('-right-2')
+    expect(wrapper.get('[data-testid="quick-amount-50"]').find('[data-testid="quick-amount-corner-tag"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="quick-amount-100"]').get('[data-testid="quick-amount-corner-tag"]').classes()).toContain('-left-2')
+  })
+
   it('bonus mode: matches tiers by the entered amount but credits by the multiplier', () => {
     const wrapper = mount(AmountInput, {
       props: { modelValue: null, amounts: [1000], bonusTiers: tiers, multiplier: 0.14 },

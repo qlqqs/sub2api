@@ -304,6 +304,7 @@ export default {
     inviteeBonusHint: 'Signed up by invitation: get an extra {bonus} on your first recharge',
     inviteeBonusHintWithMin: 'Signed up by invitation: get an extra {bonus} on a first recharge of {min} or more',
     invitationCodeLabel: 'Invitation Code',
+    invitationCodeEmptyHint: 'Without an invitation code, new-user perks do not apply',
     invitationCodePlaceholder: 'Enter invitation code',
     invitationCodeRequired: 'Invitation code is required',
     invitationCodeValid: 'Invitation code is valid',

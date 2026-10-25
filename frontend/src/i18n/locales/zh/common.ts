@@ -303,6 +303,7 @@ export default {
     inviteeBonusHint: '通过邀请注册，首充可额外获得 {bonus}',
     inviteeBonusHintWithMin: '通过邀请注册，首充满 {min} 可额外获得 {bonus}',
     invitationCodeLabel: '邀请码',
+    invitationCodeEmptyHint: '邀请码为空则不享受新用户福利',
     invitationCodePlaceholder: '请输入邀请码',
     invitationCodeRequired: '请输入邀请码',
     invitationCodeValid: '邀请码有效',
