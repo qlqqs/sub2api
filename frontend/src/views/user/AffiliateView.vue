@@ -234,7 +234,6 @@ import { formatDateTime } from '@/utils/format'
 import { formatBalance } from '@/utils/balanceCurrency'
 import { extractApiErrorMessage, extractI18nErrorMessage } from '@/utils/apiError'
 import {
-  describeInviteeBonusValue,
   formatRatePercent,
   formatUsdShort,
   isInviteeBonusActive,
@@ -308,8 +307,10 @@ const upgradeProgressText = computed(() => {
   return t('affiliate.agent.progress', params)
 })
 
-// 「好友首充满 ¥10，你得 ¥2；好友首充额外送 10%」— generated from the enabled rewards.
-// Agents only earn profit share, so their card never shows the inviter reward.
+// 「好友每笔消费，你得 5%；好友首次充值满 ¥10，你得 ¥2，好友得 10%，封顶 ¥20」— generated from the
+// enabled rewards. Both first-recharge rewards share one clause; a threshold common to both goes
+// up front, otherwise each side carries its own. Agents only earn profit share, so their card
+// never shows the inviter reward.
 const inviteText = computed(() => {
   const d = detail.value
   if (!d) return ''
@@ -321,17 +322,31 @@ const inviteText = computed(() => {
     if (reward.duration_days > 0) text += t('affiliate.invite.rewardPercentDays', { days: reward.duration_days })
     if (reward.per_invitee_cap > 0) text += t('affiliate.invite.rewardPercentCap', { cap: formatUsdShort(reward.per_invitee_cap) })
     parts.push(text)
-  } else if (reward?.mode === 'first_recharge' && reward.fixed_amount > 0) {
-    parts.push(reward.min_recharge > 0
-      ? t('affiliate.invite.rewardFirstRecharge', { min: formatUsdShort(reward.min_recharge), amount: formatUsdShort(reward.fixed_amount) })
-      : t('affiliate.invite.rewardFirstRechargeNoMin', { amount: formatUsdShort(reward.fixed_amount) }))
   }
-  const bonus = d.invitee_bonus
-  if (isInviteeBonusActive(bonus)) {
-    const value = describeInviteeBonusValue(bonus, t)
-    parts.push(bonus.min_recharge > 0
-      ? t('affiliate.invite.inviteeBonusWithMin', { min: formatUsdShort(bonus.min_recharge), bonus: value })
-      : t('affiliate.invite.inviteeBonus', { bonus: value }))
+  const mine = reward?.mode === 'first_recharge' && reward.fixed_amount > 0 ? reward : null
+  const bonus = isInviteeBonusActive(d.invitee_bonus) ? d.invitee_bonus : null
+  if (mine || bonus) {
+    const mins = [mine?.min_recharge ?? null, bonus?.min_recharge ?? null].filter((m): m is number => m !== null)
+    const sharedMin = mins.every((m) => m === mins[0]) ? mins[0] : null
+    const clauses = [sharedMin
+      ? t('affiliate.invite.firstRechargeMin', { min: formatUsdShort(sharedMin) })
+      : t('affiliate.invite.firstRecharge')]
+    if (mine) {
+      const amount = formatUsdShort(mine.fixed_amount)
+      clauses.push(sharedMin === null && mine.min_recharge > 0
+        ? t('affiliate.invite.youGetMin', { min: formatUsdShort(mine.min_recharge), amount })
+        : t('affiliate.invite.youGet', { amount }))
+    }
+    if (bonus) {
+      const value = bonus.mode === 'fixed' ? formatUsdShort(bonus.value) : `${formatRatePercent(bonus.value)}%`
+      clauses.push(sharedMin === null && bonus.min_recharge > 0
+        ? t('affiliate.invite.friendGetsMin', { min: formatUsdShort(bonus.min_recharge), bonus: value })
+        : t('affiliate.invite.friendGets', { bonus: value }))
+      if (bonus.mode === 'percent' && bonus.max > 0) {
+        clauses.push(t('affiliate.invite.friendCap', { max: formatUsdShort(bonus.max) }))
+      }
+    }
+    parts.push(clauses.join(t('affiliate.invite.clauseSeparator')))
   }
   return parts.length > 0 ? parts.join(t('affiliate.invite.separator')) : t('affiliate.invite.noReward')
 })

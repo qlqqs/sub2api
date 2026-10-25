@@ -178,9 +178,12 @@ describe('AffiliateView', () => {
     expect(wrapper.find('[data-test="affiliate-agent-card"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="affiliate-agent-rate"]').exists()).toBe(false)
     const inviteText = wrapper.get('[data-test="affiliate-invite-text"]').text()
-    expect(inviteText).toContain('affiliate.invite.rewardFirstRecharge{"min":"¥10","amount":"¥2"}')
-    expect(inviteText).toContain('affiliate.invite.separator')
-    expect(inviteText).toContain('affiliate.invite.inviteeBonus{"bonus":"10%"}')
+    // Different thresholds: one first-recharge clause, each side with its own threshold.
+    expect(inviteText).toBe([
+      'affiliate.invite.firstRecharge',
+      'affiliate.invite.youGetMin{"min":"¥10","amount":"¥2"}',
+      'affiliate.invite.friendGets{"bonus":"10%"}',
+    ].join('affiliate.invite.clauseSeparator'))
 
     expect(wrapper.find('[data-test="affiliate-become-agent"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="affiliate-upgrade-progress"]').exists()).toBe(false)
@@ -189,6 +192,34 @@ describe('AffiliateView', () => {
     expect(wrapper.find('[data-test="affiliate-col-ownership"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="affiliate-col-agent-role"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('affiliate.agent.rate')
+  })
+
+  it('puts a shared first-recharge threshold up front and keeps the percent reward as its own sentence', async () => {
+    getAffiliateDetail.mockResolvedValueOnce(baseDetail({
+      invite_reward: { mode: 'first_recharge', rate_percent: 0, duration_days: 0, per_invitee_cap: 0, fixed_amount: 0.5, min_recharge: 5 },
+      invitee_bonus: { mode: 'fixed', value: 1, min_recharge: 5, max: 0 },
+    }))
+    const wrapper = mountView()
+    await flushPromises()
+    expect(wrapper.get('[data-test="affiliate-invite-text"]').text()).toBe([
+      'affiliate.invite.firstRechargeMin{"min":"¥5"}',
+      'affiliate.invite.youGet{"amount":"¥0.50"}',
+      'affiliate.invite.friendGets{"bonus":"¥1"}',
+    ].join('affiliate.invite.clauseSeparator'))
+
+    getAffiliateDetail.mockResolvedValueOnce(baseDetail({
+      rebate_base: 'recharge',
+      invite_reward: { mode: 'percent', rate_percent: 5, duration_days: 0, per_invitee_cap: 0, fixed_amount: 0, min_recharge: 0 },
+      invitee_bonus: { mode: 'percent', value: 10, min_recharge: 0, max: 20 },
+    }))
+    const second = mountView()
+    await flushPromises()
+    expect(second.get('[data-test="affiliate-invite-text"]').text()).toBe(
+      'affiliate.invite.rewardPercent{"base":"affiliate.invite.baseRecharge","rate":"5"}'
+      + 'affiliate.invite.separator'
+      + ['affiliate.invite.firstRecharge', 'affiliate.invite.friendGets{"bonus":"10%"}', 'affiliate.invite.friendCap{"max":"¥20"}']
+        .join('affiliate.invite.clauseSeparator'),
+    )
   })
 
   it('tells a normal user with no rewards configured to just share the invite', async () => {
@@ -232,8 +263,11 @@ describe('AffiliateView', () => {
     expect(wrapper.get('[data-test="affiliate-total-breakdown"]').text()).toContain('affiliate.stats.totalBreakdown')
 
     const inviteText = wrapper.get('[data-test="affiliate-invite-text"]').text()
-    expect(inviteText).not.toContain('affiliate.invite.rewardFirstRecharge')
-    expect(inviteText).toContain('affiliate.invite.inviteeBonusWithMin')
+    expect(inviteText).toBe([
+      'affiliate.invite.firstRechargeMin{"min":"¥10"}',
+      'affiliate.invite.friendGets{"bonus":"10%"}',
+      'affiliate.invite.friendCap{"max":"¥20"}',
+    ].join('affiliate.invite.clauseSeparator'))
 
     const ownership = wrapper.findAll('[data-test="affiliate-invitee-ownership"]').map((cell) => cell.text())
     expect(ownership).toEqual(['affiliate.invitees.ownedByMe', 'affiliate.invitees.ownedByOther'])

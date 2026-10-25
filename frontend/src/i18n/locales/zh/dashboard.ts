@@ -780,12 +780,17 @@ export default {
       rewardPercent: '好友每笔{base}，你得 {rate}%',
       rewardPercentDays: '（绑定后 {days} 天内）',
       rewardPercentCap: '（每位好友最多 {cap}）',
-      rewardFirstRecharge: '好友首充满 {min}，你得 {amount}',
-      rewardFirstRechargeNoMin: '好友首次充值，你得 {amount}',
       baseConsumption: '消费',
       baseRecharge: '充值',
-      inviteeBonus: '好友首充额外送 {bonus}',
-      inviteeBonusWithMin: '好友首充满 {min} 额外送 {bonus}'
+      // 「好友首次充值满 ¥5，你得 ¥0.50，好友得 10%，封顶 ¥20」由下面几段拼成
+      firstRecharge: '好友首次充值',
+      firstRechargeMin: '好友首次充值满 {min}',
+      youGet: '你得 {amount}',
+      youGetMin: '满 {min} 你得 {amount}',
+      friendGets: '好友得 {bonus}',
+      friendGetsMin: '满 {min} 好友得 {bonus}',
+      friendCap: '封顶 {max}',
+      clauseSeparator: '，'
     },
     tabs: {
       invite: '邀请'

@@ -778,12 +778,17 @@ export default {
       rewardPercent: 'You earn {rate}% of each friend {base}',
       rewardPercentDays: ' (for {days} days after binding)',
       rewardPercentCap: ' (up to {cap} per friend)',
-      rewardFirstRecharge: 'You earn {amount} when a friend first recharges {min} or more',
-      rewardFirstRechargeNoMin: 'You earn {amount} on a friend\'s first recharge',
       baseConsumption: 'spend',
       baseRecharge: 'recharge',
-      inviteeBonus: 'Friends get an extra {bonus} on their first recharge',
-      inviteeBonusWithMin: 'Friends get an extra {bonus} on a first recharge of {min} or more'
+      // "When a friend first recharges ¥5 or more, you get ¥0.50, they get 10%, capped at ¥20"
+      firstRecharge: 'When a friend first recharges',
+      firstRechargeMin: 'When a friend first recharges {min} or more',
+      youGet: 'you get {amount}',
+      youGetMin: 'you get {amount} ({min} or more)',
+      friendGets: 'they get {bonus}',
+      friendGetsMin: 'they get {bonus} ({min} or more)',
+      friendCap: 'capped at {max}',
+      clauseSeparator: ', '
     },
     tabs: {
       invite: 'Invite'
