@@ -242,3 +242,33 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Next Steps
 
 - 用户确认已展示的最终截图后，归档 10-24-chat-openwebui。
+
+
+## Session 13: 对话工作台最终验收与归档
+<!-- trellis-session: v=2 fp=bad426435bafbe12 -->
+
+**Date**: 2026-10-25
+**Task**: 对话工作台最终验收与归档
+**Branch**: `sub2api-custom`
+
+### Summary
+
+用户在最终截图展示后明确要求归档，记录交付接受并关闭最后验收项；仅归档 chat-openwebui，其他任务和线上环境不变。任务直接在长期 sub2api-custom 分支跨仓库实现，归档使用 skip-branch-validation 保留真实分支记录。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `58ac00ad2` | docs(chat): record image fix rollout and verified production retest |
+
+### Testing
+
+- [OK] 沿用已记录的本机 336/336 回归与生产复测，本次仅归档文档，不重复运行；完整 Svelte 类型检查仍有基线错误，不宣称通过。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 本任务已完成，无待实施事项。
