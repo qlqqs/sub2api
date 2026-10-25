@@ -763,13 +763,13 @@ export default {
     loadFailed: '加载邀请返利数据失败',
     transferFailed: '转入余额失败',
     levels: {
-      1: '一级代理',
-      2: '二级代理',
+      1: '渠道经理',
+      2: '分销代理',
       3: '普通用户'
     },
     levelShort: {
-      1: '一级',
-      2: '二级',
+      1: '渠道经理',
+      2: '分销代理',
       3: '普通'
     },
     bonusValuePercentMax: '{value}%（最多 {max}）',
@@ -793,8 +793,8 @@ export default {
     agent: {
       rateConsumption: '客户消费的 {rate}%',
       rateRecharge: '客户充值的 {rate}%',
-      rateTopConsumption: '直属客户的 {rate}%，下级代理团队的 {team}%',
-      rateTopRecharge: '直属客户充值的 {rate}%，下级代理团队充值的 {team}%',
+      rateTopConsumption: '直属客户的 {rate}%，分销代理团队的 {team}%',
+      rateTopRecharge: '直属客户充值的 {rate}%，分销代理团队充值的 {team}%',
       customers: '归属客户 {n} 人',
       progress: '再邀请 {remaining} 人升为{level}（{count}/{threshold}）'
     },
@@ -827,24 +827,24 @@ export default {
       },
       ownedByMe: '我的客户',
       ownedByOther: '其他代理的客户',
-      appointSummary: '已任命二级代理 {used} / {max}',
+      appointSummary: '已任命分销代理 {used} / {max}',
       unlimited: '不限',
-      appoint: '设为二级',
+      appoint: '设为分销代理',
       revoke: '取消',
       notAppointable: '不可任命',
       limitReached: '已达任命上限，无法再任命',
-      appointTitle: '设为二级代理',
-      appointConfirm: '设为二级代理后，TA 之后邀请的用户归 TA，你拿差额；已有用户不变',
-      revokeTitle: '取消二级代理',
+      appointTitle: '设为分销代理',
+      appointConfirm: '设为分销代理后，TA 之后邀请的用户归 TA，你拿差额；已有用户不变',
+      revokeTitle: '取消分销代理',
       revokeConfirm: '取消后 TA 之后邀请的用户归你；TA 已有客户的分润不变',
-      appointSuccess: '已设为二级代理',
-      revokeSuccess: '已取消二级代理'
+      appointSuccess: '已设为分销代理',
+      revokeSuccess: '已取消分销代理'
     },
     errors: {
-      AFFILIATE_APPOINT_FORBIDDEN: '当前不能任命二级代理',
+      AFFILIATE_APPOINT_FORBIDDEN: '当前不能任命分销代理',
       AFFILIATE_APPOINT_TARGET_INVALID: '该用户当前不能被任命或取消',
       AFFILIATE_APPOINT_LIMIT_REACHED: '已达任命上限',
-      AFFILIATE_APPOINT_NOT_OWNER: '只能取消自己任命的二级代理'
+      AFFILIATE_APPOINT_NOT_OWNER: '只能取消自己任命的分销代理'
     },
     tips: {
       title: '使用说明',
@@ -863,9 +863,9 @@ export default {
       backToTeam: '返回团队消费',
       backToAffiliate: '返回邀请返利',
       deleted: '已删除',
-      subAgent: '二级代理',
+      subAgent: '分销代理',
       historical: '历史',
-      historicalHint: 'TA 已不是你的二级代理，之前的客户仍为你带来差额收益',
+      historicalHint: 'TA 已不是你的分销代理，之前的客户仍为你带来差额收益',
       myCustomer: '我的客户',
       customerOf: '{name}的客户',
       agentCustomers: '{name}的客户',
@@ -875,7 +875,7 @@ export default {
       searchPlaceholder: '昵称或完整邮箱',
       summary: {
         cost: '消费',
-        split: '直属 {direct} · 下级 {sub}',
+        split: '直属 {direct} · 分销代理 {sub}',
         earnings: '收益',
         earningsHint: '按入账时间统计；消费每 {n} 分钟结算一次，最近的消费可能尚未入账',
         activeCustomers: '活跃客户',
@@ -893,7 +893,7 @@ export default {
       },
       tabs: {
         customers: '我的客户',
-        agents: '下级代理'
+        agents: '分销代理'
       },
       columns: {
         customer: '客户',
@@ -929,7 +929,7 @@ export default {
         noCustomers: '还没有客户',
         invite: '去邀请',
         noMatches: '没有匹配的客户',
-        noAgents: '还没有下级代理',
+        noAgents: '还没有分销代理',
         noRequests: '该时间段没有请求'
       },
       errors: {

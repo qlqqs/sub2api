@@ -258,7 +258,7 @@ vi.mock("vue-i18n", async () => {
     "admin.settings.security.passkeyDeploymentHint":
       "请由服务器运维在部署配置中将 webauthn.enabled 设为 true，填写 webauthn.rp_id（仅域名）与 webauthn.rp_origins（完整 HTTPS 来源），然后重启服务。",
     "admin.settings.site.uploadImage": "上传图片",
-    "admin.settings.features.affiliate.profit.exampleSplit": "二级代理 {level2} · 一级代理 {level1} · 平台 {platform}",
+    "admin.settings.features.affiliate.profit.exampleSplit": "分销代理 {level2} · 渠道经理 {level1} · 平台 {platform}",
     "admin.settings.site.remove": "移除",
     "admin.settings.platformQuota.platform": "平台",
     "admin.settings.platformQuota.daily": "日限额 (USD)",
@@ -1366,7 +1366,7 @@ describe("admin SettingsView payment visible method controls", () => {
     await flushPromises();
 
     expect(wrapper.get('[data-test="affiliate-profit-example-split"]').text()).toBe(
-      "二级代理 ¥20 · 一级代理 ¥10 · 平台 ¥0",
+      "分销代理 ¥20 · 渠道经理 ¥10 · 平台 ¥0",
     );
     expect(wrapper.find('[data-test="affiliate-level2-rate-error"]').exists()).toBe(false);
 
@@ -1389,7 +1389,7 @@ describe("admin SettingsView payment visible method controls", () => {
     await flushPromises();
     expect(wrapper.find('[data-test="affiliate-level2-rate-error"]').exists()).toBe(false);
     expect(wrapper.get('[data-test="affiliate-profit-example-split"]').text()).toBe(
-      "二级代理 ¥35 · 一级代理 ¥5 · 平台 ¥0",
+      "分销代理 ¥35 · 渠道经理 ¥5 · 平台 ¥0",
     );
 
     await wrapper.find("form").trigger("submit.prevent");

@@ -328,7 +328,7 @@ describe('AdminAffiliateAgentsView', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    // 只有二级代理行有设置上级入口；没有上级时显示「无上级一级」。
+    // 只有二级代理行有设置上级入口；没有上级时显示「无上级渠道经理」。
     const buttons = wrapper.findAll('[data-test="agent-upline-open"]')
     expect(buttons).toHaveLength(1)
     expect(wrapper.get('[data-test="row-0"] [data-test="cell-owner"]').text()).toContain('admin.affiliates.agents.upline.none')

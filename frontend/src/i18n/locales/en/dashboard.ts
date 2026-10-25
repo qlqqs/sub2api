@@ -761,13 +761,13 @@ export default {
     loadFailed: 'Failed to load affiliate data',
     transferFailed: 'Failed to transfer affiliate quota',
     levels: {
-      1: 'Level-1 Agent',
-      2: 'Level-2 Agent',
+      1: 'Channel Manager',
+      2: 'Distribution Agent',
       3: 'Regular User'
     },
     levelShort: {
-      1: 'Level 1',
-      2: 'Level 2',
+      1: 'Channel Manager',
+      2: 'Distribution Agent',
       3: 'Regular'
     },
     bonusValuePercentMax: '{value}% (up to {max})',
@@ -791,8 +791,8 @@ export default {
     agent: {
       rateConsumption: '{rate}% of customer spend',
       rateRecharge: '{rate}% of customer recharges',
-      rateTopConsumption: '{rate}% from direct customers, {team}% from sub-agent teams',
-      rateTopRecharge: '{rate}% of direct customer recharges, {team}% of sub-agent team recharges',
+      rateTopConsumption: '{rate}% from direct customers, {team}% from distribution agent teams',
+      rateTopRecharge: '{rate}% of direct customer recharges, {team}% of distribution agent team recharges',
       customers: '{n} customers',
       progress: 'Invite {remaining} more to become a {level} ({count}/{threshold})'
     },
@@ -825,21 +825,21 @@ export default {
       },
       ownedByMe: 'My customer',
       ownedByOther: 'Another agent\'s customer',
-      appointSummary: 'Appointed level-2 agents {used} / {max}',
+      appointSummary: 'Appointed distribution agents {used} / {max}',
       unlimited: 'unlimited',
-      appoint: 'Make Level 2',
+      appoint: 'Make Distribution Agent',
       revoke: 'Revoke',
       notAppointable: 'Not eligible',
       limitReached: 'Appointment limit reached',
-      appointTitle: 'Make Level-2 Agent',
-      appointConfirm: 'Once they become a level-2 agent, users they invite afterwards belong to them and you earn the difference; existing users are unchanged.',
-      revokeTitle: 'Revoke Level-2 Agent',
+      appointTitle: 'Make Distribution Agent',
+      appointConfirm: 'Once they become a distribution agent, users they invite afterwards belong to them and you earn the difference; existing users are unchanged.',
+      revokeTitle: 'Revoke Distribution Agent',
       revokeConfirm: 'After revoking, users they invite afterwards belong to you; profit from their existing customers is unchanged.',
-      appointSuccess: 'Appointed as level-2 agent',
-      revokeSuccess: 'Level-2 appointment revoked'
+      appointSuccess: 'Appointed as distribution agent',
+      revokeSuccess: 'Distribution agent appointment revoked'
     },
     errors: {
-      AFFILIATE_APPOINT_FORBIDDEN: 'You cannot appoint level-2 agents right now',
+      AFFILIATE_APPOINT_FORBIDDEN: 'You cannot appoint distribution agents right now',
       AFFILIATE_APPOINT_TARGET_INVALID: 'This user cannot be appointed or revoked',
       AFFILIATE_APPOINT_LIMIT_REACHED: 'Appointment limit reached',
       AFFILIATE_APPOINT_NOT_OWNER: 'You can only revoke agents you appointed'
@@ -861,9 +861,9 @@ export default {
       backToTeam: 'Back to team spend',
       backToAffiliate: 'Back to affiliate rewards',
       deleted: 'Deleted',
-      subAgent: 'Level-2 agent',
+      subAgent: 'Distribution Agent',
       historical: 'Former',
-      historicalHint: 'No longer your level-2 agent; their earlier customers still earn you the difference',
+      historicalHint: 'No longer your distribution agent; their earlier customers still earn you the difference',
       myCustomer: 'My customer',
       customerOf: 'Customer of {name}',
       agentCustomers: '{name}\'s customers',
@@ -873,7 +873,7 @@ export default {
       searchPlaceholder: 'Nickname or full email',
       summary: {
         cost: 'Spend',
-        split: 'Direct {direct} · Sub-agents {sub}',
+        split: 'Direct {direct} · Distribution agents {sub}',
         earnings: 'Earnings',
         earningsHint: 'Counted by settlement time. Spend is settled every {n} minutes, so the latest spend may not be credited yet.',
         activeCustomers: 'Active customers',
@@ -891,7 +891,7 @@ export default {
       },
       tabs: {
         customers: 'My customers',
-        agents: 'Sub-agents'
+        agents: 'Distribution Agents'
       },
       columns: {
         customer: 'Customer',
@@ -927,7 +927,7 @@ export default {
         noCustomers: 'No customers yet',
         invite: 'Invite friends',
         noMatches: 'No matching customers',
-        noAgents: 'No sub-agents yet',
+        noAgents: 'No distribution agents yet',
         noRequests: 'No requests in this period'
       },
       errors: {

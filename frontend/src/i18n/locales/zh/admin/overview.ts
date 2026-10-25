@@ -437,9 +437,9 @@ export default {
         },
         levels: {
           all: '全部',
-          level1: '一级',
-          level2: '二级',
-          level2With: '二级 · {name}',
+          level1: '渠道经理',
+          level2: '分销代理',
+          level2With: '分销代理 · {name}',
           noUpline: '无上级',
           downgraded: '已降级'
         },
@@ -448,8 +448,8 @@ export default {
           level: '等级'
         },
         meta: {
-          level1: '一级代理',
-          level2: '二级代理',
+          level1: '渠道经理',
+          level2: '分销代理',
           upline: '上级 {name}',
           downgraded: '已降级 · 代理期间的客户仍产生分润',
           usage: '使用记录'
@@ -463,7 +463,7 @@ export default {
           directCustomers: '直属客户',
           earnings: '分润',
           lifetimeEarnings: '累计分润 {amount}',
-          historicalHint: '已不是 {name} 的二级代理，之前的客户仍为其带来差额分润',
+          historicalHint: '已不是 {name} 的分销代理，之前的客户仍为其带来差额分润',
           searchPlaceholder: '邮箱、昵称或 ID',
           notFound: '代理或客户不存在',
           backToSummary: '返回团队消费',
@@ -471,11 +471,11 @@ export default {
         }
       },
       errors: {
-        AFFILIATE_LEVEL2_RATE_EXCEEDS_POOL: '二级代理比例不能大于利润池',
+        AFFILIATE_LEVEL2_RATE_EXCEEDS_POOL: '分销代理比例不能大于利润池',
         AFFILIATE_CYCLE: '绑定会形成循环邀请关系',
         AFFILIATE_SELF_INVITE: '不能选择用户本人',
-        AFFILIATE_AGENT_OWNER_TARGET_INVALID: '只有二级代理可以设置上级一级代理',
-        AFFILIATE_AGENT_OWNER_INVALID: '上级必须是有效的一级代理',
+        AFFILIATE_AGENT_OWNER_TARGET_INVALID: '只有分销代理可以设置上级渠道经理',
+        AFFILIATE_AGENT_OWNER_INVALID: '上级必须是有效的渠道经理',
         AFFILIATE_ALREADY_BOUND: '该用户已绑定邀请人',
         loadFailed: '加载邀请返利记录失败',
         AFFILIATE_QUOTA_INSUFFICIENT: '可提取返利额度不足',
@@ -542,19 +542,19 @@ export default {
         amountExceeds: '提现金额不能超过当前可提取额度'
       },
       levels: {
-        1: '一级代理',
-        2: '二级代理',
+        1: '渠道经理',
+        2: '分销代理',
         3: '普通用户'
       },
       levelShort: {
-        1: '一级',
-        2: '二级',
+        1: '渠道经理',
+        2: '分销代理',
         3: '普通'
       },
       deleted: '已删除',
       rewardTypes: {
         agent_direct: '代理直属',
-        agent_diff: '一级差额',
+        agent_diff: '渠道经理差额',
         invite_percent: '普通邀请',
         invite_fixed: '首充-邀请人',
         invitee_bonus: '首充-被邀请人'
@@ -570,7 +570,7 @@ export default {
         agentLevel: '等级',
         agentLevelLocked: '已锁定',
         agentOwner: '归属代理',
-        agentUpline: '上方一级',
+        agentUpline: '上级渠道经理',
         ownedCustomerCount: '归属客户数',
         rewardAgent: '代理分润合计',
         rewardInvite: '邀请奖励合计',
@@ -604,7 +604,7 @@ export default {
           auto: '自动升级',
           manual: '管理员设置',
           agent: '由 {email} 任命',
-          agentUnknown: '由一级代理任命'
+          agentUnknown: '由渠道经理任命'
         },
         locked: '已锁定自动升级',
         customCode: '专属邀请码',
@@ -641,21 +641,21 @@ export default {
           changeUser: '更换用户',
           level: '代理等级',
           hint: '设置后立即生效，只影响之后新绑定的用户。',
-          upline: '上级一级代理（选填）',
-          uplineHint: '二级代理的客户由上级一级拿差额；不选则该二级拿满利润池。',
+          upline: '上级渠道经理（选填）',
+          uplineHint: '分销代理的客户由上级渠道经理拿差额；不选则该分销代理拿满利润池。',
           submit: '确认设置'
         },
         upline: {
-          none: '无上级一级',
+          none: '无上级渠道经理',
           set: '设置上级',
           change: '更换',
           setByAdmin: '由 {email} 于 {time} 设置',
-          dialogTitle: '设置上级一级代理',
-          agent: '二级代理',
+          dialogTitle: '设置上级渠道经理',
+          agent: '分销代理',
           current: '当前上级',
-          select: '上级一级代理',
-          selectPlaceholder: '搜索一级代理的邮箱或用户名',
-          noAgentFound: '未找到匹配的一级代理',
+          select: '上级渠道经理',
+          selectPlaceholder: '搜索渠道经理的邮箱或用户名',
+          noAgentFound: '未找到匹配的渠道经理',
           changeSelection: '重新选择',
           clear: '清除上级',
           hint: '只影响 TA 之后新邀请的客户和 TA 本人消费；已有客户的分润不变，邀请关系不变。',

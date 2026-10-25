@@ -437,9 +437,9 @@ export default {
         },
         levels: {
           all: 'All',
-          level1: 'Level 1',
-          level2: 'Level 2',
-          level2With: 'Level 2 · {name}',
+          level1: 'Channel Manager',
+          level2: 'Distribution Agent',
+          level2With: 'Distribution Agent · {name}',
           noUpline: 'no upline',
           downgraded: 'Downgraded'
         },
@@ -448,8 +448,8 @@ export default {
           level: 'Level'
         },
         meta: {
-          level1: 'Level-1 agent',
-          level2: 'Level-2 agent',
+          level1: 'Channel Manager',
+          level2: 'Distribution Agent',
           upline: 'Upline {name}',
           downgraded: 'Downgraded · customers from the agent period still generate profit sharing',
           usage: 'Usage records'
@@ -463,7 +463,7 @@ export default {
           directCustomers: 'Direct customers',
           earnings: 'Profit sharing',
           lifetimeEarnings: 'Lifetime profit sharing {amount}',
-          historicalHint: 'No longer a level-2 agent of {name}; their earlier customers still bring them the difference',
+          historicalHint: 'No longer a distribution agent of {name}; their earlier customers still bring them the difference',
           searchPlaceholder: 'Email, nickname or ID',
           notFound: 'Agent or customer not found',
           backToSummary: 'Back to team spend',
@@ -471,11 +471,11 @@ export default {
         }
       },
       errors: {
-        AFFILIATE_LEVEL2_RATE_EXCEEDS_POOL: 'The level-2 rate cannot exceed the profit pool',
+        AFFILIATE_LEVEL2_RATE_EXCEEDS_POOL: 'The distribution agent rate cannot exceed the profit pool',
         AFFILIATE_CYCLE: 'This binding would create an invite cycle',
         AFFILIATE_SELF_INVITE: 'You cannot select the user themselves',
-        AFFILIATE_AGENT_OWNER_TARGET_INVALID: 'Only level-2 agents can have a level-1 upline',
-        AFFILIATE_AGENT_OWNER_INVALID: 'The upline must be an active level-1 agent',
+        AFFILIATE_AGENT_OWNER_TARGET_INVALID: 'Only distribution agents can have a channel manager upline',
+        AFFILIATE_AGENT_OWNER_INVALID: 'The upline must be an active channel manager',
         AFFILIATE_ALREADY_BOUND: 'This user already has an inviter',
         loadFailed: 'Failed to load affiliate records',
         AFFILIATE_QUOTA_INSUFFICIENT: 'Insufficient available affiliate quota',
@@ -542,19 +542,19 @@ export default {
         amountExceeds: 'Amount cannot exceed the available quota'
       },
       levels: {
-        1: 'Level-1 Agent',
-        2: 'Level-2 Agent',
+        1: 'Channel Manager',
+        2: 'Distribution Agent',
         3: 'Regular User'
       },
       levelShort: {
-        1: 'Level 1',
-        2: 'Level 2',
+        1: 'Channel Manager',
+        2: 'Distribution Agent',
         3: 'Regular'
       },
       deleted: 'Deleted',
       rewardTypes: {
         agent_direct: 'Agent (direct)',
-        agent_diff: 'Level-1 difference',
+        agent_diff: 'Channel manager difference',
         invite_percent: 'Invite (percentage)',
         invite_fixed: 'First recharge (inviter)',
         invitee_bonus: 'First recharge (invitee)'
@@ -570,7 +570,7 @@ export default {
         agentLevel: 'Level',
         agentLevelLocked: 'locked',
         agentOwner: 'Owning Agent',
-        agentUpline: 'Level-1 Above',
+        agentUpline: 'Upline Channel Manager',
         ownedCustomerCount: 'Owned Customers',
         rewardAgent: 'Agent Profit Total',
         rewardInvite: 'Invite Reward Total',
@@ -604,7 +604,7 @@ export default {
           auto: 'Auto upgrade',
           manual: 'Set by admin',
           agent: 'Appointed by {email}',
-          agentUnknown: 'Appointed by a level-1 agent'
+          agentUnknown: 'Appointed by a channel manager'
         },
         locked: 'Auto-upgrade locked',
         customCode: 'Exclusive invite code',
@@ -641,21 +641,21 @@ export default {
           changeUser: 'Change user',
           level: 'Agent level',
           hint: 'Takes effect immediately and only affects users bound afterwards.',
-          upline: 'Level-1 upline (optional)',
-          uplineHint: 'The level-1 upline earns the difference on this level-2 agent\'s customers; without one, the level-2 agent keeps the full pool.',
+          upline: 'Channel manager upline (optional)',
+          uplineHint: 'The channel manager upline earns the difference on this distribution agent\'s customers; without one, the distribution agent keeps the full pool.',
           submit: 'Confirm'
         },
         upline: {
-          none: 'No level-1 upline',
+          none: 'No channel manager upline',
           set: 'Set upline',
           change: 'Change',
           setByAdmin: 'Set by {email} at {time}',
-          dialogTitle: 'Set level-1 upline',
-          agent: 'Level-2 agent',
+          dialogTitle: 'Set channel manager upline',
+          agent: 'Distribution Agent',
           current: 'Current upline',
-          select: 'Level-1 upline',
-          selectPlaceholder: 'Search level-1 agents by email or username',
-          noAgentFound: 'No matching level-1 agents',
+          select: 'Channel manager upline',
+          selectPlaceholder: 'Search channel managers by email or username',
+          noAgentFound: 'No matching channel managers',
           changeSelection: 'Choose again',
           clear: 'Clear upline',
           hint: 'Only affects customers they invite from now on and their own usage. Existing customers and the invite relation stay unchanged.',
