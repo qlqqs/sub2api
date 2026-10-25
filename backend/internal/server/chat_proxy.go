@@ -40,6 +40,7 @@ type chatBackend interface {
 	Groups(context.Context, int64) ([]service.Group, error)
 	CreateKey(context.Context, int64, string, int64) (*service.APIKey, error)
 	ModelPrices(context.Context, int64, int64) ([]service.ChatModelPrice, error)
+	ModelReasoning(context.Context, int64, int64, []string) (map[string]*service.ChatModelReasoning, error)
 }
 type chatProxyHeadersKey struct{}
 
@@ -442,19 +443,40 @@ func serveChatAPI(c *gin.Context, b chatBackend, u *service.User) {
 		}
 		c.JSON(200, gin.H{"key": chatKey(key)})
 	case endpoint == "model-prices" && c.Request.Method == "GET":
-		id, err := strconv.ParseInt(c.Query("key_id"), 10, 64)
-		if err != nil || id <= 0 {
-			chatError(c, 400, "INVALID_KEY_ID", "密钥编号无效")
-			return
-		}
-		key, err := b.GetKey(c.Request.Context(), id)
-		if err != nil || key == nil || key.UserID != u.ID {
-			chatError(c, 404, "KEY_NOT_FOUND", "密钥不存在")
+		key := chatOwnedKey(c, b, u)
+		if key == nil {
 			return
 		}
 		out := []service.ChatModelPrice{}
 		if key.GroupID != nil {
+			var err error
 			out, err = b.ModelPrices(c.Request.Context(), u.ID, *key.GroupID)
+			if err != nil {
+				chatServiceError(c, err)
+				return
+			}
+		}
+		c.JSON(200, gin.H{"models": out})
+	case endpoint == "model-reasoning" && c.Request.Method == "GET":
+		key := chatOwnedKey(c, b, u)
+		if key == nil {
+			return
+		}
+		models := c.QueryArray("model")
+		if len(models) > chatMaxReasoningModels {
+			chatError(c, 400, "TOO_MANY_MODELS", "模型数量过多")
+			return
+		}
+		ids := make([]string, 0, len(models))
+		for _, m := range models {
+			if m = strings.TrimSpace(m); m != "" && len(m) <= 200 {
+				ids = append(ids, m)
+			}
+		}
+		out := map[string]*service.ChatModelReasoning{}
+		if key.GroupID != nil && len(ids) > 0 {
+			var err error
+			out, err = b.ModelReasoning(c.Request.Context(), u.ID, *key.GroupID, ids)
 			if err != nil {
 				chatServiceError(c, err)
 				return
@@ -464,6 +486,24 @@ func serveChatAPI(c *gin.Context, b chatBackend, u *service.User) {
 	default:
 		chatError(c, 404, "NOT_FOUND", "接口不存在")
 	}
+}
+
+// chatMaxReasoningModels bounds the model-reasoning query (Open WebUI lists every gateway model).
+const chatMaxReasoningModels = 300
+
+// chatOwnedKey resolves ?key_id= to one of the user's keys, writing the error response otherwise.
+func chatOwnedKey(c *gin.Context, b chatBackend, u *service.User) *service.APIKey {
+	id, err := strconv.ParseInt(c.Query("key_id"), 10, 64)
+	if err != nil || id <= 0 {
+		chatError(c, 400, "INVALID_KEY_ID", "密钥编号无效")
+		return nil
+	}
+	key, err := b.GetKey(c.Request.Context(), id)
+	if err != nil || key == nil || key.UserID != u.ID {
+		chatError(c, 404, "KEY_NOT_FOUND", "密钥不存在")
+		return nil
+	}
+	return key
 }
 func chatError(c *gin.Context, status int, code, message string) {
 	c.JSON(status, gin.H{"error": gin.H{"code": code, "message": message}})

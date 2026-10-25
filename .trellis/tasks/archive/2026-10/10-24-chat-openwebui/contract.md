@@ -96,6 +96,19 @@ iframe 内对 `/_chat/` 发出的每个 `fetch` 带：
 - 没有价格的模型不返回该项（前端不显示单价）。
 - Key 不属于本人 → 404。
 
+### C.5 `GET /_chat/__sub2api/model-reasoning?key_id=12&model=claude-opus-5-5&model=claude-sonnet-4-5`
+
+```json
+{"models":{"claude-opus-5-5":{"levels":["low","medium","high","xhigh","max"],"default":"medium","multipliers":{"max":1.5}}}}
+```
+
+（2026-10-25 补充，供输入框「思考强度」胶囊使用）
+
+- `model` 可重复，最多 300 个，空值忽略；超出 → 400 `TOO_MANY_MODELS`。Key 不属于本人 → 404。
+- 档位与网关 Codex 模型清单同源（`service.ChatModelReasoningFor`）：从低到高；不含 `none` 与 Codex 专用的 `ultra`；按该 Key 分组的 `max_reasoning_effort` 裁掉超限档位（超限请求本会被降级或拒绝），默认档超限时取最高可选档。
+- 不足两档的模型不返回；`multipliers` 只列该分组渠道定价里 ≠1 的档位倍率。
+- 前端把选择作为 Chat Completions 的 `reasoning_effort` 发送；Responses 连接由 fork 后端转成 `reasoning.effort`。
+
 ## D. Open WebUI 侧（fork 后端）
 
 - 只信任 TCP 对端在 `S2A_TRUSTED_PROXY_CIDRS` 内的请求的 `X-Sub2API-*`；其他对端剥头，非静态请求 403。

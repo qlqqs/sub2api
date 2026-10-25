@@ -51,6 +51,51 @@ func (b *ChatBackend) CreateKey(ctx context.Context, userID int64, name string, 
 	return b.handlers.APIKey.apiKeyService.Create(ctx, userID, service.CreateAPIKeyRequest{Name: name, GroupID: &groupID})
 }
 func (b *ChatBackend) ModelPrices(ctx context.Context, userID, groupID int64) ([]service.ChatModelPrice, error) {
+	group, err := b.plazaGroup(ctx, userID, groupID)
+	if err != nil || group == nil {
+		return []service.ChatModelPrice{}, err
+	}
+	rates, err := b.handlers.APIKey.apiKeyService.GetUserGroupRates(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return service.ChatModelPrices(*group, rates), nil
+}
+
+// ModelReasoning returns effort levels for the listed models under groupID; models
+// without a choice are omitted. The group must be available to the user.
+func (b *ChatBackend) ModelReasoning(ctx context.Context, userID, groupID int64, models []string) (map[string]*service.ChatModelReasoning, error) {
+	out := map[string]*service.ChatModelReasoning{}
+	groups, err := b.Groups(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	maxEffort, found := "", false
+	for i := range groups {
+		if groups[i].ID == groupID {
+			maxEffort, found = groups[i].MaxReasoningEffort, true
+			break
+		}
+	}
+	if !found {
+		return out, nil
+	}
+	// Billing multipliers come from the group's channel pricing when there is any.
+	pricing := map[string]*service.ChannelModelPricing{}
+	if group, err := b.plazaGroup(ctx, userID, groupID); err == nil && group != nil {
+		for _, m := range group.Models {
+			pricing[m.Name] = m.Pricing
+		}
+	}
+	for _, id := range models {
+		if r := service.ChatModelReasoningFor(id, maxEffort, pricing[id]); r != nil {
+			out[id] = r
+		}
+	}
+	return out, nil
+}
+
+func (b *ChatBackend) plazaGroup(ctx context.Context, userID, groupID int64) (*service.PlazaGroup, error) {
 	groups, err := b.handlers.ModelPlaza.plazaService.ListGroups(ctx)
 	if err != nil {
 		return nil, err
@@ -59,15 +104,10 @@ func (b *ChatBackend) ModelPrices(ctx context.Context, userID, groupID int64) ([
 	if err != nil {
 		return nil, err
 	}
-	groups = filterPlazaVisibleGroups(groups, allowed, restrict)
-	rates, err := b.handlers.APIKey.apiKeyService.GetUserGroupRates(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	for _, group := range groups {
+	for _, group := range filterPlazaVisibleGroups(groups, allowed, restrict) {
 		if group.ID == groupID {
-			return service.ChatModelPrices(group, rates), nil
+			return &group, nil
 		}
 	}
-	return []service.ChatModelPrice{}, nil
+	return nil, nil
 }

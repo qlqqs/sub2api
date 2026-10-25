@@ -16,7 +16,7 @@ func TestChatModelPrices(t *testing.T) {
 		{Name: "missing"},
 	}}
 	result := ChatModelPrices(group, map[int64]float64{3: 0.1})
-	require.Equal(t, []ChatModelPrice{{"normal", "输入 ¥0.30 / 百万 tokens · 输出 ¥1.50 / 百万 tokens"}, {"model-rate", "输入 ¥0.75 / 百万 tokens"}, {"image", "¥0.0625 / 张"}}, result)
+	require.Equal(t, []ChatModelPrice{{ID: "normal", PriceText: "输入 ¥0.30 / 百万 tokens · 输出 ¥1.50 / 百万 tokens"}, {ID: "model-rate", PriceText: "输入 ¥0.75 / 百万 tokens"}, {ID: "image", PriceText: "¥0.0625 / 张"}}, result)
 	result = ChatModelPrices(group, nil)
 	require.Equal(t, "输入 ¥6.00 / 百万 tokens · 输出 ¥30.00 / 百万 tokens", result[0].PriceText)
 	group.RateMultiplier = 0
@@ -33,6 +33,20 @@ func TestChatModelPricesIntervalsAndTime(t *testing.T) {
 	require.Contains(t, out[0].PriceText, "工作日 08:00–10:00 (Asia/Shanghai)")
 	require.NotContains(t, out[0].PriceText, "倍率")
 	require.Equal(t, "1K：¥0.25 / 张", out[1].PriceText)
+}
+
+func TestChatModelReasoningFor(t *testing.T) {
+	pricing := &ChannelModelPricing{ReasoningEffortMultipliers: map[string]float64{"low": 1, "max": 1.5}}
+	require.Equal(t, &ChatModelReasoning{Levels: []string{"low", "medium", "high", "xhigh", "max"}, Default: "medium", Multipliers: map[string]float64{"max": 1.5}}, ChatModelReasoningFor("claude-opus-5-5", "", pricing))
+	require.Equal(t, &ChatModelReasoning{Levels: []string{"low", "medium", "high", "xhigh", "max"}, Default: "high"}, ChatModelReasoningFor("claude-sonnet-5-5", "", nil))
+	require.Equal(t, []string{"low", "medium", "high"}, ChatModelReasoningFor("claude-opus-4-5", "", nil).Levels)
+	require.Equal(t, &ChatModelReasoning{Levels: []string{"low", "medium", "high", "xhigh", "max"}, Default: "low"}, ChatModelReasoningFor("gpt-5.6-sol", "", nil), "Codex-only ultra is not a chat effort")
+	require.Nil(t, ChatModelReasoningFor("gemini-2.5-flash", "", nil))
+
+	// The group ceiling hides levels the gateway would downgrade or deny.
+	require.Equal(t, &ChatModelReasoning{Levels: []string{"low", "medium"}, Default: "medium"}, ChatModelReasoningFor("claude-opus-5-5", "medium", pricing))
+	require.Equal(t, &ChatModelReasoning{Levels: []string{"low", "medium"}, Default: "medium"}, ChatModelReasoningFor("claude-sonnet-5-5", "medium", nil), "default above the ceiling falls back to the highest allowed level")
+	require.Nil(t, ChatModelReasoningFor("claude-opus-5-5", "low", nil), "a single level leaves nothing to choose")
 }
 
 func TestChatFormatPriceMatchesPlaza(t *testing.T) {

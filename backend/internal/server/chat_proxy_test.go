@@ -31,6 +31,8 @@ type chatFakeBackend struct {
 	role, name string
 	fail       bool
 	created    bool
+	// reasoningModels records the model ids passed to ModelReasoning
+	reasoningModels []string
 }
 
 func newChatFake() *chatFakeBackend {
@@ -69,6 +71,10 @@ func (b *chatFakeBackend) CreateKey(_ context.Context, uid int64, name string, g
 }
 func (b *chatFakeBackend) ModelPrices(context.Context, int64, int64) ([]service.ChatModelPrice, error) {
 	return []service.ChatModelPrice{{ID: "model", PriceText: "输入 ¥3.00 / 百万 tokens"}}, nil
+}
+func (b *chatFakeBackend) ModelReasoning(_ context.Context, _, _ int64, models []string) (map[string]*service.ChatModelReasoning, error) {
+	b.reasoningModels = models
+	return map[string]*service.ChatModelReasoning{"gpt-5.6-sol": {Levels: []string{"low", "high"}, Default: "low"}}, nil
 }
 func chatTestRouter(t *testing.T, target string, b chatBackend) *gin.Engine {
 	t.Helper()
@@ -366,8 +372,16 @@ func TestChatProxyOwnAPI(t *testing.T) {
 	w = chatRequest(t, r, "GET", chatAPI+"model-prices?key_id=12", "", h)
 	require.Equal(t, 200, w.Code)
 	require.Contains(t, w.Body.String(), "price_text")
+	w = chatRequest(t, r, "GET", chatAPI+"model-reasoning?key_id=12&model=gpt-5.6-sol&model=%20&model=gemini", "", h)
+	require.Equal(t, 200, w.Code)
+	require.JSONEq(t, `{"models":{"gpt-5.6-sol":{"levels":["low","high"],"default":"low"}}}`, w.Body.String())
+	require.Equal(t, []string{"gpt-5.6-sol", "gemini"}, b.reasoningModels, "blank ids are dropped")
+	w = chatRequest(t, r, "GET", chatAPI+"model-reasoning?key_id=12&model="+strings.Repeat("&model=m", chatMaxReasoningModels), "", h)
+	require.Equal(t, 400, w.Code)
 	b.keys[12].UserID = 43
 	w = chatRequest(t, r, "GET", chatAPI+"model-prices?key_id=12", "", h)
+	require.Equal(t, 404, w.Code)
+	w = chatRequest(t, r, "GET", chatAPI+"model-reasoning?key_id=12&model=gpt-5.6-sol", "", h)
 	require.Equal(t, 404, w.Code)
 	b.fail = true
 	w = chatRequest(t, r, "GET", chatAPI+"keys", "", h)

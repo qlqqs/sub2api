@@ -6,6 +6,7 @@ package service
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -13,6 +14,14 @@ import (
 type ChatModelPrice struct {
 	ID        string `json:"id"`
 	PriceText string `json:"price_text"`
+}
+
+// ChatModelReasoning lists the efforts a chat request may send as reasoning_effort,
+// lowest first. Default is what the gateway uses when the request omits it.
+type ChatModelReasoning struct {
+	Levels      []string           `json:"levels"`
+	Default     string             `json:"default,omitempty"`
+	Multipliers map[string]float64 `json:"multipliers,omitempty"`
 }
 
 func ChatModelPrices(g PlazaGroup, userRates map[int64]float64) []ChatModelPrice {
@@ -50,6 +59,48 @@ func ChatModelPrices(g PlazaGroup, userRates map[int64]float64) []ChatModelPrice
 			}
 		}
 		out = append(out, ChatModelPrice{ID: m.Name, PriceText: text})
+	}
+	return out
+}
+
+// ChatModelReasoningFor reuses the Codex manifest's per-model effort catalog
+// (the same levels the gateway converters accept) and drops levels above the
+// group ceiling: they would be downgraded or denied anyway. "none" and
+// Codex-only "ultra" are not offered. Fewer than two levels leaves nothing to
+// choose. pricing (optional) supplies per-level billing multipliers.
+func ChatModelReasoningFor(modelID, maxEffort string, pricing *ChannelModelPricing) *ChatModelReasoning {
+	descriptor := newConfiguredCodexModelDescriptor(modelID)
+	maxRank, capped := reasoningEffortRank(maxEffort)
+	levels := make([]string, 0, len(descriptor.SupportedReasoningLevels))
+	for _, level := range descriptor.SupportedReasoningLevels {
+		rank, ok := reasoningEffortRank(level.Effort)
+		if !ok || (capped && rank > maxRank) {
+			continue
+		}
+		levels = append(levels, level.Effort)
+	}
+	if len(levels) < 2 {
+		return nil
+	}
+	out := &ChatModelReasoning{Levels: levels}
+	if descriptor.DefaultReasoningLevel != nil {
+		def := *descriptor.DefaultReasoningLevel
+		if rank, ok := reasoningEffortRank(def); ok && capped && rank > maxRank {
+			def = levels[len(levels)-1]
+		}
+		if slices.Contains(levels, def) {
+			out.Default = def
+		}
+	}
+	if pricing != nil {
+		for _, level := range levels {
+			if v, ok := pricing.ReasoningEffortMultipliers[level]; ok && v != 1 {
+				if out.Multipliers == nil {
+					out.Multipliers = map[string]float64{}
+				}
+				out.Multipliers[level] = v
+			}
+		}
 	}
 	return out
 }
