@@ -70,7 +70,8 @@ func SetupRouter(
 	}))
 	r.Use(middleware2.ServerTiming(cfg.Server.EnableServerTiming))
 
-	installStudioProxy(r, cfg, gin.HandlerFunc(jwtAuth)) // CUSTOM: 创作工作台，须在 SPA 中间件之前
+	installStudioProxy(r, cfg, gin.HandlerFunc(jwtAuth))       // CUSTOM: 创作工作台，须在 SPA 中间件之前
+	installChatProxy(r, cfg, handler.NewChatBackend(handlers)) // CUSTOM: 对话工作台，同样在 SPA 之前
 
 	// Serve embedded frontend with settings injection if available
 	if web.HasEmbeddedFrontend() {

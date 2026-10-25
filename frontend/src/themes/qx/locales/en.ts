@@ -2,11 +2,13 @@
 import nav from '../shell/locales/en'
 import dashboard from '../dashboard/locales/en'
 import studio from '../studio/locales/en'
+import chat from '../chat/locales/en'
 export default {
   qxTheme: {
     nav,
     dashboard,
     studio,
+    chat,
     listSeparator: ', ',
     hero: {
       description: 'Create an API key after signing up, then enter the base URL in {tools} or similar tools to call the models. Usage is deducted from your balance.',

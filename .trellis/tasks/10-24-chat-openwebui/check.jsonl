@@ -1,0 +1,16 @@
+{"file": ".trellis/spec/backend/index.md", "reason": "后端规范入口：转发中间件、配置项"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "fork 自有文件放置与一行挂接（chat_proxy.go）"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "503/401 错误响应格式"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "单测与质量要求"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "前端规范入口：/chat 页面"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "themes/qx 下的 fork 自有视图"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "auth store、退出登录、余额刷新"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "postMessage 契约类型"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "lint/typecheck/vitest"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "sub2api ↔ Open WebUI ↔ 网关跨层契约"}
+{"file": "backend/internal/server/studio_proxy.go", "reason": "参照实现：Nova 同源转发、剥头注入、CSP"}
+{"file": ".trellis/tasks/10-24-chat-openwebui/research/auth.md", "reason": "Open WebUI 认证切入点（行号）"}
+{"file": ".trellis/tasks/10-24-chat-openwebui/research/paths.md", "reason": "子路径改造清单"}
+{"file": ".trellis/tasks/10-24-chat-openwebui/research/upstream.md", "reason": "上游调用与出网覆盖点"}
+{"file": ".trellis/tasks/10-24-chat-openwebui/research/frontend.md", "reason": "主题、布局、存储、postMessage"}
+{"file": ".trellis/tasks/10-24-chat-openwebui/research/security-deploy.md", "reason": "关闭清单、CSP、部署"}

@@ -216,6 +216,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/chat',
+    name: 'Chat',
+    component: () => import('@/themes/qx/chat/ChatView.vue'), // CUSTOM: 对话工作台（Open WebUI，/_chat）
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Chat',
+      titleKey: 'qxTheme.chat.title',
+      qxFullBleed: true
+    }
+  },
+  {
     path: '/studio',
     name: 'Studio',
     component: () => import('@/themes/qx/studio/StudioView.vue'), // CUSTOM: 创作工作台（Nova Studio）

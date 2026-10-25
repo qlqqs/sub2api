@@ -6,6 +6,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import { authAPI, isTotp2FARequired, passkeyAPI, type LoginResponse } from '@/api'
+import { revokeChatSession } from '@/themes/qx/chat/chatSession' // CUSTOM: 对话工作台
 import type {
   User,
   LoginRequest,
@@ -414,6 +415,8 @@ export const useAuthStore = defineStore('auth', () => {
    * Clears all authentication state and persisted data
    */
   async function logout(): Promise<void> {
+    // CUSTOM: 对话工作台：撤销打开着的 iframe、清对话本地数据与 s2a_chat Cookie（永不抛错，不阻止退出）
+    await revokeChatSession()
     try {
       // Call API logout (revokes refresh token on server)
       await authAPI.logout()

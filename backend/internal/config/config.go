@@ -104,6 +104,7 @@ type Config struct {
 	Update                  UpdateConfig                  `mapstructure:"update"`
 	FX                      FXConfig                      `mapstructure:"fx"`        // CUSTOM: 美元汇率来源
 	Affiliate               AffiliateConfig               `mapstructure:"affiliate"` // CUSTOM: 仅测试环境的结算加速
+	Chat                    ChatConfig                    `mapstructure:"chat"`      // CUSTOM: embedded chat
 	Studio                  StudioConfig                  `mapstructure:"studio"`    // CUSTOM: 创作工作台（Nova Studio）转发
 	Idempotency             IdempotencyConfig             `mapstructure:"idempotency"`
 	BatchImage              BatchImageConfig              `mapstructure:"batch_image"`
@@ -196,6 +197,11 @@ type FXConfig struct {
 	// SourceURLs 非空时替换内置的三个汇率来源（按顺序尝试，第一个成功即用）。
 	// 环境变量 FX_SOURCE_URLS 用逗号或空白分隔；响应格式按内容识别（rates.CNY 或 usd.cny）。
 	SourceURLs []string `mapstructure:"source_urls"`
+}
+
+// ChatConfig enables the same-origin Open WebUI proxy; empty disables it.
+type ChatConfig struct {
+	WebUIURL string `mapstructure:"webui_url"`
 }
 
 // StudioConfig 创作工作台（CUSTOM，fork）：Nova Studio 容器地址，为空即关闭。
@@ -2683,6 +2689,7 @@ func setEnvReachableDefaults() {
 	viper.SetDefault("affiliate.settle_interval_override", time.Duration(0))
 	viper.SetDefault("affiliate.settle_lag_override", time.Duration(0))
 	viper.SetDefault("studio.nova_url", "")
+	viper.SetDefault("chat.webui_url", "")
 
 	// sticky_escape_enabled is the one exception to the zero-value rule: its
 	// effective default is true, applied post-unmarshal via a viper.IsSet guard.

@@ -2,11 +2,13 @@
 import nav from '../shell/locales/zh'
 import dashboard from '../dashboard/locales/zh'
 import studio from '../studio/locales/zh'
+import chat from '../chat/locales/zh'
 export default {
   qxTheme: {
     nav,
     dashboard,
     studio,
+    chat,
     listSeparator: '、',
     hero: {
       description: '注册后创建一个 API 密钥，在 {tools} 等工具里填入接口地址，就能调用模型。按实际用量从余额扣费。',
