@@ -163,6 +163,8 @@ type SystemSettings struct {
 	TableDefaultPageSize        int              `json:"table_default_page_size"`
 	TablePageSizeOptions        []int            `json:"table_page_size_options"`
 	CustomMenuItems             []CustomMenuItem `json:"custom_menu_items"`
+	ClientDownloadsEnabled      bool             `json:"client_downloads_enabled"`
+	ClientDownloads             []ClientDownload `json:"client_downloads"`
 	CustomEndpoints             []CustomEndpoint `json:"custom_endpoints"`
 
 	DefaultConcurrency                 int                          `json:"default_concurrency"`
@@ -423,6 +425,8 @@ type PublicSettings struct {
 	TableDefaultPageSize                int                      `json:"table_default_page_size"`
 	TablePageSizeOptions                []int                    `json:"table_page_size_options"`
 	CustomMenuItems                     []CustomMenuItem         `json:"custom_menu_items"`
+	ClientDownloadsEnabled              bool                     `json:"client_downloads_enabled"`
+	ClientDownloads                     []ClientDownload         `json:"client_downloads"`
 	CustomEndpoints                     []CustomEndpoint         `json:"custom_endpoints"`
 	DingTalkOAuthEnabled                bool                     `json:"dingtalk_oauth_enabled"`
 	LinuxDoOAuthEnabled                 bool                     `json:"linuxdo_oauth_enabled"`
@@ -656,6 +660,33 @@ func ParseCustomEndpoints(raw string) []CustomEndpoint {
 	var items []CustomEndpoint
 	if err := json.Unmarshal([]byte(raw), &items); err != nil {
 		return []CustomEndpoint{}
+	}
+	return items
+}
+
+// ClientDownload describes a client and its ordered platform download links.
+type ClientDownload struct {
+	ID          string               `json:"id"`
+	Name        string               `json:"name"`
+	Description string               `json:"description"`
+	IconURL     string               `json:"icon_url"`
+	Version     string               `json:"version"`
+	HomepageURL string               `json:"homepage_url"`
+	Links       []ClientDownloadLink `json:"links"`
+}
+
+type ClientDownloadLink struct {
+	Label    string `json:"label"`
+	Platform string `json:"platform"`
+	Arch     string `json:"arch"`
+	URL      string `json:"url"`
+}
+
+// ParseClientDownloads returns a non-nil empty slice for empty, null or invalid JSON.
+func ParseClientDownloads(raw string) []ClientDownload {
+	var items []ClientDownload
+	if err := json.Unmarshal([]byte(raw), &items); err != nil || items == nil {
+		return []ClientDownload{}
 	}
 	return items
 }

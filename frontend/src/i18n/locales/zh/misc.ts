@@ -1,5 +1,42 @@
 export default {
 
+  // CUSTOM: 客户端下载页
+  downloads: {
+    title: '客户端下载',
+    lead: '下载常用的 AI 编程客户端，安装后填入本站接口地址和 API 密钥即可使用。',
+    deviceUnsupported: '当前设备暂无可用客户端，请在电脑上下载。',
+    platformTabs: '选择系统',
+    switchHint: '不是你的设备？点上方切换系统。',
+    empty: '暂无可下载的客户端',
+    homepage: '官网',
+    downloadFor: '下载 {platform} 版',
+    otherBuilds: '其他版本',
+    notAvailable: '暂无 {platform} 版',
+    archHints: {
+      windows: '不确定选哪个？大多数电脑选 x64；骁龙等 ARM 处理器的电脑选 ARM64。',
+      macos: 'M1 及之后的 Apple 芯片 Mac 选 Apple Silicon，Intel 处理器的 Mac 选 Intel。',
+      linux: '不确定选哪个？大多数电脑选 x64；树莓派等 ARM 设备选 ARM64。',
+    },
+    platforms: {
+      windows: 'Windows',
+      macos: 'macOS',
+      linux: 'Linux',
+      android: 'Android',
+      ios: 'iOS',
+      other: '其他',
+    },
+    arches: {
+      x64: 'x64',
+      arm64: 'ARM64',
+      x86: 'x86',
+      universal: '通用',
+    },
+    archesMac: {
+      arm64: 'Apple Silicon',
+      x64: 'Intel',
+    },
+  },
+
   // Subscription Progress (Header component)
   subscriptionProgress: {
     title: '我的订阅',

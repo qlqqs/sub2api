@@ -6954,6 +6954,12 @@
               </button>
             </div>
           </div>
+
+          <!-- CUSTOM: 客户端下载页 -->
+          <ClientDownloadsSettings
+            v-model="form.client_downloads"
+            v-model:enabled="form.client_downloads_enabled"
+          />
 	        </div>
 	        <!-- /Tab: General -->
 
@@ -9195,6 +9201,7 @@ import type {
 } from "@/api/admin/settings";
 import type {
   AdminGroup,
+  ClientDownload,
   LoginAgreementDocument,
   NotifyEmailEntry,
   Proxy,
@@ -9222,6 +9229,7 @@ import BackupSettings from "@/views/admin/BackupView.vue";
 import EmailTemplateEditor from "@/views/admin/settings/EmailTemplateEditor.vue";
 import RechargeBonusTierEditor from "@/components/admin/settings/RechargeBonusTierEditor.vue";
 import FxRateCard from "@/components/admin/settings/FxRateCard.vue";
+import ClientDownloadsSettings from "@/components/admin/settings/ClientDownloadsSettings.vue";
 import {
   normalizeRechargeBonusMode,
   normalizeRechargeBonusTiers,
@@ -10074,6 +10082,9 @@ const form = reactive<SettingsForm>({
     endpoint: string;
     description: string;
   }>,
+  // CUSTOM: 客户端下载页
+  client_downloads_enabled: true,
+  client_downloads: [] as ClientDownload[],
   frontend_url: "",
   smtp_host: "",
   smtp_port: 587,
@@ -11772,6 +11783,8 @@ async function saveSettings() {
       table_page_size_options: form.table_page_size_options,
       custom_menu_items: form.custom_menu_items,
       custom_endpoints: form.custom_endpoints,
+      client_downloads_enabled: form.client_downloads_enabled,
+      client_downloads: form.client_downloads,
       frontend_url: form.frontend_url,
       smtp_host: form.smtp_host,
       smtp_port: form.smtp_port,

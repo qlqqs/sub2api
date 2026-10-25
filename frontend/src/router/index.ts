@@ -185,6 +185,17 @@ const routes: RouteRecordRaw[] = [
       titleKey: 'modelPlaza.title'
     }
   },
+  // CUSTOM: 客户端下载页，内容由后台「系统设置 → 通用 → 客户端下载」配置
+  {
+    path: '/downloads',
+    name: 'Downloads',
+    component: () => import('@/views/DownloadsView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: 'Downloads',
+      titleKey: 'downloads.title'
+    }
+  },
 
   // ==================== User Routes ====================
   {
@@ -981,6 +992,28 @@ router.beforeEach(async (to, _from, next) => {
       // Backend mode:登录的非管理员也不可见(匿名由下方公共拦截处理,广场不在白名单)
       if (appStore.backendModeEnabled && authStore.isAuthenticated && !authStore.isAdmin) {
         next('/login')
+        return
+      }
+    }
+    // CUSTOM: 客户端下载页关闭时回首页 / 控制台（与模型广场同口径：仅设置已加载且未开启时拦截）
+    if (to.path === '/downloads') {
+      if (!appStore.publicSettingsLoaded) {
+        try {
+          await appStore.fetchPublicSettings()
+        } catch (error) {
+          console.warn('Failed to load public settings in route guard', error)
+        }
+      }
+      const downloadsOff =
+        appStore.publicSettingsLoaded && appStore.cachedPublicSettings?.client_downloads_enabled !== true
+      if (downloadsOff || (appStore.backendModeEnabled && authStore.isAuthenticated && !authStore.isAdmin)) {
+        next(
+          authStore.isAuthenticated
+            ? authStore.isAdmin
+              ? '/admin/dashboard'
+              : '/dashboard'
+            : '/home'
+        )
         return
       }
     }

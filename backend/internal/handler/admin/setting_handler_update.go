@@ -167,6 +167,8 @@ type UpdateSettingsRequest struct {
 	TableDefaultPageSize        int                   `json:"table_default_page_size"`
 	TablePageSizeOptions        []int                 `json:"table_page_size_options"`
 	CustomMenuItems             *[]dto.CustomMenuItem `json:"custom_menu_items"`
+	ClientDownloadsEnabled      *bool                 `json:"client_downloads_enabled"`
+	ClientDownloads             *[]dto.ClientDownload `json:"client_downloads"`
 	CustomEndpoints             *[]dto.CustomEndpoint `json:"custom_endpoints"`
 
 	// 默认配置
@@ -1357,6 +1359,28 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		}
 	}
 
+	clientDownloadsEnabled := previousSettings.ClientDownloadsEnabled
+	if req.ClientDownloadsEnabled != nil {
+		clientDownloadsEnabled = *req.ClientDownloadsEnabled
+	}
+	clientDownloadsJSON := previousSettings.ClientDownloads
+	if req.ClientDownloads != nil {
+		items := *req.ClientDownloads
+		if err := normalizeClientDownloads(items); err != nil {
+			response.ErrorFrom(c, err)
+			return
+		}
+		if items == nil {
+			items = []dto.ClientDownload{}
+		}
+		encoded, err := json.Marshal(items)
+		if err != nil {
+			response.Error(c, http.StatusInternalServerError, "Failed to encode client_downloads")
+			return
+		}
+		clientDownloadsJSON = string(encoded)
+	}
+
 	// 自定义菜单项验证
 	const (
 		maxCustomMenuItems    = 20
@@ -1746,6 +1770,8 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		TableDefaultPageSize:                   req.TableDefaultPageSize,
 		TablePageSizeOptions:                   req.TablePageSizeOptions,
 		CustomMenuItems:                        customMenuJSON,
+		ClientDownloadsEnabled:                 clientDownloadsEnabled,
+		ClientDownloads:                        clientDownloadsJSON,
 		CustomEndpoints:                        customEndpointsJSON,
 		DefaultConcurrency:                     req.DefaultConcurrency,
 		DefaultBalance:                         req.DefaultBalance,
@@ -2430,6 +2456,8 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		TableDefaultPageSize:                                   updatedSettings.TableDefaultPageSize,
 		TablePageSizeOptions:                                   updatedSettings.TablePageSizeOptions,
 		CustomMenuItems:                                        dto.ParseCustomMenuItems(updatedSettings.CustomMenuItems),
+		ClientDownloadsEnabled:                                 updatedSettings.ClientDownloadsEnabled,
+		ClientDownloads:                                        dto.ParseClientDownloads(updatedSettings.ClientDownloads),
 		CustomEndpoints:                                        dto.ParseCustomEndpoints(updatedSettings.CustomEndpoints),
 		DefaultConcurrency:                                     updatedSettings.DefaultConcurrency,
 		DefaultBalance:                                         updatedSettings.DefaultBalance,

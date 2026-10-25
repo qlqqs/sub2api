@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { useAppStore, useAuthStore } from '@/stores'
 import { sanitizeUrl } from '@/utils/url'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
+import { visibleClientDownloads } from '@/utils/clientDownloads'
 
 /** CUSTOM: QxAPI 主题页面共用的站点信息（取值方式与上游 HomeView / AuthLayout 相同）。 */
 export function useQxSite() {
@@ -30,6 +31,8 @@ export function useQxSite() {
       isFeatureFlagEnabled(FeatureFlags.modelPlaza) &&
       (isAuthenticated.value || settings.value?.model_plaza_require_auth !== true)
   )
+  /** 客户端下载页：后台开启且至少配置了一个客户端。 */
+  const downloadsVisible = computed(() => visibleClientDownloads(settings.value).length > 0)
   /** API 密钥页是否显示「导入到 CCS」按钮（后台可隐藏）。 */
   const ccsImportVisible = computed(() => settings.value?.hide_ccs_import_button !== true)
 
@@ -43,6 +46,7 @@ export function useQxSite() {
     dashboardPath,
     registrationEnabled,
     modelPlazaVisible,
+    downloadsVisible,
     ccsImportVisible
   }
 }

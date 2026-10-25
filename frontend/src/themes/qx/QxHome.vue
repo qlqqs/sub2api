@@ -69,6 +69,7 @@
         <span>&copy; {{ currentYear }} {{ siteName }}</span>
         <div class="qx-foot-links">
           <router-link v-if="modelPlazaVisible" to="/model-plaza">{{ t('nav.modelPlaza') }}</router-link>
+          <router-link v-if="downloadsVisible" to="/downloads">{{ t('nav.downloads') }}</router-link>
           <a v-if="docUrl" :href="docUrl" target="_blank" rel="noopener noreferrer">{{ t('home.docs') }}</a>
         </div>
       </div>
@@ -101,6 +102,7 @@ const {
   dashboardPath,
   registrationEnabled,
   modelPlazaVisible,
+  downloadsVisible,
   ccsImportVisible
 } = useQxSite()
 

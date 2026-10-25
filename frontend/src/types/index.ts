@@ -447,6 +447,27 @@ export interface CustomEndpoint {
   description: string
 }
 
+/** CUSTOM: 客户端下载页（/downloads）的平台与架构，取值与后端校验一致。 */
+export type ClientDownloadPlatform = 'windows' | 'macos' | 'linux' | 'android' | 'ios' | 'other'
+export type ClientDownloadArch = '' | 'x64' | 'arm64' | 'x86' | 'universal'
+
+export interface ClientDownloadLink {
+  label: string
+  platform: ClientDownloadPlatform
+  arch: ClientDownloadArch
+  url: string
+}
+
+export interface ClientDownload {
+  id: string
+  name: string
+  description: string
+  icon_url: string
+  version: string
+  homepage_url: string
+  links: ClientDownloadLink[]
+}
+
 export interface LoginAgreementDocument {
   id: string
   title: string
@@ -528,6 +549,9 @@ export interface PublicSettings {
   payment_balance_disabled: boolean
   model_plaza_enabled: boolean
   model_plaza_require_auth: boolean
+  /** CUSTOM: 客户端下载页；关闭时后端返回空列表。旧后端缺省时视为关闭。 */
+  client_downloads_enabled?: boolean
+  client_downloads?: ClientDownload[]
   /** CUSTOM: 生效美元汇率（1 USD = x CNY），只用于显示折扣；旧后端缺省时前端按 6.8。 */
   usd_cny_rate?: number
   plugin_management_enabled: boolean

@@ -933,3 +933,50 @@
     padding: 24px;
   }
 }
+
+/* 窄屏手机：收紧顶栏留白，保证站名不被省略号截断 */
+@media (max-width: 400px) {
+  .qx-wrap {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .qx-top-inner {
+    gap: 8px;
+  }
+  .qx-brand {
+    gap: 8px;
+    font-size: 16px;
+  }
+  .qx-brand img {
+    width: 28px;
+    height: 28px;
+  }
+  .qx-nav {
+    gap: 0;
+  }
+  .qx-nav-link {
+    padding: 7px 8px;
+  }
+  .qx-nav .qx-nav-icon {
+    padding: 6px;
+  }
+  .qx-nav .qx-btn {
+    margin-left: 4px;
+  }
+}
+@media (max-width: 359px) {
+  .qx-wrap {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .qx-brand {
+    gap: 6px;
+    font-size: 15px;
+  }
+  .qx-nav-link {
+    padding: 6px;
+  }
+  .qx-nav .qx-btn-sm {
+    padding: 0 10px;
+  }
+}

@@ -1,5 +1,42 @@
 export default {
 
+  // CUSTOM: client downloads page
+  downloads: {
+    title: 'Downloads',
+    lead: 'Download popular AI coding clients, then enter this site\'s API endpoint and your API key to get started.',
+    deviceUnsupported: 'No client is available for this device yet. Please download on a computer.',
+    platformTabs: 'Choose a system',
+    switchHint: 'Not your device? Switch the system above.',
+    empty: 'No clients available for download yet',
+    homepage: 'Website',
+    downloadFor: 'Download for {platform}',
+    otherBuilds: 'Other builds',
+    notAvailable: 'Not available for {platform}',
+    archHints: {
+      windows: 'Not sure? Most PCs need x64; choose ARM64 for Snapdragon and other ARM PCs.',
+      macos: 'Choose Apple Silicon for Macs with M1 or later, Intel for Intel-based Macs.',
+      linux: 'Not sure? Most PCs need x64; choose ARM64 for Raspberry Pi and other ARM devices.',
+    },
+    platforms: {
+      windows: 'Windows',
+      macos: 'macOS',
+      linux: 'Linux',
+      android: 'Android',
+      ios: 'iOS',
+      other: 'Other',
+    },
+    arches: {
+      x64: 'x64',
+      arm64: 'ARM64',
+      x86: 'x86',
+      universal: 'Universal',
+    },
+    archesMac: {
+      arm64: 'Apple Silicon',
+      x64: 'Intel',
+    },
+  },
+
   // Subscription Progress (Header component)
   subscriptionProgress: {
     title: 'My Subscriptions',

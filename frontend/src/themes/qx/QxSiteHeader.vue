@@ -10,6 +10,9 @@
           <router-link v-if="modelPlazaVisible" to="/model-plaza" class="qx-nav-link qx-hide-sm">
             {{ t('nav.modelPlaza') }}
           </router-link>
+          <router-link v-if="downloadsVisible" to="/downloads" class="qx-nav-link qx-hide-sm">
+            {{ t('nav.downloads') }}
+          </router-link>
           <a
             v-if="docUrl"
             :href="docUrl"
@@ -67,7 +70,8 @@ const {
   isAuthenticated,
   dashboardPath,
   registrationEnabled,
-  modelPlazaVisible
+  modelPlazaVisible,
+  downloadsVisible
 } = useQxSite()
 const { isDark, init, toggle } = useQxColorScheme()
 

@@ -50,6 +50,18 @@
           <span class="hidden sm:inline">{{ t('nav.modelPlaza') }}</span>
         </router-link>
 
+        <!-- CUSTOM: 客户端下载入口（icon only below sm） -->
+        <router-link
+          v-if="user && downloadsVisible"
+          :to="{ path: '/downloads', query: { embedded: '1' } }"
+          :title="t('nav.downloads')"
+          :aria-label="t('nav.downloads')"
+          class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-dark-400 dark:hover:bg-dark-800 dark:hover:text-white"
+        >
+          <Icon name="download" size="sm" />
+          <span class="hidden sm:inline">{{ t('nav.downloads') }}</span>
+        </router-link>
+
         <!-- Language Switcher -->
         <LocaleSwitcher />
 
@@ -266,6 +278,7 @@ import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { resolveRouteMetaKeys } from '@/router/title'
 import { resolveSiteBillingMode } from '@/utils/siteBillingMode'
 import { formatBalance } from '@/utils/balanceCurrency'
+import { visibleClientDownloads } from '@/utils/clientDownloads'
 
 const router = useRouter()
 const route = useRoute()
@@ -281,6 +294,12 @@ const dropdownRef = ref<HTMLElement | null>(null)
 const contactInfo = computed(() => appStore.contactInfo)
 const docUrl = computed(() => sanitizeUrl(appStore.docUrl))
 const modelPlazaEnabled = computed(() => isFeatureFlagEnabled(FeatureFlags.modelPlaza))
+// CUSTOM: Backend mode 下普通用户进不了公开页，入口一并隐藏
+const downloadsVisible = computed(
+  () =>
+    visibleClientDownloads(appStore.cachedPublicSettings).length > 0 &&
+    (!appStore.backendModeEnabled || authStore.isAdmin)
+)
 const avatarUrl = computed(() => user.value?.avatar_url?.trim() || '')
 const availableBalance = computed(() => Number(user.value?.balance || 0))
 const frozenBalance = computed(() => Number(user.value?.frozen_balance || 0))

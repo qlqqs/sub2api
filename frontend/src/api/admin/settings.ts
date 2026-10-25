@@ -7,6 +7,7 @@ import { apiClient } from "../client";
 import { listPlatformIds } from "@/constants/platformCatalog";
 import type {
   AccountPlatform,
+  ClientDownload,
   CustomEndpoint,
   CustomMenuItem,
   LoginAgreementDocument,
@@ -771,6 +772,10 @@ export interface SystemSettings {
   model_plaza_enabled: boolean;
   model_plaza_require_auth: boolean;
   model_plaza_description: string;
+
+  // CUSTOM: 客户端下载页
+  client_downloads_enabled: boolean;
+  client_downloads: ClientDownload[];
   plugin_management_enabled: boolean;
 
   // Affiliate (邀请返利) feature switch
@@ -1105,6 +1110,10 @@ export interface UpdateSettingsRequest {
   model_plaza_enabled?: boolean;
   model_plaza_require_auth?: boolean;
   model_plaza_description?: string;
+
+  // CUSTOM: 客户端下载页
+  client_downloads_enabled?: boolean;
+  client_downloads?: ClientDownload[];
   plugin_management_enabled?: boolean;
 
   // Affiliate (邀请返利) feature switch

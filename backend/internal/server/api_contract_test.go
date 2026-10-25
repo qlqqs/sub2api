@@ -5,6 +5,7 @@ package server_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"math"
@@ -980,6 +981,32 @@ func TestAPIContracts(t *testing.T) {
 						"rules": []
 					},
 					"custom_menu_items": [],
+					"client_downloads_enabled": true,
+					"client_downloads": [
+					  {
+					    "id": "codex",
+					    "name": "Codex",
+					    "description": "OpenAI Codex 桌面客户端，配置本站 API 地址和密钥即可使用。",
+					    "icon_url": "", "version": "", "homepage_url": "",
+					    "links": [
+					      {"label": "Windows", "platform": "windows", "arch": "", "url": "https://codexapp.agentsmirror.com/latest/win"},
+					      {"label": "Windows x64", "platform": "windows", "arch": "x64", "url": "https://codexapp.agentsmirror.com/latest/win-x64"},
+					      {"label": "Windows ARM64", "platform": "windows", "arch": "arm64", "url": "https://codexapp.agentsmirror.com/latest/win-arm64"},
+					      {"label": "Apple Silicon Mac", "platform": "macos", "arch": "arm64", "url": "https://codexapp.agentsmirror.com/latest/mac-arm64"},
+					      {"label": "Intel Mac", "platform": "macos", "arch": "x64", "url": "https://codexapp.agentsmirror.com/latest/mac-intel"}
+					    ]
+					  },
+					  {
+					    "id": "cc-switch",
+					    "name": "CC Switch",
+					    "description": "一键切换 Claude Code、Codex 等工具的 API 配置。",
+					    "icon_url": "", "version": "v4.0.20", "homepage_url": "",
+					    "links": [
+					      {"label": "Windows x64", "platform": "windows", "arch": "x64", "url": "https://dl.ccswitch.io/v4.0.20/CC-Switch-v4.0.20-Windows.msi"},
+					      {"label": "Windows ARM64", "platform": "windows", "arch": "arm64", "url": "https://dl.ccswitch.io/v4.0.20/CC-Switch-v4.0.20-Windows-arm64.msi"}
+					    ]
+					  }
+					],
 					"custom_endpoints": [],
 					"payment_enabled": false,
 					"payment_min_amount": 0,
@@ -1218,6 +1245,32 @@ func TestAPIContracts(t *testing.T) {
 					"auth_source_default_wechat_platform_quotas": null,
 					"auth_source_default_dingtalk_platform_quotas": null,
 					"custom_menu_items": [],
+					"client_downloads_enabled": true,
+					"client_downloads": [
+					  {
+					    "id": "codex",
+					    "name": "Codex",
+					    "description": "OpenAI Codex 桌面客户端，配置本站 API 地址和密钥即可使用。",
+					    "icon_url": "", "version": "", "homepage_url": "",
+					    "links": [
+					      {"label": "Windows", "platform": "windows", "arch": "", "url": "https://codexapp.agentsmirror.com/latest/win"},
+					      {"label": "Windows x64", "platform": "windows", "arch": "x64", "url": "https://codexapp.agentsmirror.com/latest/win-x64"},
+					      {"label": "Windows ARM64", "platform": "windows", "arch": "arm64", "url": "https://codexapp.agentsmirror.com/latest/win-arm64"},
+					      {"label": "Apple Silicon Mac", "platform": "macos", "arch": "arm64", "url": "https://codexapp.agentsmirror.com/latest/mac-arm64"},
+					      {"label": "Intel Mac", "platform": "macos", "arch": "x64", "url": "https://codexapp.agentsmirror.com/latest/mac-intel"}
+					    ]
+					  },
+					  {
+					    "id": "cc-switch",
+					    "name": "CC Switch",
+					    "description": "一键切换 Claude Code、Codex 等工具的 API 配置。",
+					    "icon_url": "", "version": "v4.0.20", "homepage_url": "",
+					    "links": [
+					      {"label": "Windows x64", "platform": "windows", "arch": "x64", "url": "https://dl.ccswitch.io/v4.0.20/CC-Switch-v4.0.20-Windows.msi"},
+					      {"label": "Windows ARM64", "platform": "windows", "arch": "arm64", "url": "https://dl.ccswitch.io/v4.0.20/CC-Switch-v4.0.20-Windows-arm64.msi"}
+					    ]
+					  }
+					],
 					"custom_endpoints": [],
 					"default_concurrency": 0,
 					"default_balance": 0,
@@ -1561,6 +1614,7 @@ func newContractDeps(t *testing.T) *contractDeps {
 	r := gin.New()
 
 	v1 := r.Group("/api/v1")
+	v1.GET("/settings/public", handler.NewSettingHandler(settingService, "test").GetPublicSettings)
 
 	v1Auth := v1.Group("")
 	v1Auth.Use(jwtAuth)
@@ -3008,3 +3062,39 @@ var (
 	_ service.UsageLogRepository         = (*stubUsageLogRepo)(nil)
 	_ service.SettingRepository          = (*stubSettingRepo)(nil)
 )
+
+// Public settings and HTML bootstrap must use identical JSON shapes for downloads.
+func TestClientDownloadsPublicAPIContract(t *testing.T) {
+	const clients = `[{"id":"example","name":"Client","description":"","icon_url":"","version":"","homepage_url":"","links":[{"label":"Linux","platform":"linux","arch":"x64","url":"https://example.com/client"}]}]`
+	for _, tt := range []struct {
+		name     string
+		enabled  string
+		stored   string
+		expected string
+	}{
+		{"enabled", "true", clients, clients},
+		{"disabled", "false", clients, "[]"},
+		{"saved empty", "true", "[]", "[]"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			deps := newContractDeps(t)
+			deps.settingRepo.SetAll(map[string]string{service.SettingKeyClientDownloadsEnabled: tt.enabled, service.SettingKeyClientDownloads: tt.stored})
+			status, body := doRequest(t, deps.router, http.MethodGet, "/api/v1/settings/public", "", nil)
+			require.Equal(t, http.StatusOK, status, body)
+			var result struct {
+				Data map[string]json.RawMessage `json:"data"`
+			}
+			require.NoError(t, json.Unmarshal([]byte(body), &result))
+			require.JSONEq(t, tt.enabled, string(result.Data["client_downloads_enabled"]))
+			require.JSONEq(t, tt.expected, string(result.Data["client_downloads"]))
+			injection, err := service.NewSettingService(deps.settingRepo, deps.cfg).GetPublicSettingsForInjection(context.Background())
+			require.NoError(t, err)
+			encoded, err := json.Marshal(injection)
+			require.NoError(t, err)
+			var fields map[string]json.RawMessage
+			require.NoError(t, json.Unmarshal(encoded, &fields))
+			require.JSONEq(t, string(result.Data["client_downloads_enabled"]), string(fields["client_downloads_enabled"]))
+			require.JSONEq(t, string(result.Data["client_downloads"]), string(fields["client_downloads"]))
+		})
+	}
+}
