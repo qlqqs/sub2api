@@ -5,6 +5,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -344,7 +345,7 @@ func TestAuthService_Register_EmailVerifyEnabledButServiceNotConfigured(t *testi
 	}, nil, nil)
 
 	// 应返回服务不可用错误，而不是允许绕过验证
-	_, _, err := service.RegisterWithVerification(context.Background(), "user@test.com", "password", "any-code", "", "", "")
+	_, _, err := service.RegisterWithVerification(context.Background(), "user@test.com", "password", "any-code", "", "", "", "")
 	require.ErrorIs(t, err, ErrServiceUnavailable)
 }
 
@@ -356,7 +357,7 @@ func TestAuthService_Register_EmailVerifyRequired(t *testing.T) {
 		SettingKeyEmailVerifyEnabled:  "true",
 	}, cache, nil)
 
-	_, _, err := service.RegisterWithVerification(context.Background(), "user@test.com", "password", "", "", "", "")
+	_, _, err := service.RegisterWithVerification(context.Background(), "user@test.com", "password", "", "", "", "", "")
 	require.ErrorIs(t, err, ErrEmailVerifyRequired)
 }
 
@@ -370,7 +371,7 @@ func TestAuthService_Register_EmailVerifyInvalid(t *testing.T) {
 		SettingKeyEmailVerifyEnabled:  "true",
 	}, cache, nil)
 
-	_, _, err := service.RegisterWithVerification(context.Background(), "user@test.com", "password", "wrong", "", "", "")
+	_, _, err := service.RegisterWithVerification(context.Background(), "user@test.com", "password", "wrong", "", "", "", "")
 	require.ErrorIs(t, err, ErrInvalidVerifyCode)
 	require.ErrorContains(t, err, "verify code")
 }
@@ -637,6 +638,31 @@ func TestAuthService_Register_Success(t *testing.T) {
 	require.Equal(t, 2, user.Concurrency)
 	require.Len(t, repo.created, 1)
 	require.True(t, user.CheckPassword("password"))
+}
+
+func TestAuthService_Register_OptionalUsername(t *testing.T) {
+	settings := map[string]string{
+		SettingKeyRegistrationEnabled:                 "true",
+		SettingKeyAuthSourceDefaultEmailGrantOnSignup: "false",
+	}
+
+	repo := &userRepoStub{nextID: 6}
+	_, user, err := newAuthService(repo, settings, nil, nil).
+		RegisterWithVerification(context.Background(), "named@test.com", "password", "", "", "", "", "  小明  ")
+	require.NoError(t, err)
+	require.Equal(t, "小明", user.Username)
+	require.Equal(t, "小明", repo.created[0].Username)
+
+	repo = &userRepoStub{nextID: 7}
+	_, user, err = newAuthService(repo, settings, nil, nil).
+		RegisterWithVerification(context.Background(), "long@test.com", "password", "", "", "", "", strings.Repeat("名", 120))
+	require.NoError(t, err)
+	require.Equal(t, strings.Repeat("名", 100), user.Username)
+
+	repo = &userRepoStub{nextID: 8}
+	_, user, err = newAuthService(repo, settings, nil, nil).Register(context.Background(), "plain@test.com", "password")
+	require.NoError(t, err)
+	require.Empty(t, user.Username)
 }
 
 func TestAuthService_ValidateToken_ExpiredReturnsClaimsWithError(t *testing.T) {

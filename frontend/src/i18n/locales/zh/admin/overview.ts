@@ -464,7 +464,7 @@ export default {
           earnings: '分润',
           lifetimeEarnings: '累计分润 {amount}',
           historicalHint: '已不是 {name} 的分销代理，之前的客户仍为其带来差额分润',
-          searchPlaceholder: '邮箱、昵称或 ID',
+          searchPlaceholder: '邮箱、用户名或 ID',
           notFound: '代理或客户不存在',
           backToSummary: '返回团队消费',
           deleted: '已删除 #{id}'

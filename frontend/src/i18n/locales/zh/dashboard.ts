@@ -823,7 +823,7 @@ export default {
       empty: '暂无邀请记录',
       noMatches: '没有匹配的好友',
       columns: {
-        nickname: '昵称',
+        nickname: '用户名',
         email: '邮箱',
         joinedAt: '注册时间',
         ownership: '归属',
@@ -877,7 +877,7 @@ export default {
       boundAt: '{date} 绑定',
       lifetimeEarnings: '累计收益 {amount}',
       requestsTitle: '请求明细',
-      searchPlaceholder: '昵称或完整邮箱',
+      searchPlaceholder: '用户名或完整邮箱',
       summary: {
         cost: '消费',
         split: '直属 {direct} · 分销代理 {sub}',

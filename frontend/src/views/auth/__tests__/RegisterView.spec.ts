@@ -184,7 +184,7 @@ describe('RegisterView', () => {
     expect(pushMock).toHaveBeenCalledWith('/dashboard')
   })
 
-  it('requires matching confirmation before storing only the registration fields for email verification', async () => {
+  it('requires matching confirmation before storing only the registration fields (with the trimmed username) for email verification', async () => {
     getPublicSettingsMock.mockResolvedValueOnce({
       ...publicSettings,
       turnstile_enabled: false,
@@ -193,6 +193,7 @@ describe('RegisterView', () => {
     const wrapper = mountRegister()
     await flushPromises()
     await wrapper.get('#email').setValue('user@example.com')
+    await wrapper.get('#username').setValue('  小明 ')
     await wrapper.get('#password').setValue('secret-123')
     await wrapper.get('#confirmPassword').setValue('different-password')
     await wrapper.get('form').trigger('submit.prevent')
@@ -207,7 +208,8 @@ describe('RegisterView', () => {
 
     expect(JSON.parse(sessionStorage.getItem('register_data')!)).toEqual({
       email: 'user@example.com',
-      password: 'secret-123'
+      password: 'secret-123',
+      username: '小明'
     })
     expect(pushMock).toHaveBeenCalledWith('/email-verify')
     expect(registerMock).not.toHaveBeenCalled()

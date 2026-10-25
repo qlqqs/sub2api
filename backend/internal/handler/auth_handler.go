@@ -57,6 +57,7 @@ type RegisterRequest struct {
 	PromoCode             string `json:"promo_code"`      // 注册优惠码
 	InvitationCode        string `json:"invitation_code"` // 邀请码
 	AffCode               string `json:"aff_code"`        // 邀请返利码
+	Username              string `json:"username"`        // 用户名（可选）
 }
 
 // SendVerifyCodeRequest 发送验证码请求
@@ -198,6 +199,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		req.PromoCode,
 		req.InvitationCode,
 		req.AffCode,
+		req.Username,
 	)
 	if err != nil {
 		response.ErrorFrom(c, err)

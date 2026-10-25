@@ -464,7 +464,7 @@ export default {
           earnings: 'Profit sharing',
           lifetimeEarnings: 'Lifetime profit sharing {amount}',
           historicalHint: 'No longer a distribution agent of {name}; their earlier customers still bring them the difference',
-          searchPlaceholder: 'Email, nickname or ID',
+          searchPlaceholder: 'Email, username or ID',
           notFound: 'Agent or customer not found',
           backToSummary: 'Back to team spend',
           deleted: 'Deleted #{id}'

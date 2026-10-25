@@ -821,7 +821,7 @@ export default {
       empty: 'No invited users yet',
       noMatches: 'No matching friends',
       columns: {
-        nickname: 'Nickname',
+        nickname: 'Username',
         email: 'Email',
         joinedAt: 'Joined At',
         ownership: 'Ownership',
@@ -875,7 +875,7 @@ export default {
       boundAt: 'Bound {date}',
       lifetimeEarnings: 'Lifetime earnings {amount}',
       requestsTitle: 'Requests',
-      searchPlaceholder: 'Nickname or full email',
+      searchPlaceholder: 'Username or full email',
       summary: {
         cost: 'Spend',
         split: 'Direct {direct} · Distribution agents {sub}',

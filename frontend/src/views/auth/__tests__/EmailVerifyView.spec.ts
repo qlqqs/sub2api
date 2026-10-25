@@ -806,6 +806,7 @@ describe('EmailVerifyView', () => {
       JSON.stringify({
         email: 'normal@example.com',
         password: 'secret-456',
+        username: '小明',
         promo_code: 'PROMO',
         invitation_code: 'INVITE',
       })
@@ -831,6 +832,7 @@ describe('EmailVerifyView', () => {
     expect(registerMock).toHaveBeenCalledWith({
       email: 'normal@example.com',
       password: 'secret-456',
+      username: '小明',
       verify_code: '654321',
       turnstile_token: undefined,
       tencent_captcha_ticket: undefined,

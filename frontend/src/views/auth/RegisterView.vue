@@ -61,6 +61,29 @@
           </div>
         </div>
 
+        <!-- Username Input (Optional) -->
+        <div>
+          <label for="username" class="input-label">
+            {{ t('auth.usernameLabel') }}
+            <span class="ml-1 text-xs font-normal text-gray-400 dark:text-dark-500">({{ t('common.optional') }})</span>
+          </label>
+          <div class="relative">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+              <Icon name="user" size="md" class="text-gray-400 dark:text-dark-500" />
+            </div>
+            <input
+              id="username"
+              v-model="formData.username"
+              type="text"
+              maxlength="100"
+              autocomplete="username"
+              :disabled="registrationActionDisabled"
+              class="input pl-11"
+              :placeholder="t('auth.usernamePlaceholder')"
+            />
+          </div>
+        </div>
+
         <!-- Password Input -->
         <div>
           <label for="password" class="input-label">
@@ -517,6 +540,7 @@ let invitationValidateTimeout: ReturnType<typeof setTimeout> | null = null
 
 const formData = reactive({
   email: '',
+  username: '',
   password: '',
   promo_code: '',
   invitation_code: '',
@@ -1096,6 +1120,7 @@ async function handleRegister(): Promise<void> {
         JSON.stringify({
           email: formData.email,
           password: formData.password,
+          username: formData.username.trim() || undefined,
           turnstile_token:
             turnstileEnabled.value || aliyunCaptchaEnabled.value ? turnstileToken.value : undefined,
           tencent_captcha_ticket: tencentCaptchaEnabled.value ? turnstileToken.value : undefined,
@@ -1115,6 +1140,7 @@ async function handleRegister(): Promise<void> {
     await authStore.register({
       email: formData.email,
       password: formData.password,
+      username: formData.username.trim() || undefined,
       turnstile_token:
         turnstileEnabled.value || aliyunCaptchaEnabled.value ? turnstileToken.value : undefined,
       tencent_captcha_ticket: tencentCaptchaEnabled.value ? turnstileToken.value : undefined,

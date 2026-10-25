@@ -143,6 +143,8 @@ export interface RegisterRequest {
   promo_code?: string
   invitation_code?: string
   aff_code?: string
+  /** 可选，留空则不设置。 */
+  username?: string
 }
 
 export interface AffiliateInvitee {
