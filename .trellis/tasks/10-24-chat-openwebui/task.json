@@ -2,7 +2,7 @@
   "id": "chat-openwebui",
   "name": "chat-openwebui",
   "title": "对话工作台：二开 Open WebUI 原生嵌入",
-  "description": "fork Open WebUI（锁定版本、不跟上游），经 sub2api 同源转发嵌入控制台 /chat；sub2api 登录态、用户自选 Key、固定网关、按用户隔离、控制台主题",
+  "description": "二开 Open WebUI，以补丁集定期变基；同源嵌入 /chat。已上线 126b01b，真机复测及测试凭据清理通过，待用户最终视觉确认后归档。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -15,12 +15,12 @@
   "branch": "sub2api-custom",
   "base_branch": "sub2api-custom",
   "worktree_path": null,
-  "commit": null,
+  "commit": "a09951781",
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "2026-10-25: fork fixes 59fd038 + 126b01b published; CI 40163659961 success; production retest passed, one image $0.15, all new usage $0.157474992. Test key/session credentials revoked. Await final visual signoff; keep in_progress until then.",
   "meta": {}
 }
