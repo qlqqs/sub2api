@@ -39,3 +39,6 @@
 ## 收尾版本
 - 收尾仅错误分类、测试、中英文提示及文档，无Wire签名/迁移修改。
 - sub2api `--no-web`重建及Chat独立重建日志：/tmp/s2a-workbench-wrap-local-build.log、/tmp/s2a-chat-wrap-build.log。两者均exit0，主服务和Chat容器healthy，Nova保持运行。收尾版Playwright重新抽查6项通过、pageerror为空（/tmp/s2a-workbench-wrap-ui.log）；三个仓库git diff --check通过，index仍为空，锁文件/依赖清单未变更。
+
+## 授权发布后的补充
+用户授权后，三个仓库已提交推送、CI通过并更新一号机配套部署；后端全量golangci-lint也已通过。迁移259/260、目标group ID 2、镜像revision及只读健康检查均确认。详见release.md；原全仓库类型检查等限制继续保留。

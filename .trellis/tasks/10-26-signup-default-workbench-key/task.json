@@ -2,7 +2,7 @@
   "id": "signup-default-workbench-key",
   "name": "signup-default-workbench-key",
   "title": "新用户默认稳定分组 Key 与工作台开箱即用",
-  "description": "新注册用户稳定分组Key及双工作台默认配置；本机验证完成，用户已授权提交、推送及一号机配套部署。",
+  "description": "实现、本机验证、三个仓库提交推送及一号机配套部署完成。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -15,12 +15,12 @@
   "branch": "sub2api-custom",
   "base_branch": "sub2api-custom",
   "worktree_path": null,
-  "commit": null,
+  "commit": "1a2b2736d",
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "验证详情及已知限制见validation.md；发布包括财务9d87d64cd，但不执行历史重算。",
+  "notes": "发布含财务9d87d64cd及lint修复7beeb73fe；三个项目CI通过、备份验证及线上只读验收通过。未执行财务历史重算，详见release.md和validation.md。",
   "meta": {}
 }
