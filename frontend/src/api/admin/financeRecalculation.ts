@@ -2,7 +2,7 @@
 import { apiClient } from '../client'
 
 export type RecalculationKind = 'usage_cost' | 'payment_fee'
-export type RecalculationStatus = 'previewing' | 'ready' | 'queued' | 'applying' | 'syncing' | 'completed' | 'failed' | 'conflict' | 'expired'
+export type RecalculationStatus = 'previewing' | 'ready' | 'queued' | 'applying' | 'syncing' | 'completed' | 'failed' | 'conflict' | 'expired' | 'cancelled'
 export interface RecalculationScope {
   kind: RecalculationKind
   start: string
@@ -76,6 +76,11 @@ export const financeRecalculationAPI = {
   },
   async confirm(id: number, config_fingerprint: string): Promise<RecalculationBatch> {
     const { data } = await apiClient.post<RecalculationBatch>(`${root}/${id}/confirm`, { config_fingerprint, acknowledged: true })
+    return data
+  },
+  /** Discards an unconfirmed preview; confirmed batches cannot be cancelled. */
+  async cancel(id: number): Promise<RecalculationBatch> {
+    const { data } = await apiClient.post<RecalculationBatch>(`${root}/${id}/cancel`)
     return data
   },
   async retrySync(id: number): Promise<RecalculationBatch> {

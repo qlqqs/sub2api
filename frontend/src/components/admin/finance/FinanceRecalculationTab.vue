@@ -1,13 +1,12 @@
 <template>
   <section class="space-y-4">
     <div class="flex flex-wrap items-start justify-between gap-3">
-      <div><h3 class="font-semibold">{{ t(`${ns}.title`) }}</h3><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t(`${ns}.description`) }}</p></div>
+      <div><h3 class="font-semibold">{{ t(`${ns}.title`) }}</h3><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t(`${ns}.description`) }} {{ t(`${ns}.durable`) }}</p></div>
       <div class="flex gap-2">
         <button type="button" class="btn btn-secondary" @click="refresh">{{ t(`${ns}.refresh`) }}</button>
-        <button type="button" class="btn btn-primary" data-testid="new-preview" @click="openNew">{{ t(`${ns}.newPreview`) }}</button>
+        <button type="button" class="btn btn-primary" data-testid="new-preview" @click="openNew()">{{ t(`${ns}.newPreview`) }}</button>
       </div>
     </div>
-    <p class="text-sm text-gray-500 dark:text-gray-400">{{ t(`${ns}.durable`) }}</p>
     <p v-if="listError" role="alert" class="text-sm text-red-600 dark:text-red-400">{{ listError }}</p>
     <DataTable :columns="batchColumns" :data="batches?.items ?? []" :loading="listLoading">
       <template #cell-kind="{ row }">{{ t(`${ns}.kinds.${row.kind}`) }}</template>
@@ -18,46 +17,51 @@
     <Pagination v-if="batches && batches.total > 0" :total="batches.total" :page="page" :page-size="pageSize" @update:page="page = $event" @update:page-size="setPageSize" />
 
     <BaseDialog :show="dialogOpen" :title="t(`${ns}.dialogTitle`)" width="wide" @close="closeDialog">
-      <ol class="mb-5 grid grid-cols-3 gap-2 text-sm">
+      <ol v-if="showSteps" class="mb-5 grid grid-cols-3 gap-2 text-sm">
         <li v-for="n in [1, 2, 3]" :key="n" :aria-current="step === n ? 'step' : undefined" :class="step === n ? 'font-semibold text-primary-600 dark:text-primary-400' : 'text-gray-500'">{{ n }}. {{ t(`${ns}.steps.${n}`) }}</li>
       </ol>
       <p v-if="actionError || detailError" role="alert" class="mb-4 break-words text-sm text-red-600 dark:text-red-400">{{ actionError || detailError }}</p>
-      <p v-if="needsNewPreview || previewExpired" class="mb-4 text-sm text-amber-700 dark:text-amber-300">{{ t(`${ns}.conflictHint`) }}</p>
+      <p v-else-if="previewExpired" class="mb-4 text-sm text-amber-700 dark:text-amber-300">{{ t(`${ns}.conflictHint`) }}</p>
       <form v-if="step === 1" id="finance-recalculation-scope" class="space-y-4" @submit.prevent="createPreview">
         <div><label for="recalculation-kind" class="label">{{ t(`${ns}.kind`) }}</label><Select id="recalculation-kind" v-model="kind" :options="kindOptions" /></div>
-        <div><p id="recalculation-dates" class="label">{{ t(`${ns}.scope`) }} · {{ t(`${ns}.beijing`) }}</p><DateRangePicker v-model:start-date="start" v-model:end-date="end" aria-labelledby="recalculation-dates" /></div>
-        <p class="text-xs text-gray-500 dark:text-gray-400">{{ t(`${ns}.rangeHint`) }}</p>
+        <div>
+          <p id="recalculation-dates" class="label">{{ t(`${ns}.scope`) }} ({{ t(`${ns}.beijing`) }})</p>
+          <DateRangePicker v-model:start-date="start" v-model:end-date="end" aria-labelledby="recalculation-dates" />
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ t(`${ns}.rangeHint`) }}</p>
+        </div>
         <template v-if="kind === 'usage_cost'">
           <div><label for="recalculation-account" class="label">{{ t(`${ns}.account`) }}</label><Select id="recalculation-account" v-model="accountId" :options="accountOptions" searchable /></div>
           <div><label for="recalculation-model" class="label">{{ t(`${ns}.model`) }}</label><input id="recalculation-model" v-model="model" class="input" list="recalculation-models" :placeholder="t(`${ns}.allModels`)" maxlength="256" /><datalist id="recalculation-models"><option v-for="name in models" :key="name" :value="name" /></datalist><p class="mt-1 text-xs text-gray-500">{{ t(`${ns}.modelHint`) }}</p></div>
-          <div class="space-y-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-900/20 dark:text-amber-200">
-            <label class="flex items-start gap-2"><input v-model="acceptRetainedBaseline" data-testid="accept-retained-baseline" type="checkbox" class="mt-1" aria-describedby="retained-baseline-hint" :disabled="mutating" /><span>{{ t(`${ns}.baseline.label`) }}</span></label>
-            <p id="retained-baseline-hint" class="text-xs">{{ t(`${ns}.baseline.hint`) }}</p>
-            <p class="text-xs">{{ t(`${ns}.baseline.backup`) }}</p>
+          <div class="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-900/20 dark:text-amber-200">
+            <label class="flex items-start gap-2 font-medium"><input v-model="acceptRetainedBaseline" data-testid="accept-retained-baseline" type="checkbox" class="mt-1" aria-describedby="retained-baseline-hint" :disabled="mutating" /><span>{{ t(`${ns}.baseline.label`) }}</span></label>
+            <p id="retained-baseline-hint" class="mt-1 pl-6 text-xs">{{ t(`${ns}.baseline.hint`) }}</p>
           </div>
         </template>
         <div v-else><label for="recalculation-provider" class="label">{{ t(`${ns}.provider`) }}</label><Select id="recalculation-provider" v-model="providerId" :options="providerOptions" searchable /></div>
         <p v-if="optionsError" role="alert" class="text-sm text-red-600 dark:text-red-400">{{ optionsError }} <button type="button" class="underline" @click="loadOptions">{{ t(`${ns}.refresh`) }}</button></p>
-        <p class="rounded-lg bg-gray-50 p-3 text-sm dark:bg-dark-800">{{ t(`${ns}.boundaries`) }}</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">{{ t(`${ns}.boundaries`) }}</p>
       </form>
       <template v-else-if="selected">
-        <FinanceRecalculationSummary :batch="selected" />
+        <FinanceRecalculationSummary :batch="selected" :account-name="optionName(accounts, selected.account_id)" :provider-name="optionName(providers, selected.provider_id)" />
         <template v-if="step === 2">
-          <p class="my-4 text-xs text-gray-500 dark:text-gray-400">{{ t(`${ns}.itemsHint`) }}</p>
-          <p v-if="itemsError" role="alert" class="text-sm text-red-600 dark:text-red-400">{{ itemsError }}</p>
-          <DataTable :columns="itemColumns" :data="items?.items ?? []" :loading="itemsLoading">
-            <template #cell-status="{ row }">{{ itemLabel(row.status) }}</template>
-            <template #cell-source="{ row }">{{ detailLabel('sources', row.source) }}</template>
-            <template #cell-reason="{ row }"><span class="break-words">{{ detailLabel('reasons', row.reason) }}</span></template>
-            <template #cell-old_cost="{ row }"><span class="font-mono">{{ row.old_cost ?? '—' }}</span></template>
-            <template #cell-new_cost="{ row }"><span class="font-mono">{{ row.status === 'skipped' ? '—' : row.new_cost ?? '—' }}</span></template>
-            <template #cell-delta="{ row }"><span class="font-mono">{{ row.status === 'skipped' ? '—' : row.delta ?? '—' }}</span></template>
-            <template #cell-applied="{ row }">{{ t(`${ns}.${row.applied ? 'yes' : 'no'}`) }}</template>
-          </DataTable>
-          <Pagination v-if="items && items.total > 0" :total="items.total" :page="itemPage" :page-size="itemPageSize" @update:page="itemPage = $event" @update:page-size="setItemPageSize" />
           <p v-if="selected.status === 'ready' && !isCreator" class="mt-3 text-sm text-amber-700 dark:text-amber-300">{{ t(`${ns}.creatorOnly`) }}</p>
+          <p v-else-if="selected.status === 'ready' && selected.changed === 0" class="mt-3 text-sm text-gray-600 dark:text-gray-300">{{ t(`${ns}.noChanges`) }}</p>
+          <template v-if="selected.status !== 'previewing' && selected.scanned > 0">
+            <p class="mb-2 mt-4 text-xs text-gray-500 dark:text-gray-400">{{ t(`${ns}.itemsHint`) }}</p>
+            <p v-if="itemsError" role="alert" class="text-sm text-red-600 dark:text-red-400">{{ itemsError }}</p>
+            <DataTable :columns="itemColumns" :data="items?.items ?? []" :loading="itemsLoading">
+              <template #cell-status="{ row }">{{ itemLabel(row.status) }}</template>
+              <template #cell-source="{ row }">{{ detailLabel('sources', row.source) }}</template>
+              <template #cell-reason="{ row }"><span class="break-words" :title="row.reason || undefined">{{ detailLabel('reasons', row.reason) }}</span></template>
+              <template #cell-old_cost="{ row }"><span class="font-mono">{{ row.old_cost ?? '—' }}</span></template>
+              <template #cell-new_cost="{ row }"><span class="font-mono">{{ row.status === 'skipped' ? '—' : row.new_cost ?? '—' }}</span></template>
+              <template #cell-delta="{ row }"><span class="font-mono">{{ row.status === 'skipped' ? '—' : row.delta ?? '—' }}</span></template>
+              <template #cell-applied="{ row }">{{ t(`${ns}.${row.applied ? 'yes' : 'no'}`) }}</template>
+            </DataTable>
+            <Pagination v-if="items && items.total > 0" :total="items.total" :page="itemPage" :page-size="itemPageSize" @update:page="itemPage = $event" @update:page-size="setItemPageSize" />
+          </template>
         </template>
-        <div v-else class="mt-5 space-y-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm dark:border-red-800 dark:bg-red-950/20">
+        <div v-else class="mt-5 space-y-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm dark:border-red-800 dark:bg-red-950/20">
           <strong class="text-red-700 dark:text-red-300">{{ t(`${ns}.irreversible`) }}</strong>
           <p>{{ t(`${ns}.confirmHint`) }}</p>
           <label class="flex items-start gap-2"><input v-model="acknowledged" data-testid="acknowledge" type="checkbox" class="mt-1" :disabled="mutating" /><span>{{ t(`${ns}.acknowledge`) }}</span></label>
@@ -66,14 +70,14 @@
       <p v-else class="text-sm text-gray-500">{{ t(`${ns}.loading`) }}</p>
       <template #footer>
         <div class="flex w-full flex-wrap justify-end gap-2">
+          <button v-if="canCancel" type="button" class="btn btn-secondary mr-auto" data-testid="cancel-preview" :disabled="mutating" @click="cancelPreview">{{ t(`${ns}.cancelPreview`) }}</button>
           <button type="button" class="btn btn-secondary" @click="closeDialog">{{ t(`${ns}.close`) }}</button>
-          <button v-if="step > 1" type="button" class="btn btn-secondary" :disabled="mutating" @click="refresh">{{ t(`${ns}.refresh`) }}</button>
           <button v-if="step === 1" type="submit" form="finance-recalculation-scope" class="btn btn-primary" data-testid="create-preview" :disabled="mutating">{{ t(`${ns}.${mutating ? 'loading' : 'preview'}`) }}</button>
           <button v-if="step === 2 && canConfirm" type="button" class="btn btn-primary" data-testid="review-confirm" @click="step = 3; acknowledged = false">{{ t(`${ns}.reviewConfirm`) }}</button>
           <button v-if="step === 3" type="button" class="btn btn-secondary" :disabled="mutating" @click="step = 2; acknowledged = false">{{ t(`${ns}.back`) }}</button>
           <button v-if="step === 3" type="button" class="btn btn-danger" data-testid="confirm-execute" :disabled="!acknowledged || !canConfirm || mutating" @click="execute">{{ t(`${ns}.${mutating ? 'loading' : 'execute'}`) }}</button>
           <button v-if="canRetry" type="button" class="btn btn-primary" data-testid="retry-sync" :disabled="mutating" @click="retrySync">{{ t(`${ns}.retrySync`) }}</button>
-          <button v-if="needsNewPreview || previewExpired || (selected && ['conflict', 'expired', 'failed'].includes(selected.status))" type="button" class="btn btn-secondary" :disabled="mutating" @click="openNew">{{ t(`${ns}.newPreview`) }}</button>
+          <button v-if="canPreviewAgain" type="button" class="btn btn-secondary" data-testid="preview-again" :disabled="mutating" @click="openNew(selected ?? undefined)">{{ t(`${ns}.rePreview`) }}</button>
         </div>
       </template>
     </BaseDialog>
@@ -81,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { financeRecalculationAPI as api, recalculationIsRunning, type RecalculationBatch, type RecalculationKind, type RecalculationScope } from '@/api/admin/financeRecalculation'
 import { getSettings } from '@/api/admin/finance'
@@ -89,7 +93,7 @@ import { getAvailableModels } from '@/api/admin/accounts'
 import { adminPaymentAPI } from '@/api/admin/payment'
 import { useAuthStore } from '@/stores/auth'
 import { useFinanceLoad } from '@/composables/useFinanceLoad'
-import { extractApiErrorMessage } from '@/utils/apiError'
+import { extractApiErrorCode, extractApiErrorMessage } from '@/utils/apiError'
 import { defaultFinanceRange, inclusiveDays } from '@/utils/financeDate'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import DataTable from '@/components/common/DataTable.vue'
@@ -145,16 +149,27 @@ const { data: items, loading: itemsLoading, error: itemsError, load: loadItems }
 watch(() => [page.value, pageSize.value, props.refreshToken], () => void refresh(), { immediate: true })
 watch(() => [selectedId.value, itemPage.value, itemPageSize.value], () => { items.value = null; void loadItems() })
 const batchColumns = computed(() => ['id', 'kind', 'scope', 'status', 'scanned', 'changed', 'actions'].map(key => ({ key, label: t(`${ns}.columns.${key}`) })))
-const itemColumns = computed(() => ['id', 'status', 'source', 'old_cost', 'new_cost', 'delta', 'reason', 'applied'].map(key => ({ key, label: t(`${ns}.columns.${key}`) })))
+// "Written" only means something once a batch has been run.
+const itemColumns = computed(() => {
+  const executed = !!selected.value && ['queued', 'applying', 'syncing', 'completed', 'failed'].includes(selected.value.status)
+  return ['id', 'status', 'source', 'old_cost', 'new_cost', 'delta', 'reason', ...(executed ? ['applied'] : [])].map(key => ({ key, label: t(`${ns}.columns.${key}`) }))
+})
 const isCreator = computed(() => selected.value?.actor_id === auth.user?.id)
 const previewExpired = computed(() => selected.value?.status === 'ready' && Date.parse(selected.value.expires_at) <= now.value)
 const canConfirm = computed(() => selected.value?.status === 'ready' && isCreator.value && !needsNewPreview.value && !!selected.value.config_fingerprint && Date.parse(selected.value.expires_at) > now.value && selected.value.changed > 0)
 const canRetry = computed(() => selected.value?.status === 'failed' && selected.value.failed_phase === 'syncing' && isCreator.value)
+const canCancel = computed(() => step.value > 1 && !!selected.value && ['previewing', 'ready'].includes(selected.value.status) && isCreator.value)
+const canPreviewAgain = computed(() => step.value > 1 && (needsNewPreview.value || previewExpired.value || (!!selected.value && ['conflict', 'expired', 'failed', 'cancelled'].includes(selected.value.status) && !canRetry.value)))
+// Steps describe the new-preview flow only; finished batches are plain records.
+const showSteps = computed(() => step.value === 1 || (!!selected.value && ['previewing', 'ready'].includes(selected.value.status)))
 function itemLabel(status: string) { return te(`${ns}.itemStatuses.${status}`) ? t(`${ns}.itemStatuses.${status}`) : status }
 function detailLabel(group: 'sources' | 'reasons', value: string): string {
   if (!value) return '—'
   const key = `${ns}.${group}.${value}`
-  return te(key) ? `${t(key)} (${value})` : value
+  return te(key) ? t(key) : value
+}
+function optionName(options: SelectOption[], id: number | null | undefined): string | undefined {
+  return id == null ? undefined : options.find(o => o.value === id)?.label as string | undefined
 }
 function setPageSize(size: number) { pageSize.value = size; page.value = 1 }
 function setItemPageSize(size: number) { itemPageSize.value = size; itemPage.value = 1 }
@@ -210,6 +225,7 @@ function resetDialog() {
 function openBatch(id: number) {
   resetDialog(); step.value = 2; selectedId.value = id
   void loadDetail()
+  if (!accounts.value.length && !providers.value.length) void loadOptions()
 }
 
 const range = defaultFinanceRange()
@@ -256,16 +272,39 @@ watch(accountId, async id => {
   }
 })
 let previewRequest: { signature: string; key: string } | null = null
-function openNew() {
+// Re-preview starts from the previous batch's scope so nothing must be re-entered.
+async function openNew(from?: RecalculationBatch) {
   resetDialog(); step.value = 1; previewRequest = null; acceptRetainedBaseline.value = false
   void loadOptions()
+  if (!from) return
+  const generation = dialogGeneration
+  kind.value = from.kind; start.value = from.start; end.value = from.end
+  accountId.value = from.account_id ?? ''; providerId.value = from.provider_id ?? ''
+  // Kind/account watchers reset the acknowledgement and model; restore after they run.
+  await nextTick()
+  if (disposed || generation !== dialogGeneration) return
+  model.value = from.model ?? ''
+  acceptRetainedBaseline.value = from.kind === 'usage_cost' && from.accept_retained_baseline === true
+}
+const errorKeys: Record<string, string> = {
+  FINANCE_RECALCULATION_TOO_LARGE: 'preview_too_large',
+  FINANCE_RECALCULATION_EXPIRED: 'preview_expired',
+  FINANCE_RECALCULATION_RULE_CHANGED: 'rule_changed',
+  FINANCE_RECALCULATION_SOURCE_CHANGED: 'source_changed',
+  FINANCE_RECALCULATION_ACTOR: 'not_creator',
+  FINANCE_RECALCULATION_STATE: 'state_changed',
+  FINANCE_RECALCULATION_INVALID: 'invalid_request'
+}
+function actionMessage(error: unknown, fallbackText: string): string {
+  const key = errorKeys[extractApiErrorCode(error) ?? '']
+  return key ? t(`${ns}.errors.${key}`) : extractApiErrorMessage(error, fallbackText)
 }
 function actionFailed(error: unknown) {
   const e = error && typeof error === 'object' ? error as { status?: number; response?: { status?: number } } : {}
   if (e.status === 409 || e.response?.status === 409) {
     needsNewPreview.value = true; acknowledged.value = false; step.value = 2
-    actionError.value = t(`${ns}.conflictHint`)
-  } else actionError.value = extractApiErrorMessage(error, fallback())
+    actionError.value = actionMessage(error, t(`${ns}.conflictHint`))
+  } else actionError.value = actionMessage(error, fallback())
 }
 async function createPreview() {
   if (mutating.value) return
@@ -309,6 +348,7 @@ async function mutate(operation: (batch: RecalculationBatch) => Promise<Recalcul
   }
 }
 function execute() { now.value = Date.now(); if (canConfirm.value && acknowledged.value) void mutate(b => api.confirm(b.id, b.config_fingerprint)) }
+function cancelPreview() { if (canCancel.value) void mutate(b => api.cancel(b.id)) }
 function retrySync() { if (canRetry.value) void mutate(b => api.retrySync(b.id)) }
 onMounted(() => { timer = setTimeout(poll, 3000) })
 onBeforeUnmount(() => {

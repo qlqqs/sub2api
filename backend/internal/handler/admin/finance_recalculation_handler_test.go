@@ -58,6 +58,11 @@ func (s *financeRecalculationHTTPStub) RetrySync(_ context.Context, _ int64, act
 	s.actor = actor
 	return &s.batch, s.err
 }
+func (s *financeRecalculationHTTPStub) Cancel(_ context.Context, _ int64, actor int64) (*service.FinanceRecalculationBatch, error) {
+	s.calls++
+	s.actor = actor
+	return &s.batch, s.err
+}
 func financeRecalculationHTTPRouter(s *financeRecalculationHTTPStub, role string, actor int64) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
@@ -78,6 +83,7 @@ func financeRecalculationHTTPRouter(s *financeRecalculationHTTPStub, role string
 	root.GET("/:id/items", h.Items)
 	root.POST("/:id/confirm", h.Confirm)
 	root.POST("/:id/retry-sync", h.RetrySync)
+	root.POST("/:id/cancel", h.Cancel)
 	return router
 }
 func financeRecalculationHTTPRequest(router *gin.Engine, method, suffix, body string) *httptest.ResponseRecorder {
@@ -141,14 +147,20 @@ func TestFinanceRecalculationHTTPAuthenticatedActorAndAck(t *testing.T) {
 	rec = financeRecalculationHTTPRequest(router, http.MethodPost, "/4/retry-sync", "")
 	require.Equal(t, 200, rec.Code)
 	require.Equal(t, int64(88), s.actor)
+	s.actor = 0
+	rec = financeRecalculationHTTPRequest(router, http.MethodPost, "/4/cancel", `{"actor_id":999}`)
+	require.Equal(t, 200, rec.Code)
+	require.Equal(t, int64(88), s.actor)
 	s.err = service.ErrFinanceRecalculationActor
 	rec = financeRecalculationHTTPRequest(router, http.MethodPost, "/4/confirm", `{"config_fingerprint":"fp","acknowledged":true}`)
 	require.Equal(t, 403, rec.Code)
 	rec = financeRecalculationHTTPRequest(router, http.MethodPost, "/4/retry-sync", "")
 	require.Equal(t, 403, rec.Code)
+	rec = financeRecalculationHTTPRequest(router, http.MethodPost, "/4/cancel", "")
+	require.Equal(t, 403, rec.Code)
 }
 func TestFinanceRecalculationHTTPPermissionsValidationAndSanitization(t *testing.T) {
-	routes := []struct{ method, suffix, body string }{{"GET", "", ""}, {"GET", "/4", ""}, {"GET", "/4/items", ""}, {"POST", "", `{"idempotency_key":"r"}`}, {"POST", "/4/confirm", `{"config_fingerprint":"fp","acknowledged":true}`}, {"POST", "/4/retry-sync", ""}}
+	routes := []struct{ method, suffix, body string }{{"GET", "", ""}, {"GET", "/4", ""}, {"GET", "/4/items", ""}, {"POST", "", `{"idempotency_key":"r"}`}, {"POST", "/4/confirm", `{"config_fingerprint":"fp","acknowledged":true}`}, {"POST", "/4/retry-sync", ""}, {"POST", "/4/cancel", ""}}
 	for _, role := range []string{"", service.RoleUser} {
 		for _, route := range routes {
 			s := &financeRecalculationHTTPStub{}

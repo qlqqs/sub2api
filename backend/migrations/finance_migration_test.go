@@ -41,3 +41,13 @@ func TestFinanceRetainedBaselineGenerationMigration(t *testing.T) {
 	require.NotContains(t, strings.ToUpper(s), "DELETE FROM")
 	require.NotContains(t, s, "SET complete_from = frontier")
 }
+
+func TestFinanceRecalculationCancelMigration(t *testing.T) {
+	raw, err := FS.ReadFile("261_finance_recalculation_cancel.sql")
+	require.NoError(t, err)
+	s := string(raw)
+	require.Contains(t, s, "DROP CONSTRAINT IF EXISTS finance_recalculation_batches_status_check")
+	require.Contains(t, s, "'expired','cancelled'")
+	require.NotContains(t, strings.ToUpper(s), "UPDATE ")
+	require.NotContains(t, strings.ToUpper(s), "DROP TABLE")
+}

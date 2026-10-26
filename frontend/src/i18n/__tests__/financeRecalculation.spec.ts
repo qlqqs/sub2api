@@ -23,19 +23,16 @@ describe('historical recalculation locale registration', () => {
     expect(Object.keys(finance)).not.toContain('financeRecalculation')
   })
 
-  it('states the baseline full-day limits, other-account scope and manual backup responsibility in both locales', () => {
-    const english = en.admin.financeRecalculation.baseline
-    const chinese = zh.admin.financeRecalculation.baseline
-    expect(english.hint).toContain('31 affected days')
-    expect(english.hint).toContain('2,000 retained source rows across those full days, including other accounts')
-    expect(english.hint).toContain('Selecting fewer records does not bypass this limit')
-    expect(chinese.hint).toContain('31 天')
-    expect(chinese.hint).toContain('2000 条现存明细（包括其他账号）')
-    expect(chinese.hint).toContain('仅减少选中记录不能绕过此限制')
-    expect(english.backup).toContain('does not stop requests or create or verify a backup')
-    expect(english.backup).toContain('stop incoming requests and wait for all in-flight requests to finish → back up the database → preview and execute → verify the statistics → resume requests')
-    expect(chinese.backup).toContain('不会创建或验证备份')
-    expect(chinese.backup).toContain('停止新请求并等待所有在途请求结束 → 备份数据库 → 预览并执行 → 核对统计 → 恢复请求')
+  it('states the baseline limits and the manual stop-traffic/backup duty in both locales', () => {
+    const english = en.admin.financeRecalculation
+    const chinese = zh.admin.financeRecalculation
+    expect(english.baseline.hint).toContain('31 days')
+    expect(english.baseline.hint).toContain('2,000 records across all accounts')
+    expect(chinese.baseline.hint).toContain('31 天')
+    expect(chinese.baseline.hint).toContain('所有账号的记录合计不超过 2000 条')
+    expect(english.confirmHint).toContain('does not stop the service or make backups')
+    expect(chinese.confirmHint).toContain('停止接收请求并备份数据库')
+    expect(chinese.confirmHint).toContain('不会帮你停服务或备份')
   })
 
   it('keeps every registered English and Chinese key aligned', () => {

@@ -329,6 +329,32 @@ func (r *financeRecalculationRepository) RetrySync(ctx context.Context, id, acto
 	}
 	return tx.Commit()
 }
+func (r *financeRecalculationRepository) Cancel(ctx context.Context, id, actor int64) (*service.FinanceRecalculationBatch, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback() }()
+	b, err := scanFinanceBatch(tx.QueryRowContext(ctx, `SELECT `+financeBatchColumns+` FROM finance_recalculation_batches WHERE id=$1 FOR UPDATE`, id))
+	if err != nil {
+		return nil, err
+	}
+	if b.ActorID != actor {
+		return nil, service.ErrFinanceRecalculationActor
+	}
+	if b.Status == service.FinanceRecalculationCancelled {
+		return b, tx.Commit()
+	}
+	if b.Status != service.FinanceRecalculationPreviewing && b.Status != service.FinanceRecalculationReady {
+		return nil, service.ErrFinanceRecalculationState
+	}
+	// Clearing the lease fences a preview worker: SavePreview/RenewLease fail closed.
+	b, err = scanFinanceBatch(tx.QueryRowContext(ctx, `UPDATE finance_recalculation_batches SET status='cancelled',lease_token='',lease_until=NULL,error_code='',error_message='',updated_at=clock_timestamp() WHERE id=$1 RETURNING `+financeBatchColumns, id))
+	if err != nil {
+		return nil, err
+	}
+	return b, tx.Commit()
+}
 func (r *financeRecalculationRepository) Complete(ctx context.Context, id int64, token string) error {
 	return financeAffected(r.db.ExecContext(ctx, `UPDATE finance_recalculation_batches SET status='completed',completed_at=clock_timestamp(),updated_at=clock_timestamp(),lease_token='',lease_until=NULL,error_code='',error_message='' WHERE id=$1 AND status='syncing' AND lease_token=$2 AND lease_token<>'' AND lease_until>clock_timestamp()`, id, token))
 }

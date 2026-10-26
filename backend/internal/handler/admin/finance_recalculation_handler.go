@@ -20,6 +20,7 @@ type financeRecalculationService interface {
 	Items(context.Context, int64, int, int) ([]service.FinanceRecalculationItem, int64, error)
 	Confirm(context.Context, int64, int64, string, bool) (*service.FinanceRecalculationBatch, error)
 	RetrySync(context.Context, int64, int64) (*service.FinanceRecalculationBatch, error)
+	Cancel(context.Context, int64, int64) (*service.FinanceRecalculationBatch, error)
 }
 type FinanceRecalculationHandler struct{ s financeRecalculationService }
 
@@ -272,5 +273,17 @@ func (h *FinanceRecalculationHandler) RetrySync(c *gin.Context) {
 		return
 	}
 	b, err := h.s.RetrySync(c.Request.Context(), id, actor)
+	financeRecalculationRespond(c, b, err)
+}
+func (h *FinanceRecalculationHandler) Cancel(c *gin.Context) {
+	actor, ok := financeRecalculationActor(c)
+	if !ok {
+		return
+	}
+	id, ok := financeRecalculationID(c)
+	if !ok {
+		return
+	}
+	b, err := h.s.Cancel(c.Request.Context(), id, actor)
 	financeRecalculationRespond(c, b, err)
 }

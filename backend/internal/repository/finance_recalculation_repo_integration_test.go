@@ -480,3 +480,47 @@ func TestFinanceRecalculationCoverageFailureIsDurable(t *testing.T) {
 	require.NoError(t, integrationDB.QueryRowContext(ctx, `SELECT count(*) FROM usage_logs WHERE account_id=$1 AND account_rate_multiplier IS NULL`, f.accountID).Scan(&unchanged))
 	require.Equal(t, 1, unchanged, "failed aggregate sync rolled back source cost changes")
 }
+func TestFinanceRecalculationCancelFencesPreviewAndRejectsConfirmed(t *testing.T) {
+	ctx := context.Background()
+	f := financeRecalcData(t)
+	financeRecalcUsage(t, f)
+	r := NewFinanceRecalculationRepository(integrationDB)
+
+	// Cancelling while the worker is still previewing fences its lease.
+	b := financeRecalcCreate(t, r, f, service.FinanceRecalculationUsageCost)
+	b = financeRecalcClaim(t, r, b.ID)
+	preview := financeRecalcPreview(t, r, b)
+	_, err := r.Cancel(ctx, b.ID, f.userID+1)
+	require.ErrorIs(t, err, service.ErrFinanceRecalculationActor)
+	cancelled, err := r.Cancel(ctx, b.ID, f.userID)
+	require.NoError(t, err)
+	require.Equal(t, service.FinanceRecalculationCancelled, cancelled.Status)
+	require.ErrorIs(t, r.SavePreview(ctx, b.ID, b.LeaseToken, preview), service.ErrFinanceRecalculationState)
+	require.ErrorIs(t, r.RenewLease(ctx, b.ID, b.LeaseToken, time.Minute), service.ErrFinanceRecalculationState)
+	again, err := r.Cancel(ctx, b.ID, f.userID)
+	require.NoError(t, err)
+	require.Equal(t, service.FinanceRecalculationCancelled, again.Status)
+	_, err = r.QueueConfirm(ctx, b.ID, f.userID, preview.ConfigFingerprint, preview.ConfigFingerprint)
+	require.ErrorIs(t, err, service.ErrFinanceRecalculationState)
+	next, err := r.Claim(ctx, "integration-worker", time.Minute)
+	require.NoError(t, err)
+	require.Nil(t, next)
+
+	// A ready preview can be cancelled; a confirmed one cannot.
+	b = financeRecalcCreate(t, r, f, service.FinanceRecalculationUsageCost)
+	b = financeRecalcClaim(t, r, b.ID)
+	preview = financeRecalcPreview(t, r, b)
+	require.NoError(t, r.SavePreview(ctx, b.ID, b.LeaseToken, preview))
+	cancelled, err = r.Cancel(ctx, b.ID, f.userID)
+	require.NoError(t, err)
+	require.Equal(t, service.FinanceRecalculationCancelled, cancelled.Status)
+
+	b = financeRecalcCreate(t, r, f, service.FinanceRecalculationUsageCost)
+	b = financeRecalcClaim(t, r, b.ID)
+	preview = financeRecalcPreview(t, r, b)
+	require.NoError(t, r.SavePreview(ctx, b.ID, b.LeaseToken, preview))
+	_, err = r.QueueConfirm(ctx, b.ID, f.userID, preview.ConfigFingerprint, preview.ConfigFingerprint)
+	require.NoError(t, err)
+	_, err = r.Cancel(ctx, b.ID, f.userID)
+	require.ErrorIs(t, err, service.ErrFinanceRecalculationState)
+}

@@ -23,6 +23,7 @@ const (
 	FinanceRecalculationFailed     = "failed"
 	FinanceRecalculationConflict   = "conflict"
 	FinanceRecalculationExpired    = "expired"
+	FinanceRecalculationCancelled  = "cancelled"
 )
 
 var (
@@ -30,7 +31,7 @@ var (
 	ErrFinanceRecalculationInvalid       = infraerrors.BadRequest("FINANCE_RECALCULATION_INVALID", "Invalid recalculation request")
 	ErrFinanceRecalculationTooLarge      = infraerrors.BadRequest("FINANCE_RECALCULATION_TOO_LARGE", "Preview exceeds 2000 source rows or the 31-day retained-baseline scope; use a smaller range")
 	ErrFinanceRecalculationState         = infraerrors.Conflict("FINANCE_RECALCULATION_STATE", "Recalculation state or lease changed")
-	ErrFinanceRecalculationActor         = infraerrors.Forbidden("FINANCE_RECALCULATION_ACTOR", "Only the preview creator can confirm or retry")
+	ErrFinanceRecalculationActor         = infraerrors.Forbidden("FINANCE_RECALCULATION_ACTOR", "Only the preview creator can confirm, cancel or retry")
 	ErrFinanceRecalculationExpired       = infraerrors.Conflict("FINANCE_RECALCULATION_EXPIRED", "Preview expired; create a new preview")
 	ErrFinanceRecalculationRuleChanged   = infraerrors.Conflict("FINANCE_RECALCULATION_RULE_CHANGED", "Cost configuration changed; create a new preview")
 	ErrFinanceRecalculationSourceChanged = infraerrors.Conflict("FINANCE_RECALCULATION_SOURCE_CHANGED", "Source rows changed; create a new preview")
@@ -135,6 +136,9 @@ type FinanceRecalculationStore interface {
 	QueueConfirm(context.Context, int64, int64, string, string) (*FinanceRecalculationBatch, error)
 	Apply(context.Context, int64, string, string) error
 	RetrySync(context.Context, int64, int64) error
+	// Cancel discards an unconfirmed (previewing/ready) preview of the creator.
+	// It clears the lease so an in-flight preview worker cannot save afterwards.
+	Cancel(context.Context, int64, int64) (*FinanceRecalculationBatch, error)
 	Complete(context.Context, int64, string) error
 	Fail(context.Context, int64, string, string, string) error
 }

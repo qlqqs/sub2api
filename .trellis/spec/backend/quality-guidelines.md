@@ -118,3 +118,13 @@ go build ./cmd/server
 5. **正例/基线/反例**：两天176条且逐桶相符可由用户显式接受后重算；不接受不改变旧历史；筛选外明细或汇总不一致则整批拒绝。基线不得仅回拨全局 `complete_from` 冒充证据。
 6. **必需测试**：`TestFinanceRetainedBaselineHistoricalApplyAuditAndFullDay`、`...RejectsReconciliationMismatch`、`...AuditAndWritesRollbackTogether`；恢复请求后的 `...LaterInsertsAggregateThenDeletionPreserves`；`TestFinanceBaselineDeletionGeneration` 验证真实删除/无命中删除/TRUNCATE/回滚。运行本机p11证明非空旧明细→财务与账号API及小时/日汇总同步，不能把空批次或支付通过称为历史请求成功。
 7. **错误与正确**：旧日期写repaired标记却仍按前瞻边界一律冻结，会漏掉恢复流量后的请求；260用删除版本区分已接受且尚未失效的基线，后续删除保守失效。不支持后台自动协调停流量。`SHARE usage_logs` 与持有ROW SHARE/advisory的清理升级可能死锁；限定基线使用配置表→source EXCLUSIVE→advisory，普通SELECT仍可读，锁只是误操作防护，不承诺在线重算。
+
+## 历史重算预览取消（fork，2026-10-26）
+
+1. **范围**：取消尚未确认的预览，不是撤销已执行的成本修改。
+2. **签名**：`POST /api/v1/admin/finance/recalculations/:id/cancel`；`FinanceRecalculationStore.Cancel(ctx, id, actor)`；迁移261只扩展状态约束为允许 `cancelled`。
+3. **合约**：只允许创建人取消 `previewing`/`ready`；同一创建人重复取消幂等。事务内锁批次、清空租约并置 `cancelled`，保留审计明细，不写成本。旧 worker 不得保存预览或续租；取消后不可确认/重新领取。
+4. **校验/错误**：非法ID/操作者返回 `FINANCE_RECALCULATION_INVALID`；非创建人返回 `FINANCE_RECALCULATION_ACTOR`；已确认或其他不允许状态返回 `FINANCE_RECALCULATION_STATE`。继续使用管理员鉴权与写审计。
+5. **正例/基线/反例**：运行中的预览可取消；关闭弹窗不等于取消；`queued`/`applying`/`syncing`/`completed` 不能取消。
+6. **必需测试**：`TestFinanceRecalculationCancelFencesPreviewAndRejectsConfirmed` 覆盖操作者、重复取消、旧租约SavePreview/RenewLease拒绝、取消后Claim/QueueConfirm拒绝及已确认拒绝；service/handler/migration测试验证参数、身份及增量DDL。
+7. **错误与正确**：只在前端隐藏预览或仅改status会遗漏worker回写；正确做法是后端事务内状态与租约一起失效。前端同步失败只给“重新同步”，不引导重新执行已写入的成本。

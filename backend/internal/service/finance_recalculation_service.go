@@ -214,6 +214,12 @@ func (s *FinanceRecalculationService) RetrySync(ctx context.Context, id, actor i
 	}
 	return s.store.Get(ctx, id)
 }
+func (s *FinanceRecalculationService) Cancel(ctx context.Context, id, actor int64) (*FinanceRecalculationBatch, error) {
+	if id <= 0 || actor <= 0 {
+		return nil, ErrFinanceRecalculationInvalid
+	}
+	return s.store.Cancel(ctx, id, actor)
+}
 
 // The store's Apply holds the batch row while writing; RenewLease can therefore
 // wait behind it. Work is bounded below the lease duration, and canceling this

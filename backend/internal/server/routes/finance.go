@@ -22,6 +22,7 @@ func registerFinanceRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		f.GET("/recalculations/:id/items", v.Items)
 		f.POST("/recalculations/:id/confirm", v.Confirm)
 		f.POST("/recalculations/:id/retry-sync", v.RetrySync)
+		f.POST("/recalculations/:id/cancel", v.Cancel)
 	}
 	v := h.Admin.Finance
 	f.GET("/summary", v.Summary)

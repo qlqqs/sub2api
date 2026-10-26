@@ -110,6 +110,15 @@ func (s *financeOrchestrationStore) RetrySync(context.Context, int64, int64) err
 	}
 	return ErrFinanceRecalculationState
 }
+func (s *financeOrchestrationStore) Cancel(_ context.Context, _ int64, actor int64) (*FinanceRecalculationBatch, error) {
+	s.calls = append(s.calls, "cancel")
+	if actor != s.batch.ActorID {
+		return nil, ErrFinanceRecalculationActor
+	}
+	s.batch.Status = FinanceRecalculationCancelled
+	b := *s.batch
+	return &b, nil
+}
 func (s *financeOrchestrationStore) Create(_ context.Context, in FinanceRecalculationCreate) (*FinanceRecalculationBatch, error) {
 	s.created = in
 	return s.batch, nil
@@ -491,4 +500,16 @@ func TestFinanceRecalculationRetainedBaselineUsageOnly(t *testing.T) {
 	require.ErrorIs(t, validateFinanceRecalculationCreate(in), ErrFinanceRecalculationInvalid)
 	in.AcceptRetainedBaseline = false
 	require.NoError(t, validateFinanceRecalculationCreate(in))
+}
+
+func TestFinanceRecalculationServiceCancelValidatesInput(t *testing.T) {
+	s, store, _, _ := financeOrchestrationFixture(FinanceRecalculationReady, FinanceRecalculationUsageCost)
+	_, err := s.Cancel(context.Background(), 0, 9)
+	require.ErrorIs(t, err, ErrFinanceRecalculationInvalid)
+	_, err = s.Cancel(context.Background(), 1, 0)
+	require.ErrorIs(t, err, ErrFinanceRecalculationInvalid)
+	require.Empty(t, store.calls)
+	b, err := s.Cancel(context.Background(), 1, 9)
+	require.NoError(t, err)
+	require.Equal(t, FinanceRecalculationCancelled, b.Status)
 }

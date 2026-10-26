@@ -14,7 +14,7 @@ vi.mock('vue-i18n', async importOriginal => {
 })
 
 const mocks = vi.hoisted(() => ({
-  api: { create: vi.fn(), list: vi.fn(), get: vi.fn(), items: vi.fn(), confirm: vi.fn(), retrySync: vi.fn() },
+  api: { create: vi.fn(), list: vi.fn(), get: vi.fn(), items: vi.fn(), confirm: vi.fn(), retrySync: vi.fn(), cancel: vi.fn() },
   getSettings: vi.fn(), getProviders: vi.fn(), getModels: vi.fn(), user: { id: 7 }
 }))
 vi.mock('@/api/admin/financeRecalculation', async importOriginal => ({
@@ -25,6 +25,7 @@ vi.mock('@/api/admin/payment', () => ({ adminPaymentAPI: { getProviders: mocks.g
 vi.mock('@/api/admin/accounts', () => ({ getAvailableModels: mocks.getModels }))
 vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ user: mocks.user }) }))
 
+const L = en.financeRecalculation
 function batch(overrides: Partial<RecalculationBatch> = {}): RecalculationBatch {
   return { id: 1, kind: 'usage_cost', start: '2026-10-01', end: '2026-10-26', status: 'ready', scanned: 3, changed: 1, unchanged: 1, skipped: 1, old_total: '1.00000000', new_total: '2.00000000', delta: '1.00000000', actor_id: 7, config_fingerprint: 'saved-fingerprint', cutoff_at: '2026-10-26T01:00:00Z', expires_at: '2026-10-27T01:00:00Z', created_at: '2026-10-26T01:00:00Z', error_code: '', error_message: '', snapshot_summary: ['Account model rule #42'], ...overrides }
 }
@@ -88,17 +89,19 @@ afterEach(() => {
 })
 
 describe('historical recalculation', () => {
-  it('creates a preview only, shows snapshots and requires a separate irrevocable acknowledgement', async () => {
+  it('creates a preview only, shows plain results and requires a separate irrevocable acknowledgement', async () => {
     const w = render()
     await newPreview(w)
     expect(mocks.api.create).toHaveBeenCalledWith(expect.objectContaining({ kind: 'usage_cost', start: '2026-10-01', end: '2026-10-26', idempotency_key: expect.any(String) }))
     expect(mocks.api.confirm).not.toHaveBeenCalled()
-    expect(w.text()).toContain('saved-fingerprint')
-    expect(w.text()).toContain('Account model rule #42')
-    expect(w.text()).toContain('Existing account-cost basis')
+    // Internal fingerprints and English server summaries are not shown to admins.
+    expect(w.text()).not.toContain('saved-fingerprint')
+    expect(w.text()).not.toContain('Account model rule #42')
+    expect(w.text()).toContain(L.units.usage_cost)
     expect(w.text()).not.toContain('NEVER_RENDER')
     await w.get('[data-testid="review-confirm"]').trigger('click')
-    expect(w.text()).toContain('This operation cannot be undone')
+    expect(w.text()).toContain(L.irreversible)
+    expect(w.text()).toContain(L.confirmHint)
     expect(w.get('[data-testid="confirm-execute"]').attributes('disabled')).toBeDefined()
     await w.get('[data-testid="acknowledge"]').setValue(true)
     // Future reads retain the durable queued state.
@@ -107,7 +110,8 @@ describe('historical recalculation', () => {
     await flushPromises()
     expect(mocks.api.confirm).toHaveBeenCalledTimes(1)
     expect(mocks.api.confirm).toHaveBeenCalledWith(1, 'saved-fingerprint')
-    expect(w.text()).toContain('this job is not complete')
+    expect(w.text()).toContain(L.syncWarning)
+    expect(w.find('[data-testid="cancel-preview"]').exists()).toBe(false)
     expect(w.emitted('changed')).toBeUndefined()
   })
 
@@ -115,15 +119,15 @@ describe('historical recalculation', () => {
     const w = render()
     await w.get('[data-testid="new-preview"]').trigger('click'); await flushPromises()
     expect((w.get('[data-testid="accept-retained-baseline"]').element as HTMLInputElement).checked).toBe(false)
-    expect(w.text()).toContain(en.financeRecalculation.baseline.hint)
-    expect(w.text()).toContain(en.financeRecalculation.baseline.backup)
+    expect(w.text()).toContain(L.baseline.hint)
+    expect(w.text()).toContain(L.boundaries)
     await w.get('form').trigger('submit'); await flushPromises()
     expect(mocks.api.create).toHaveBeenCalledWith(expect.objectContaining({ accept_retained_baseline: false }))
     expect(w.find('[data-testid="retained-baseline-summary"]').exists()).toBe(false)
     expect(mocks.api.confirm).not.toHaveBeenCalled()
   })
 
-  it('shows persisted acceptance and reconciliation/backup conditions in preview, confirmation and reopened details', async () => {
+  it('shows persisted acceptance and the reconciliation condition in preview, confirmation and reopened details', async () => {
     const saved = batch({ accept_retained_baseline: true })
     mocks.api.create.mockResolvedValue(saved)
     mocks.api.get.mockResolvedValue(saved)
@@ -132,18 +136,17 @@ describe('historical recalculation', () => {
     await w.get('[data-testid="accept-retained-baseline"]').setValue(true)
     await w.get('form').trigger('submit'); await flushPromises()
     expect(mocks.api.create).toHaveBeenCalledWith(expect.objectContaining({ kind: 'usage_cost', accept_retained_baseline: true }))
-    expect(w.get('[data-testid="retained-baseline-summary"]').text()).toContain(en.financeRecalculation.baseline.accepted)
-    expect(w.text()).toContain('Account model rule #42')
+    expect(w.get('[data-testid="retained-baseline-summary"]').text()).toContain(L.baseline.accepted)
     await w.get('[data-testid="review-confirm"]').trigger('click')
-    expect(w.get('[data-testid="retained-baseline-summary"]').text()).toContain(en.financeRecalculation.baseline.condition)
-    expect(w.text()).toContain(en.financeRecalculation.baseline.backup)
+    expect(w.get('[data-testid="retained-baseline-summary"]').text()).toContain(L.baseline.condition)
+    expect(w.text()).toContain(L.confirmHint)
     expect(w.get('[data-testid="confirm-execute"]').attributes('disabled')).toBeDefined()
     expect(mocks.api.confirm).not.toHaveBeenCalled()
     await w.get('[data-testid="dialog-close"]').trigger('click')
     await w.get('[data-testid="new-preview"]').trigger('click'); await flushPromises()
     expect((w.get('[data-testid="accept-retained-baseline"]').element as HTMLInputElement).checked).toBe(false)
     await w.get('[data-testid="dialog-close"]').trigger('click'); await open(w)
-    expect(w.get('[data-testid="retained-baseline-summary"]').text()).toContain(en.financeRecalculation.baseline.accepted)
+    expect(w.get('[data-testid="retained-baseline-summary"]').text()).toContain(L.baseline.accepted)
     await w.get('[data-testid="review-confirm"]').trigger('click')
     await w.get('[data-testid="acknowledge"]').setValue(true)
     mocks.api.get.mockResolvedValue(batch({ status: 'queued', accept_retained_baseline: true }))
@@ -185,8 +188,9 @@ describe('historical recalculation', () => {
   it('keeps decimal NULLs and skips visible instead of fabricating zero totals', async () => {
     mocks.api.get.mockResolvedValue(batch({ changed: 0, unchanged: 0, skipped: 3, old_total: '0', new_total: '0', delta: '0' }))
     const w = render(); await open(w)
-    expect(w.text()).toContain('No comparable totals yet')
-    expect(w.text()).toContain('missing_image_count')
+    expect(w.text()).toContain(L.noComparableTotals)
+    expect(w.text()).toContain(L.noChanges)
+    expect(w.get('[data-row="10"] [data-column="reason"]').text()).toBe(L.reasons.missing_image_count)
     expect(w.get('[data-row="10"] [data-column="old_cost"]').text()).toBe('—')
     expect(w.get('[data-row="10"] [data-column="new_cost"]').text()).toBe('—')
     expect(w.find('[data-testid="review-confirm"]').exists()).toBe(false)
@@ -213,7 +217,7 @@ describe('historical recalculation', () => {
     await w.get('[data-testid="start"]').setValue('2026-11-01')
     await w.get('form').trigger('submit'); await flushPromises()
     expect(mocks.api.create).toHaveBeenCalledTimes(2)
-    expect(w.text()).toContain('Choose a valid range')
+    expect(w.text()).toContain(L.invalidRange)
   })
 
   it('reloads on 409, invalidates confirmation and requires a new preview', async () => {
@@ -222,35 +226,78 @@ describe('historical recalculation', () => {
     await w.get('[data-testid="review-confirm"]').trigger('click')
     await w.get('[data-testid="acknowledge"]').setValue(true)
     await w.get('[data-testid="confirm-execute"]').trigger('click'); await flushPromises()
-    expect(w.text()).toContain('The preview is invalid')
+    expect(w.text()).toContain(L.conflictHint)
     expect(w.find('[data-testid="review-confirm"]').exists()).toBe(false)
+    expect(w.find('[data-testid="preview-again"]').exists()).toBe(true)
     expect(mocks.api.get.mock.calls.length).toBeGreaterThan(1)
   })
 
   it('only lets the creator confirm and disallows expired previews', async () => {
     mocks.user.id = 99
     const w = render(); await open(w)
-    expect(w.text()).toContain('Only the administrator who created')
+    expect(w.text()).toContain(L.creatorOnly)
     expect(w.find('[data-testid="review-confirm"]').exists()).toBe(false)
+    expect(w.find('[data-testid="cancel-preview"]').exists()).toBe(false)
     mocks.user.id = 7
     mocks.api.get.mockResolvedValue(batch({ expires_at: '2026-10-25T01:00:00Z' }))
     await w.get('[data-testid="dialog-close"]').trigger('click'); await open(w)
     expect(w.find('[data-testid="review-confirm"]').exists()).toBe(false)
-    expect(w.text()).toContain('The preview is invalid')
+    expect(w.text()).toContain(L.conflictHint)
   })
 
   it('retries only a failed sync, without pretending the job completed', async () => {
-    mocks.api.get.mockResolvedValue(batch({ status: 'failed', failed_phase: 'syncing', error_message: 'cache unavailable' }))
+    mocks.api.get.mockResolvedValue(batch({ status: 'failed', failed_phase: 'syncing', error_code: 'sync_failed', error_message: 'Cache synchronization failed; retry synchronization' }))
     mocks.api.retrySync.mockResolvedValue(batch({ status: 'syncing' }))
     const w = render(); await open(w)
-    expect(w.text()).toContain('cache unavailable')
+    expect(w.text()).toContain(L.errors.sync_failed)
+    expect(w.text()).not.toContain('Cache synchronization failed')
+    expect(w.find('[data-testid="preview-again"]').exists()).toBe(false)
     mocks.api.get.mockResolvedValue(batch({ status: 'syncing' }))
     await w.get('[data-testid="retry-sync"]').trigger('click'); await flushPromises()
     expect(mocks.api.retrySync).toHaveBeenCalledTimes(1)
     expect(mocks.api.retrySync).toHaveBeenCalledWith(1)
     expect(mocks.api.confirm).not.toHaveBeenCalled()
     expect(w.emitted('changed')).toBeUndefined()
-    expect(w.text()).toContain('this job is not complete')
+    expect(w.text()).toContain(L.syncWarning)
+  })
+
+  it('cancels an unconfirmed preview without touching confirmation', async () => {
+    mocks.api.cancel.mockResolvedValue(batch({ status: 'cancelled' }))
+    const w = render(); await open(w)
+    mocks.api.get.mockResolvedValue(batch({ status: 'cancelled' }))
+    await w.get('[data-testid="cancel-preview"]').trigger('click'); await flushPromises()
+    expect(mocks.api.cancel).toHaveBeenCalledWith(1)
+    expect(mocks.api.confirm).not.toHaveBeenCalled()
+    expect(w.text()).toContain(L.cancelled)
+    expect(w.find('[data-testid="cancel-preview"]').exists()).toBe(false)
+    expect(w.find('[data-testid="review-confirm"]').exists()).toBe(false)
+    expect(w.find('[data-testid="preview-again"]').exists()).toBe(true)
+  })
+
+  it('can cancel while the preview is still running', async () => {
+    mocks.api.get.mockResolvedValue(batch({ status: 'previewing', scanned: 0, changed: 0, unchanged: 0, skipped: 0 }))
+    mocks.api.cancel.mockResolvedValue(batch({ status: 'cancelled', scanned: 0, changed: 0, unchanged: 0, skipped: 0 }))
+    const w = render(); await open(w)
+    await w.get('[data-testid="cancel-preview"]').trigger('click'); await flushPromises()
+    expect(mocks.api.cancel).toHaveBeenCalledWith(1)
+  })
+
+  it('translates server error codes instead of showing raw English messages', async () => {
+    mocks.api.confirm.mockRejectedValue({ status: 409, reason: 'FINANCE_RECALCULATION_RULE_CHANGED', message: 'Cost configuration changed; create a new preview' })
+    const w = render(); await open(w)
+    await w.get('[data-testid="review-confirm"]').trigger('click')
+    await w.get('[data-testid="acknowledge"]').setValue(true)
+    await w.get('[data-testid="confirm-execute"]').trigger('click'); await flushPromises()
+    expect(w.text()).toContain(L.errors.rule_changed)
+    expect(w.text()).not.toContain('Cost configuration changed')
+  })
+
+  it('pre-fills a new preview from the previous scope', async () => {
+    mocks.api.get.mockResolvedValue(batch({ status: 'expired', start: '2026-09-01', end: '2026-09-30', account_id: 11, model: 'historical-model', accept_retained_baseline: true }))
+    const w = render(); await open(w)
+    await w.get('[data-testid="preview-again"]').trigger('click'); await flushPromises()
+    await w.get('form').trigger('submit'); await flushPromises()
+    expect(mocks.api.create).toHaveBeenCalledWith(expect.objectContaining({ kind: 'usage_cost', start: '2026-09-01', end: '2026-09-30', account_id: 11, model: 'historical-model', accept_retained_baseline: true }))
   })
 
   it('does not offer sync retry for preview failures', async () => {
@@ -275,11 +322,11 @@ describe('historical recalculation', () => {
   it('ignores rejected detail requests for a previously selected batch', async () => {
     mocks.api.list.mockResolvedValue({ items: [batch(), batch({ id: 2 })], total: 2 })
     const old = deferred<RecalculationBatch>()
-    mocks.api.get.mockReturnValueOnce(old.promise).mockResolvedValue(batch({ id: 2, config_fingerprint: 'new-snapshot' }))
+    mocks.api.get.mockReturnValueOnce(old.promise).mockResolvedValue(batch({ id: 2, model: 'new-model' }))
     const w = render(); await open(w)
     await w.get('[data-testid="dialog-close"]').trigger('click'); await open(w, 2)
     old.reject({ message: 'STALE FAILURE' }); await flushPromises()
-    expect(w.text()).toContain('new-snapshot')
+    expect(w.text()).toContain('new-model')
     expect(w.text()).not.toContain('STALE FAILURE')
   })
 
