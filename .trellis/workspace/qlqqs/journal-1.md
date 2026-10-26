@@ -332,3 +332,26 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 16: 历史重算UI审查提交与一号机更新
+<!-- trellis-session: v=2 fp=27db74c2b02c5ffc -->
+
+**Date**: 2026-10-26
+**Task**: 历史重算UI审查提交与一号机更新
+**Branch**: `sub2api-custom`
+
+### Summary
+
+用户授权提交更新部署；历史重算取消预览与简化文案已发布。一号机sub2api-custom运行99ab810ed，CI 40360471074全绿；本机后端全量unit、定向PG integration/build、golangci-lint 0 issues及前端3442测试通过。备份pre-recalc-ui-20261026T164930Z，生产健康/静态资源/鉴权/迁移261通过；其他容器未重启，未执行线上历史重算。design-previews保留未提交。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `99ab810ed` | fix(finance): simplify recalculation UI and allow cancelling previews |
+| `85d31831d` | docs(finance): record recalculation UI production rollout |
+
+### Status
+
+[OK] **Completed**
