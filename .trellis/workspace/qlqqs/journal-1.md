@@ -272,3 +272,40 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Next Steps
 
 - 本任务已完成，无待实施事项。
+
+
+## Session 14: 财务功能推送与一号机部署
+<!-- trellis-session: v=2 fp=c5c799b8683f1120 -->
+
+**Date**: 2026-10-26
+**Task**: 财务功能推送与一号机部署
+**Branch**: `sub2api-custom`
+
+### Summary
+
+2026-10-26 用户授权推送部署。仅推送财务提交及CSV lint修复，未推送客户端规划文档。CI 40285951095 全部通过；部署 custom-b2a740e 到一号机 sub2api-custom，校验镜像 revision、健康、财务迁移。
+
+### Main Changes
+
+- CSV导出检查Buffer写入错误与series类型断言，补充导出错误脱敏回归。
+- 部署前备份 /root/sub2api-custom/backups/pre-finance-final-20261026T074227Z；旧镜像 fa1f1ff772f837afd874a862bb5ef74061ac3a3393134eb5af467a85af10929f；只重建应用容器。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `38532a554` | feat(finance): admin finance ledger page with revenue recognition, account costs and expenses |
+| `b2a740e3e` | fix(finance): check CSV export writes and summary type assertion |
+
+### Testing
+
+- [OK] 本机Finance handler单测、go build、本机镜像CSV认证导出/BOM/13列/未认证401通过；CI后端单测集成/lint、前端检查测试、镜像构建全过。
+- [OK] 线上内外网health正常；财务新表2张和支付新列3个存在；未认证财务接口401。未进行管理员登录后的线上账目验收。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 需管理员配置支付实例通道费率3.2%和固定成本账号1（当前费率0且固定配置不存在）；模型倍率、订阅支出待提供；历史usage 236补算仍待单独确认。
