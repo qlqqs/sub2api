@@ -177,13 +177,21 @@ func (h *FinanceHandler) Export(c *gin.Context) {
 	keys := []string{"period", "revenue", "revenue_paid", "revenue_commission", "free_consumed", "overdraft_consumed", "consumption", "account_cost", "account_cost_internal", "commission", "expenses", "profit", "profit_margin"}
 	header := []string{"期间", "已确认收入", "付费收入", "分润转入收入", "赠送消耗", "透支消耗", "余额消耗", "账号成本", "内部测试成本", "分润支出", "其他支出", "利润", "利润率"}
 	var buf bytes.Buffer
-	buf.WriteString("\xef\xbb\xbf")
+	if _, err = buf.WriteString("\xef\xbb\xbf"); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
 	w := csv.NewWriter(&buf)
 	if err = w.Write(header); err != nil {
 		response.ErrorFrom(c, err)
 		return
 	}
-	for _, row := range data["series"].([]map[string]any) {
+	series, ok := data["series"].([]map[string]any)
+	if !ok {
+		response.ErrorFrom(c, fmt.Errorf("invalid finance summary series"))
+		return
+	}
+	for _, row := range series {
 		record := make([]string, len(keys))
 		for i, k := range keys {
 			if row[k] != nil {
