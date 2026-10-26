@@ -64,10 +64,6 @@ func batchLoadAccountStatsPricingRules(ctx context.Context, q sqlQueryer, channe
 }
 
 // batchLoadAccountStatsModelPricing 批量加载规则的模型定价
-func (r *channelRepository) batchLoadAccountStatsModelPricing(ctx context.Context, ruleIDs []int64) (map[int64][]service.ChannelModelPricing, error) {
-	return batchLoadAccountStatsModelPricing(ctx, r.db, ruleIDs)
-}
-
 func batchLoadAccountStatsModelPricing(ctx context.Context, q sqlQueryer, ruleIDs []int64) (map[int64][]service.ChannelModelPricing, error) {
 	if len(ruleIDs) == 0 {
 		return make(map[int64][]service.ChannelModelPricing), nil
@@ -229,10 +225,6 @@ func createAccountStatsIntervalTx(ctx context.Context, tx *sql.Tx, iv *service.P
 }
 
 // batchLoadAccountStatsIntervals loads intervals for account stats pricing entries.
-func (r *channelRepository) batchLoadAccountStatsIntervals(ctx context.Context, pricingIDs []int64) (map[int64][]service.PricingInterval, error) {
-	return batchLoadAccountStatsIntervals(ctx, r.db, pricingIDs)
-}
-
 func batchLoadAccountStatsIntervals(ctx context.Context, q sqlQueryer, pricingIDs []int64) (map[int64][]service.PricingInterval, error) {
 	if len(pricingIDs) == 0 {
 		return nil, nil

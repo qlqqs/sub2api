@@ -122,7 +122,7 @@ func financeRecalculationPublicLabel(value string) string {
 		return "unknown"
 	}
 	for _, c := range value {
-		if !(c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_' || c == '-' || c == '.') {
+		if (c < 'a' || c > 'z') && (c < '0' || c > '9') && c != '_' && c != '-' && c != '.' {
 			return "unknown"
 		}
 	}

@@ -167,7 +167,7 @@ func TestAccountStatsReasoningEffortMultipliersRoundTrip(t *testing.T) {
 	))
 	mock.ExpectQuery(`(?s)SELECT .*FROM channel_account_stats_pricing_intervals`).
 		WithArgs(pq.Array([]int64{11})).WillReturnRows(sqlmock.NewRows([]string{"id"}))
-	loaded, err := repo.batchLoadAccountStatsModelPricing(ctx, []int64{9})
+	loaded, err := batchLoadAccountStatsModelPricing(ctx, repo.db, []int64{9})
 	require.NoError(t, err)
 	require.Len(t, loaded[9], 1)
 	require.Equal(t, pricing.ReasoningEffortMultipliers, loaded[9][0].ReasoningEffortMultipliers)
