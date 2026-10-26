@@ -68,8 +68,8 @@
     >
       <div class="collapsible-inner">
         <!-- Header: Models + Billing Mode -->
-        <div class="mt-3 flex items-start gap-2">
-          <div class="flex-1">
+        <div class="mt-3 flex items-start gap-2" :class="{ 'flex-wrap': compactHeader }" data-testid="pricing-entry-header">
+          <div class="flex-1" :class="{ 'min-w-0 basis-48': compactHeader }">
             <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
               {{ t('admin.channels.form.models') }} <span class="text-red-500">*</span>
             </label>
@@ -81,7 +81,7 @@
               class="mt-1"
             />
           </div>
-          <div class="w-40">
+          <div class="w-40" :class="{ 'shrink-0': compactHeader }">
             <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
               {{ t('admin.channels.form.billingMode') }}
             </label>
@@ -317,10 +317,13 @@ const { t } = useI18n()
 const props = withDefaults(defineProps<{
   entry: PricingFormEntry
   platform?: string
+  /** Opt in for narrow normal dialogs; wraps the billing selector instead of clipping it. */
+  compactHeader?: boolean
   hideTokenIntervals?: boolean
   enableTimePricing?: boolean
   enableTierMultipliers?: boolean
 }>(), {
+  compactHeader: false,
   hideTokenIntervals: false,
   enableTimePricing: false,
   enableTierMultipliers: false,

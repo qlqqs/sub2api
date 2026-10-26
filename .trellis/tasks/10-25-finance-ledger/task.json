@@ -18,7 +18,9 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [],
+  "children": [
+    "10-26-finance-cost-recalculation"
+  ],
   "parent": null,
   "relatedFiles": [],
   "notes": "",

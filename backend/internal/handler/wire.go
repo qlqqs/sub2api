@@ -11,6 +11,8 @@ import (
 
 // ProvideAdminHandlers creates the AdminHandlers struct
 func ProvideAdminHandlers(
+	financeChannelCost *admin.FinanceChannelCostHandler,
+	financeRecalculation *admin.FinanceRecalculationHandler,
 	dashboardHandler *admin.DashboardHandler,
 	userHandler *admin.UserHandler,
 	groupHandler *admin.GroupHandler,
@@ -62,6 +64,8 @@ func ProvideAdminHandlers(
 	accountHandler.SetOpenCodeGoUsageService(opencodeGoUsage)
 	accountHandler.SetClaudeResetCreditService(claudeResetCredits)
 	return &AdminHandlers{
+		FinanceChannelCost:     financeChannelCost,
+		FinanceRecalculation:   financeRecalculation,
 		Dashboard:              dashboardHandler,
 		User:                   userHandler,
 		Group:                  groupHandler,
@@ -304,6 +308,8 @@ var ProviderSet = wire.NewSet(
 	admin.NewAffiliateHandler,
 	admin.NewComplianceHandler,
 	admin.NewAuditLogHandler,
+	admin.NewFinanceChannelCostHandler,
+	admin.NewFinanceRecalculationHandler,
 	admin.NewFinanceHandler,            // CUSTOM(fork)
 	admin.NewAccountModelCostHandler,   // CUSTOM(fork)
 	admin.NewGroupModelRateHandler,     // CUSTOM: 分组内单个模型倍率

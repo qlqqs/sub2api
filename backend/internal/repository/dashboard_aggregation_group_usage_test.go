@@ -21,6 +21,7 @@ func TestDashboardAggregationRepositorySyncGroupUsageRollupsNoopsAtCurrentDate(t
 	todayStart := time.Date(2026, 8, 13, 16, 0, 0, 0, time.UTC)
 
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectQuery(`SELECT closed_before::text, retained_from.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"closed_before", "retained_from", "timezone_name"}).
 			AddRow("2026-08-14", time.Unix(0, 0).UTC(), "Asia/Shanghai"))
@@ -39,6 +40,7 @@ func TestDashboardAggregationRepositorySyncGroupUsageRollupsRebuildsWhenTimezone
 	retainedFrom := time.Date(2026, 3, 1, 5, 0, 0, 0, time.UTC)
 
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectQuery(`SELECT closed_before::text, retained_from.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"closed_before", "retained_from", "timezone_name"}).
 			AddRow("2026-03-09", time.Unix(0, 0).UTC(), "Asia/Shanghai"))
@@ -68,6 +70,7 @@ func TestDashboardAggregationRepositorySyncGroupUsageRollupsPublishesWatermarkLa
 	rebuildStart := time.Date(2026, 8, 12, 16, 0, 0, 0, time.UTC)
 
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectQuery(`SELECT closed_before::text, retained_from.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"closed_before", "retained_from", "timezone_name"}).
 			AddRow("2026-08-13", time.Unix(0, 0).UTC(), "Asia/Shanghai"))
@@ -95,6 +98,7 @@ func TestDashboardAggregationRepositorySyncGroupUsageRollupsRejectsFutureWaterma
 	todayStart := time.Date(2026, 8, 13, 16, 0, 0, 0, time.UTC)
 
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectQuery(`SELECT closed_before::text, retained_from.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"closed_before", "retained_from", "timezone_name"}).
 			AddRow("2026-08-15", time.Unix(0, 0).UTC(), "Asia/Shanghai"))
@@ -113,6 +117,8 @@ func TestDashboardAggregationRepositoryRecomputeRangeInvalidatesGroupRollupsBefo
 	end := start.Add(time.Hour)
 
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(`SELECT pg_advisory_xact_lock`).WithArgs(financeAggregationLockID).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectQuery(`SELECT id FROM usage_group_rollup_state.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectExec(`UPDATE usage_group_rollup_state`).
@@ -141,6 +147,8 @@ func TestDashboardAggregationRepositoryRecomputeRangeRebuildsGroupRollupsBeforeC
 	require.NoError(t, err)
 
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(`SELECT pg_advisory_xact_lock`).WithArgs(financeAggregationLockID).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectQuery(`SELECT id FROM usage_group_rollup_state.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectExec(`UPDATE usage_group_rollup_state`).
@@ -155,6 +163,7 @@ func TestDashboardAggregationRepositoryRecomputeRangeRebuildsGroupRollupsBeforeC
 		`INSERT INTO usage_dashboard_daily_users`,
 		`INSERT INTO usage_dashboard_hourly`,
 		`INSERT INTO usage_dashboard_daily`,
+		`UPDATE usage_dashboard_daily d SET account_cost`,
 	} {
 		mock.ExpectExec(query).WillReturnResult(sqlmock.NewResult(0, 1))
 	}
@@ -191,6 +200,8 @@ func TestDashboardAggregationRepositoryCleanupUsageLogsNonPartitionedInvalidates
 	mock.ExpectQuery(`SELECT EXISTS`).
 		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(`SELECT pg_advisory_xact_lock`).WithArgs(financeAggregationLockID).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectQuery(`SELECT id FROM usage_group_rollup_state.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectQuery(`(?s)DELETE FROM usage_logs.*RETURNING created_at`).
@@ -206,6 +217,7 @@ func TestDashboardAggregationRepositoryCleanupUsageLogsNonPartitionedInvalidates
 		WithArgs("2026-07-01").
 		WillReturnResult(sqlmock.NewResult(0, 3))
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectQuery(`SELECT closed_before::text, retained_from.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"closed_before", "retained_from", "timezone_name"}).
 			AddRow(service.GroupUsageDate(todayStart), time.Unix(0, 0).UTC(), "Asia/Shanghai"))
@@ -243,11 +255,16 @@ func TestDashboardAggregationRepositoryCleanupUsageLogsPartitionedSortsAndInvali
 		{name: "usage_logs_202606", start: juneStart},
 	} {
 		mock.ExpectBegin()
+		mock.ExpectExec(`LOCK TABLE ONLY usage_logs IN ACCESS EXCLUSIVE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectExec(`LOCK TABLE "` + partition.name + `" IN ACCESS EXCLUSIVE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectExec(`SELECT pg_advisory_xact_lock`).WithArgs(financeAggregationLockID).WillReturnResult(sqlmock.NewResult(0, 1))
 		mock.ExpectQuery(`SELECT id FROM usage_group_rollup_state.*FOR UPDATE`).
 			WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 		mock.ExpectExec(`UPDATE usage_group_rollup_state`).
 			WithArgs(partition.start, "Asia/Shanghai").
 			WillReturnResult(sqlmock.NewResult(0, 1))
+		mock.ExpectExec(`UPDATE finance_aggregation_coverage_state`).WithArgs(partition.start.AddDate(0, 1, 0)).WillReturnResult(sqlmock.NewResult(0, 1))
 		mock.ExpectExec(`DROP TABLE IF EXISTS "` + partition.name + `"`).
 			WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
@@ -255,6 +272,8 @@ func TestDashboardAggregationRepositoryCleanupUsageLogsPartitionedSortsAndInvali
 	// The boundary partition is pruned by exact timestamp. tableoid is required
 	// because ctid alone can also identify a retained row in another partition.
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(`SELECT pg_advisory_xact_lock`).WithArgs(financeAggregationLockID).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectQuery(`SELECT id FROM usage_group_rollup_state.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectQuery(`(?s)SELECT tableoid, ctid.*WHERE created_at < \$1.*WHERE \(tableoid, ctid\) IN.*RETURNING created_at`).
@@ -268,6 +287,7 @@ func TestDashboardAggregationRepositoryCleanupUsageLogsPartitionedSortsAndInvali
 		WithArgs("2026-07-18").
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectQuery(`SELECT closed_before::text, retained_from.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"closed_before", "retained_from", "timezone_name"}).
 			AddRow(service.GroupUsageDate(todayStart), time.Unix(0, 0).UTC(), "Asia/Shanghai"))
@@ -287,6 +307,8 @@ func TestDashboardAggregationRepositoryCleanupUsageLogsNonPartitionedFailureRoll
 	mock.ExpectQuery(`SELECT EXISTS`).
 		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(`SELECT pg_advisory_xact_lock`).WithArgs(financeAggregationLockID).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectQuery(`SELECT id FROM usage_group_rollup_state.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectQuery(`(?s)SELECT tableoid, ctid.*ORDER BY created_at ASC, id ASC.*DELETE FROM usage_logs.*RETURNING created_at`).
@@ -317,11 +339,16 @@ func TestDashboardAggregationRepositoryCleanupUsageLogsPartitionFailureRollsBack
 			AddRow("usage_logs_202606").
 			AddRow("usage_logs_202604"))
 	mock.ExpectBegin()
+	mock.ExpectExec(`LOCK TABLE ONLY usage_logs IN ACCESS EXCLUSIVE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(`LOCK TABLE "usage_logs_202604" IN ACCESS EXCLUSIVE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(`LOCK TABLE usage_logs IN ROW SHARE MODE`).WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(`SELECT pg_advisory_xact_lock`).WithArgs(financeAggregationLockID).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectQuery(`SELECT id FROM usage_group_rollup_state.*FOR UPDATE`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 	mock.ExpectExec(`UPDATE usage_group_rollup_state`).
 		WithArgs(aprilStart, "Asia/Shanghai").
 		WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(`UPDATE finance_aggregation_coverage_state`).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectExec(`DROP TABLE IF EXISTS "usage_logs_202604"`).
 		WillReturnError(dropErr)
 	mock.ExpectRollback()

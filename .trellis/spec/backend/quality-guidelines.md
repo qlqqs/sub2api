@@ -108,3 +108,13 @@ go build ./cmd/server
 7. **错误与正确**：批量生图的旧局部 `accountMultiplier` 还参与售价与冻结，直接把它改成模型成本倍率会误改客户扣费；应保留原售价公式，只覆盖 `BatchImagePricingSnapshot.AccountRateMultiplier`。`settings` 表没有 `created_at`，原生 upsert 只写 key/value/updated_at。报表可不缓存以避免补录/退款水位遗漏，但不得用 float64 累加金额或把已清理的历史数据当完整账本。
 
 8. **成本方式标签回归**：账号 breakdown 的 cost_mode 只看当前配置，优先级 fixed > per_image > model_rate > rate；按张/次需同一自定义统计规则覆盖账号或其当前所属任一分组并含 image/per_request 定价。不能以图片流量占比或历史用量 group_id 代替配置/归属判断，标签变化不得重算历史快照金额。`TestFinanceBreakdownCostModeUsesConfiguration` 与 `TestFinanceCostModeCurrentPricingConfiguration` 分别覆盖优先级和真实 SQL 匹配。
+
+## 历史成本重算与显式现存明细基线（fork，2026-10-26）
+
+1. **范围/执行前提**：仅账号成本快照及支付通道费率，复用当前配置；运维先停止请求并等在途结束、备份，再预览/确认、核对、恢复。不是在线重算产品，不修改余额、实际扣费/退款、分润或运行时配额，不提供撤销。
+2. **签名/存储**：`POST /admin/finance/recalculations` 的可选 `accept_retained_baseline` 默认为 false，仅 `usage_cost` 可用；独立确认仍须 `acknowledged:true` 和预览指纹。迁移257的 `filter` 和 `config_snapshot` 保存接受选择及白名单 `FinanceRetainedBaseline`，含版本/时区/删除版本、整日来源数和摘要、旧小时/日桶；公开 DTO 不泄露原始快照。
+3. **合约**：账号/模型筛选只限定改动记录，基线核对必须包含受影响整天的所有账号。最多31个涉及日期、整日总计2000条来源；超限不截断。不接受时旧日期仍 `unproven_aggregate_coverage` 跳过。接受是账务口径，不是从行数证明从未清理。原值/NULL、规则和新旧差额均留审计；迁移/启动不自动重算。
+4. **校验/错误**：缺失非空桶、请求数/金额不符返回 `FINANCE_RECALCULATION_COVERAGE_UNKNOWN`；规则/来源漂移拒绝并要求新预览。小时金额按数据库scale10比较；日金额只接受已知两种写入公式（round全天明细，或相加已逐个核对的小时round值），不能用任意epsilon掩盖差异。Apply锁内复核后在一个事务写成本及汇总，失败全部回滚；缓存同步独立可重试且不得重写成本。
+5. **正例/基线/反例**：两天176条且逐桶相符可由用户显式接受后重算；不接受不改变旧历史；筛选外明细或汇总不一致则整批拒绝。基线不得仅回拨全局 `complete_from` 冒充证据。
+6. **必需测试**：`TestFinanceRetainedBaselineHistoricalApplyAuditAndFullDay`、`...RejectsReconciliationMismatch`、`...AuditAndWritesRollbackTogether`；恢复请求后的 `...LaterInsertsAggregateThenDeletionPreserves`；`TestFinanceBaselineDeletionGeneration` 验证真实删除/无命中删除/TRUNCATE/回滚。运行本机p11证明非空旧明细→财务与账号API及小时/日汇总同步，不能把空批次或支付通过称为历史请求成功。
+7. **错误与正确**：旧日期写repaired标记却仍按前瞻边界一律冻结，会漏掉恢复流量后的请求；260用删除版本区分已接受且尚未失效的基线，后续删除保守失效。不支持后台自动协调停流量。`SHARE usage_logs` 与持有ROW SHARE/advisory的清理升级可能死锁；限定基线使用配置表→source EXCLUSIVE→advisory，普通SELECT仍可读，锁只是误操作防护，不承诺在线重算。

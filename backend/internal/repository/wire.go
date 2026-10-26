@@ -95,6 +95,10 @@ var ProviderSet = wire.NewSet(
 	NewUserAttributeDefinitionRepository,
 	NewUserAttributeValueRepository,
 	NewUserGroupRateRepository,
+	NewFinanceChannelCostRepository,
+	NewFinanceRecalculationConfigRepository,
+	ProvideFinanceRecalculationStore,
+	wire.Bind(new(service.FinanceRecalculationConfigLoader), new(*FinanceRecalculationConfigRepository)),
 	NewFinanceRepository,          // CUSTOM(fork)
 	NewAccountModelCostRepository, // CUSTOM(fork)
 	NewGroupModelRateRepository,   // CUSTOM: 分组内单个模型倍率
@@ -237,4 +241,8 @@ func ProvideSQLDB(client *ent.Client) (*sql.DB, error) {
 // 提供：*redis.Client
 func ProvideRedis(cfg *config.Config) *redis.Client {
 	return InitRedis(cfg)
+}
+
+func ProvideFinanceRecalculationStore(db *sql.DB, guard *FinanceRecalculationConfigRepository) service.FinanceRecalculationStore {
+	return NewFinanceRecalculationRepository(db, guard)
 }

@@ -2,7 +2,7 @@
   <!-- CUSTOM: 财务明细页（仅管理员）。接口约定见 .trellis/tasks/10-25-finance-ledger/contract.md -->
   <AppLayout>
     <div class="space-y-4">
-      <div class="card p-4">
+      <div v-if="activeTab !== 'settings'" class="card p-4" data-testid="finance-report-toolbar">
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('admin.finance.toolbar.range') }}:</span>
@@ -54,7 +54,7 @@
       </div>
 
       <div
-        v-if="summary && summary.warnings.length > 0"
+        v-if="activeTab !== 'settings' && summary && summary.warnings.length > 0"
         class="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"
         role="status"
         data-testid="finance-warnings"
@@ -79,7 +79,7 @@
             :class="{ 'tab-active': activeTab === tab }"
             :aria-selected="activeTab === tab"
             :data-testid="`finance-tab-${tab}`"
-            @click="activeTab = tab"
+            @click="selectTab(tab)"
           >
             {{ t(`admin.finance.tabs.${tab}`) }}
           </button>
@@ -123,7 +123,11 @@
           @changed="loadSummary"
         />
         <FinanceReconcileTab v-else-if="activeTab === 'reconcile'" :refresh-token="refreshToken" />
-        <FinanceSettingsTab v-else-if="activeTab === 'settings'" :refresh-token="refreshToken" @changed="loadSummary" />
+        <FinanceSettingsTab ref="settingsTab" v-else-if="activeTab === 'settings'" :refresh-token="refreshToken" @changed="loadSummary">
+          <template #history="slot">
+            <FinanceRecalculationTab :refresh-token="slot.refreshToken" @changed="slot.changed" />
+          </template>
+        </FinanceSettingsTab>
       </section>
     </div>
   </AppLayout>
@@ -145,6 +149,7 @@ import FinanceProfitTable from '@/components/admin/finance/FinanceProfitTable.vu
 import FinanceRechargeTab from '@/components/admin/finance/FinanceRechargeTab.vue'
 import FinanceReconcileTab from '@/components/admin/finance/FinanceReconcileTab.vue'
 import FinanceSettingsTab from '@/components/admin/finance/FinanceSettingsTab.vue'
+import FinanceRecalculationTab from '@/components/admin/finance/FinanceRecalculationTab.vue'
 import { adminAPI } from '@/api/admin'
 import { FINANCE_MAX_RANGE_DAYS, type FinanceGranularity } from '@/api/admin/finance'
 import { useFinanceLoad } from '@/composables/useFinanceLoad'
@@ -167,6 +172,17 @@ function tabFromQuery(value: unknown): FinanceTab {
   return TABS.find((tab) => tab === value) ?? 'overview'
 }
 const activeTab = ref<FinanceTab>(tabFromQuery(route.query.tab))
+const settingsTab = ref<InstanceType<typeof FinanceSettingsTab> | null>(null)
+let checkingLeave = false
+async function selectTab(tab: FinanceTab) {
+  if (tab === activeTab.value || checkingLeave) return
+  if (activeTab.value === 'settings' && settingsTab.value) {
+    checkingLeave = true
+    try { if (!(await settingsTab.value.confirmLeave())) return }
+    finally { checkingLeave = false }
+  }
+  activeTab.value = tab
+}
 watch(activeTab, (tab) => {
   if (route.query.tab === tab || (tab === 'overview' && route.query.tab == null)) return
   void router.replace({ query: { ...route.query, tab: tab === 'overview' ? undefined : tab } })

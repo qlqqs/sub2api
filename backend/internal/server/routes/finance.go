@@ -11,6 +11,18 @@ func registerFinanceRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		return
 	}
 	f := admin.Group("/finance")
+	if v := h.Admin.FinanceChannelCost; v != nil {
+		f.GET("/channel-costs/:id", v.Get)
+		f.PUT("/channel-costs/:id", v.Update)
+	}
+	if v := h.Admin.FinanceRecalculation; v != nil {
+		f.POST("/recalculations", v.Create)
+		f.GET("/recalculations", v.List)
+		f.GET("/recalculations/:id", v.Get)
+		f.GET("/recalculations/:id/items", v.Items)
+		f.POST("/recalculations/:id/confirm", v.Confirm)
+		f.POST("/recalculations/:id/retry-sync", v.RetrySync)
+	}
 	v := h.Admin.Finance
 	f.GET("/summary", v.Summary)
 	f.GET("/recharge", v.Recharge)

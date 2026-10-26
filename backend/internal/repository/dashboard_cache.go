@@ -54,5 +54,5 @@ func (c *dashboardCache) buildKey() string {
 }
 
 func (c *dashboardCache) DeleteDashboardStats(ctx context.Context) error {
-	return c.rdb.Del(ctx, c.buildKey()).Err()
+	return c.InvalidateDashboardStatsGeneration(ctx)
 }

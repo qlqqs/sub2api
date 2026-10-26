@@ -989,6 +989,8 @@ var ProviderSet = wire.NewSet(
 	ProvideChannelMonitorV2Aggregator,
 	NewChannelMonitorRequestTemplateService,
 	ProvideUserPlatformQuotaUsageFlusher,
+	NewFinanceChannelCostService,
+	ProvideFinanceRecalculationService,
 	NewFinanceService,              // CUSTOM(fork)
 	ProvideAccountModelCostService, // CUSTOM(fork)
 	ProvideGroupModelRateService,   // CUSTOM: 分组内单个模型倍率（setter 注入到计费 / 广场 / 复制分组）
@@ -1104,4 +1106,10 @@ func ProvideClaudeResetCreditService(accounts AccountRepository, tokens *ClaudeT
 	s := NewClaudeResetCreditService(accounts, tokens, proxies, settings)
 	s.ConfigureRedemption(idem, locks)
 	return s
+}
+
+func ProvideFinanceRecalculationService(store FinanceRecalculationStore, loader FinanceRecalculationConfigLoader, dashboard *DashboardService) *FinanceRecalculationService {
+	svc := NewFinanceRecalculationService(store, loader, dashboard)
+	svc.Start()
+	return svc
 }

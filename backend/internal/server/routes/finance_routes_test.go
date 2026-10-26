@@ -16,7 +16,7 @@ import (
 func TestFinanceRoutesRequireAdmin(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	h := &handler.Handlers{Admin: &handler.AdminHandlers{Finance: &adminhandler.FinanceHandler{}, AccountModelCost: &adminhandler.AccountModelCostHandler{}}}
+	h := &handler.Handlers{Admin: &handler.AdminHandlers{Finance: &adminhandler.FinanceHandler{}, FinanceChannelCost: &adminhandler.FinanceChannelCostHandler{}, FinanceRecalculation: &adminhandler.FinanceRecalculationHandler{}, AccountModelCost: &adminhandler.AccountModelCostHandler{}}}
 	auth := servermiddleware.AdminAuthMiddleware(func(c *gin.Context) {
 		code := http.StatusUnauthorized
 		if c.GetHeader("Authorization") != "" {
@@ -25,7 +25,7 @@ func TestFinanceRoutesRequireAdmin(t *testing.T) {
 		c.AbortWithStatus(code)
 	})
 	RegisterAdminRoutes(r.Group("/api/v1"), h, auth, servermiddleware.AuditLogMiddleware(func(c *gin.Context) { c.Next() }), servermiddleware.StepUpAuthMiddleware(func(c *gin.Context) { c.Next() }), nil, nil)
-	paths := map[string][]string{"GET": {"finance/summary", "finance/recharge", "finance/breakdown", "finance/affiliate", "finance/reconcile", "finance/export", "finance/settings", "finance/expenses", "accounts/model-cost-multipliers", "accounts/1/model-cost-multipliers"}, "PUT": {"finance/settings", "finance/expenses/1", "accounts/1/model-cost-multipliers"}, "POST": {"finance/expenses"}, "DELETE": {"finance/expenses/1"}}
+	paths := map[string][]string{"GET": {"finance/channel-costs/1", "finance/recalculations", "finance/recalculations/1", "finance/recalculations/1/items", "finance/summary", "finance/recharge", "finance/breakdown", "finance/affiliate", "finance/reconcile", "finance/export", "finance/settings", "finance/expenses", "accounts/model-cost-multipliers", "accounts/1/model-cost-multipliers"}, "PUT": {"finance/channel-costs/1", "finance/settings", "finance/expenses/1", "accounts/1/model-cost-multipliers"}, "POST": {"finance/recalculations", "finance/recalculations/1/confirm", "finance/recalculations/1/retry-sync", "finance/expenses"}, "DELETE": {"finance/expenses/1"}}
 	for method, list := range paths {
 		for _, path := range list {
 			for token, want := range map[string]int{"": 401, "user": 403} {

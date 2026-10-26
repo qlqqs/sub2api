@@ -14,8 +14,12 @@ import (
 
 // batchLoadAccountStatsPricingRules 批量加载多个渠道的账号统计定价规则（含模型定价）
 func (r *channelRepository) batchLoadAccountStatsPricingRules(ctx context.Context, channelIDs []int64) (map[int64][]service.AccountStatsPricingRule, error) {
+	return batchLoadAccountStatsPricingRules(ctx, r.db, channelIDs)
+}
+
+func batchLoadAccountStatsPricingRules(ctx context.Context, q sqlQueryer, channelIDs []int64) (map[int64][]service.AccountStatsPricingRule, error) {
 	// 1. 查询规则
-	rows, err := r.db.QueryContext(ctx,
+	rows, err := q.QueryContext(ctx,
 		`SELECT id, channel_id, name, group_ids, account_ids, sort_order, created_at, updated_at
 		 FROM channel_account_stats_pricing_rules WHERE channel_id = ANY($1) ORDER BY channel_id, sort_order, id`,
 		pq.Array(channelIDs),
@@ -44,7 +48,7 @@ func (r *channelRepository) batchLoadAccountStatsPricingRules(ctx context.Contex
 	}
 
 	// 2. 批量加载规则的模型定价
-	pricingMap, err := r.batchLoadAccountStatsModelPricing(ctx, ruleIDs)
+	pricingMap, err := batchLoadAccountStatsModelPricing(ctx, q, ruleIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -61,11 +65,15 @@ func (r *channelRepository) batchLoadAccountStatsPricingRules(ctx context.Contex
 
 // batchLoadAccountStatsModelPricing 批量加载规则的模型定价
 func (r *channelRepository) batchLoadAccountStatsModelPricing(ctx context.Context, ruleIDs []int64) (map[int64][]service.ChannelModelPricing, error) {
+	return batchLoadAccountStatsModelPricing(ctx, r.db, ruleIDs)
+}
+
+func batchLoadAccountStatsModelPricing(ctx context.Context, q sqlQueryer, ruleIDs []int64) (map[int64][]service.ChannelModelPricing, error) {
 	if len(ruleIDs) == 0 {
 		return make(map[int64][]service.ChannelModelPricing), nil
 	}
 
-	rows, err := r.db.QueryContext(ctx,
+	rows, err := q.QueryContext(ctx,
 		`SELECT id, rule_id, platform, models, billing_mode, input_price, output_price,
 		        cache_write_price, cache_write_1h_price, cache_read_price, reasoning_effort_multipliers, image_output_price, per_request_price, created_at, updated_at
 		 FROM channel_account_stats_model_pricing WHERE rule_id = ANY($1) ORDER BY rule_id, id`,
@@ -111,7 +119,7 @@ func (r *channelRepository) batchLoadAccountStatsModelPricing(ctx context.Contex
 		}
 	}
 	if len(allPricingIDs) > 0 {
-		intervalsMap, err := r.batchLoadAccountStatsIntervals(ctx, allPricingIDs)
+		intervalsMap, err := batchLoadAccountStatsIntervals(ctx, q, allPricingIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -222,10 +230,14 @@ func createAccountStatsIntervalTx(ctx context.Context, tx *sql.Tx, iv *service.P
 
 // batchLoadAccountStatsIntervals loads intervals for account stats pricing entries.
 func (r *channelRepository) batchLoadAccountStatsIntervals(ctx context.Context, pricingIDs []int64) (map[int64][]service.PricingInterval, error) {
+	return batchLoadAccountStatsIntervals(ctx, r.db, pricingIDs)
+}
+
+func batchLoadAccountStatsIntervals(ctx context.Context, q sqlQueryer, pricingIDs []int64) (map[int64][]service.PricingInterval, error) {
 	if len(pricingIDs) == 0 {
 		return nil, nil
 	}
-	rows, err := r.db.QueryContext(ctx,
+	rows, err := q.QueryContext(ctx,
 		`SELECT id, pricing_id, min_tokens, max_tokens, tier_label,
 		        input_price, output_price, cache_write_price, cache_write_1h_price, cache_read_price,
 		        per_request_price, sort_order, created_at, updated_at

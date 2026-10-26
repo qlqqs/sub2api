@@ -28,3 +28,16 @@ func TestFinanceMigrations254To256(t *testing.T) {
 		})
 	}
 }
+
+func TestFinanceRetainedBaselineGenerationMigration(t *testing.T) {
+	raw, err := FS.ReadFile("260_finance_retained_baseline_generation.sql")
+	require.NoError(t, err)
+	s := string(raw)
+	require.Contains(t, s, "ADD COLUMN IF NOT EXISTS deletion_generation BIGINT NOT NULL DEFAULT 0")
+	require.Equal(t, 2, strings.Count(s, "ADD COLUMN IF NOT EXISTS baseline_generation BIGINT"))
+	require.Contains(t, s, "IF frontier IS NOT NULL THEN")
+	require.Equal(t, 2, strings.Count(s, "deletion_generation = deletion_generation + 1"))
+	require.NotContains(t, strings.ToUpper(s), "UPDATE USAGE_LOGS")
+	require.NotContains(t, strings.ToUpper(s), "DELETE FROM")
+	require.NotContains(t, s, "SET complete_from = frontier")
+}

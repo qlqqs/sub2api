@@ -173,6 +173,13 @@ func (r *dashboardAggregationRepository) SyncGroupUsageRollups(ctx context.Conte
 		if err != nil {
 			return err
 		}
+		// Partition DROP/TRUNCATE take their relation locks before the finance
+		// advisory/group-state locks. Keep source-before-state order here too.
+		if _, err := tx.ExecContext(ctx, `LOCK TABLE usage_logs IN ROW SHARE MODE`); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+
 		txRepo := newDashboardAggregationRepositoryWithSQL(tx)
 		if err := txRepo.syncGroupUsageRollupsInTx(ctx, todayStart); err != nil {
 			_ = tx.Rollback()

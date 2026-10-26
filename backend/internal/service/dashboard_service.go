@@ -242,6 +242,7 @@ func (s *DashboardService) getCachedDashboardStats(ctx context.Context) (*usages
 }
 
 func (s *DashboardService) refreshDashboardStats(ctx context.Context) (*usagestats.DashboardStats, error) {
+	generation, cacheWritable := s.dashboardCacheGeneration(ctx)
 	stats, err := s.fetchDashboardStats(ctx)
 	if err != nil {
 		return nil, err
@@ -249,7 +250,9 @@ func (s *DashboardService) refreshDashboardStats(ctx context.Context) (*usagesta
 	s.applyAggregationStatus(ctx, stats)
 	cacheCtx, cancel := s.cacheOperationContext()
 	defer cancel()
-	s.saveDashboardStatsCache(cacheCtx, stats)
+	if cacheWritable {
+		s.saveDashboardStatsCache(cacheCtx, stats, generation)
+	}
 	return stats, nil
 }
 
@@ -267,6 +270,7 @@ func (s *DashboardService) refreshDashboardStatsAsync() {
 		ctx, cancel := context.WithTimeout(context.Background(), s.refreshTimeout)
 		defer cancel()
 
+		generation, cacheWritable := s.dashboardCacheGeneration(ctx)
 		stats, err := s.fetchDashboardStats(ctx)
 		if err != nil {
 			logger.LegacyPrintf("service.dashboard", "[Dashboard] 仪表盘缓存异步刷新失败: %v", err)
@@ -275,7 +279,9 @@ func (s *DashboardService) refreshDashboardStatsAsync() {
 		s.applyAggregationStatus(ctx, stats)
 		cacheCtx, cancel := s.cacheOperationContext()
 		defer cancel()
-		s.saveDashboardStatsCache(cacheCtx, stats)
+		if cacheWritable {
+			s.saveDashboardStatsCache(cacheCtx, stats, generation)
+		}
 	}()
 }
 
@@ -290,7 +296,7 @@ func (s *DashboardService) fetchDashboardStats(ctx context.Context) (*usagestats
 	return s.usageRepo.GetDashboardStats(ctx)
 }
 
-func (s *DashboardService) saveDashboardStatsCache(ctx context.Context, stats *usagestats.DashboardStats) {
+func (s *DashboardService) saveDashboardStatsCache(ctx context.Context, stats *usagestats.DashboardStats, generation string) {
 	if s.cache == nil || stats == nil {
 		return
 	}
@@ -305,7 +311,12 @@ func (s *DashboardService) saveDashboardStatsCache(ctx context.Context, stats *u
 		return
 	}
 
-	if err := s.cache.SetDashboardStats(ctx, string(data), s.cacheTTL); err != nil {
+	if fence, ok := s.cache.(DashboardStatsCacheFence); ok {
+		err = fence.SetDashboardStatsIfGeneration(ctx, generation, string(data), s.cacheTTL)
+	} else {
+		err = s.cache.SetDashboardStats(ctx, string(data), s.cacheTTL)
+	}
+	if err != nil {
 		logger.LegacyPrintf("service.dashboard", "[Dashboard] 仪表盘缓存写入失败: %v", err)
 	}
 }

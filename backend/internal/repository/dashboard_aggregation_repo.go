@@ -77,8 +77,12 @@ func (r *dashboardAggregationRepository) AggregateRange(ctx context.Context, sta
 	}
 
 	if db, ok := r.sql.(*sql.DB); ok {
-		tx, err := db.BeginTx(ctx, nil)
+		tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 		if err != nil {
+			return err
+		}
+		if err := AcquireFinanceAggregationLock(ctx, tx); err != nil {
+			_ = tx.Rollback()
 			return err
 		}
 		txRepo := newDashboardAggregationRepositoryWithSQL(tx)
@@ -133,8 +137,12 @@ func (r *dashboardAggregationRepository) RecomputeRange(ctx context.Context, sta
 
 	// 尽量使用事务保证范围内的一致性（允许在非 *sql.DB 的情况下退化为非事务执行）。
 	if db, ok := r.sql.(*sql.DB); ok {
-		tx, err := db.BeginTx(ctx, nil)
+		tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 		if err != nil {
+			return err
+		}
+		if err := AcquireFinanceAggregationLock(ctx, tx); err != nil {
+			_ = tx.Rollback()
 			return err
 		}
 		if err := lockGroupUsageRollupState(ctx, tx); err != nil {
@@ -161,16 +169,16 @@ func (r *dashboardAggregationRepository) RecomputeRange(ctx context.Context, sta
 
 func (r *dashboardAggregationRepository) recomputeRangeInTx(ctx context.Context, hourStart, hourEnd, dayStart, dayEnd time.Time) error {
 	// 先清空范围内桶，再重建（避免仅增量插入导致活跃用户等指标无法回退）。
-	if _, err := r.sql.ExecContext(ctx, "DELETE FROM usage_dashboard_hourly WHERE bucket_start >= $1 AND bucket_start < $2", hourStart, hourEnd); err != nil {
+	if _, err := r.sql.ExecContext(ctx, `DELETE FROM usage_dashboard_hourly WHERE bucket_start >= $1 AND bucket_start < $2 AND NOT EXISTS (SELECT 1 FROM finance_aggregation_repaired_hourly p CROSS JOIN finance_aggregation_coverage_state c WHERE p.bucket_start=usage_dashboard_hourly.bucket_start AND c.id=1 AND p.bucket_start<c.complete_from AND p.baseline_generation IS DISTINCT FROM c.deletion_generation)`, hourStart, hourEnd); err != nil {
 		return err
 	}
-	if _, err := r.sql.ExecContext(ctx, "DELETE FROM usage_dashboard_hourly_users WHERE bucket_start >= $1 AND bucket_start < $2", hourStart, hourEnd); err != nil {
+	if _, err := r.sql.ExecContext(ctx, `DELETE FROM usage_dashboard_hourly_users WHERE bucket_start >= $1 AND bucket_start < $2 AND NOT EXISTS (SELECT 1 FROM finance_aggregation_repaired_hourly p CROSS JOIN finance_aggregation_coverage_state c WHERE p.bucket_start=usage_dashboard_hourly_users.bucket_start AND c.id=1 AND p.bucket_start<c.complete_from AND p.baseline_generation IS DISTINCT FROM c.deletion_generation)`, hourStart, hourEnd); err != nil {
 		return err
 	}
-	if _, err := r.sql.ExecContext(ctx, "DELETE FROM usage_dashboard_daily WHERE bucket_date >= $1::date AND bucket_date < $2::date", dayStart, dayEnd); err != nil {
+	if _, err := r.sql.ExecContext(ctx, `DELETE FROM usage_dashboard_daily WHERE bucket_date >= $1::date AND bucket_date < $2::date AND NOT EXISTS (SELECT 1 FROM finance_aggregation_repaired_daily p CROSS JOIN finance_aggregation_coverage_state c WHERE p.bucket_date=usage_dashboard_daily.bucket_date AND c.id=1 AND (p.bucket_date::timestamp AT TIME ZONE $3)<c.complete_from AND p.baseline_generation IS DISTINCT FROM c.deletion_generation)`, dayStart, dayEnd, timezone.Name()); err != nil {
 		return err
 	}
-	if _, err := r.sql.ExecContext(ctx, "DELETE FROM usage_dashboard_daily_users WHERE bucket_date >= $1::date AND bucket_date < $2::date", dayStart, dayEnd); err != nil {
+	if _, err := r.sql.ExecContext(ctx, `DELETE FROM usage_dashboard_daily_users WHERE bucket_date >= $1::date AND bucket_date < $2::date AND NOT EXISTS (SELECT 1 FROM finance_aggregation_repaired_daily p CROSS JOIN finance_aggregation_coverage_state c WHERE p.bucket_date=usage_dashboard_daily_users.bucket_date AND c.id=1 AND (p.bucket_date::timestamp AT TIME ZONE $3)<c.complete_from AND p.baseline_generation IS DISTINCT FROM c.deletion_generation)`, dayStart, dayEnd, timezone.Name()); err != nil {
 		return err
 	}
 
@@ -291,7 +299,7 @@ func (r *dashboardAggregationRepository) cleanupUsageLogsBatches(ctx context.Con
 }
 
 func cleanupUsageLogsBatchWithRollupInvalidation(ctx context.Context, db *sql.DB, cutoff time.Time) (int64, error) {
-	tx, err := db.BeginTx(ctx, nil)
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 	if err != nil {
 		return 0, err
 	}
@@ -300,6 +308,9 @@ func cleanupUsageLogsBatchWithRollupInvalidation(ctx context.Context, db *sql.DB
 		return 0, err
 	}
 
+	if err := AcquireFinanceAggregationLock(ctx, tx); err != nil {
+		return rollback(err)
+	}
 	if err := lockGroupUsageRollupState(ctx, tx); err != nil {
 		return rollback(err)
 	}
@@ -481,6 +492,7 @@ func (r *dashboardAggregationRepository) upsertHourlyAggregates(ctx context.Cont
 			NOW()
 		FROM hourly
 		LEFT JOIN user_counts ON user_counts.bucket_start = hourly.bucket_start
+        WHERE NOT EXISTS (SELECT 1 FROM finance_aggregation_repaired_hourly p CROSS JOIN finance_aggregation_coverage_state c WHERE p.bucket_start=hourly.bucket_start AND c.id=1 AND p.bucket_start<c.complete_from AND p.baseline_generation IS DISTINCT FROM c.deletion_generation)
 		ON CONFLICT (bucket_start)
 		DO UPDATE SET
 			total_requests = EXCLUDED.total_requests,
@@ -553,6 +565,7 @@ func (r *dashboardAggregationRepository) upsertDailyAggregates(ctx context.Conte
 			NOW()
 		FROM daily
 		LEFT JOIN user_counts ON user_counts.bucket_date = daily.bucket_date
+        WHERE NOT EXISTS (SELECT 1 FROM finance_aggregation_repaired_daily p CROSS JOIN finance_aggregation_coverage_state c WHERE p.bucket_date=daily.bucket_date AND c.id=1 AND (p.bucket_date::timestamp AT TIME ZONE $5)<c.complete_from AND p.baseline_generation IS DISTINCT FROM c.deletion_generation)
 		ON CONFLICT (bucket_date)
 		DO UPDATE SET
 			total_requests = EXCLUDED.total_requests,
@@ -567,7 +580,20 @@ func (r *dashboardAggregationRepository) upsertDailyAggregates(ctx context.Conte
 			active_users = EXCLUDED.active_users,
 			computed_at = EXCLUDED.computed_at
 	`
-	_, err := r.sql.ExecContext(ctx, query, start, end, start, end, tzName)
+	if _, err := r.sql.ExecContext(ctx, query, start, end, start, end, tzName); err != nil {
+		return err
+	}
+	// Hourly retention is independent of raw-source retention. For repaired,
+	// still-complete days, never overwrite corrected cost with a partial sum of
+	// retained hourly rows. Unmarked legacy daily behavior remains unchanged.
+	_, err := r.sql.ExecContext(ctx, `UPDATE usage_dashboard_daily d SET account_cost=(
+      SELECT COALESCE(SUM(COALESCE(u.account_stats_cost,u.total_cost)*COALESCE(u.account_rate_multiplier,1)),0)
+      FROM usage_logs u WHERE u.created_at >= (p.bucket_date::timestamp AT TIME ZONE $3)
+        AND u.created_at < ((p.bucket_date+1)::timestamp AT TIME ZONE $3)
+    ) FROM finance_aggregation_repaired_daily p CROSS JOIN finance_aggregation_coverage_state c
+    WHERE d.bucket_date=p.bucket_date AND c.id=1
+      AND d.bucket_date >= $1::date AND d.bucket_date < $2::date
+      AND ((p.bucket_date::timestamp AT TIME ZONE $3)>=c.complete_from OR p.baseline_generation=c.deletion_generation)`, start.In(timezone.Location()).Format("2006-01-02"), end.In(timezone.Location()).Format("2006-01-02"), tzName)
 	return err
 }
 
@@ -651,7 +677,7 @@ func (r *dashboardAggregationRepository) dropUsageLogsPartitions(ctx context.Con
 }
 
 func dropUsageLogsPartitionWithRollupInvalidation(ctx context.Context, db *sql.DB, name string, monthStart time.Time) error {
-	tx, err := db.BeginTx(ctx, nil)
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 	if err != nil {
 		return err
 	}
@@ -660,10 +686,27 @@ func dropUsageLogsPartitionWithRollupInvalidation(ctx context.Context, db *sql.D
 		return err
 	}
 
+	// DROP already requires ACCESS EXCLUSIVE relation locks. Obtain them before
+	// the advisory lock, not while a DELETE waits for it holding ROW EXCLUSIVE.
+	if _, err := tx.ExecContext(ctx, "LOCK TABLE ONLY usage_logs IN ACCESS EXCLUSIVE MODE"); err != nil {
+		return rollback(err)
+	}
+	if _, err := tx.ExecContext(ctx, "LOCK TABLE "+pq.QuoteIdentifier(name)+" IN ACCESS EXCLUSIVE MODE"); err != nil {
+		return rollback(err)
+	}
+
+	if err := AcquireFinanceAggregationLock(ctx, tx); err != nil {
+		return rollback(err)
+	}
 	if err := lockGroupUsageRollupState(ctx, tx); err != nil {
 		return rollback(err)
 	}
 	if err := invalidateGroupUsageRollupsAt(ctx, tx, monthStart); err != nil {
+		return rollback(err)
+	}
+	// DROP bypasses row/statement DELETE triggers. Advance coverage in the same
+	// locked transaction before dropping the partition.
+	if _, err := tx.ExecContext(ctx, `UPDATE finance_aggregation_coverage_state SET complete_from=GREATEST(complete_from,$1),deletion_generation=deletion_generation+1 WHERE id=1`, monthStart.AddDate(0, 1, 0)); err != nil {
 		return rollback(err)
 	}
 	if _, err := tx.ExecContext(ctx, fmt.Sprintf("DROP TABLE IF EXISTS %s", pq.QuoteIdentifier(name))); err != nil {
