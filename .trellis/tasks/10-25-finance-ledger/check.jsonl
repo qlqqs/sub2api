@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/backend/index.md", "reason": "backend checklist"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "migrations and raw SQL tables"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "backend quality"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "frontend checklist"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "admin page components"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "backend API + frontend page"}
+{"file": "backend/internal/service/group_model_rate.go", "reason": "pattern to mirror for account model cost multipliers"}
+{"file": "backend/internal/service/account_stats_pricing.go", "reason": "existing account cost resolution"}
+{"file": ".trellis/tasks/10-25-finance-ledger/contract.md", "reason": "frontend/backend API contract"}

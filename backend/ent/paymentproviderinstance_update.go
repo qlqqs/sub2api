@@ -28,6 +28,20 @@ func (_u *PaymentProviderInstanceUpdate) Where(ps ...predicate.PaymentProviderIn
 	return _u
 }
 
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (_u *PaymentProviderInstanceUpdate) SetChannelFeeRate(v string) *PaymentProviderInstanceUpdate {
+	_u.mutation.SetChannelFeeRate(v)
+	return _u
+}
+
+// SetNillableChannelFeeRate sets the "channel_fee_rate" field if the given value is not nil.
+func (_u *PaymentProviderInstanceUpdate) SetNillableChannelFeeRate(v *string) *PaymentProviderInstanceUpdate {
+	if v != nil {
+		_u.SetChannelFeeRate(*v)
+	}
+	return _u
+}
+
 // SetProviderKey sets the "provider_key" field.
 func (_u *PaymentProviderInstanceUpdate) SetProviderKey(v string) *PaymentProviderInstanceUpdate {
 	_u.mutation.SetProviderKey(v)
@@ -259,6 +273,9 @@ func (_u *PaymentProviderInstanceUpdate) sqlSave(ctx context.Context) (_node int
 			}
 		}
 	}
+	if value, ok := _u.mutation.ChannelFeeRate(); ok {
+		_spec.SetField(paymentproviderinstance.FieldChannelFeeRate, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.ProviderKey(); ok {
 		_spec.SetField(paymentproviderinstance.FieldProviderKey, field.TypeString, value)
 	}
@@ -313,6 +330,20 @@ type PaymentProviderInstanceUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *PaymentProviderInstanceMutation
+}
+
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (_u *PaymentProviderInstanceUpdateOne) SetChannelFeeRate(v string) *PaymentProviderInstanceUpdateOne {
+	_u.mutation.SetChannelFeeRate(v)
+	return _u
+}
+
+// SetNillableChannelFeeRate sets the "channel_fee_rate" field if the given value is not nil.
+func (_u *PaymentProviderInstanceUpdateOne) SetNillableChannelFeeRate(v *string) *PaymentProviderInstanceUpdateOne {
+	if v != nil {
+		_u.SetChannelFeeRate(*v)
+	}
+	return _u
 }
 
 // SetProviderKey sets the "provider_key" field.
@@ -575,6 +606,9 @@ func (_u *PaymentProviderInstanceUpdateOne) sqlSave(ctx context.Context) (_node 
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.ChannelFeeRate(); ok {
+		_spec.SetField(paymentproviderinstance.FieldChannelFeeRate, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ProviderKey(); ok {
 		_spec.SetField(paymentproviderinstance.FieldProviderKey, field.TypeString, value)

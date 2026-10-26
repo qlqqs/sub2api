@@ -54,6 +54,11 @@ func IDLTE(id int64) predicate.PaymentProviderInstance {
 	return predicate.PaymentProviderInstance(sql.FieldLTE(FieldID, id))
 }
 
+// ChannelFeeRate applies equality check predicate on the "channel_fee_rate" field. It's identical to ChannelFeeRateEQ.
+func ChannelFeeRate(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldEQ(FieldChannelFeeRate, v))
+}
+
 // ProviderKey applies equality check predicate on the "provider_key" field. It's identical to ProviderKeyEQ.
 func ProviderKey(v string) predicate.PaymentProviderInstance {
 	return predicate.PaymentProviderInstance(sql.FieldEQ(FieldProviderKey, v))
@@ -112,6 +117,71 @@ func CreatedAt(v time.Time) predicate.PaymentProviderInstance {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.PaymentProviderInstance {
 	return predicate.PaymentProviderInstance(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// ChannelFeeRateEQ applies the EQ predicate on the "channel_fee_rate" field.
+func ChannelFeeRateEQ(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldEQ(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateNEQ applies the NEQ predicate on the "channel_fee_rate" field.
+func ChannelFeeRateNEQ(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldNEQ(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateIn applies the In predicate on the "channel_fee_rate" field.
+func ChannelFeeRateIn(vs ...string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldIn(FieldChannelFeeRate, vs...))
+}
+
+// ChannelFeeRateNotIn applies the NotIn predicate on the "channel_fee_rate" field.
+func ChannelFeeRateNotIn(vs ...string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldNotIn(FieldChannelFeeRate, vs...))
+}
+
+// ChannelFeeRateGT applies the GT predicate on the "channel_fee_rate" field.
+func ChannelFeeRateGT(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldGT(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateGTE applies the GTE predicate on the "channel_fee_rate" field.
+func ChannelFeeRateGTE(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldGTE(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateLT applies the LT predicate on the "channel_fee_rate" field.
+func ChannelFeeRateLT(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldLT(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateLTE applies the LTE predicate on the "channel_fee_rate" field.
+func ChannelFeeRateLTE(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldLTE(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateContains applies the Contains predicate on the "channel_fee_rate" field.
+func ChannelFeeRateContains(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldContains(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateHasPrefix applies the HasPrefix predicate on the "channel_fee_rate" field.
+func ChannelFeeRateHasPrefix(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldHasPrefix(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateHasSuffix applies the HasSuffix predicate on the "channel_fee_rate" field.
+func ChannelFeeRateHasSuffix(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldHasSuffix(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateEqualFold applies the EqualFold predicate on the "channel_fee_rate" field.
+func ChannelFeeRateEqualFold(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldEqualFold(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateContainsFold applies the ContainsFold predicate on the "channel_fee_rate" field.
+func ChannelFeeRateContainsFold(v string) predicate.PaymentProviderInstance {
+	return predicate.PaymentProviderInstance(sql.FieldContainsFold(FieldChannelFeeRate, v))
 }
 
 // ProviderKeyEQ applies the EQ predicate on the "provider_key" field.

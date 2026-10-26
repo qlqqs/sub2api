@@ -195,6 +195,7 @@ func (s *PaymentService) createOrderInTx(ctx context.Context, req CreateOrderReq
 		SetAmount(orderAmount).
 		SetPayAmount(payAmount).
 		SetFeeRate(feeRate).
+		SetChannelFeeRate("0"). // CUSTOM(fork): 无实例时也固定为 0。
 		SetBonusAmount(bonusAmount).
 		SetRechargeCode("").
 		SetOutTradeNo(outTradeNo).
@@ -210,6 +211,16 @@ func (s *PaymentService) createOrderInTx(ctx context.Context, req CreateOrderReq
 	}
 	if selectedInstanceID != "" {
 		b.SetProviderInstanceID(selectedInstanceID)
+		// CUSTOM(fork): 与订单在同一事务中读取并保存费率快照。
+		instanceID, parseErr := strconv.ParseInt(selectedInstanceID, 10, 64)
+		if parseErr != nil {
+			return nil, fmt.Errorf("parse payment instance: %w", parseErr)
+		}
+		inst, loadErr := tx.PaymentProviderInstance.Get(ctx, instanceID)
+		if loadErr != nil {
+			return nil, fmt.Errorf("load payment fee: %w", loadErr)
+		}
+		b.SetChannelFeeRate(inst.ChannelFeeRate)
 	}
 	if selectedProviderKey != "" {
 		b.SetProviderKey(selectedProviderKey)

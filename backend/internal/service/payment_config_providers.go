@@ -37,6 +37,7 @@ func (s *PaymentConfigService) ListProviderInstances(ctx context.Context) ([]*db
 
 // ProviderInstanceResponse is the API response for a provider instance.
 type ProviderInstanceResponse struct {
+	ChannelFeeRate  string            `json:"channel_fee_rate"` // CUSTOM(fork): 财务通道费率。
 	ID              int64             `json:"id"`
 	ProviderKey     string            `json:"provider_key"`
 	Name            string            `json:"name"`
@@ -60,7 +61,8 @@ func (s *PaymentConfigService) ListProviderInstancesWithConfig(ctx context.Conte
 	result := make([]ProviderInstanceResponse, 0, len(instances))
 	for _, inst := range instances {
 		resp := ProviderInstanceResponse{
-			ID: int64(inst.ID), ProviderKey: inst.ProviderKey, Name: inst.Name,
+			ChannelFeeRate: inst.ChannelFeeRate,
+			ID:             int64(inst.ID), ProviderKey: inst.ProviderKey, Name: inst.Name,
 			SupportedTypes: splitTypes(inst.SupportedTypes), Limits: inst.Limits,
 			Enabled: inst.Enabled, RefundEnabled: inst.RefundEnabled, AllowUserRefund: inst.AllowUserRefund,
 			SortOrder: inst.SortOrder, PaymentMode: inst.PaymentMode,
@@ -182,6 +184,11 @@ var validProviderKeys = map[string]bool{
 }
 
 func (s *PaymentConfigService) CreateProviderInstance(ctx context.Context, req CreateProviderInstanceRequest) (*dbent.PaymentProviderInstance, error) {
+	// CUSTOM(fork): 只记录通道成本，不参与付款金额计算。
+	channelFeeRate, err := ValidateChannelFeeRate(req.ChannelFeeRate)
+	if err != nil {
+		return nil, err
+	}
 	typesStr := joinTypes(req.SupportedTypes)
 	if err := validateProviderRequest(req.ProviderKey, req.Name, typesStr); err != nil {
 		return nil, err
@@ -209,6 +216,7 @@ func (s *PaymentConfigService) CreateProviderInstance(ctx context.Context, req C
 		SetSupportedTypes(typesStr).SetEnabled(req.Enabled).SetPaymentMode(req.PaymentMode).
 		SetSortOrder(req.SortOrder).SetLimits(req.Limits).SetRefundEnabled(req.RefundEnabled).
 		SetAllowUserRefund(allowUserRefund).
+		SetChannelFeeRate(channelFeeRate).
 		Save(ctx)
 }
 
@@ -372,6 +380,14 @@ func (s *PaymentConfigService) UpdateProviderInstance(ctx context.Context, id in
 		}
 	}
 	u := s.entClient.PaymentProviderInstance.UpdateOneID(id)
+	// CUSTOM(fork): 费率修改不影响历史订单快照。
+	if req.ChannelFeeRate != nil {
+		rate, err := ValidateChannelFeeRate(*req.ChannelFeeRate)
+		if err != nil {
+			return nil, err
+		}
+		u.SetChannelFeeRate(rate)
+	}
 	if req.Name != nil {
 		u.SetName(*req.Name)
 	}

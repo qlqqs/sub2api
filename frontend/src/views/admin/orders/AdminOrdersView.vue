@@ -118,6 +118,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { adminPaymentAPI } from '@/api/admin/payment'
 import { extractI18nErrorMessage } from '@/utils/apiError'
@@ -147,7 +148,9 @@ const appStore = useAppStore()
 
 const ordersLoading = ref(false)
 const orders = ref<PaymentOrder[]>([])
-const orderSearch = ref('')
+// CUSTOM: 财务明细页按用户下钻：/admin/orders?keyword=<邮箱>
+const route = useRoute()
+const orderSearch = ref(typeof route?.query.keyword === 'string' ? route.query.keyword : '')
 const orderFilters = reactive({ status: '', payment_type: '', order_type: '' })
 const orderPagination = reactive({ page: 1, page_size: 20, total: 0 })
 const selectedOrder = ref<PaymentOrder | null>(null)

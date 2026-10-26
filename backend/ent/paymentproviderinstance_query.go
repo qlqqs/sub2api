@@ -264,12 +264,12 @@ func (_q *PaymentProviderInstanceQuery) Clone() *PaymentProviderInstanceQuery {
 // Example:
 //
 //	var v []struct {
-//		ProviderKey string `json:"provider_key,omitempty"`
+//		ChannelFeeRate string `json:"channel_fee_rate,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.PaymentProviderInstance.Query().
-//		GroupBy(paymentproviderinstance.FieldProviderKey).
+//		GroupBy(paymentproviderinstance.FieldChannelFeeRate).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *PaymentProviderInstanceQuery) GroupBy(field string, fields ...string) *PaymentProviderInstanceGroupBy {
@@ -287,11 +287,11 @@ func (_q *PaymentProviderInstanceQuery) GroupBy(field string, fields ...string) 
 // Example:
 //
 //	var v []struct {
-//		ProviderKey string `json:"provider_key,omitempty"`
+//		ChannelFeeRate string `json:"channel_fee_rate,omitempty"`
 //	}
 //
 //	client.PaymentProviderInstance.Query().
-//		Select(paymentproviderinstance.FieldProviderKey).
+//		Select(paymentproviderinstance.FieldChannelFeeRate).
 //		Scan(ctx, &v)
 func (_q *PaymentProviderInstanceQuery) Select(fields ...string) *PaymentProviderInstanceSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

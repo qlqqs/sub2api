@@ -209,6 +209,7 @@ export default {
     myOrders: '我的订单',
     orderManagement: '订单管理',
     paymentDashboard: '支付概览',
+    finance: '财务明细', // CUSTOM
     paymentConfig: '支付配置',
     paymentPlans: '订阅套餐',
     channelManagement: '渠道管理',

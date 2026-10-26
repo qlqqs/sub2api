@@ -40,6 +40,9 @@ import pluginsAPI from './plugins'
 // CUSTOM: 分组内单个模型倍率、美元汇率
 import groupModelRatesAPI from './groupModelRates'
 import fxRateAPI from './fxRate'
+// CUSTOM: 财务明细页、账号模型成本倍率
+import financeAPI from './finance'
+import accountModelCostAPI from './accountModelCost'
 
 /**
  * Unified admin API object for convenient access
@@ -80,7 +83,9 @@ export const adminAPI = {
   audit: auditAPI,
   plugins: pluginsAPI,
   groupModelRates: groupModelRatesAPI,
-  fxRate: fxRateAPI
+  fxRate: fxRateAPI,
+  finance: financeAPI,
+  accountModelCost: accountModelCostAPI
 }
 
 export {
@@ -119,7 +124,9 @@ export {
   auditAPI,
   pluginsAPI,
   groupModelRatesAPI,
-  fxRateAPI
+  fxRateAPI,
+  financeAPI,
+  accountModelCostAPI
 }
 
 export default adminAPI

@@ -768,7 +768,8 @@ func (s *PaymentService) markRefundOk(ctx context.Context, p *RefundPlan) (*Refu
 		fs = OrderStatusPartiallyRefunded
 	}
 	now := time.Now()
-	_, err := s.entClient.PaymentOrder.UpdateOneID(p.OrderID).SetStatus(fs).SetRefundAmount(p.RefundAmount).SetRefundReason(p.Reason).SetRefundAt(now).SetForceRefund(p.Force).Save(ctx)
+	_, err := s.entClient.PaymentOrder.UpdateOneID(p.OrderID).SetStatus(fs).SetRefundAmount(p.RefundAmount).SetRefundReason(p.Reason).SetRefundAt(now).SetForceRefund(p.Force).
+		SetRefundBalanceDeducted(financeRefundDeducted(p.BalanceToDeduct)).Save(ctx) // CUSTOM(fork): 与退款终态原子写入。
 	if err != nil {
 		return nil, fmt.Errorf("mark refund: %w", err)
 	}
@@ -782,7 +783,8 @@ func (s *PaymentService) markRefundOkTx(ctx context.Context, client *dbent.Clien
 		fs = OrderStatusPartiallyRefunded
 	}
 	now := time.Now()
-	_, err := client.PaymentOrder.UpdateOneID(p.OrderID).SetStatus(fs).SetRefundAmount(p.RefundAmount).SetRefundReason(p.Reason).SetRefundAt(now).SetForceRefund(p.Force).Save(ctx)
+	_, err := client.PaymentOrder.UpdateOneID(p.OrderID).SetStatus(fs).SetRefundAmount(p.RefundAmount).SetRefundReason(p.Reason).SetRefundAt(now).SetForceRefund(p.Force).
+		SetRefundBalanceDeducted(financeRefundDeducted(p.BalanceToDeduct)).Save(ctx) // CUSTOM(fork): 与退款终态原子写入。
 	if err != nil {
 		return nil, fmt.Errorf("mark refund: %w", err)
 	}

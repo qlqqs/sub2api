@@ -29,6 +29,46 @@ func (_u *PaymentOrderUpdate) Where(ps ...predicate.PaymentOrder) *PaymentOrderU
 	return _u
 }
 
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (_u *PaymentOrderUpdate) SetChannelFeeRate(v string) *PaymentOrderUpdate {
+	_u.mutation.SetChannelFeeRate(v)
+	return _u
+}
+
+// SetNillableChannelFeeRate sets the "channel_fee_rate" field if the given value is not nil.
+func (_u *PaymentOrderUpdate) SetNillableChannelFeeRate(v *string) *PaymentOrderUpdate {
+	if v != nil {
+		_u.SetChannelFeeRate(*v)
+	}
+	return _u
+}
+
+// ClearChannelFeeRate clears the value of the "channel_fee_rate" field.
+func (_u *PaymentOrderUpdate) ClearChannelFeeRate() *PaymentOrderUpdate {
+	_u.mutation.ClearChannelFeeRate()
+	return _u
+}
+
+// SetRefundBalanceDeducted sets the "refund_balance_deducted" field.
+func (_u *PaymentOrderUpdate) SetRefundBalanceDeducted(v string) *PaymentOrderUpdate {
+	_u.mutation.SetRefundBalanceDeducted(v)
+	return _u
+}
+
+// SetNillableRefundBalanceDeducted sets the "refund_balance_deducted" field if the given value is not nil.
+func (_u *PaymentOrderUpdate) SetNillableRefundBalanceDeducted(v *string) *PaymentOrderUpdate {
+	if v != nil {
+		_u.SetRefundBalanceDeducted(*v)
+	}
+	return _u
+}
+
+// ClearRefundBalanceDeducted clears the value of the "refund_balance_deducted" field.
+func (_u *PaymentOrderUpdate) ClearRefundBalanceDeducted() *PaymentOrderUpdate {
+	_u.mutation.ClearRefundBalanceDeducted()
+	return _u
+}
+
 // SetUserID sets the "user_id" field.
 func (_u *PaymentOrderUpdate) SetUserID(v int64) *PaymentOrderUpdate {
 	_u.mutation.SetUserID(v)
@@ -872,6 +912,18 @@ func (_u *PaymentOrderUpdate) sqlSave(ctx context.Context) (_node int, err error
 			}
 		}
 	}
+	if value, ok := _u.mutation.ChannelFeeRate(); ok {
+		_spec.SetField(paymentorder.FieldChannelFeeRate, field.TypeString, value)
+	}
+	if _u.mutation.ChannelFeeRateCleared() {
+		_spec.ClearField(paymentorder.FieldChannelFeeRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.RefundBalanceDeducted(); ok {
+		_spec.SetField(paymentorder.FieldRefundBalanceDeducted, field.TypeString, value)
+	}
+	if _u.mutation.RefundBalanceDeductedCleared() {
+		_spec.ClearField(paymentorder.FieldRefundBalanceDeducted, field.TypeString)
+	}
 	if value, ok := _u.mutation.UserEmail(); ok {
 		_spec.SetField(paymentorder.FieldUserEmail, field.TypeString, value)
 	}
@@ -1117,6 +1169,46 @@ type PaymentOrderUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *PaymentOrderMutation
+}
+
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (_u *PaymentOrderUpdateOne) SetChannelFeeRate(v string) *PaymentOrderUpdateOne {
+	_u.mutation.SetChannelFeeRate(v)
+	return _u
+}
+
+// SetNillableChannelFeeRate sets the "channel_fee_rate" field if the given value is not nil.
+func (_u *PaymentOrderUpdateOne) SetNillableChannelFeeRate(v *string) *PaymentOrderUpdateOne {
+	if v != nil {
+		_u.SetChannelFeeRate(*v)
+	}
+	return _u
+}
+
+// ClearChannelFeeRate clears the value of the "channel_fee_rate" field.
+func (_u *PaymentOrderUpdateOne) ClearChannelFeeRate() *PaymentOrderUpdateOne {
+	_u.mutation.ClearChannelFeeRate()
+	return _u
+}
+
+// SetRefundBalanceDeducted sets the "refund_balance_deducted" field.
+func (_u *PaymentOrderUpdateOne) SetRefundBalanceDeducted(v string) *PaymentOrderUpdateOne {
+	_u.mutation.SetRefundBalanceDeducted(v)
+	return _u
+}
+
+// SetNillableRefundBalanceDeducted sets the "refund_balance_deducted" field if the given value is not nil.
+func (_u *PaymentOrderUpdateOne) SetNillableRefundBalanceDeducted(v *string) *PaymentOrderUpdateOne {
+	if v != nil {
+		_u.SetRefundBalanceDeducted(*v)
+	}
+	return _u
+}
+
+// ClearRefundBalanceDeducted clears the value of the "refund_balance_deducted" field.
+func (_u *PaymentOrderUpdateOne) ClearRefundBalanceDeducted() *PaymentOrderUpdateOne {
+	_u.mutation.ClearRefundBalanceDeducted()
+	return _u
 }
 
 // SetUserID sets the "user_id" field.
@@ -1991,6 +2083,18 @@ func (_u *PaymentOrderUpdateOne) sqlSave(ctx context.Context) (_node *PaymentOrd
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.ChannelFeeRate(); ok {
+		_spec.SetField(paymentorder.FieldChannelFeeRate, field.TypeString, value)
+	}
+	if _u.mutation.ChannelFeeRateCleared() {
+		_spec.ClearField(paymentorder.FieldChannelFeeRate, field.TypeString)
+	}
+	if value, ok := _u.mutation.RefundBalanceDeducted(); ok {
+		_spec.SetField(paymentorder.FieldRefundBalanceDeducted, field.TypeString, value)
+	}
+	if _u.mutation.RefundBalanceDeductedCleared() {
+		_spec.ClearField(paymentorder.FieldRefundBalanceDeducted, field.TypeString)
 	}
 	if value, ok := _u.mutation.UserEmail(); ok {
 		_spec.SetField(paymentorder.FieldUserEmail, field.TypeString, value)

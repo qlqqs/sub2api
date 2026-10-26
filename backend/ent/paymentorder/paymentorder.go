@@ -14,6 +14,10 @@ const (
 	Label = "payment_order"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldChannelFeeRate holds the string denoting the channel_fee_rate field in the database.
+	FieldChannelFeeRate = "channel_fee_rate"
+	// FieldRefundBalanceDeducted holds the string denoting the refund_balance_deducted field in the database.
+	FieldRefundBalanceDeducted = "refund_balance_deducted"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
 	// FieldUserEmail holds the string denoting the user_email field in the database.
@@ -110,6 +114,8 @@ const (
 // Columns holds all SQL columns for paymentorder fields.
 var Columns = []string{
 	FieldID,
+	FieldChannelFeeRate,
+	FieldRefundBalanceDeducted,
 	FieldUserID,
 	FieldUserEmail,
 	FieldUserName,
@@ -217,6 +223,16 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByChannelFeeRate orders the results by the channel_fee_rate field.
+func ByChannelFeeRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldChannelFeeRate, opts...).ToFunc()
+}
+
+// ByRefundBalanceDeducted orders the results by the refund_balance_deducted field.
+func ByRefundBalanceDeducted(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRefundBalanceDeducted, opts...).ToFunc()
 }
 
 // ByUserID orders the results by the user_id field.

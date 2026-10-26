@@ -70,6 +70,24 @@
         </div>
       </div>
 
+      <!-- CUSTOM: 通道费率（只用于财务统计，下单时快照到订单） -->
+      <div class="grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-[12rem_1fr] sm:items-center">
+        <label class="input-label sm:mb-0" for="provider-channel-fee-rate">{{ t('admin.finance.channelFee.label') }}</label>
+        <div class="relative w-32">
+          <input
+            id="provider-channel-fee-rate"
+            v-model="channelFeePercent"
+            type="text"
+            inputmode="decimal"
+            class="input pr-7"
+            placeholder="0"
+            data-testid="provider-channel-fee-rate"
+          />
+          <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-gray-400">%</span>
+        </div>
+        <p class="input-hint mt-0 sm:col-start-2">{{ t('admin.finance.channelFee.hint') }}</p>
+      </div>
+
       <div v-if="form.provider_key === 'easypay'" class="space-y-3 rounded-lg border border-gray-100 p-3 dark:border-dark-700">
         <div class="flex items-center justify-between gap-3">
           <div>
@@ -328,6 +346,7 @@ import {
   parseEasyPayCustomMethods,
   serializeEasyPayCustomMethods,
 } from './providerConfig'
+import { CHANNEL_FEE_PERCENT_MAX, decimalRateToPercent, percentToDecimalRate } from '@/utils/financeFormat' // CUSTOM
 
 /** Default payment_mode per provider key — "" means "no preference, use
  * provider's built-in default behavior". */
@@ -376,6 +395,7 @@ const emit = defineEmits<{
     allow_user_refund: boolean
     config: Record<string, string>
     limits: string
+    channel_fee_rate: string
   }]
 }>()
 
@@ -405,6 +425,8 @@ const form = reactive({
   allow_user_refund: false,
 })
 const config = reactive<Record<string, string>>({})
+/** CUSTOM: 通道费率，以百分比编辑（3.2 = 3.2%），提交时转成小数字符串。 */
+const channelFeePercent = ref('0')
 const limits = reactive<Record<string, Record<string, number>>>({})
 const notifyBaseUrl = ref('')
 const returnBaseUrl = ref('')
@@ -660,6 +682,12 @@ function handleSave() {
     emitValidationError(t('admin.settings.payment.validationNameRequired'))
     return
   }
+  // CUSTOM: 通道费率 0–20%，最多 2 位小数
+  const channelFee = percentToDecimalRate(channelFeePercent.value)
+  if ('error' in channelFee) {
+    emitValidationError(t('admin.finance.channelFee.invalid', { max: CHANNEL_FEE_PERCENT_MAX }))
+    return
+  }
   if (form.provider_key === 'easypay') {
     const validationError = validateEasyPayCustomMethods()
     if (validationError) {
@@ -723,6 +751,7 @@ function handleSave() {
     allow_user_refund: form.refund_enabled ? form.allow_user_refund : false,
     config: filteredConfig,
     limits: serializeLimits(),
+    channel_fee_rate: channelFee.value,
   })
 }
 
@@ -791,6 +820,7 @@ function reset(defaultKey: string) {
   form.payment_mode = defaultPaymentMode(defaultKey)
   form.refund_enabled = false
   form.allow_user_refund = false
+  channelFeePercent.value = '0'
   clearConfig()
   applyDefaults()
 }
@@ -810,6 +840,7 @@ function loadProvider(provider: ProviderInstance) {
     : defaultPaymentMode(provider.provider_key)
   form.refund_enabled = provider.refund_enabled
   form.allow_user_refund = provider.allow_user_refund
+  channelFeePercent.value = decimalRateToPercent(provider.channel_fee_rate)
   clearConfig()
   // Pre-fill config from API response. Backend omits sensitive fields entirely,
   // so those inputs stay blank — submitting blank preserves the stored secret.

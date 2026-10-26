@@ -792,7 +792,8 @@ type GatewayService struct {
 	userGroupRateResolver *userGroupRateResolver
 	userGroupRateCache    *gocache.Cache
 	userGroupRateSF       singleflight.Group
-	groupModelRates       *GroupModelRateService // CUSTOM: 分组内单个模型倍率（setter 注入，可为 nil）
+	groupModelRates       *GroupModelRateService   // CUSTOM: 分组内单个模型倍率（setter 注入，可为 nil）
+	accountModelCosts     *AccountModelCostService // CUSTOM(fork): 账号模型成本倍率，仅成本快照。
 	modelsListCache       *gocache.Cache
 	modelsListCacheTTL    time.Duration
 	settingService        *SettingService

@@ -13,6 +13,8 @@ const (
 	Label = "payment_provider_instance"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldChannelFeeRate holds the string denoting the channel_fee_rate field in the database.
+	FieldChannelFeeRate = "channel_fee_rate"
 	// FieldProviderKey holds the string denoting the provider_key field in the database.
 	FieldProviderKey = "provider_key"
 	// FieldName holds the string denoting the name field in the database.
@@ -44,6 +46,7 @@ const (
 // Columns holds all SQL columns for paymentproviderinstance fields.
 var Columns = []string{
 	FieldID,
+	FieldChannelFeeRate,
 	FieldProviderKey,
 	FieldName,
 	FieldConfig,
@@ -69,6 +72,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultChannelFeeRate holds the default value on creation for the "channel_fee_rate" field.
+	DefaultChannelFeeRate string
 	// ProviderKeyValidator is a validator for the "provider_key" field. It is called by the builders before save.
 	ProviderKeyValidator func(string) error
 	// DefaultName holds the default value on creation for the "name" field.
@@ -107,6 +112,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByChannelFeeRate orders the results by the channel_fee_rate field.
+func ByChannelFeeRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldChannelFeeRate, opts...).ToFunc()
 }
 
 // ByProviderKey orders the results by the provider_key field.

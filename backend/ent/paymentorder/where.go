@@ -55,6 +55,16 @@ func IDLTE(id int64) predicate.PaymentOrder {
 	return predicate.PaymentOrder(sql.FieldLTE(FieldID, id))
 }
 
+// ChannelFeeRate applies equality check predicate on the "channel_fee_rate" field. It's identical to ChannelFeeRateEQ.
+func ChannelFeeRate(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldChannelFeeRate, v))
+}
+
+// RefundBalanceDeducted applies equality check predicate on the "refund_balance_deducted" field. It's identical to RefundBalanceDeductedEQ.
+func RefundBalanceDeducted(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldRefundBalanceDeducted, v))
+}
+
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
 func UserID(v int64) predicate.PaymentOrder {
 	return predicate.PaymentOrder(sql.FieldEQ(FieldUserID, v))
@@ -248,6 +258,156 @@ func CreatedAt(v time.Time) predicate.PaymentOrder {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.PaymentOrder {
 	return predicate.PaymentOrder(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// ChannelFeeRateEQ applies the EQ predicate on the "channel_fee_rate" field.
+func ChannelFeeRateEQ(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateNEQ applies the NEQ predicate on the "channel_fee_rate" field.
+func ChannelFeeRateNEQ(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNEQ(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateIn applies the In predicate on the "channel_fee_rate" field.
+func ChannelFeeRateIn(vs ...string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIn(FieldChannelFeeRate, vs...))
+}
+
+// ChannelFeeRateNotIn applies the NotIn predicate on the "channel_fee_rate" field.
+func ChannelFeeRateNotIn(vs ...string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotIn(FieldChannelFeeRate, vs...))
+}
+
+// ChannelFeeRateGT applies the GT predicate on the "channel_fee_rate" field.
+func ChannelFeeRateGT(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGT(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateGTE applies the GTE predicate on the "channel_fee_rate" field.
+func ChannelFeeRateGTE(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGTE(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateLT applies the LT predicate on the "channel_fee_rate" field.
+func ChannelFeeRateLT(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLT(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateLTE applies the LTE predicate on the "channel_fee_rate" field.
+func ChannelFeeRateLTE(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLTE(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateContains applies the Contains predicate on the "channel_fee_rate" field.
+func ChannelFeeRateContains(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldContains(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateHasPrefix applies the HasPrefix predicate on the "channel_fee_rate" field.
+func ChannelFeeRateHasPrefix(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldHasPrefix(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateHasSuffix applies the HasSuffix predicate on the "channel_fee_rate" field.
+func ChannelFeeRateHasSuffix(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldHasSuffix(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateIsNil applies the IsNil predicate on the "channel_fee_rate" field.
+func ChannelFeeRateIsNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIsNull(FieldChannelFeeRate))
+}
+
+// ChannelFeeRateNotNil applies the NotNil predicate on the "channel_fee_rate" field.
+func ChannelFeeRateNotNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotNull(FieldChannelFeeRate))
+}
+
+// ChannelFeeRateEqualFold applies the EqualFold predicate on the "channel_fee_rate" field.
+func ChannelFeeRateEqualFold(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEqualFold(FieldChannelFeeRate, v))
+}
+
+// ChannelFeeRateContainsFold applies the ContainsFold predicate on the "channel_fee_rate" field.
+func ChannelFeeRateContainsFold(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldContainsFold(FieldChannelFeeRate, v))
+}
+
+// RefundBalanceDeductedEQ applies the EQ predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedEQ(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEQ(FieldRefundBalanceDeducted, v))
+}
+
+// RefundBalanceDeductedNEQ applies the NEQ predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedNEQ(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNEQ(FieldRefundBalanceDeducted, v))
+}
+
+// RefundBalanceDeductedIn applies the In predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedIn(vs ...string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIn(FieldRefundBalanceDeducted, vs...))
+}
+
+// RefundBalanceDeductedNotIn applies the NotIn predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedNotIn(vs ...string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotIn(FieldRefundBalanceDeducted, vs...))
+}
+
+// RefundBalanceDeductedGT applies the GT predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedGT(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGT(FieldRefundBalanceDeducted, v))
+}
+
+// RefundBalanceDeductedGTE applies the GTE predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedGTE(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldGTE(FieldRefundBalanceDeducted, v))
+}
+
+// RefundBalanceDeductedLT applies the LT predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedLT(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLT(FieldRefundBalanceDeducted, v))
+}
+
+// RefundBalanceDeductedLTE applies the LTE predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedLTE(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldLTE(FieldRefundBalanceDeducted, v))
+}
+
+// RefundBalanceDeductedContains applies the Contains predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedContains(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldContains(FieldRefundBalanceDeducted, v))
+}
+
+// RefundBalanceDeductedHasPrefix applies the HasPrefix predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedHasPrefix(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldHasPrefix(FieldRefundBalanceDeducted, v))
+}
+
+// RefundBalanceDeductedHasSuffix applies the HasSuffix predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedHasSuffix(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldHasSuffix(FieldRefundBalanceDeducted, v))
+}
+
+// RefundBalanceDeductedIsNil applies the IsNil predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedIsNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldIsNull(FieldRefundBalanceDeducted))
+}
+
+// RefundBalanceDeductedNotNil applies the NotNil predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedNotNil() predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldNotNull(FieldRefundBalanceDeducted))
+}
+
+// RefundBalanceDeductedEqualFold applies the EqualFold predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedEqualFold(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldEqualFold(FieldRefundBalanceDeducted, v))
+}
+
+// RefundBalanceDeductedContainsFold applies the ContainsFold predicate on the "refund_balance_deducted" field.
+func RefundBalanceDeductedContainsFold(v string) predicate.PaymentOrder {
+	return predicate.PaymentOrder(sql.FieldContainsFold(FieldRefundBalanceDeducted, v))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.

@@ -360,6 +360,14 @@
                 <Icon name="sync" size="xs" />
               </span>
             </span>
+            <!-- CUSTOM: 有模型成本倍率时提示条数，悬停列出明细 -->
+            <span
+              v-if="modelCostRules(row.id).length > 0"
+              class="mt-0.5 block cursor-help text-xs text-primary-600 dark:text-primary-400"
+              :title="modelCostRulesTitle(row.id)"
+              data-testid="account-model-cost-summary"
+              >{{ t('admin.finance.accountModelCost.count', { count: modelCostRules(row.id).length }) }}</span
+            >
           </template>
           <template #header-upstream_billing_rate="{ column }">
             <div class="flex items-center gap-1">
@@ -537,6 +545,7 @@ import { extractApiErrorMessage } from '@/utils/apiError'
 import { sanitizeUrl } from '@/utils/url'
 import { getFloatingPanelPosition } from '@/utils/floatingPanel'
 import { formatMultiplier } from '@/utils/formatters'
+import type { AccountModelCostRule } from '@/api/admin/accountModelCost' // CUSTOM
 import type { Account, AccountListItem, AccountPlatform, AccountSchedulerGroupScore, AccountType, AccountUsageInfo, Proxy as AccountProxy, AdminGroup, WindowStats, ClaudeModel, UpstreamBillingProbeSnapshot } from '@/types'
 
 const { t } = useI18n()
@@ -2256,6 +2265,24 @@ const handleProbeUpstreamBilling = async (account: Account) => {
 const handleAccountUpdated = (updatedAccount: Account) => {
   patchAccountInList(updatedAccount)
   enterAutoRefreshSilentWindow()
+  void loadModelCostSummary() // CUSTOM
+}
+
+// ==================== CUSTOM: 账号模型成本倍率提示 ====================
+const modelCostSummary = ref<Record<string, AccountModelCostRule[]>>({})
+const modelCostRules = (accountId: number): AccountModelCostRule[] =>
+  modelCostSummary.value[String(accountId)] ?? []
+const modelCostRulesTitle = (accountId: number): string =>
+  modelCostRules(accountId)
+    .map((rule) => `${rule.model}: ${rule.rate_multiplier}x`)
+    .join('\n')
+/** 倍率列提示用；失败（如旧后端）时不提示，不影响列表。 */
+const loadModelCostSummary = async () => {
+  try {
+    modelCostSummary.value = await adminAPI.accountModelCost.listAll()
+  } catch {
+    modelCostSummary.value = {}
+  }
 }
 const formatExportTimestamp = () => {
   const now = new Date()
@@ -2539,6 +2566,7 @@ onMounted(async () => {
 
   load()
   loadUpstreamBillingProbeGlobalState()
+  void loadModelCostSummary() // CUSTOM
   const [proxiesResult, groupsResult] = await Promise.allSettled([
     adminAPI.proxies.getAll(),
     adminAPI.groups.getAll()

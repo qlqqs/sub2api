@@ -30,6 +30,8 @@ func (PaymentProviderInstance) Annotations() []schema.Annotation {
 
 func (PaymentProviderInstance) Fields() []ent.Field {
 	return []ent.Field{
+		// CUSTOM(fork): 财务通道费率，以字符串保持十进制精度。
+		field.String("channel_fee_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(6,4)"}).Default("0"),
 		field.String("provider_key").
 			MaxLen(30).
 			NotEmpty(),

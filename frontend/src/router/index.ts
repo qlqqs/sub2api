@@ -849,6 +849,20 @@ const routes: RouteRecordRaw[] = [
     }
   },
 
+  // CUSTOM: 财务明细（仅管理员；不依赖支付开关，订单关闭时也要能看消耗、成本与支出）
+  {
+    path: '/admin/finance',
+    name: 'AdminFinance',
+    component: () => import('@/views/admin/finance/AdminFinanceView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Finance Ledger',
+      titleKey: 'nav.finance',
+      descriptionKey: 'admin.finance.description'
+    }
+  },
+
   // ==================== 404 Not Found ====================
   {
     path: '/:pathMatch(.*)*',

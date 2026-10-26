@@ -838,7 +838,8 @@ func (s *GatewayService) recordUsageCore(ctx context.Context, input *recordUsage
 	}
 
 	// 创建使用日志
-	accountRateMultiplier := account.BillingRateMultiplier()
+	// CUSTOM(fork): 按最终上游模型覆盖成本倍率，未命中原样回退。
+	accountRateMultiplier := resolveAccountCostMultiplier(ctx, s.accountModelCosts, account, result.UpstreamModel, requestedModel)
 	usageLog := s.buildRecordUsageLog(ctx, input, result, apiKey, user, account, subscription,
 		requestedModel, multiplier, imageMultiplier, accountRateMultiplier, billingType, cacheTTLOverridden, cost)
 

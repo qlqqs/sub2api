@@ -43,6 +43,8 @@ type AdminHandlers struct {
 	Affiliate              *admin.AffiliateHandler
 	Compliance             *admin.ComplianceHandler
 	AuditLog               *admin.AuditLogHandler
+	Finance                *admin.FinanceHandler            // CUSTOM(fork): 财务报表。
+	AccountModelCost       *admin.AccountModelCostHandler   // CUSTOM(fork): 模型成本倍率。
 	GroupModelRate         *admin.GroupModelRateHandler     // CUSTOM: 分组内单个模型倍率
 	FxRate                 *admin.FxRateHandler             // CUSTOM: 美元汇率
 	AnnouncementBanner     *admin.AnnouncementBannerHandler // CUSTOM: 仪表盘公告轮播名单

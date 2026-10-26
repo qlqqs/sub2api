@@ -27,6 +27,7 @@ export const QX_NAV_ICONS = {
   gift: { icon: 'gift' },
   orders: { icon: 'document' },
   clipboard: { icon: 'clipboard' },
+  ledger: { icon: 'dollar' }, // CUSTOM: 财务明细
   swap: { icon: 'swap' },
   bell: { icon: 'bell' },
   shield: { icon: 'shield' },

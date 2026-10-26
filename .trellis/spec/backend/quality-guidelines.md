@@ -96,3 +96,15 @@ go build ./cmd/server
 - **Good / Base / Bad**：25 MiB 文件附 multipart 头允许；普通 5 MiB 请求允许；26 MiB+1 上传请求拒绝。无压缩图片原 File 复用；压缩结果 MIME 来自实际编码；截图直接 toBlob。
 - **Tests Required**：`TestChatProxyMultipartFileLimit` 覆盖实际 multipart 文件大小与已知/未知长度；`TestChatProxyLocationCookiesAndBodyLimits` 覆盖请求边界和其他路由不变。浏览器覆盖图片选择/粘贴/拖拽、压缩、临时聊天、发送回显与失败重试，捕获 CSP 违规；只测文件 API 不能证明图片选择流程可用。
 - **Wrong vs Correct**：错：把请求上限和文件上限都设为 25 MiB，或为修复 fetch(data:) 开放 CSP；对：为封装留有界余量，并在浏览器本地转换数据，不做虚假的网络请求。
+
+## 财务明细与账号成本快照（fork，2026-10-25）
+
+1. **范围**：`finance*.go` 的收入重放/财务查询、支付费率快照、`account_model_cost.go` 的模型成本覆盖；不改变真实用户余额扣费、转发和调度。
+2. **签名与存储**：`ReplayFinanceRevenue(events []FinanceEvent, actual decimal.Decimal) FinanceRevenue` 是纯函数；`FinanceRepository.Load(ctx, FinanceRange)` 用只读 REPEATABLE READ 取全部收入事件和区间成本；迁移 254/255 为原生 SQL 自有表，256 的支付 numeric 字段使用 Ent String 映射保证字符串 API 与精度。
+3. **合约**：API 在 `/api/v1/admin/finance`，完整 DTO 见任务 `10-25-finance-ledger/contract.md`。金额字符串、北京时间闭区间、最大 732 天；免费优先，再付费/分润 FIFO；管理员扣回不确认收入。历史费率 NULL 按实例当前费率，退款扣回 NULL 按 refund_amount；显式 0 不能当 NULL。管理写接口必须挂既有审计中间件。
+4. **校验与错误**：费用 >0、最多 2 位小数，摊销 1–3660 天；`FINANCE_EXPENSE_INVALID`/`FINANCE_RANGE_TOO_LARGE` 为 400，缺失支出为 404。账号模型倍率 0–10000、最多 4 位、每账号最多 200 条，缺少 rate_multiplier 不得默认为 0；失败 `ACCOUNT_MODEL_COST_INVALID`。
+5. **正例/基线/反例**：上游模型命中规则仅替换成本快照；无配置时逐位等于 `account.BillingRateMultiplier()`；退款先减少该订单剩余现金，超额退款在退款日冲减收入，不能串扣其他订单现金。推断免费期初必须同时保留实际−已登记净流量差额，不能伪造对账平衡。
+6. **回归点**：`account_model_cost_test.go` 覆盖两个网关的真实用量快照及 batch 的价格/冻结不变；`finance_revenue_test.go` 覆盖免费优先、跨天 FIFO、退款、扣回、分润、透支、期初与摊销尾差；`finance_repo_integration_test.go` 用 testcontainers 验证 SQL/decimal/迁移/退款；`finance_audit_test.go` 验证支出写审计。
+7. **错误与正确**：批量生图的旧局部 `accountMultiplier` 还参与售价与冻结，直接把它改成模型成本倍率会误改客户扣费；应保留原售价公式，只覆盖 `BatchImagePricingSnapshot.AccountRateMultiplier`。`settings` 表没有 `created_at`，原生 upsert 只写 key/value/updated_at。报表可不缓存以避免补录/退款水位遗漏，但不得用 float64 累加金额或把已清理的历史数据当完整账本。
+
+8. **成本方式标签回归**：账号 breakdown 的 cost_mode 只看当前配置，优先级 fixed > per_image > model_rate > rate；按张/次需同一自定义统计规则覆盖账号或其当前所属任一分组并含 image/per_request 定价。不能以图片流量占比或历史用量 group_id 代替配置/归属判断，标签变化不得重算历史快照金额。`TestFinanceBreakdownCostModeUsesConfiguration` 与 `TestFinanceCostModeCurrentPricingConfiguration` 分别覆盖优先级和真实 SQL 匹配。

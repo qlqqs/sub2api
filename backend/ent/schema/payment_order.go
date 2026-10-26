@@ -31,6 +31,9 @@ func (PaymentOrder) Annotations() []schema.Annotation {
 
 func (PaymentOrder) Fields() []ent.Field {
 	return []ent.Field{
+		// CUSTOM(fork): 下单费率快照和退款实际扣回余额，NULL 仅用于历史兼容。
+		field.String("channel_fee_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(6,4)"}).Optional().Nillable(),
+		field.String("refund_balance_deducted").SchemaType(map[string]string{dialect.Postgres: "numeric(20,8)"}).Optional().Nillable(),
 		// 用户信息（冗余存储，避免关联查询）
 		field.Int64("user_id"),
 		field.String("user_email").

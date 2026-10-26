@@ -45,6 +45,7 @@ func RegisterAdminRoutes(
 
 		// 账号管理
 		registerAccountRoutes(admin, h, stepUpAuth)
+		registerFinanceRoutes(admin, h) // CUSTOM(fork): 财务接口沿用管理员审计链。
 
 		// 公告管理
 		registerAnnouncementRoutes(admin, h)
@@ -359,6 +360,12 @@ func registerGroupRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 
 func registerAccountRoutes(admin *gin.RouterGroup, h *handler.Handlers, stepUpAuth middleware.StepUpAuthMiddleware) {
 	accounts := admin.Group("/accounts")
+	// CUSTOM(fork): 静态路由与 :id 路由共存。
+	if h.Admin.AccountModelCost != nil {
+		accounts.GET("/model-cost-multipliers", h.Admin.AccountModelCost.ListAll)
+		accounts.GET("/:id/model-cost-multipliers", h.Admin.AccountModelCost.Get)
+		accounts.PUT("/:id/model-cost-multipliers", h.Admin.AccountModelCost.Replace)
+	}
 	{
 		accounts.GET("", h.Admin.Account.List)
 		accounts.GET("/upstream-billing-rates", h.Admin.Account.GetUpstreamBillingRates)

@@ -17,6 +17,8 @@ type PaymentProviderInstance struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
+	// ChannelFeeRate holds the value of the "channel_fee_rate" field.
+	ChannelFeeRate string `json:"channel_fee_rate,omitempty"`
 	// ProviderKey holds the value of the "provider_key" field.
 	ProviderKey string `json:"provider_key,omitempty"`
 	// Name holds the value of the "name" field.
@@ -53,7 +55,7 @@ func (*PaymentProviderInstance) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case paymentproviderinstance.FieldID, paymentproviderinstance.FieldSortOrder:
 			values[i] = new(sql.NullInt64)
-		case paymentproviderinstance.FieldProviderKey, paymentproviderinstance.FieldName, paymentproviderinstance.FieldConfig, paymentproviderinstance.FieldSupportedTypes, paymentproviderinstance.FieldPaymentMode, paymentproviderinstance.FieldLimits:
+		case paymentproviderinstance.FieldChannelFeeRate, paymentproviderinstance.FieldProviderKey, paymentproviderinstance.FieldName, paymentproviderinstance.FieldConfig, paymentproviderinstance.FieldSupportedTypes, paymentproviderinstance.FieldPaymentMode, paymentproviderinstance.FieldLimits:
 			values[i] = new(sql.NullString)
 		case paymentproviderinstance.FieldCreatedAt, paymentproviderinstance.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -78,6 +80,12 @@ func (_m *PaymentProviderInstance) assignValues(columns []string, values []any) 
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int64(value.Int64)
+		case paymentproviderinstance.FieldChannelFeeRate:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field channel_fee_rate", values[i])
+			} else if value.Valid {
+				_m.ChannelFeeRate = value.String
+			}
 		case paymentproviderinstance.FieldProviderKey:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field provider_key", values[i])
@@ -186,6 +194,9 @@ func (_m *PaymentProviderInstance) String() string {
 	var builder strings.Builder
 	builder.WriteString("PaymentProviderInstance(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("channel_fee_rate=")
+	builder.WriteString(_m.ChannelFeeRate)
+	builder.WriteString(", ")
 	builder.WriteString("provider_key=")
 	builder.WriteString(_m.ProviderKey)
 	builder.WriteString(", ")

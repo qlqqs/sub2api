@@ -47,6 +47,8 @@ func ProvideAdminHandlers(
 	affiliateHandler *admin.AffiliateHandler,
 	complianceHandler *admin.ComplianceHandler,
 	auditLogHandler *admin.AuditLogHandler,
+	financeHandler *admin.FinanceHandler, // CUSTOM(fork)
+	accountModelCostHandler *admin.AccountModelCostHandler, // CUSTOM(fork)
 	groupModelRateHandler *admin.GroupModelRateHandler, // CUSTOM
 	fxRateHandler *admin.FxRateHandler, // CUSTOM
 	announcementBannerHandler *admin.AnnouncementBannerHandler, // CUSTOM
@@ -96,6 +98,8 @@ func ProvideAdminHandlers(
 		Affiliate:              affiliateHandler,
 		Compliance:             complianceHandler,
 		AuditLog:               auditLogHandler,
+		Finance:                financeHandler,            // CUSTOM(fork)
+		AccountModelCost:       accountModelCostHandler,   // CUSTOM(fork)
 		GroupModelRate:         groupModelRateHandler,     // CUSTOM
 		FxRate:                 fxRateHandler,             // CUSTOM
 		AnnouncementBanner:     announcementBannerHandler, // CUSTOM
@@ -300,6 +304,8 @@ var ProviderSet = wire.NewSet(
 	admin.NewAffiliateHandler,
 	admin.NewComplianceHandler,
 	admin.NewAuditLogHandler,
+	admin.NewFinanceHandler,            // CUSTOM(fork)
+	admin.NewAccountModelCostHandler,   // CUSTOM(fork)
 	admin.NewGroupModelRateHandler,     // CUSTOM: 分组内单个模型倍率
 	admin.NewFxRateHandler,             // CUSTOM: 美元汇率
 	admin.NewAnnouncementBannerHandler, // CUSTOM: 仪表盘公告轮播名单

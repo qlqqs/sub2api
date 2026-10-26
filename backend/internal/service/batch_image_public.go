@@ -93,7 +93,8 @@ type BatchImagePublicService struct {
 	AuthCache         APIKeyAuthCacheInvalidator
 	Config            *config.Config
 
-	groupModelRates *GroupModelRateService // CUSTOM: 分组内单个模型倍率（setter 注入，可为 nil）
+	groupModelRates   *GroupModelRateService   // CUSTOM: 分组内单个模型倍率（setter 注入，可为 nil）
+	accountModelCosts *AccountModelCostService // CUSTOM(fork): 账号模型成本倍率，仅成本快照。
 }
 
 type BatchImagePricingSnapshot struct {
@@ -1083,9 +1084,10 @@ func (s *BatchImagePublicService) resolvePricingSnapshot(ctx context.Context, ow
 	billableUnitPrice := standardUnitPrice * discountMultiplier
 	holdUnitPrice := standardUnitPrice * holdMultiplier
 	return &BatchImagePricingSnapshot{
-		BaseUnitPrice:           unit,
-		GroupRateMultiplier:     groupMultiplier,
-		AccountRateMultiplier:   accountMultiplier,
+		BaseUnitPrice:       unit,
+		GroupRateMultiplier: groupMultiplier,
+		// CUSTOM(fork): 售价和冻结仍用上面的原账号倍率，覆盖仅进入成本快照。
+		AccountRateMultiplier:   resolveAccountCostMultiplier(ctx, s.accountModelCosts, account, req.Model, req.Model),
 		BatchDiscountMultiplier: discountMultiplier,
 		HoldMultiplier:          holdMultiplier,
 		BillableUnitPrice:       billableUnitPrice,

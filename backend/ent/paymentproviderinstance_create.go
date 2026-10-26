@@ -22,6 +22,20 @@ type PaymentProviderInstanceCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (_c *PaymentProviderInstanceCreate) SetChannelFeeRate(v string) *PaymentProviderInstanceCreate {
+	_c.mutation.SetChannelFeeRate(v)
+	return _c
+}
+
+// SetNillableChannelFeeRate sets the "channel_fee_rate" field if the given value is not nil.
+func (_c *PaymentProviderInstanceCreate) SetNillableChannelFeeRate(v *string) *PaymentProviderInstanceCreate {
+	if v != nil {
+		_c.SetChannelFeeRate(*v)
+	}
+	return _c
+}
+
 // SetProviderKey sets the "provider_key" field.
 func (_c *PaymentProviderInstanceCreate) SetProviderKey(v string) *PaymentProviderInstanceCreate {
 	_c.mutation.SetProviderKey(v)
@@ -209,6 +223,10 @@ func (_c *PaymentProviderInstanceCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *PaymentProviderInstanceCreate) defaults() {
+	if _, ok := _c.mutation.ChannelFeeRate(); !ok {
+		v := paymentproviderinstance.DefaultChannelFeeRate
+		_c.mutation.SetChannelFeeRate(v)
+	}
 	if _, ok := _c.mutation.Name(); !ok {
 		v := paymentproviderinstance.DefaultName
 		_c.mutation.SetName(v)
@@ -253,6 +271,9 @@ func (_c *PaymentProviderInstanceCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *PaymentProviderInstanceCreate) check() error {
+	if _, ok := _c.mutation.ChannelFeeRate(); !ok {
+		return &ValidationError{Name: "channel_fee_rate", err: errors.New(`ent: missing required field "PaymentProviderInstance.channel_fee_rate"`)}
+	}
 	if _, ok := _c.mutation.ProviderKey(); !ok {
 		return &ValidationError{Name: "provider_key", err: errors.New(`ent: missing required field "PaymentProviderInstance.provider_key"`)}
 	}
@@ -336,6 +357,10 @@ func (_c *PaymentProviderInstanceCreate) createSpec() (*PaymentProviderInstance,
 		_spec = sqlgraph.NewCreateSpec(paymentproviderinstance.Table, sqlgraph.NewFieldSpec(paymentproviderinstance.FieldID, field.TypeInt64))
 	)
 	_spec.OnConflict = _c.conflict
+	if value, ok := _c.mutation.ChannelFeeRate(); ok {
+		_spec.SetField(paymentproviderinstance.FieldChannelFeeRate, field.TypeString, value)
+		_node.ChannelFeeRate = value
+	}
 	if value, ok := _c.mutation.ProviderKey(); ok {
 		_spec.SetField(paymentproviderinstance.FieldProviderKey, field.TypeString, value)
 		_node.ProviderKey = value
@@ -391,7 +416,7 @@ func (_c *PaymentProviderInstanceCreate) createSpec() (*PaymentProviderInstance,
 // of the `INSERT` statement. For example:
 //
 //	client.PaymentProviderInstance.Create().
-//		SetProviderKey(v).
+//		SetChannelFeeRate(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -400,7 +425,7 @@ func (_c *PaymentProviderInstanceCreate) createSpec() (*PaymentProviderInstance,
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.PaymentProviderInstanceUpsert) {
-//			SetProviderKey(v+v).
+//			SetChannelFeeRate(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *PaymentProviderInstanceCreate) OnConflict(opts ...sql.ConflictOption) *PaymentProviderInstanceUpsertOne {
@@ -435,6 +460,18 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (u *PaymentProviderInstanceUpsert) SetChannelFeeRate(v string) *PaymentProviderInstanceUpsert {
+	u.Set(paymentproviderinstance.FieldChannelFeeRate, v)
+	return u
+}
+
+// UpdateChannelFeeRate sets the "channel_fee_rate" field to the value that was provided on create.
+func (u *PaymentProviderInstanceUpsert) UpdateChannelFeeRate() *PaymentProviderInstanceUpsert {
+	u.SetExcluded(paymentproviderinstance.FieldChannelFeeRate)
+	return u
+}
 
 // SetProviderKey sets the "provider_key" field.
 func (u *PaymentProviderInstanceUpsert) SetProviderKey(v string) *PaymentProviderInstanceUpsert {
@@ -617,6 +654,20 @@ func (u *PaymentProviderInstanceUpsertOne) Update(set func(*PaymentProviderInsta
 		set(&PaymentProviderInstanceUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (u *PaymentProviderInstanceUpsertOne) SetChannelFeeRate(v string) *PaymentProviderInstanceUpsertOne {
+	return u.Update(func(s *PaymentProviderInstanceUpsert) {
+		s.SetChannelFeeRate(v)
+	})
+}
+
+// UpdateChannelFeeRate sets the "channel_fee_rate" field to the value that was provided on create.
+func (u *PaymentProviderInstanceUpsertOne) UpdateChannelFeeRate() *PaymentProviderInstanceUpsertOne {
+	return u.Update(func(s *PaymentProviderInstanceUpsert) {
+		s.UpdateChannelFeeRate()
+	})
 }
 
 // SetProviderKey sets the "provider_key" field.
@@ -915,7 +966,7 @@ func (_c *PaymentProviderInstanceCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.PaymentProviderInstanceUpsert) {
-//			SetProviderKey(v+v).
+//			SetChannelFeeRate(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *PaymentProviderInstanceCreateBulk) OnConflict(opts ...sql.ConflictOption) *PaymentProviderInstanceUpsertBulk {
@@ -989,6 +1040,20 @@ func (u *PaymentProviderInstanceUpsertBulk) Update(set func(*PaymentProviderInst
 		set(&PaymentProviderInstanceUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (u *PaymentProviderInstanceUpsertBulk) SetChannelFeeRate(v string) *PaymentProviderInstanceUpsertBulk {
+	return u.Update(func(s *PaymentProviderInstanceUpsert) {
+		s.SetChannelFeeRate(v)
+	})
+}
+
+// UpdateChannelFeeRate sets the "channel_fee_rate" field to the value that was provided on create.
+func (u *PaymentProviderInstanceUpsertBulk) UpdateChannelFeeRate() *PaymentProviderInstanceUpsertBulk {
+	return u.Update(func(s *PaymentProviderInstanceUpsert) {
+		s.UpdateChannelFeeRate()
+	})
 }
 
 // SetProviderKey sets the "provider_key" field.

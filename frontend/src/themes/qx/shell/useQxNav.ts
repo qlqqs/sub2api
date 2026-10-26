@@ -217,7 +217,9 @@ export function useQxNav() {
             { path: '/admin/orders', label: t('nav.orderManagement'), icon: 'clipboard' },
             { path: '/admin/orders/plans', label: t('nav.paymentPlans'), icon: 'creditCard' }
           ]
-        }
+        },
+        // CUSTOM: 财务明细
+        { path: '/admin/finance', label: t('nav.finance'), icon: 'ledger', hideInSimpleMode: true }
       ]),
       section('contentSecurity', [
         { path: '/admin/announcements', label: t('nav.announcements'), icon: 'bell' },

@@ -23,6 +23,34 @@ type PaymentOrderCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (_c *PaymentOrderCreate) SetChannelFeeRate(v string) *PaymentOrderCreate {
+	_c.mutation.SetChannelFeeRate(v)
+	return _c
+}
+
+// SetNillableChannelFeeRate sets the "channel_fee_rate" field if the given value is not nil.
+func (_c *PaymentOrderCreate) SetNillableChannelFeeRate(v *string) *PaymentOrderCreate {
+	if v != nil {
+		_c.SetChannelFeeRate(*v)
+	}
+	return _c
+}
+
+// SetRefundBalanceDeducted sets the "refund_balance_deducted" field.
+func (_c *PaymentOrderCreate) SetRefundBalanceDeducted(v string) *PaymentOrderCreate {
+	_c.mutation.SetRefundBalanceDeducted(v)
+	return _c
+}
+
+// SetNillableRefundBalanceDeducted sets the "refund_balance_deducted" field if the given value is not nil.
+func (_c *PaymentOrderCreate) SetNillableRefundBalanceDeducted(v *string) *PaymentOrderCreate {
+	if v != nil {
+		_c.SetRefundBalanceDeducted(*v)
+	}
+	return _c
+}
+
 // SetUserID sets the "user_id" field.
 func (_c *PaymentOrderCreate) SetUserID(v int64) *PaymentOrderCreate {
 	_c.mutation.SetUserID(v)
@@ -722,6 +750,14 @@ func (_c *PaymentOrderCreate) createSpec() (*PaymentOrder, *sqlgraph.CreateSpec)
 		_spec = sqlgraph.NewCreateSpec(paymentorder.Table, sqlgraph.NewFieldSpec(paymentorder.FieldID, field.TypeInt64))
 	)
 	_spec.OnConflict = _c.conflict
+	if value, ok := _c.mutation.ChannelFeeRate(); ok {
+		_spec.SetField(paymentorder.FieldChannelFeeRate, field.TypeString, value)
+		_node.ChannelFeeRate = &value
+	}
+	if value, ok := _c.mutation.RefundBalanceDeducted(); ok {
+		_spec.SetField(paymentorder.FieldRefundBalanceDeducted, field.TypeString, value)
+		_node.RefundBalanceDeducted = &value
+	}
 	if value, ok := _c.mutation.UserEmail(); ok {
 		_spec.SetField(paymentorder.FieldUserEmail, field.TypeString, value)
 		_node.UserEmail = value
@@ -902,7 +938,7 @@ func (_c *PaymentOrderCreate) createSpec() (*PaymentOrder, *sqlgraph.CreateSpec)
 // of the `INSERT` statement. For example:
 //
 //	client.PaymentOrder.Create().
-//		SetUserID(v).
+//		SetChannelFeeRate(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -911,7 +947,7 @@ func (_c *PaymentOrderCreate) createSpec() (*PaymentOrder, *sqlgraph.CreateSpec)
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.PaymentOrderUpsert) {
-//			SetUserID(v+v).
+//			SetChannelFeeRate(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *PaymentOrderCreate) OnConflict(opts ...sql.ConflictOption) *PaymentOrderUpsertOne {
@@ -946,6 +982,42 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (u *PaymentOrderUpsert) SetChannelFeeRate(v string) *PaymentOrderUpsert {
+	u.Set(paymentorder.FieldChannelFeeRate, v)
+	return u
+}
+
+// UpdateChannelFeeRate sets the "channel_fee_rate" field to the value that was provided on create.
+func (u *PaymentOrderUpsert) UpdateChannelFeeRate() *PaymentOrderUpsert {
+	u.SetExcluded(paymentorder.FieldChannelFeeRate)
+	return u
+}
+
+// ClearChannelFeeRate clears the value of the "channel_fee_rate" field.
+func (u *PaymentOrderUpsert) ClearChannelFeeRate() *PaymentOrderUpsert {
+	u.SetNull(paymentorder.FieldChannelFeeRate)
+	return u
+}
+
+// SetRefundBalanceDeducted sets the "refund_balance_deducted" field.
+func (u *PaymentOrderUpsert) SetRefundBalanceDeducted(v string) *PaymentOrderUpsert {
+	u.Set(paymentorder.FieldRefundBalanceDeducted, v)
+	return u
+}
+
+// UpdateRefundBalanceDeducted sets the "refund_balance_deducted" field to the value that was provided on create.
+func (u *PaymentOrderUpsert) UpdateRefundBalanceDeducted() *PaymentOrderUpsert {
+	u.SetExcluded(paymentorder.FieldRefundBalanceDeducted)
+	return u
+}
+
+// ClearRefundBalanceDeducted clears the value of the "refund_balance_deducted" field.
+func (u *PaymentOrderUpsert) ClearRefundBalanceDeducted() *PaymentOrderUpsert {
+	u.SetNull(paymentorder.FieldRefundBalanceDeducted)
+	return u
+}
 
 // SetUserID sets the "user_id" field.
 func (u *PaymentOrderUpsert) SetUserID(v int64) *PaymentOrderUpsert {
@@ -1626,6 +1698,48 @@ func (u *PaymentOrderUpsertOne) Update(set func(*PaymentOrderUpsert)) *PaymentOr
 		set(&PaymentOrderUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (u *PaymentOrderUpsertOne) SetChannelFeeRate(v string) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetChannelFeeRate(v)
+	})
+}
+
+// UpdateChannelFeeRate sets the "channel_fee_rate" field to the value that was provided on create.
+func (u *PaymentOrderUpsertOne) UpdateChannelFeeRate() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateChannelFeeRate()
+	})
+}
+
+// ClearChannelFeeRate clears the value of the "channel_fee_rate" field.
+func (u *PaymentOrderUpsertOne) ClearChannelFeeRate() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearChannelFeeRate()
+	})
+}
+
+// SetRefundBalanceDeducted sets the "refund_balance_deducted" field.
+func (u *PaymentOrderUpsertOne) SetRefundBalanceDeducted(v string) *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetRefundBalanceDeducted(v)
+	})
+}
+
+// UpdateRefundBalanceDeducted sets the "refund_balance_deducted" field to the value that was provided on create.
+func (u *PaymentOrderUpsertOne) UpdateRefundBalanceDeducted() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateRefundBalanceDeducted()
+	})
+}
+
+// ClearRefundBalanceDeducted clears the value of the "refund_balance_deducted" field.
+func (u *PaymentOrderUpsertOne) ClearRefundBalanceDeducted() *PaymentOrderUpsertOne {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearRefundBalanceDeducted()
+	})
 }
 
 // SetUserID sets the "user_id" field.
@@ -2505,7 +2619,7 @@ func (_c *PaymentOrderCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.PaymentOrderUpsert) {
-//			SetUserID(v+v).
+//			SetChannelFeeRate(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *PaymentOrderCreateBulk) OnConflict(opts ...sql.ConflictOption) *PaymentOrderUpsertBulk {
@@ -2579,6 +2693,48 @@ func (u *PaymentOrderUpsertBulk) Update(set func(*PaymentOrderUpsert)) *PaymentO
 		set(&PaymentOrderUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetChannelFeeRate sets the "channel_fee_rate" field.
+func (u *PaymentOrderUpsertBulk) SetChannelFeeRate(v string) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetChannelFeeRate(v)
+	})
+}
+
+// UpdateChannelFeeRate sets the "channel_fee_rate" field to the value that was provided on create.
+func (u *PaymentOrderUpsertBulk) UpdateChannelFeeRate() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateChannelFeeRate()
+	})
+}
+
+// ClearChannelFeeRate clears the value of the "channel_fee_rate" field.
+func (u *PaymentOrderUpsertBulk) ClearChannelFeeRate() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearChannelFeeRate()
+	})
+}
+
+// SetRefundBalanceDeducted sets the "refund_balance_deducted" field.
+func (u *PaymentOrderUpsertBulk) SetRefundBalanceDeducted(v string) *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.SetRefundBalanceDeducted(v)
+	})
+}
+
+// UpdateRefundBalanceDeducted sets the "refund_balance_deducted" field to the value that was provided on create.
+func (u *PaymentOrderUpsertBulk) UpdateRefundBalanceDeducted() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.UpdateRefundBalanceDeducted()
+	})
+}
+
+// ClearRefundBalanceDeducted clears the value of the "refund_balance_deducted" field.
+func (u *PaymentOrderUpsertBulk) ClearRefundBalanceDeducted() *PaymentOrderUpsertBulk {
+	return u.Update(func(s *PaymentOrderUpsert) {
+		s.ClearRefundBalanceDeducted()
+	})
 }
 
 // SetUserID sets the "user_id" field.

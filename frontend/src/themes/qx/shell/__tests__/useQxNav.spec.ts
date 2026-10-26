@@ -113,7 +113,8 @@ describe('useQxNav', () => {
       '/admin/redeem',
       '/admin/promo-codes',
       '/admin/affiliates',
-      '/admin/orders'
+      '/admin/orders',
+      '/admin/finance'
     ])
     expect(paths(s.contentSecurity)).toEqual(['/admin/announcements', '/admin/security-audit'])
     expect(paths(s.system)).toEqual(['/admin/settings', '/custom/adm'])

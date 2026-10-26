@@ -209,6 +209,7 @@ export default {
     myOrders: 'My Orders',
     orderManagement: 'Orders',
     paymentDashboard: 'Payment Dashboard',
+    finance: 'Finance Ledger', // CUSTOM
     paymentConfig: 'Payment Config',
     paymentPlans: 'Plans',
     channelManagement: 'Channels',

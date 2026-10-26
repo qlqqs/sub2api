@@ -176,6 +176,8 @@ export interface ProviderInstance {
   allow_user_refund: boolean
   limits: string
   sort_order: number
+  /** CUSTOM: 通道费率（小数字符串，"0.0320" = 3.2%），只用于财务统计。 */
+  channel_fee_rate?: string
 }
 
 // ==================== Request / Response ====================

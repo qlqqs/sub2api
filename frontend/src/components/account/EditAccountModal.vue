@@ -1845,6 +1845,10 @@
           </div>
         </div>
       </div>
+      <!-- CUSTOM: 账号模型成本倍率（账号保存成功后单独保存） -->
+      <div class="border-t border-gray-200 pt-4 dark:border-dark-600">
+        <AccountModelCostEditor ref="modelCostEditorRef" :account-id="account?.id ?? null" />
+      </div>
       <div class="border-t border-gray-200 pt-4 dark:border-dark-600">
         <label class="input-label">{{ t('admin.accounts.expiresAt') }}</label>
         <input v-model="expiresAtInput" type="datetime-local" class="input" />
@@ -3254,6 +3258,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Select from '@/components/common/Select.vue'
 import HelpTooltip from '@/components/common/HelpTooltip.vue'
 import UpstreamRequestIdHeaderField from '@/components/account/UpstreamRequestIdHeaderField.vue'
+import AccountModelCostEditor from '@/components/account/AccountModelCostEditor.vue' // CUSTOM
 import Toggle from '@/components/common/Toggle.vue'
 import Icon from '@/components/icons/Icon.vue'
 import ProxySelector from '@/components/common/ProxySelector.vue'
@@ -5303,6 +5308,7 @@ const submitUpdateAccount = async (accountID: number, updatePayload: Record<stri
   try {
     let updatedAccount = await adminAPI.accounts.update(accountID, withAntigravityConfirmFlag(updatePayload))
     updatedAccount = await persistGrokMediaEligibility(accountID, updatedAccount)
+    await saveModelCostMultipliers() // CUSTOM
     appStore.showSuccess(t('admin.accounts.accountUpdated'))
     emit('updated', updatedAccount)
     handleClose()
@@ -5323,9 +5329,37 @@ const submitUpdateAccount = async (accountID: number, updatePayload: Record<stri
   }
 }
 
+// ==================== CUSTOM: 账号模型成本倍率 ====================
+type AccountModelCostEditorExpose = {
+  save: () => Promise<void>
+  validate: () => string | null
+}
+const modelCostEditorRef = ref<AccountModelCostEditorExpose | null>(null)
+
+/** 账号保存成功后保存模型成本倍率；失败只提示，不回滚已保存的账号。 */
+const saveModelCostMultipliers = async () => {
+  if (!modelCostEditorRef.value) return
+  try {
+    await modelCostEditorRef.value.save()
+  } catch (error) {
+    appStore.showError(
+      t('admin.finance.accountModelCost.saveFailed', {
+        error: extractApiErrorMessage(error, t('common.unknownError'))
+      })
+    )
+  }
+}
+
 const handleSubmit = async () => {
   if (!props.account) return
   const accountID = props.account.id
+
+  // CUSTOM: 先校验模型成本倍率，避免「账号已保存、成本倍率不合法」的半成功状态
+  const modelCostError = modelCostEditorRef.value?.validate() ?? null
+  if (modelCostError) {
+    appStore.showError(modelCostError)
+    return
+  }
 
   if (form.status !== 'active' && form.status !== 'inactive' && form.status !== 'error') {
     appStore.showError(t('admin.accounts.pleaseSelectStatus'))

@@ -149,6 +149,7 @@ type MethodLimitsResponse struct {
 }
 
 type CreateProviderInstanceRequest struct {
+	ChannelFeeRate  string            `json:"channel_fee_rate"` // CUSTOM(fork): 通道费率。
 	ProviderKey     string            `json:"provider_key"`
 	Name            string            `json:"name"`
 	Config          map[string]string `json:"config"`
@@ -162,6 +163,7 @@ type CreateProviderInstanceRequest struct {
 }
 
 type UpdateProviderInstanceRequest struct {
+	ChannelFeeRate  *string           `json:"channel_fee_rate"` // CUSTOM(fork): PATCH 保留未传值。
 	Name            *string           `json:"name"`
 	Config          map[string]string `json:"config"`
 	SupportedTypes  []string          `json:"supported_types"`
