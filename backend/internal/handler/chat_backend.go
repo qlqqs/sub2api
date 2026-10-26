@@ -111,3 +111,7 @@ func (b *ChatBackend) plazaGroup(ctx context.Context, userID, groupID int64) (*s
 	}
 	return nil, nil
 }
+
+func (b *ChatBackend) WorkbenchState(ctx context.Context, userID int64, kind string) (*service.WorkbenchState, error) {
+	return b.handlers.Auth.authService.WorkbenchState(ctx, userID, kind)
+}

@@ -260,7 +260,7 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 				}
 			} else {
 				// 非订阅模式 或 订阅模式但 subscriptionService 未注入：回退到余额检查
-				if apiKeyBalanceBelowAuthThreshold(apiKey.User.Balance, cfg) {
+				if !isWorkbenchModelDiscovery(c.Request.Method, c.Request.URL.Path) && apiKeyBalanceBelowAuthThreshold(apiKey.User.Balance, cfg) {
 					AbortWithError(c, 403, "INSUFFICIENT_BALANCE", "Insufficient account balance")
 					return
 				}
@@ -446,4 +446,10 @@ func validateAPIKeyGroupAvailable(apiKey *service.APIKey) (string, string, bool)
 		return "GROUP_DISABLED", "API Key 所属分组已停用", false
 	}
 	return "", "", true
+}
+
+// Model discovery is read-only. Keep key/group/expiry/quota checks, but do not
+// confuse an unfunded new account with an unavailable default model.
+func isWorkbenchModelDiscovery(method, path string) bool {
+	return method == "GET" && path == "/v1/models"
 }

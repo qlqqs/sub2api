@@ -211,6 +211,7 @@ func (s *AuthService) createEmailOAuthUser(ctx context.Context, email, username,
 			return nil, ErrInvitationCodeInvalid
 		}
 	}
+	s.bootstrapWorkbench(ctx, user)
 	return user, nil
 }
 

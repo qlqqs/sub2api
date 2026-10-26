@@ -1,0 +1,12 @@
+{
+  "checks": [
+    "WB studio defaults",
+    "WB chat defaults",
+    "WZERO studio defaults",
+    "WZERO chat defaults",
+    "WNONE studio defaults",
+    "WNONE chat defaults"
+  ],
+  "errors": [],
+  "requests": []
+}

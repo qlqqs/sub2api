@@ -29,6 +29,9 @@ func RegisterUserRoutes(
 		user := authenticated.Group("/user")
 		{
 			user.GET("/profile", h.User.GetProfile)
+			user.GET("/workbench/:workbench", h.User.WorkbenchDefaults)
+			user.POST("/workbench/:workbench", h.User.WorkbenchDefaults)
+			user.PUT("/workbench/:workbench", h.User.WorkbenchDefaults)
 			user.PUT("/password", h.User.ChangePassword)
 			user.PUT("", h.User.UpdateProfile)
 			user.GET("/aff", h.User.GetAffiliate)

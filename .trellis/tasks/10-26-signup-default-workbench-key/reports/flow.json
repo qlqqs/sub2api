@@ -1,0 +1,40 @@
+{
+  "checks": [
+    "WB studio defaults",
+    "WB image result",
+    "WB chat defaults",
+    "upstream Responses model and medium",
+    "WB chat request",
+    "WZERO studio defaults",
+    "WZERO image result",
+    "WZERO chat defaults",
+    "WZERO chat request"
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "path": "/api/nova/tasks",
+      "model": "gpt-image-2.5-sunburst"
+    },
+    {
+      "path": "/_chat/api/chat/completions",
+      "model": "gpt-6.1-sol",
+      "params": {
+        "reasoning_effort": "medium",
+        "model_controls": {}
+      }
+    },
+    {
+      "path": "/api/nova/tasks",
+      "model": "gpt-image-2.5-sunburst"
+    },
+    {
+      "path": "/_chat/api/chat/completions",
+      "model": "gpt-6.1-sol",
+      "params": {
+        "reasoning_effort": "medium",
+        "model_controls": {}
+      }
+    }
+  ]
+}

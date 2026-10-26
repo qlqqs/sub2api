@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "Nova manual Key survives fresh browser/login",
+    "Nova explicit clear survives fresh browser/login",
+    "chat high choice survives fresh browser/login and UI displays high",
+    "chat explicit clear survives fresh browser/login"
+  ],
+  "errors": [],
+  "requests": []
+}

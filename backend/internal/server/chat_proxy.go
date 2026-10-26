@@ -373,6 +373,20 @@ func serveChatAPI(c *gin.Context, b chatBackend, u *service.User) {
 		}
 	}
 	switch {
+	case endpoint == "workbench" && c.Request.Method == "GET":
+		wb, ok := b.(interface {
+			WorkbenchState(context.Context, int64, string) (*service.WorkbenchState, error)
+		})
+		if !ok {
+			chatError(c, 503, "WORKBENCH_UNAVAILABLE", "工作台配置暂不可用")
+			return
+		}
+		state, err := wb.WorkbenchState(c.Request.Context(), u.ID, "chat")
+		if err != nil {
+			chatServiceError(c, err)
+			return
+		}
+		c.JSON(200, state)
 	case endpoint == "keys" && c.Request.Method == "GET":
 		keys, err := b.ListKeys(c.Request.Context(), u.ID)
 		if err != nil {

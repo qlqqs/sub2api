@@ -13,6 +13,7 @@
 | [错误处理](./error-handling.md) | 业务错误、错误传播和 HTTP 响应 |
 | [日志](./logging-guidelines.md) | zap、请求上下文、字段和脱敏 |
 | [质量](./quality-guidelines.md) | 格式化、生成代码、测试和审查 |
+| [工作台默认配置](./workbench-defaults.md) | 注册一次性 Key、首次偏好、模型与余额错误契约 |
 
 ## 开发前检查
 

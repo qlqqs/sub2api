@@ -71,6 +71,8 @@ type JWTClaims struct {
 
 // AuthService 认证服务
 type AuthService struct {
+	workbenchRepo         WorkbenchRepository
+	workbenchKeys         WorkbenchKeyService
 	entClient             *dbent.Client
 	userRepo              UserRepository
 	redeemRepo            RedeemCodeRepository
@@ -297,6 +299,7 @@ func (s *AuthService) RegisterWithVerification(ctx context.Context, email, passw
 		}
 	}
 
+	s.bootstrapWorkbench(ctx, user)
 	// 生成token
 	token, err := s.GenerateToken(ctx, user)
 	if err != nil {
@@ -645,6 +648,7 @@ func (s *AuthService) LoginOrRegisterOAuth(ctx context.Context, email, username 
 				s.assignSubscriptions(ctx, user.ID, grantPlan.Subscriptions, "auto assigned by signup defaults")
 				// snapshot user × platform quota（fail-open）
 				_ = s.snapshotPlatformQuotaDefaults(ctx, user.ID, &grantPlan)
+				s.bootstrapWorkbench(ctx, user)
 			}
 		} else {
 			logger.LegacyPrintf("service.auth", "[Auth] Database error during oauth login: %v", err)
@@ -856,6 +860,7 @@ func (s *AuthService) loginOrRegisterOAuthWithTokenPair(ctx context.Context, ema
 		}
 	}
 	if created {
+		s.bootstrapWorkbench(ctx, user)
 		user = s.applyOAuthSignupPromoCode(ctx, user, promoCode)
 	}
 	tokenPair, err := s.GenerateTokenPair(ctx, user, "")
