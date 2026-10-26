@@ -82,6 +82,10 @@ func TestFinanceHandlerContracts(t *testing.T) {
 	w = do(http.MethodGet, "/summary", "")
 	require.Equal(t, 500, w.Code)
 	require.NotContains(t, w.Body.String(), "postgres")
+	w = do(http.MethodGet, "/export", "")
+	require.Equal(t, 500, w.Code)
+	require.NotContains(t, w.Body.String(), "postgres")
+	require.Empty(t, w.Header().Get("Content-Disposition"))
 }
 
 // CUSTOM(fork): 联调字段必须完整走到 HTTP JSON；ID 搜索也应保留数字邮箱匹配。
