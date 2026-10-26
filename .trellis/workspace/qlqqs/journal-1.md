@@ -309,3 +309,26 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Next Steps
 
 - 需管理员配置支付实例通道费率3.2%和固定成本账号1（当前费率0且固定配置不存在）；模型倍率、订阅支出待提供；历史usage 236补算仍待单独确认。
+
+
+## Session 15: 稳定分组工作台与财务联合发布
+<!-- trellis-session: v=2 fp=d6b7a408fd3ff206 -->
+
+**Date**: 2026-10-26
+**Task**: 稳定分组工作台与财务联合发布
+**Branch**: `sub2api-custom`
+
+### Summary
+
+用户授权后提交推送三仓库，CI通过，备份后部署一号机三个配套应用。修复财务7项lint及处理Chat动态IP占用主服务固定IP；现健康、迁移259/260及group ID 2核验通过。Nova 8d649ed，Chat 550b06b；未执行历史重算，未动design-previews。全仓库OWUI/Nova独立类型检查限制详见任务validation。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1a2b2736d` | feat(workbench): bootstrap signup keys and persist first-use defaults |
+| `7beeb73fe` | fix(finance): clear release lint checks without changing behavior |
+
+### Status
+
+[OK] **Completed**

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 14
+- **Total Sessions**: 15
 - **Last Active**: 2026-10-26
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~311 | Active |
+| `journal-1.md` | ~334 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 15 | 2026-10-26 | 稳定分组工作台与财务联合发布 | `1a2b2736d`, `7beeb73fe` | `sub2api-custom` |
 | 14 | 2026-10-26 | 财务功能推送与一号机部署 | `38532a554`, `b2a740e3e` | `sub2api-custom` |
 | 13 | 2026-10-25 | 对话工作台最终验收与归档 | `58ac00ad2` | `sub2api-custom` |
 | 12 | 2026-10-25 | 对话工作台生图修复发布与真机复测 | `58ac00ad2c69b172449b1c3f8f9354bfb5546fe4` | `sub2api-custom` |
