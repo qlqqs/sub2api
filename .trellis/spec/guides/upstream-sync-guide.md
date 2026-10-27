@@ -85,6 +85,15 @@ PR 用 repo+number+head_sha+base_sha 记录版本，未合并 PR 不推进 main 
 
 正例：候选测试通过 → 记录 verified_candidate；移入当前工作区未提交 → applied_in_custom_worktree；获准提交后 → integrated。反例：main 更新或 apply-check 成功后直接标全量已合入/已部署。
 
+## 5A. 获批推送与部署时的检查
+
+- 先核对远端与本地祖先关系及本轮实际发布范围（包括分支中早已存在、尚未发布的其他任务提交），不强推。main/custom一起发布时可原子推送，但不把main同步当作custom全量合并。
+- 等固定head的Custom Image全部必要任务成功后部署；确认该流程是否覆盖独立安全审计，不把CI成功当作原始审计零告警。
+- 核对目标部署目录、旧运行revision及是否有进行中重算；按固定custom短SHA镜像拉取并比对完整OCI revision，留存旧镜像ID及配置/数据库/data备份并验证可读性和校验和。
+- 只更新获准主应用；不顺带重建PG/Redis/Nova/Chat。启动失败回到旧应用镜像，不自动恢复数据库覆盖新业务数据。核对前后其他容器ID，不仅依赖命令参数推断隔离。
+- 上线验证明确区分只读健康/静态资源/未认证鉴权与真实业务全链路；不擅自做付费推理或财务操作。
+- 最后同步下面第6节记录并提交推送纯文档。Custom Image忽略 `.trellis/**` 等文档路径时，文档HEAD可晚于实际运行revision：分别记录，不能把文档提交SHA冒充部署镜像SHA。
+
 ## 6. 最后一步：更新现有记录文档（每轮必做）
 
 1. 追加已有 decisions，并更新 state；记录同步前后 SHA、每项决定、依赖/适配、测试证据、未完成项及下一轮起点。

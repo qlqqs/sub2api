@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 18
+- **Total Sessions**: 19
 - **Last Active**: 2026-10-27
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~421 | Active |
+| `journal-1.md` | ~453 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 19 | 2026-10-27 | 上游维护发布：推送与一号机主应用部署 | `b95be64f6`, `1fa919f68` | `sub2api-custom` |
 | 18 | 2026-10-27 | 上游维护补丁本地提交与进度更新 | `b95be64f6` | `sub2api-custom` |
 | 17 | 2026-10-27 | 上游维护补丁移植与增量工作流（未提交，待质量跟进） | - | `sub2api-custom` |
 | 16 | 2026-10-26 | 历史重算UI审查提交与一号机更新 | `99ab810ed`, `85d31831d` | `sub2api-custom` |

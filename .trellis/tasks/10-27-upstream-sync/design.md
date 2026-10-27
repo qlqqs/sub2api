@@ -1,6 +1,6 @@
 # 技术设计：上游镜像、选择性集成与增量台账
 
-> 用户已批准实施；本设计的台账/规范及首批补丁已落实到 custom，产品提交及验证限制见 verification/commit-report.md。实际验证与未完成门禁见 verification/final-report.md。模型更新完全排除。
+> 用户已批准实施及交付，主应用已发布；当前事实见 verification/release-report.md。旧验证证据保留原结论；模型更新完全排除。
 
 ## 1. 最小行为差距及职责
 

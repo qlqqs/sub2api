@@ -26,7 +26,7 @@
     ".trellis/spec/guides/upstream-sync-guide.md",
     ".trellis/spec/guides/index.md"
   ],
-  "notes": "用户在收到验证限制后明确要求“提交”；14产品文件已提交到sub2api-custom：b95be64f6d06a9c617b4690ac1f0d50c78366d4d，commit blob与测试指纹一致。工作流、台账及现有记录同步提交。任务保持in_progress：FIN-24仍失败、原始依赖审计exit1、CI lint待验证；未推送、未部署。提交不表示风险豁免或发布批准。",
+  "notes": "用户明确批准提交、推送及一号机更新。本轮产品b95be64f6、发布1fa919f68已推送；origin/main=f178e5ae3。CI 40546398450四任务全部通过（含unit/integration/lint）；一号机仅sub2api-custom主应用已备份并部署，健康/静态资源/鉴权检查通过，其他容器ID不变。原始e2e FIN-24和依赖审计限制保留；任务in_progress，不宣称全部质量待办已清。详见verification/release-report.md。",
   "meta": {
     "upstream_target": "f178e5ae32659e8901644a9f2378a0439ffa36ae",
     "custom_base": "a18a7a3a4d7d5f81284f8165a2f9cd464a0bf132"

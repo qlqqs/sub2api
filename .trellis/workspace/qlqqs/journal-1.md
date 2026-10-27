@@ -419,3 +419,35 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Next Steps
 
 - 质量跟进仍待处理；任务保持in_progress，不归档。推送/部署须另获授权。
+
+
+## Session 19: 上游维护发布：推送与一号机主应用部署
+<!-- trellis-session: v=2 fp=51406152fc9bcfb4 -->
+
+**Date**: 2026-10-27
+**Task**: 上游维护发布：推送与一号机主应用部署
+**Branch**: `sub2api-custom`
+
+### Summary
+
+用户明确授权推送更新部署；origin/main=f178e5ae3、custom发布revision=1fa919f68。CI 40546398450四任务成功（unit/integration/lint/前端/镜像）；备份后仅更新一号机sub2api-custom，2026-10-27 17:20:07 UTC健康。其他运行容器ID前后一致，未执行生产财务重算或付费推理。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b95be64f6` | fix(upstream): sync selected security and gateway reliability fixes |
+| `1fa919f68` | docs(upstream): persist selective sync workflow and integration ledger |
+
+### Testing
+
+- [OK] 生产只读health/首页/Nova页面及17个静态资源通过；管理/Chat/工作台未认证401；运行revision准确、healthy，无启动错误模式。备份数据库/data读取与SHA256验证通过。
+- [LIMITED] 保留本机e2e394/395（FIN-24）及原始依赖审计exit1，不以CI/上线成功掩盖。CI lint/integration待办已补齐。
+
+### Status
+
+**发布完成；任务保留质量跟进（in_progress）。**
+
+### Next Steps
+
+- 任务仍保留测试fixture、原始依赖审计及未演练流程场景跟进，不归档。详细发布证据在10-27-upstream-sync/verification/release-report.md；下次仅增量审查新单元和触发重开的旧项。

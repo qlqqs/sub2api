@@ -1,0 +1,115 @@
+{
+  "recorded_at": "2026-10-27T17:22:51.863726+00:00",
+  "release_head": "1fa919f68290ce11f972eca62109ce43535de966",
+  "product_commit": "b95be64f6d06a9c617b4690ac1f0d50c78366d4d",
+  "included_existing_commit": "a18a7a3a4d7d5f81284f8165a2f9cd464a0bf132",
+  "origin_main": "f178e5ae32659e8901644a9f2378a0439ffa36ae",
+  "ci": {
+    "run_id": 40546398450,
+    "head_sha": "1fa919f68290ce11f972eca62109ce43535de966",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "frontend-test",
+        "conclusion": "success",
+        "started_at": "2026-10-27T17:00:17Z",
+        "completed_at": "2026-10-27T17:04:40Z"
+      },
+      {
+        "name": "backend-test",
+        "conclusion": "success",
+        "started_at": "2026-10-27T17:00:17Z",
+        "completed_at": "2026-10-27T17:10:33Z"
+      },
+      {
+        "name": "backend-lint",
+        "conclusion": "success",
+        "started_at": "2026-10-27T17:00:17Z",
+        "completed_at": "2026-10-27T17:04:13Z"
+      },
+      {
+        "name": "image",
+        "conclusion": "success",
+        "started_at": "2026-10-27T17:10:50Z",
+        "completed_at": "2026-10-27T17:16:22Z"
+      }
+    ]
+  },
+  "deployment": {
+    "target": "一号机 sub2api-custom",
+    "directory": "/root/sub2api-custom",
+    "previous_revision": "99ab810ed8b2974b425e072fca5258342b52474a",
+    "previous_image": "sha256:2f0d808c0783a06535fb17f55c7d4d0b7a43d803edde24402f26ee44ede2c234",
+    "image_tag": "ghcr.io/qlqqs/sub2api:custom-1fa919f",
+    "image_digest": "sha256:18e4830d70c6ccaf1ae54af611f9f5b7f0962b351a4ca77ec40c9c050377aa07",
+    "revision": "1fa919f68290ce11f972eca62109ce43535de966",
+    "backup": "/root/sub2api-custom/backups/pre-upstream-maintenance-20261027T171959Z",
+    "backups_verified": true,
+    "stopped_at": "2026-10-27T17:19:59Z",
+    "healthy_at": "2026-10-27T17:20:07Z",
+    "other_containers_unchanged": true,
+    "migration_diff_from_previous_release": false,
+    "smoke": {
+      "read_only": true,
+      "checks": [
+        {
+          "path": "/api/v1/admin/finance/recalculations",
+          "status": 401
+        },
+        {
+          "path": "/health",
+          "status": 200
+        },
+        {
+          "path": "/",
+          "status": 200
+        },
+        {
+          "page": "/",
+          "same_origin_assets_ok": 6
+        },
+        {
+          "path": "/_nova/",
+          "status": 200
+        },
+        {
+          "page": "/_nova/",
+          "same_origin_assets_ok": 11
+        },
+        {
+          "path": "/_chat/",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/user/workbench/studio",
+          "status": 401
+        },
+        {
+          "path": "/_chat/__sub2api/workbench",
+          "status": 401
+        },
+        {
+          "finance_assets": 1,
+          "cancel_preview_and_repreview_shipped": true
+        }
+      ]
+    },
+    "startup_error_pattern_found": false,
+    "real_paid_inference_performed": false,
+    "production_business_writes_performed": false
+  },
+  "validation_limitations": [
+    "Local e2e FIN-24 remains failed: 394/395; existing numeric-email search fixture/contract mismatch.",
+    "Raw production dependency audit remains exit 1; existing exception policy passed; custom-image CI does not run the separate security scan.",
+    "Production verification covers read-only health/assets/authentication, not authenticated end-to-end billing operations."
+  ],
+  "raw_evidence": {
+    "/tmp/s2a-upstream-release/ci-final.json": "7a369f1e5725b1ff8be0012d3e4173ede6075c97bb873bed56af46560aba020e",
+    "/tmp/s2a-upstream-release/deploy.log": "985887df7c1b8f0938bd40bcb4d024591a335613701f25653956404d4e4eb1ad",
+    "/tmp/s2a-upstream-release/production-smoke.log": "cea430d5e75ed7c1a1ced78cb7762d19cfe2e80239f5ddc222cc4c537a6f8122",
+    "/tmp/s2a-upstream-release/deploy.sh": "8b26039f87f482a69c548f8835cc6dafe1451daf2d51849b16187dd328763a1e",
+    "/tmp/s2a-upstream-release/smoke.py": "3270fde5246b37c3e0ecf37788951523f6eaef907596fbf79947f4455e5c757f"
+  },
+  "pushed": true,
+  "deployed": true
+}

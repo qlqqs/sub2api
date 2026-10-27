@@ -20,7 +20,8 @@
 
 ## 当前批次状态
 
-- 冻结上游/本地 main：`f178e5ae32659e8901644a9f2378a0439ffa36ae`；35 个 first-parent 单元已有范围决定，非全部技术审查。
-- M1–M4 已本地提交到 custom（14 产品文件）：`b95be64f6d06a9c617b4690ac1f0d50c78366d4d`；**未推送、未部署**。
-- 后端与前端单元/构建/vet通过；完整本机 e2e **394/395、FIN-24 FAIL**；原始生产依赖审计 **exit 1**，不能称质量门禁全绿。
-- 事实摘要与下一步：`../tasks/10-27-upstream-sync/verification/commit-report.md`。恢复时先处理本批质量跟进及后续交付授权，不重复生成相同范围决定；新上游仍从游标之后开始。
+- 冻结上游/本地及 origin/main：`f178e5ae32659e8901644a9f2378a0439ffa36ae`；35单元有范围决定，非全部技术审查。
+- M1–M4产品提交 `b95be64f6d06a9c617b4690ac1f0d50c78366d4d`；发布revision `1fa919f68290ce11f972eca62109ce43535de966` 已推送并部署一号机sub2api-custom。
+- CI 40546398450 unit/integration/lint/前端/镜像成功；生产只读健康/资源/鉴权通过，其他容器未重建。
+- 保留：本机e2e **394/395、FIN-24 FAIL**；原始生产依赖审计 **exit 1**。不因发布成功抹去这些结果。
+- 当前证据与后续：`../tasks/10-27-upstream-sync/verification/release-report.md`。下次从游标之后新单元及触发重开的旧项继续，不重复范围处置。
