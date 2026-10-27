@@ -1,0 +1,21 @@
+2026-10-27T15:48:40Z
+/home/qlqq/workspace/sub2api-upstream-candidate/backend
+a18a7a3a4d7d5f81284f8165a2f9cd464a0bf132
+module github.com/Wei-Shaw/sub2api
+
+go 1.27.3
+
+require (
+adf5c15bf5fb54d5957279d0fcaf7281f49651a754c9deb89fed0f44a8799135  go.mod
+b17668c6300c04027bd397650e60e28e514dc4abb9ab113e3cea634fdd708109  go.sum
+go: downloading go1.27.3 (linux/amd64)
+go: download go1.27.3: golang.org/toolchain@v0.0.1-go1.27.3.linux-amd64: Get "https://proxy.golang.org/golang.org/toolchain/@v/v0.0.1-go1.27.3.linux-amd64.zip": dial tcp [2607:f8b0:400a:802::2011]:443: i/o timeout
+go: downloading go1.27.3 (linux/amd64)
+go: download go1.27.3: golang.org/toolchain@v0.0.1-go1.27.3.linux-amd64: Get "https://proxy.golang.org/golang.org/toolchain/@v/v0.0.1-go1.27.3.linux-amd64.zip": dial tcp [2607:f8b0:400a:802::2011]:443: i/o timeout
+
+After user-cache toolchain bootstrap via existing proxy:
+2026-10-27T15:58:57Z
+go version go1.27.3 linux/amd64
+auto
+go1.27.3
+/home/qlqq/workspace/sub2api-upstream-candidate/backend/go.mod

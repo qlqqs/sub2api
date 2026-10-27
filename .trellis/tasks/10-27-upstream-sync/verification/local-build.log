@@ -1,0 +1,263 @@
+>> frontend: i18n 检查 + vue-tsc + vite build（产物写入 backend/internal/web/dist，已被 .gitignore 忽略）
+
+> sub2api-frontend@1.0.0 build /home/qlqq/workspace/sub2api-upstream-candidate/frontend
+> pnpm run check:i18n && vue-tsc -b && vite build
+
+
+> sub2api-frontend@1.0.0 check:i18n /home/qlqq/workspace/sub2api-upstream-candidate/frontend
+> vitest run src/i18n/__tests__/localeKeyCompleteness.spec.ts
+
+
+ RUN  v2.1.9 /home/qlqq/workspace/sub2api-upstream-candidate/frontend
+
+ ✓ src/i18n/__tests__/localeKeyCompleteness.spec.ts (3 tests) 43ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  16:11:33
+   Duration  8.91s (transform 5.12s, setup 95ms, collect 7.68s, tests 43ms, environment 443ms, prepare 94ms)
+
+vite v5.4.21 building for production...
+(node:2006448) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+transforming...
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 1276 modules transformed.
+rendering chunks...
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/stores/app.ts is dynamically imported by /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/i18n/index.ts but also statically imported by /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/account/BulkEditAccountModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/account/CreateAccountModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/account/EditAccountModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/account/HeaderOverrideJsonTools.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/account/ModelWhitelistSelector.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/account/OllamaCloudUsageSettings.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/account/ReAuthAccountModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/account/SyncFromCrsModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/account/TempUnschedStatusModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/ErrorPassthroughRulesModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/TLSFingerprintProfilesModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/account/ImportDataModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/account/ReAuthAccountModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/account/ScheduledTestsPanel.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/announcements/AnnouncementBannerDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/announcements/AnnouncementReadStatusDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/finance/FinanceAccountCostSettings.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/finance/FinanceExpenseDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/finance/FinanceExpensesTab.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/finance/FinancePaymentSettings.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/group/GroupRPMOverridesModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/group/GroupRateMultipliersModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/monitor/MonitorFormDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/monitor/MonitorTemplateApplyPickerDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/monitor/MonitorTemplateManagerDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/proxy/ImportDataModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/usage/UsageCleanupDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/usage/UsageTable.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/user/BulkEditUserModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/user/GroupReplaceModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/user/OfflineBackfillModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/user/UserAllowedGroupsModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/user/UserApiKeysModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/user/UserBalanceModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/user/UserCreateModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/user/UserEditModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/user/UserPlatformQuotaModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/common/AnnouncementBell.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/common/GroupBadge.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/common/GroupOptionItem.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/common/PlazaPriceLink.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/common/Toast.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/keys/BulkEditKeysModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/modelPlaza/PlazaGroupSection.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/modelPlaza/PlazaNavBar.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/MonitorDetailDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/UserAttributesConfigModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/affiliate-team/TeamConsumptionPage.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/profile/ProfileAvatarCard.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/profile/ProfileBalanceNotifyCard.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/profile/ProfileEditForm.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/profile/ProfilePasskeyCard.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/profile/ProfilePasswordForm.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/profile/TotpDisableDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/profile/TotpSetupModal.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/composables/useAccountOAuth.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/composables/useAntigravityOAuth.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/composables/useClipboard.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/composables/useGeminiOAuth.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/composables/useGrokOAuth.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/composables/useOpenAIOAuth.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/features/channel-monitor-v2/MonitorSettingsPanel.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/features/prompt-audit/PromptAuditView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/main.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/router/index.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/stores/index.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/utils/featureFlags.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/DownloadsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/ModelPlazaView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/AccountsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/AnnouncementsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/ChannelMonitorView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/ChannelsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/DashboardView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/GroupsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/PromoCodesView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/ProxiesView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/RedeemView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/RiskControlView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/SubscriptionsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/UsageView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/UsersView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/affiliates/AdminAffiliateAgentsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/affiliates/AdminAffiliateRecordsTable.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/affiliates/AdminAffiliateTeamView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/affiliates/AffiliateOfflineWithdrawDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/finance/AdminFinanceView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/ops/components/OpsAlertEventsCard.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/ops/components/OpsAlertRulesCard.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/ops/components/OpsSettingsDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/orders/AdminOrdersView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/orders/AdminPaymentDashboardView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/orders/AdminPaymentPlansView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/orders/PlanEditDialog.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/public/LegalDocumentView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/AffiliateView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/AvailableChannelsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/BatchImageGuideView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/ChannelStatusV1View.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/ChannelStatusV2View.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/KeysView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/ProfileView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/RedeemView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/SubscriptionsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/UsageView.vue?vue&type=script&setup=true&lang.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/stores/auth.ts is dynamically imported by /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/i18n/index.ts but also statically imported by /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/admin/finance/FinanceRecalculationTab.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/common/PlazaPriceLink.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/layout/AppLayout.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/modelPlaza/ModelPlazaContent.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/modelPlaza/PlazaNavBar.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/profile/ProfileAvatarCard.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/profile/ProfileBalanceNotifyCard.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/user/profile/ProfileEditForm.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/composables/useBatchImageAccess.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/composables/useOnboardingTour.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/router/index.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/stores/index.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/themes/qx/chat/ChatView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/themes/qx/dashboard/QxDashboard.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/themes/qx/studio/StudioView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/DownloadsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/ModelPlazaView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/AccountsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/GroupsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/AffiliateView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/ChannelStatusV2View.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/CustomPageView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/DashboardView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/PaymentResultView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/PaymentView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/ProfileView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/RedeemView.vue?vue&type=script&setup=true&lang.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/stores/adminSettings.ts is dynamically imported by /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/i18n/index.ts but also statically imported by /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/layout/AppHeader.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/router/index.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/stores/index.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/SettingsView.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/user/CustomPageView.vue?vue&type=script&setup=true&lang.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/router/title.ts is dynamically imported by /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/i18n/index.ts but also statically imported by /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/App.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/components/layout/AppHeader.vue?vue&type=script&setup=true&lang.ts, /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/router/index.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/router/index.ts is dynamically imported by /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/i18n/index.ts but also statically imported by /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/main.ts, dynamic import will not move module into another chunk.
+
+computing gzip size...
+../backend/internal/web/dist/index.html                                                                               0.80 kB │ gzip:   0.39 kB
+../backend/internal/web/dist/assets/GroupOptionItem-CGeMtTZs.css                                                      0.07 kB │ gzip:   0.09 kB
+../backend/internal/web/dist/assets/Pagination-CtuvddY-.css                                                           0.11 kB │ gzip:   0.12 kB
+../backend/internal/web/dist/assets/RegisterView-DFvq30So.css                                                         0.20 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/EmailVerifyView-Cl5VW0eL.css                                                      0.20 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/LinuxDoCallbackView-DQ7xRnW6.css                                                  0.20 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/WechatCallbackView-BRJlNRB0.css                                                   0.20 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/DingTalkCallbackView-2-yiQGEP.css                                                 0.20 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/OidcCallbackView-Buxp4n1p.css                                                     0.20 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/PendingOAuthCreateAccountForm-BCeYCja5.css                                        0.20 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/ForgotPasswordView-D5q6IfTR.css                                                   0.20 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/ResetPasswordView-Bthzu-nm.css                                                    0.20 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/RedeemView-D5w1G2cX.css                                                           0.20 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/LoginView-mYEDiWCN.css                                                            0.20 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/UsersView-MqRRHQdy.css                                                            0.21 kB │ gzip:   0.13 kB
+../backend/internal/web/dist/assets/LocaleSwitcher-D_RVO6EU.css                                                       0.23 kB │ gzip:   0.15 kB
+../backend/internal/web/dist/assets/ModelWhitelistSelector-BR3Adxor.css                                               0.25 kB │ gzip:   0.20 kB
+../backend/internal/web/dist/assets/LoadingSpinner-DT-rtrW_.css                                                       0.27 kB │ gzip:   0.19 kB
+../backend/internal/web/dist/assets/StudioView-UM10OAR-.css                                                           0.29 kB │ gzip:   0.21 kB
+../backend/internal/web/dist/assets/useAffiliateTeamQuery-6XHPr6nT.css                                                0.36 kB │ gzip:   0.22 kB
+../backend/internal/web/dist/assets/ChatView-D798KXkL.css                                                             0.36 kB │ gzip:   0.25 kB
+../backend/internal/web/dist/assets/GroupsView-Iph2G4D1.css                                                           0.41 kB │ gzip:   0.15 kB
+../backend/internal/web/dist/assets/PricingEntryCard-0GjzhJuw.css                                                     0.43 kB │ gzip:   0.22 kB
+../backend/internal/web/dist/assets/LoginAgreementPrompt-DhEkaHwn.css                                                 0.51 kB │ gzip:   0.18 kB
+../backend/internal/web/dist/assets/AuthLayout-CDeiyvth.css                                                           0.53 kB │ gzip:   0.23 kB
+../backend/internal/web/dist/assets/OpsDashboard-DwWJHeD7.css                                                         0.56 kB │ gzip:   0.25 kB
+../backend/internal/web/dist/assets/BatchImageGuideView-BN4sSRYR.css                                                  0.66 kB │ gzip:   0.30 kB
+../backend/internal/web/dist/assets/AccountsView-0DhTHAON.css                                                         1.17 kB │ gzip:   0.47 kB
+../backend/internal/web/dist/assets/SubscriptionsView-NN08gdh9.css                                                    1.32 kB │ gzip:   0.47 kB
+../backend/internal/web/dist/assets/CaptchaChallenge-BmkiKxf7.css                                                     1.40 kB │ gzip:   0.48 kB
+../backend/internal/web/dist/assets/KeyUsageView-bMqFeaVY.css                                                         1.47 kB │ gzip:   0.56 kB
+../backend/internal/web/dist/assets/ChannelsView-4tQtQs5B.css                                                         1.66 kB │ gzip:   0.50 kB
+../backend/internal/web/dist/assets/HomeView-Dagk0jRk.css                                                             2.36 kB │ gzip:   0.87 kB
+../backend/internal/web/dist/assets/DataTable-Cp2SE2TW.css                                                            3.24 kB │ gzip:   0.77 kB
+../backend/internal/web/dist/assets/TablePageLayout-VS0ltruZ.css                                                      3.84 kB │ gzip:   0.87 kB
+../backend/internal/web/dist/assets/vendor-misc-DB0Q8XAf.css                                                          3.94 kB │ gzip:   1.10 kB
+../backend/internal/web/dist/assets/ModelPlazaView-BGvyCOau.css                                                       5.36 kB │ gzip:   1.08 kB
+../backend/internal/web/dist/assets/LegalDocumentView-B7SKxPJs.css                                                    5.48 kB │ gzip:   0.92 kB
+../backend/internal/web/dist/assets/SettingsView-oG-kYMIZ.css                                                         6.63 kB │ gzip:   1.65 kB
+../backend/internal/web/dist/assets/ChannelStatusView-DEIjoA__.css                                                    8.27 kB │ gzip:   1.88 kB
+../backend/internal/web/dist/assets/DateRangePicker-BrTHJcUD.css                                                      9.82 kB │ gzip:   1.49 kB
+../backend/internal/web/dist/assets/ProxySelector-zAx0c_1E.css                                                        9.93 kB │ gzip:   1.50 kB
+../backend/internal/web/dist/assets/Select-BojdV4tk.css                                                              10.74 kB │ gzip:   1.60 kB
+../backend/internal/web/dist/assets/QxDashboardView-Bbiln97R.css                                                     11.27 kB │ gzip:   2.50 kB
+../backend/internal/web/dist/assets/CustomPageView-DUGQx28L.css                                                      12.82 kB │ gzip:   2.16 kB
+../backend/internal/web/dist/assets/theme-B7AXTmxS.css                                                               17.00 kB │ gzip:   4.23 kB
+../backend/internal/web/dist/assets/shell-CnWJQp6b.css                                                               18.94 kB │ gzip:   3.62 kB
+../backend/internal/web/dist/assets/index-CwEc51Fo.css                                                              378.25 kB │ gzip:  46.88 kB
+../backend/internal/web/dist/assets/maskApiKey-ClKV8GuA.js                                                            0.11 kB │ gzip:   0.11 kB
+../backend/internal/web/dist/assets/stableObjectKey-DullU5Fx.js                                                       0.15 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/channel-SyyoV7lJ.js                                                               0.15 kB │ gzip:   0.14 kB
+../backend/internal/web/dist/assets/modelPlaza-6GHpK8KY.js                                                            0.16 kB │ gzip:   0.15 kB
+../backend/internal/web/dist/assets/formatters-By0YwBEp.js                                                            0.22 kB │ gzip:   0.18 kB
+../backend/internal/web/dist/assets/groups-C-3pJn5q.js                                                                0.25 kB │ gzip:   0.18 kB
+../backend/internal/web/dist/assets/authError-Ch9RozGZ.js                                                             0.26 kB │ gzip:   0.17 kB
+../backend/internal/web/dist/assets/platforms-CLYVBYrr.js                                                             0.29 kB │ gzip:   0.23 kB
+../backend/internal/web/dist/assets/documentDark-BoeR-A5X.js                                                          0.38 kB │ gzip:   0.26 kB
+../backend/internal/web/dist/assets/announcementBanner-DuingwVs.js                                                    0.61 kB │ gzip:   0.31 kB
+../backend/internal/web/dist/assets/index-B7K_UQr9.js                                                                 0.66 kB │ gzip:   0.38 kB
+../backend/internal/web/dist/assets/totp-hKtHaQ6U.js                                                                  0.73 kB │ gzip:   0.28 kB
+../backend/internal/web/dist/assets/currency-DpW1WrYL.js                                                              0.77 kB │ gzip:   0.49 kB
+../backend/internal/web/dist/assets/pricing-CkqYLGg7.js                                                               0.78 kB │ gzip:   0.39 kB
+../backend/internal/web/dist/assets/affiliateRewards-iE8ZT0oB.js                                                      0.82 kB │ gzip:   0.43 kB
+../backend/internal/web/dist/assets/LoadingSpinner-CFjAiH3J.js                                                        0.83 kB │ gzip:   0.51 kB
+../backend/internal/web/dist/assets/SearchInput.vue_vue_type_script_setup_true_lang-rgWtdr_K.js                       0.85 kB │ gzip:   0.52 kB
+../backend/internal/web/dist/assets/AdminAffiliateInvitesView-DO5QhpPv.js                                             0.86 kB │ gzip:   0.49 kB
+../backend/internal/web/dist/assets/AdminAffiliateTransfersView-COBZEVcQ.js                                           0.86 kB │ gzip:   0.49 kB
+../backend/internal/web/dist/assets/payment-D-6aJIZ1.js                                                               0.90 kB │ gzip:   0.35 kB
+../backend/internal/web/dist/assets/Toggle.vue_vue_type_script_setup_true_lang-CkaBtzOg.js                            0.92 kB │ gzip:   0.53 kB
+../backend/internal/web/dist/assets/useClipboard-DPjLV4Ea.js                                                          0.92 kB │ gzip:   0.57 kB
+../backend/internal/web/dist/assets/useTableSelection-DI2mK22a.js                                                     0.99 kB │ gzip:   0.47 kB
+../backend/internal/web/dist/assets/TablePageLayout-C2EVsRXX.js                                                       0.99 kB │ gzip:   0.51 kB
+../backend/internal/web/dist/assets/AdminAffiliateRebatesView-Bugn7Chr.js                                             1.01 kB │ gzip:   0.57 kB
+../backend/internal/web/dist/assets/payment-CVobO6HM.js                                                               1.18 kB │ gzip:   0.59 kB
+../backend/internal/web/dist/assets/oauthAffiliate-CrlUwkd1.js                                                        1.20 kB │ gzip:   0.50 kB
+../backend/internal/web/dist/assets/usePersistedPageSize-x0WpaIWh.js                                                  1.21 kB │ gzip:   0.58 kB
+../backend/internal/web/dist/assets/apiError-zX02PgX9.js                                                              1.21 kB │ gzip:   0.57 kB
+../backend/internal/web/dist/assets/PlazaPriceLink.vue_vue_type_script_setup_true_lang-CWlczha_.js                    1.25 kB │ gzip:   0.76 kB
+../backend/internal/web/dist/assets/AffiliateSectionTabs.vue_vue_type_script_setup_true_lang-Dl-YaeKh.js              1.31 kB │ gzip:   0.75 kB
+../backend/internal/web/dist/assets/AffiliateTeamView-NKF7Hotz.js                                                     1.45 kB │ gzip:   0.74 kB
+../backend/internal/web/dist/assets/ConfirmDialog.vue_vue_type_script_setup_true_lang-Bar2VrJO.js                     1.54 kB │ gzip:   0.75 kB
+../backend/internal/web/dist/assets/registrationEmailPolicy-BIuq-4e8.js                                               1.58 kB │ gzip:   0.71 kB
+../backend/internal/web/dist/assets/AdminAffiliateTeamViewerView-CsYok4Z4.js                                          1.61 kB │ gzip:   0.80 kB
+../backend/internal/web/dist/assets/EmptyState.vue_vue_type_script_setup_true_lang-DM3xlk1s.js                        1.71 kB │ gzip:   0.93 kB
+../backend/internal/web/dist/assets/paymentUx-DAEiek0q.js                                                             1.81 kB │ gzip:   0.75 kB
+../backend/internal/web/dist/assets/useQxSite-DBMh-Fzd.js                                                             1.85 kB │ gzip:   0.83 kB
+../backend/internal/web/dist/assets/usage-DCy7mqvL.js                                                                 1.88 kB │ gzip:   0.61 kB
+../backend/internal/web/dist/assets/financeFormat-D6A7LZYK.js                                                         1.99 kB │ gzip:   0.91 kB
+../backend/internal/web/dist/assets/OrderStatusBadge.vue_vue_type_script_setup_true_lang-Dd-fFE7X.js                  2.14 kB │ gzip:   0.68 kB
+../backend/internal/web/dist/assets/clientDownloads-BBCbTr7x.js                                                       2.14 kB │ gzip:   0.97 kB
+../backend/internal/web/dist/assets/QxSiteHeader.vue_vue_type_script_setup_true_lang-CrxNhadz.js                      2.20 kB │ gzip:   1.01 kB
+../backend/internal/web/dist/assets/LocaleSwitcher-B39TQ-OS.js                                                        2.29 kB │ gzip:   1.17 kB
+../backend/internal/web/dist/assets/user-DM2DgNRe.js                                                                  2.33 kB │ gzip:   0.95 kB
+../backend/internal/web/dist/assets/NotFoundView-DAePfOsX.js                                                          2.51 kB │ gzip:   1.27 kB
+../backend/internal/web/dist/assets/StudioView-B-vg4iG8.js                                                            2.54 kB │ gzip:   1.30 kB
+../backend/internal/web/dist/assets/WechatPaymentCallbackView-BK6uPJyo.js                                             2.56 kB │ gzip:   1.29 kB
+../backend/internal/web/dist/assets/PlazaNavBar.vue_vue_type_script_setup_true_lang-WlKZWGy5.js                       2.66 kB │ gzip:   1.13 kB
+../backend/internal/web/dist/assets/adminTeamContext-C2BmvTY-.js                                                      2.67 kB │ gzip:   1.02 kB
+../backend/internal/web/dist/assets/OrderTable.vue_vue_type_script_setup_true_lang-C3TlJTCm.js                        2.89 kB │ gzip:   1.19 kB
+../backend/internal/web/dist/assets/rechargeBonus-Cjpd3isk.js                                                         2.99 kB │ gzip:   1.14 kB
+../backend/internal/web/dist/assets/wxpay-UHDvuORB.js                                                                 2.99 kB │ gzip:   1.29 kB
+../backend/internal/web/dist/assets/DingTalkEmailCompletionView-BNQFiGPt.js                                           3.03 kB │ gzip:   1.47 kB
+../backend/internal/web/dist/assets/HelpTooltip.vue_vue_type_script_setup_true_lang-BspNsHoy.js                       3.19 kB │ gzip:   1.47 kB
+../backend/internal/web/dist/assets/vendor-stripe-DSy-tJeT.js                                                         3.31 kB │ gzip:   1.52 kB
+../backend/internal/web/dist/assets/TokenUsageTrend.vue_vue_type_script_setup_true_lang-B9ycT_CM.js                   3.38 kB │ gzip:   1.48 kB
+../backend/internal/web/dist/assets/GroupOptionItem-B6U_G--G.js                                                       3.57 kB │ gzip:   1.54 kB
+../backend/internal/web/dist/assets/AirwallexPaymentView-DK7mbzuo.js                                                  3.62 kB │ gzip:   1.76 kB
+../backend/internal/web/dist/assets/GroupSelector.vue_vue_type_script_setup_true_lang-DxBOsfyw.js                     3.69 kB │ gzip:   1.63 kB
+../backend/internal/web/dist/assets/QxAuthLayout.vue_vue_type_script_setup_true_lang-DUaEryaO.js                      3.70 kB │ gzip:   1.69 kB
+../backend/internal/web/dist/assets/providerConfig-BiMVXo-X.js                                                        3.73 kB │ gzip:   1.27 kB
+../backend/internal/web/dist/assets/StripePopupView-C1mH8-3y.js                                                       4.21 kB │ gzip:   1.88 kB
+../backend/internal/web/dist/assets/paymentFlow-cys_N5rS.js                                                           4.39 kB │ gzip:   1.55 kB
+../backend/internal/web/dist/assets/UsageProgressBar.vue_vue_type_script_setup_true_lang-xdz-ObRT.js                  4.44 kB │ gzip:   1.67 kB
+../backend/internal/web/dist/assets/PaymentQRCodeView-DxrvtLgZ.js                                                     4.72 kB │ gzip:   2.16 kB
+../backend/internal/web/dist/assets/DateRangePicker-BVjKLvt_.js                                                       4.81 kB │ gzip:   1.81 kB
+../backend/internal/web/dist/assets/ChatView-BSSKIv3W.js                                                              5.00 kB │ gzip:   2.16 kB
+../backend/internal/web/dist/assets/TotpStepUpDialog.vue_vue_type_script_setup_true_lang-CFceVCFf.js                  5.19 kB │ gzip:   2.44 kB
+../backend/internal/web/dist/assets/LegalDocumentView-BJ5Z9Poa.js                                                     5.49 kB │ gzip:   2.20 kB
+../backend/internal/web/dist/assets/Pagination-CI5Uv5bu.js                                                            5.81 kB │ gzip:   2.02 kB
+../backend/internal/web/dist/assets/ProxySelector-i6wAK1qP.js                                                         6.00 kB │ gzip:   2.35 kB
+../backend/internal/web/dist/assets/UserOrdersView-IH49kXm4.js                                                        6.29 kB │ gzip:   2.38 kB
+../backend/internal/web/dist/assets/AccountModelCostEditor.vue_vue_type_script_setup_true_lang-B6o1xVL2.js            6.32 kB │ gzip:   2.43 kB
+../backend/internal/web/dist/assets/PendingOAuthCreateAccountForm-BV7M3ify.js                                         6.45 kB │ gzip:   2.35 kB
+../backend/internal/web/dist/assets/ForgotPasswordView-DollbcHs.js                                                    6.56 kB │ gzip:   2.69 kB
+../backend/internal/web/dist/assets/GroupBadge.vue_vue_type_script_setup_true_lang-B_xAbz3_.js                        6.63 kB │ gzip:   2.14 kB
+../backend/internal/web/dist/assets/errorBadges-DUib_N2F.js                                                           7.50 kB │ gzip:   2.96 kB
+../backend/internal/web/dist/assets/EndpointDistributionChart.vue_vue_type_script_setup_true_lang-44K8AvkT.js         7.60 kB │ gzip:   2.60 kB
+../backend/internal/web/dist/assets/ResetPasswordView-CNeM76co.js                                                     7.83 kB │ gzip:   2.64 kB
+../backend/internal/web/dist/assets/Select-BODmYQKz.js                                                                8.05 kB │ gzip:   3.14 kB
+../backend/internal/web/dist/assets/OAuthCallbackView-B2XpOkV5.js                                                     8.60 kB │ gzip:   2.94 kB
+../backend/internal/web/dist/assets/AdminAffiliateTeamView-Dq9S9dwT.js                                                9.01 kB │ gzip:   3.73 kB
+../backend/internal/web/dist/assets/SubscriptionsView-XUgMwMVM.js                                                     9.33 kB │ gzip:   2.97 kB
+../backend/internal/web/dist/assets/AccountStatsPricingRulesEditor.vue_vue_type_script_setup_true_lang-eXTEDn7F.js    9.48 kB │ gzip:   3.26 kB
+../backend/internal/web/dist/assets/AdminPaymentDashboardView-DdfGyXe4.js                                             9.56 kB │ gzip:   3.15 kB
+../backend/internal/web/dist/assets/CustomPageView-20GgTxrj.js                                                        9.60 kB │ gzip:   4.25 kB
+../backend/internal/web/dist/assets/DownloadsView-VsDpeDf9.js                                                         9.66 kB │ gzip:   3.79 kB
+../backend/internal/web/dist/assets/StripePaymentView-D9frOlLT.js                                                     9.80 kB │ gzip:   4.01 kB
+../backend/internal/web/dist/assets/ModelTagInput.vue_vue_type_script_setup_true_lang-CMYKq8RX.js                    10.04 kB │ gzip:   3.69 kB
+../backend/internal/web/dist/assets/PaymentResultView-BNZZge4u.js                                                    10.12 kB │ gzip:   3.24 kB
+../backend/internal/web/dist/assets/platformColors-o60LSa8F.js                                                       10.25 kB │ gzip:   2.03 kB
+../backend/internal/web/dist/assets/CaptchaChallenge.vue_vue_type_script_setup_true_lang-SbhGp4cP.js                 10.79 kB │ gzip:   4.14 kB
+../backend/internal/web/dist/assets/RedeemView-BQ5f7joi.js                                                           12.78 kB │ gzip:   4.29 kB
+../backend/internal/web/dist/assets/EmailVerifyView-S4mO9qd9.js                                                      13.30 kB │ gzip:   4.64 kB
+../backend/internal/web/dist/assets/PluginsView-CkZngPgT.js                                                          14.51 kB │ gzip:   4.65 kB
+../backend/internal/web/dist/assets/ModelDistributionChart.vue_vue_type_script_setup_true_lang-B41mut_Z.js           14.66 kB │ gzip:   4.14 kB
+../backend/internal/web/dist/assets/LinuxDoCallbackView-BLJ1rzlw.js                                                  14.76 kB │ gzip:   4.47 kB
+../backend/internal/web/dist/assets/UserBalanceHistoryModal.vue_vue_type_script_setup_true_lang-BXErWG_z.js          14.86 kB │ gzip:   5.03 kB
+../backend/internal/web/dist/assets/OidcCallbackView-BT6oEOVh.js                                                     14.95 kB │ gzip:   4.53 kB
+../backend/internal/web/dist/assets/QxHomeView-C0qsDz-D.js                                                           15.01 kB │ gzip:   5.05 kB
+../backend/internal/web/dist/assets/DingTalkCallbackView-D7YMbSzx.js                                                 15.27 kB │ gzip:   4.60 kB
+../backend/internal/web/dist/assets/AdminPaymentPlansView-CIW0p_sN.js                                                15.39 kB │ gzip:   4.77 kB
+../backend/internal/web/dist/assets/DataTable-B_BUxa6f.js                                                            15.72 kB │ gzip:   5.33 kB
+../backend/internal/web/dist/assets/SetupWizardView-Drxl3QmJ.js                                                      15.80 kB │ gzip:   3.93 kB
+../backend/internal/web/dist/assets/AffiliateView-BwROHpnL.js                                                        16.13 kB │ gzip:   5.14 kB
+../backend/internal/web/dist/assets/LoginAgreementPrompt-Dzd2fnFj.js                                                 16.20 kB │ gzip:   5.69 kB
+../backend/internal/web/dist/assets/PromoCodesView-B-D9mGo6.js                                                       16.47 kB │ gzip:   4.84 kB
+../backend/internal/web/dist/assets/useAffiliateTeamQuery-B9vh4woF.js                                                16.65 kB │ gzip:   6.02 kB
+../backend/internal/web/dist/assets/DashboardView-CEB3kRH6.js                                                        16.76 kB │ gzip:   5.05 kB
+../backend/internal/web/dist/assets/AuditLogView-BOFo02MR.js                                                         17.93 kB │ gzip:   5.23 kB
+../backend/internal/web/dist/assets/LoginView-1LoodMzN.js                                                            18.12 kB │ gzip:   6.50 kB
+../backend/internal/web/dist/assets/AvailableChannelsView-CvkmZ3Zh.js                                                18.77 kB │ gzip:   5.23 kB
+../backend/internal/web/dist/assets/PlatformIcon.vue_vue_type_script_setup_true_lang-CkvYRbYY.js                     18.90 kB │ gzip:   7.53 kB
+../backend/internal/web/dist/assets/WechatCallbackView-dlUyfRm1.js                                                   19.09 kB │ gzip:   5.49 kB
+../backend/internal/web/dist/assets/QxDashboardView-DcQWCPxP.js                                                      19.35 kB │ gzip:   6.90 kB
+../backend/internal/web/dist/assets/proxyExpiry-g_QFbdQp.js                                                          19.43 kB │ gzip:   6.57 kB
+../backend/internal/web/dist/assets/HomeView-DbuO96j_.js                                                             20.32 kB │ gzip:   5.06 kB
+../backend/internal/web/dist/assets/AdminOrdersView-DUdhtt_O.js                                                      21.72 kB │ gzip:   5.92 kB
+../backend/internal/web/dist/assets/RegisterView-a3z_HmtS.js                                                         23.31 kB │ gzip:   6.61 kB
+../backend/internal/web/dist/assets/channelMonitorV2-DDW5zwrQ.js                                                     24.64 kB │ gzip:   9.37 kB
+../backend/internal/web/dist/assets/AdminAffiliateRecordsTable.vue_vue_type_script_setup_true_lang-BeDaM_vI.js       26.22 kB │ gzip:   7.50 kB
+../backend/internal/web/dist/assets/TeamConsumptionPage.vue_vue_type_script_setup_true_lang-DU9QsAYX.js              26.65 kB │ gzip:   7.64 kB
+../backend/internal/web/dist/assets/RedeemView-BuFs9WJF.js                                                           26.89 kB │ gzip:   7.54 kB
+../backend/internal/web/dist/assets/OpsErrorLogTable.vue_vue_type_script_setup_true_lang-DUQr13t3.js                 26.91 kB │ gzip:   7.26 kB
+../backend/internal/web/dist/assets/DashboardView-Bm9i5xzf.js                                                        27.05 kB │ gzip:   7.57 kB
+../backend/internal/web/dist/assets/PricingEntryCard-BnLxfYJU.js                                                     27.15 kB │ gzip:   5.93 kB
+../backend/internal/web/dist/assets/UsageView-TbZyuWOB.js                                                            29.86 kB │ gzip:   9.14 kB
+../backend/internal/web/dist/assets/AdminAffiliateAgentsView-DzzXnyme.js                                             31.01 kB │ gzip:   8.55 kB
+../backend/internal/web/dist/assets/AnnouncementsView-CTUvrm35.js                                                    31.33 kB │ gzip:   8.59 kB
+../backend/internal/web/dist/assets/KeyUsageView-Cy69YEJo.js                                                         31.65 kB │ gzip:   8.32 kB
+../backend/internal/web/dist/assets/ChannelsView-avfnxcLZ.js                                                         32.59 kB │ gzip:   8.89 kB
+../backend/internal/web/dist/assets/ModelPlazaView-ul82qZEY.js                                                       33.52 kB │ gzip:   9.47 kB
+../backend/internal/web/dist/assets/SubscriptionsView-BSc-pBMe.js                                                    49.01 kB │ gzip:  13.26 kB
+../backend/internal/web/dist/assets/GroupDistributionChart.vue_vue_type_script_setup_true_lang-CWdQhQd9.js           49.53 kB │ gzip:  12.60 kB
+../backend/internal/web/dist/assets/UsageView-CUeqOm2w.js                                                            50.61 kB │ gzip:  14.65 kB
+../backend/internal/web/dist/assets/ProxiesView-Dnm4Xbft.js                                                          51.65 kB │ gzip:  13.75 kB
+../backend/internal/web/dist/assets/vendor-i18n-CkDOCqd2.js                                                          63.32 kB │ gzip:  20.34 kB
+../backend/internal/web/dist/assets/PaymentView-CabtJgjQ.js                                                          64.18 kB │ gzip:  19.16 kB
+../backend/internal/web/dist/assets/ProfileView-0b_Kdtnr.js                                                          66.47 kB │ gzip:  16.88 kB
+../backend/internal/web/dist/assets/BatchImageGuideView-Bs1IZmuQ.js                                                  68.25 kB │ gzip:  21.84 kB
+../backend/internal/web/dist/assets/PromptAuditView-BqZ5xb0M.js                                                      68.65 kB │ gzip:  17.13 kB
+../backend/internal/web/dist/assets/ModelWhitelistSelector.vue_vue_type_script_setup_true_lang-DGmwxXvQ.js           71.14 kB │ gzip:  23.00 kB
+../backend/internal/web/dist/assets/ChannelStatusView-CtBggxpm.js                                                    77.79 kB │ gzip:  22.46 kB
+../backend/internal/web/dist/assets/ChannelMonitorView-DEsjhG9N.js                                                   77.91 kB │ gzip:  19.42 kB
+../backend/internal/web/dist/assets/RiskControlView-oj5mUHHN.js                                                      87.97 kB │ gzip:  19.43 kB
+../backend/internal/web/dist/assets/AdminFinanceView-BlzpjslK.js                                                    100.42 kB │ gzip:  26.55 kB
+../backend/internal/web/dist/assets/KeysView-DDa0F3rg.js                                                            112.81 kB │ gzip:  30.09 kB
+../backend/internal/web/dist/assets/UsersView-Cy4SC2jV.js                                                           113.92 kB │ gzip:  28.99 kB
+../backend/internal/web/dist/assets/AppLayout.vue_vue_type_script_setup_true_lang-B8WNxfYH.js                       115.15 kB │ gzip:  31.76 kB
+../backend/internal/web/dist/assets/vendor-vue-kMLF3tqV.js                                                          116.40 kB │ gzip:  45.24 kB
+../backend/internal/web/dist/assets/vendor-chart-CHpmWdiU.js                                                        178.36 kB │ gzip:  61.37 kB
+../backend/internal/web/dist/assets/index-c0fKpQfo.js                                                               207.65 kB │ gzip:  62.29 kB
+../backend/internal/web/dist/assets/OpsDashboard-Dop2PfcD.js                                                        218.99 kB │ gzip:  47.18 kB
+../backend/internal/web/dist/assets/GroupsView-Cr3_om9q.js                                                          225.39 kB │ gzip:  47.44 kB
+../backend/internal/web/dist/assets/vendor-misc-r6DXk9_z.js                                                         280.57 kB │ gzip:  95.91 kB
+../backend/internal/web/dist/assets/index-D52cifVM.js                                                               294.18 kB │ gzip: 156.49 kB
+../backend/internal/web/dist/assets/vendor-ui-DANU8U__.js                                                           432.46 kB │ gzip: 144.82 kB
+../backend/internal/web/dist/assets/SettingsView-BQ3cylYG.js                                                        456.57 kB │ gzip:  90.56 kB
+../backend/internal/web/dist/assets/index-BeGNbNZ-.js                                                               478.59 kB │ gzip: 146.90 kB
+../backend/internal/web/dist/assets/AccountsView-_Jb21bLp.js                                                        831.32 kB │ gzip: 173.47 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 44.61s
+>> backend: go build（commit a18a7a3a4-dirty）
+>> docker build sub2api-local:latest
+sha256:f55b02e38debbadcfb8c4958885c7dec081ac066349a6e75b1d10db0c2ad14a7
+>> done: sub2api-local:latest (a18a7a3a4-dirty)

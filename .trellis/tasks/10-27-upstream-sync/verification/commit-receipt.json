@@ -1,0 +1,13 @@
+{
+  "recorded_at": "2026-10-27T16:50:37.300591+00:00",
+  "product_commit": "b95be64f6d06a9c617b4690ac1f0d50c78366d4d",
+  "branch": "sub2api-custom",
+  "authorization": "User explicitly requested 提交 after receiving validation limitations; authorizes local commit only, not a quality waiver or release approval.",
+  "parent": "a18a7a3a4d7d5f81284f8165a2f9cd464a0bf132",
+  "product_file_count": 14,
+  "committed_blobs_match_tested_fingerprints": true,
+  "validation_evidence": ".trellis/tasks/10-27-upstream-sync/verification/final-verification.json",
+  "validation_status": "unit_build_pass_e2e_failed_audit_findings",
+  "pushed": false,
+  "deployed": false
+}

@@ -1,0 +1,56 @@
+diff --git a/backend/internal/service/openai_capacity_shed_test.go b/backend/internal/service/openai_capacity_shed_test.go
+index 7d2f8c8dd..086f7380e 100644
+--- a/backend/internal/service/openai_capacity_shed_test.go
++++ b/backend/internal/service/openai_capacity_shed_test.go
+@@ -124,6 +124,8 @@ func TestOpenAIStreamErrorFrameDoesNotStartClientOutput(t *testing.T) {
+ 		{`{"type":"error","error":{"type":"invalid_request_error","code":"content_policy_violation","message":"blocked"}}`, "error", true},
+ 		{`{"type":"response.failed","response":{"error":{"code":"server_is_overloaded"}}}`, "response.failed", false},
+ 		{`{"type":"response.created","response":{"id":"resp_1"}}`, "response.created", false},
++		{`{"type":"response.queued","response":{"id":"resp_1","status":"queued"}}`, "response.queued", false},
++		{`{"type":"response.metadata","response_id":"resp_1","metadata":{"openai_chatgpt_moderation_metadata":{"prompt":{}}}}`, "response.metadata", false},
+ 		{`{"type":"response.in_progress","response":{"id":"resp_1"}}`, "response.in_progress", false},
+ 		{`{"type":"keepalive"}`, "keepalive", false},
+ 		{`{"type":"unknown_event"}`, "unknown_event", true},
+@@ -147,6 +149,12 @@ func TestOpenAIStreamMetadataAndKeepaliveBeforeOverloadFailOver(t *testing.T) {
+ 		"event: response.created",
+ 		`data: {"type":"response.created","response":{"id":"resp_1","metadata":{"padding":"` + largeMetadata + `"}}}`,
+ 		"",
++		"event: response.queued",
++		`data: {"type":"response.queued","response":{"id":"resp_1","status":"queued"}}`,
++		"",
++		"event: response.metadata",
++		`data: {"type":"response.metadata","response_id":"resp_1","metadata":{"openai_chatgpt_moderation_metadata":{"prompt":{}}}}`,
++		"",
+ 		"event: response.output_item.added",
+ 		`data: {"type":"response.output_item.added","item":{"type":"reasoning","summary":[]}}`,
+ 		"",
+diff --git a/backend/internal/service/openai_gateway_passthrough.go b/backend/internal/service/openai_gateway_passthrough.go
+index 6feadb8fb..170830ae4 100644
+--- a/backend/internal/service/openai_gateway_passthrough.go
++++ b/backend/internal/service/openai_gateway_passthrough.go
+@@ -1087,7 +1087,9 @@ func openAIStreamClientOutputStarted(c *gin.Context, localStarted bool) bool {
+ // Lifecycle metadata and transport heartbeats are not model output.
+ func openAIStreamEventIsMetadata(eventType string) bool {
+ 	switch strings.TrimSpace(eventType) {
+-	case "response.created", "response.in_progress", "keepalive":
++	// Queuing and moderation metadata do not commit model output or disarm the
++	// first-output timeout; a following overload must remain safe to retry.
++	case "response.created", "response.queued", "response.in_progress", "response.metadata", "keepalive":
+ 		return true
+ 	default:
+ 		return false
+diff --git a/backend/internal/service/openai_ws_http_bridge_test.go b/backend/internal/service/openai_ws_http_bridge_test.go
+index 12f08c655..c8c654e6c 100644
+--- a/backend/internal/service/openai_ws_http_bridge_test.go
++++ b/backend/internal/service/openai_ws_http_bridge_test.go
+@@ -1192,6 +1192,10 @@ func TestProxyOpenAIWSHTTPBridgeTurnStagesMetadataAndRelaysKeepaliveBeforeCapaci
+ 	preamble := strings.Join([]string{
+ 		`data: {"type":"response.created","response":{"id":"resp_shed"}}`,
+ 		"",
++		`data: {"type":"response.queued","response":{"id":"resp_shed","status":"queued"}}`,
++		"",
++		`data: {"type":"response.metadata","response_id":"resp_shed","metadata":{"openai_chatgpt_moderation_metadata":{"prompt":{}}}}`,
++		"",
+ 		`data: {"type":"response.in_progress","response":{"id":"resp_shed"}}`,
+ 		"",
+ 		`data: {"type":"keepalive"}`,

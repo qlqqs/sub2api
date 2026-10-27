@@ -355,3 +355,67 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 17: 上游维护补丁移植与增量工作流（未提交，待质量跟进）
+<!-- trellis-session: v=2 fp=2134ded8c236a9ee -->
+
+**Date**: 2026-10-27
+**Task**: 上游维护补丁移植与增量工作流（未提交，待质量跟进）
+**Branch**: `sub2api-custom`（候选：`upstream-sync/2026-10-27-maintenance`）
+
+### Summary
+
+本地main快进至f178e5ae3；M1–M4共14产品文件从已验证候选移入custom工作区，基线a18a7a3a4为他人提交。长期台账覆盖35单元，新增工作流并强制收尾更新现有记录。任务仍in_progress，无本轮提交/推送/部署，模型工作排除。
+
+### Main Changes
+
+- 新增 .trellis/upstream-sync/{state.json,decisions.jsonl,README.md} 与 spec/guides/upstream-sync-guide.md；更新现有guides索引、backend工具链规范、本轮PRD/design/implement/task及验证摘要。
+
+### Git Commits
+
+本轮未创建提交；已批准实施，补丁留在工作区。
+
+### Testing
+
+- [OK] 后端定向283、race23、unit58包、build与当前工作区vet通过；pnpm9冻结安装/lint/typecheck及437文件3463前端测试通过。
+- [WARNING] 本机生产构建通过；e2e按现有report规则汇总395项，394通过、FIN-24失败（旧断言与邮箱子串OR用户ID契约冲突），未改业务/测试掩盖。原始依赖审计exit1：2 high/13 moderate/2 low；既有例外检查exit0，未改例外。CI lint及integration-tag测试未运行。
+
+### Status
+
+**In progress — 工作区移植与本轮记录完成；质量跟进及提交授权待办。**
+
+### Next Steps
+
+- 独立跟进FIN-24、依赖审计风险和CI lint；门禁及用户授权满足后才提交，届时记录真实custom目标SHA；推送/生产部署分别授权。
+- 下次从f178e5ae3后新增单元与触发重开项开始，不重复审查已处置35单元；详细证据见10-27-upstream-sync/verification/final-report.md。
+
+
+## Session 18: 上游维护补丁本地提交与进度更新
+<!-- trellis-session: v=2 fp=253b43691e393ec3 -->
+
+**Date**: 2026-10-27
+**Task**: 上游维护补丁本地提交与进度更新
+**Branch**: `sub2api-custom`
+
+### Summary
+
+用户明确要求提交；M1–M4共14产品文件已提交b95be64f6，提交blob与已测试指纹一致。六个上游选入单元追加真实目标SHA映射，工作流/台账/现有任务及journal同步更新。不推送、不部署。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b95be64f6` | fix(upstream): sync selected security and gateway reliability fixes |
+
+### Testing
+
+- [LIMITED] 指纹、暂存范围、diff检查通过；沿用前轮代码未变的测试证据。e2e仍394/395（FIN-24失败），原始依赖审计exit1，CI lint待验证；未声称全绿。
+
+### Status
+
+**In progress — 本地提交完成；质量跟进及推送/部署待办。**
+
+### Next Steps
+
+- 质量跟进仍待处理；任务保持in_progress，不归档。推送/部署须另获授权。

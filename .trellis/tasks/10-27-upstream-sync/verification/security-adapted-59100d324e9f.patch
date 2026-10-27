@@ -1,0 +1,13 @@
+diff --git a/Dockerfile b/Dockerfile
+index aad052f4f..0242d6f13 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -8,7 +8,7 @@
+ # =============================================================================
+ 
+ ARG NODE_IMAGE=node:24.22.1-alpine
+-ARG GOLANG_IMAGE=golang:1.27.2-alpine
++ARG GOLANG_IMAGE=golang:1.27.3-alpine
+ ARG ALPINE_IMAGE=alpine:3.21
+ ARG POSTGRES_IMAGE=postgres:18-alpine
+ ARG GOPROXY=https://goproxy.cn,direct

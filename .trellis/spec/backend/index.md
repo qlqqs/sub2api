@@ -1,6 +1,6 @@
 # 后端开发规范
 
-> `backend/` 是 Go 1.26 服务，使用 Gin、Ent、PostgreSQL、Redis、Wire 和 zap。
+> `backend/` 是 Go 服务（工具链版本以 `backend/go.mod` 为准），使用 Gin、Ent、PostgreSQL、Redis、Wire 和 zap。
 
 ## 使用方式
 

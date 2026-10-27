@@ -2,7 +2,7 @@
 
 ## 必须保持的约束
 
-- 使用 Go 1.26 module 语义和仓库已有依赖，不为小功能引入重型框架。
+- 使用 `backend/go.mod` 声明的 Go 工具链及 module 语义和仓库已有依赖，不为小功能引入重型框架。
 - 所有 Go 改动经过 `gofmt`。`backend/.golangci.yml` 启用 `depguard`、`errcheck`、`gosec`、`govet`、`ineffassign`、`staticcheck` 和 `unused`。
 - handler 不依赖 repository/数据库客户端；service 通过自己定义的最小接口依赖基础设施。
 - 公共方法接收的 `context.Context` 沿 repository、网络和缓存调用传播。

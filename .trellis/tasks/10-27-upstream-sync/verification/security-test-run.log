@@ -1,0 +1,3234 @@
+
+> sub2api-frontend@1.0.0 test:run /home/qlqq/workspace/sub2api-upstream-candidate/frontend
+> vitest run
+
+
+ RUN  v2.1.9 /home/qlqq/workspace/sub2api-upstream-candidate/frontend
+
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+ ✓ src/components/keys/__tests__/UseKeyModal.spec.ts (30 tests) 618ms
+ ✓ src/components/modelPlaza/__tests__/PlazaModelPricingTable.spec.ts (64 tests) 559ms
+ ✓ src/components/admin/usage/__tests__/UsageTable.spec.ts (39 tests) 528ms
+ ✓ src/components/account/__tests__/AccountUsageCell.spec.ts (59 tests) 564ms
+ ✓ src/components/account/__tests__/credentialsBuilder.spec.ts (71 tests) 60ms
+ ✓ src/components/user/profile/__tests__/ProfileIdentityBindingsSection.spec.ts (28 tests) 530ms
+ ✓ src/components/account/__tests__/BulkEditAccountModal.spec.ts (54 tests) 1741ms
+ ✓ src/views/auth/__tests__/EmailVerifyView.spec.ts (16 tests) 365ms
+ ✓ src/views/auth/__tests__/WechatCallbackView.spec.ts (25 tests) 461ms
+ ✓ src/views/auth/__tests__/LinuxDoCallbackView.spec.ts (17 tests) 445ms
+ ✓ src/views/admin/__tests__/UsageView.spec.ts (14 tests) 853ms
+ ✓ src/components/admin/finance/__tests__/FinanceRecalculationTab.spec.ts (22 tests) 984ms
+ ✓ src/components/account/__tests__/EditAccountModal.spec.ts (72 tests) 3436ms
+ ✓ src/views/user/__tests__/KeysView.spec.ts (27 tests) 1418ms
+ ✓ src/components/account/__tests__/CreateAccountModal.spec.ts (49 tests) 3770ms
+   ✓ CreateAccountModal OpenAI long-context billing > providers using the generic form > creates a by-model provider account from its profile defaults 309ms
+ ✓ src/views/auth/__tests__/OidcCallbackView.spec.ts (15 tests) 489ms
+ ✓ src/views/user/__tests__/UsageView.spec.ts (11 tests) 621ms
+ ✓ src/views/admin/__tests__/RiskControlView.spec.ts (11 tests) 907ms
+ ✓ src/views/user/__tests__/PaymentView.spec.ts (31 tests) 1538ms
+ ✓ src/views/user/__tests__/AffiliateView.spec.ts (15 tests) 441ms
+ ✓ src/components/account/__tests__/OpenAIQuotaResetCell.spark_shadow.spec.ts (29 tests) 537ms
+ ✓ src/features/prompt-audit/__tests__/components.spec.ts (10 tests) 354ms
+ ✓ src/router/__tests__/guards.spec.ts (34 tests) 14ms
+stderr | src/views/admin/__tests__/UsersView.spec.ts > admin UsersView > deletes across pages and retains failures: '43'
+Error deleting user: Error: Cannot delete user
+    at Object.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/__tests__/UsersView.spec.ts:239:41)
+    at Object.mockCall (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+spy@2.1.9/node_modules/@vitest/spy/dist/index.js:61:17)
+    at Object.spy [as delete] (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/tinyspy@3.0.2/node_modules/tinyspy/dist/index.js:45:80)
+    at confirmBulkDelete (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/UsersView.vue:1829:28)
+
+ ✓ src/components/payment/__tests__/paymentFlow.spec.ts (25 tests) 14ms
+stderr | src/views/admin/__tests__/UsersView.spec.ts > admin UsersView > deletes across pages and retains failures: '42,43'
+Error deleting user: Error: Cannot delete user
+    at Object.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/__tests__/UsersView.spec.ts:239:41)
+    at Object.mockCall (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+spy@2.1.9/node_modules/@vitest/spy/dist/index.js:61:17)
+    at Object.spy [as delete] (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/tinyspy@3.0.2/node_modules/tinyspy/dist/index.js:45:80)
+    at confirmBulkDelete (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/UsersView.vue:1829:28)
+    at callWithErrorHandling (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vue+runtime-core@3.5.43/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:200:19)
+    at callWithAsyncErrorHandling (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vue+runtime-core@3.5.43/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:207:17)
+    at emit (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vue+runtime-core@3.5.43/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:4545:5)
+    at onClick (eval at compileToFunction (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/vue@3.5.43_typescript@5.6.3/node_modules/vue/dist/vue.cjs.js:71:18), <anonymous>:22:33)
+    at callWithErrorHandling (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vue+runtime-core@3.5.43/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:200:19)
+    at Object.callWithAsyncErrorHandling (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vue+runtime-core@3.5.43/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:207:17)
+Error deleting user: Error: Cannot delete user
+    at Object.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/__tests__/UsersView.spec.ts:239:41)
+    at Object.mockCall (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+spy@2.1.9/node_modules/@vitest/spy/dist/index.js:61:17)
+    at Object.spy [as delete] (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/tinyspy@3.0.2/node_modules/tinyspy/dist/index.js:45:80)
+    at confirmBulkDelete (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/UsersView.vue:1829:28)
+
+ ✓ src/views/admin/__tests__/UsersView.spec.ts (11 tests) 619ms
+ ✓ src/views/admin/affiliates/__tests__/AdminAffiliateTeamView.spec.ts (11 tests) 861ms
+ ✓ src/components/auth/__tests__/PendingOAuthCreateAccountForm.spec.ts (12 tests) 183ms
+ ✓ src/api/__tests__/client.spec.ts (30 tests) 2309ms
+   ✓ API Client > 401 Token 刷新 > 刷新期间换号时旧请求不会清除新会话 1092ms
+ ✓ src/views/user/__tests__/PaymentResultView.spec.ts (14 tests) 182ms
+ ✓ src/stores/__tests__/app.spec.ts (26 tests) 64ms
+stderr | src/views/admin/__tests__/AccountsView.sparkShadow.spec.ts > admin AccountsView — 账号行展示 > 仅将具有安全 base_url 的 API Key 账号名称链接到站点主页
+Failed to load upstream billing probe settings: TypeError: Cannot read properties of undefined (reading 'enabled')
+    at loadUpstreamBillingProbeGlobalState (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/AccountsView.vue:1503:58)
+
+stderr | src/views/admin/__tests__/AccountsView.sparkShadow.spec.ts > admin AccountsView — 账号行展示 > prefers persisted Grok JWT tier over lagging billing/quota snapshots
+Failed to load upstream billing probe settings: TypeError: Cannot read properties of undefined (reading 'enabled')
+    at loadUpstreamBillingProbeGlobalState (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/AccountsView.vue:1503:58)
+
+stderr | src/views/admin/__tests__/AccountsView.sparkShadow.spec.ts > admin AccountsView — 账号行展示 > skips malformed Grok plan fields and safely uses the next valid fallback
+Failed to load upstream billing probe settings: TypeError: Cannot read properties of undefined (reading 'enabled')
+    at loadUpstreamBillingProbeGlobalState (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/AccountsView.vue:1503:58)
+
+ ✓ src/views/admin/__tests__/AccountsView.bulkEdit.spec.ts (7 tests) 583ms
+stderr | src/views/admin/__tests__/AccountsView.sparkShadow.spec.ts > admin AccountsView — 账号行展示 > replaces a Grok row when auto refresh returns a changed canonical usage snapshot
+Failed to load upstream billing probe settings: TypeError: Cannot read properties of undefined (reading 'enabled')
+    at loadUpstreamBillingProbeGlobalState (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/AccountsView.vue:1503:58)
+
+ ✓ src/features/prompt-audit/__tests__/PromptAuditView.spec.ts (8 tests) 502ms
+ ✓ src/views/admin/__tests__/AccountsView.sparkShadow.spec.ts (10 tests) 639ms
+ ✓ src/views/admin/affiliates/__tests__/AdminAffiliateAgentsView.spec.ts (8 tests) 631ms
+ ✓ src/views/admin/__tests__/GroupsView.duplicate.spec.ts (9 tests) 869ms
+ ✓ src/components/account/__tests__/ClaudeResetCreditsCell.spec.ts (27 tests) 552ms
+ ✓ src/components/account/__tests__/UpstreamBillingRateCell.spec.ts (7 tests) 248ms
+ ✓ src/components/account/__tests__/credentialsBuilder.platformCatalog.spec.ts (10 tests) 32ms
+ ✓ src/views/user/__tests__/AffiliateTeamView.spec.ts (9 tests) 887ms
+ ✓ src/components/admin/user/__tests__/UserPlatformQuotaModal.spec.ts (27 tests) 767ms
+ ✓ src/views/admin/__tests__/BackupView.spec.ts (11 tests) 703ms
+ ✓ src/components/__tests__/TencentCaptchaGate.spec.ts (15 tests) 117ms
+ ✓ src/components/common/__tests__/DataTable.spec.ts (13 tests) 626ms
+ ✓ src/views/admin/affiliates/__tests__/AdminAffiliateRecordsTable.spec.ts (8 tests) 399ms
+ ✓ src/views/auth/__tests__/RegisterView.spec.ts (13 tests) 540ms
+ ✓ src/views/admin/__tests__/MonitorFormDialog.accountSelector.spec.ts (10 tests) 916ms
+ ✓ src/views/admin/__tests__/GroupsView.columnSettings.spec.ts (9 tests) 479ms
+ ✓ src/themes/qx/chat/__tests__/ChatView.spec.ts (18 tests) 428ms
+ ✓ src/views/admin/__tests__/SettingsView.spec.ts (46 tests) 9571ms
+   ✓ admin SettingsView payment visible method controls > loads and saves the open button visibility for each custom menu 487ms
+   ✓ admin SettingsView payment visible method controls > submits the compact home page toggle 323ms
+   ✓ admin SettingsView payment visible method controls > 人机验证切换到腾讯天御并保存四项配置 337ms
+   ✓ admin SettingsView payment visible method controls > loads, edits, and saves recharge bonus tiers and the notice 321ms
+   ✓ admin SettingsView payment visible method controls > hides auto-upgrade-only fields in manual mode and submits the four affiliate rule blocks 429ms
+   ✓ admin SettingsView payment visible method controls > clears the OAuth rate without losing zero (weighted=true) 389ms
+ ✓ src/__tests__/integration/navigation.spec.ts (10 tests) 325ms
+ ✓ src/components/account/__tests__/ModelWhitelistSelector.spec.ts (26 tests) 487ms
+ ✓ src/components/admin/finance/__tests__/FinanceAccountCostSettings.spec.ts (14 tests) 1577ms
+   ✓ FinanceAccountCostSettings > shows all shared impacts and conditionally writes ONLY cost config, keeping supported advanced data 351ms
+ ✓ src/api/__tests__/settings.authSourceDefaults.spec.ts (13 tests) 21ms
+ ✓ src/views/admin/__tests__/groupsReasoningEffort.spec.ts (19 tests) 24ms
+stderr | src/stores/__tests__/auth.spec.ts > useAuthStore > logout > 注销后清除所有状态和 localStorage
+Error: Error: connect ECONNREFUSED 127.0.0.1:3000
+    at Object.dispatchError (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/xhr-utils.js:63:19)
+    at Request.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:521:24)
+    at ClientRequest.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/helpers/http-request.js:127:14)
+    at ClientRequest.emit (node:events:509:28)
+    at emitErrorEvent (node:_http_client:109:11)
+    at Socket.socketErrorListener (node:_http_client:593:5)
+    at Socket.emit (node:events:509:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) undefined
+
+stderr | src/stores/__tests__/auth.spec.ts > useAuthStore > checkAuth > localStorage 中用户数据损坏时清除状态
+Failed to parse saved user data: SyntaxError: Unexpected token 'i', "invalid-json{{{" is not valid JSON
+    at JSON.parse (<anonymous>)
+    at Proxy.checkAuth (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/stores/auth.ts:120:27)
+    at Proxy.wrappedAction (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/pinia@2.3.1_typescript@5.6.3_vue@3.5.43_typescript@5.6.3_/node_modules/pinia/dist/pinia.mjs:1399:26)
+    at /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/stores/__tests__/auth.spec.ts:193:13
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+ ✓ src/stores/__tests__/auth.spec.ts (21 tests) 158ms
+ ✓ src/components/payment/__tests__/PaymentProviderDialog.spec.ts (16 tests) 580ms
+ ✓ src/composables/__tests__/useModelWhitelist.spec.ts (22 tests) 23ms
+ ✓ src/utils/__tests__/ipGeoLookup.spec.ts (22 tests) 124ms
+ ✓ src/components/admin/usage/__tests__/UsageFilters.spec.ts (5 tests) 229ms
+ ✓ src/components/payment/__tests__/PaymentStatusPanel.spec.ts (8 tests) 232ms
+ ✓ src/components/account/__tests__/EditAccountModal.grokUpstream.spec.ts (11 tests) 778ms
+ ✓ src/views/user/__tests__/RedeemView.spec.ts (11 tests) 708ms
+ ✓ src/components/admin/finance/__tests__/FinancePaymentSettings.spec.ts (26 tests) 1213ms
+ ✓ src/views/admin/__tests__/GroupsView.modelRates.spec.ts (8 tests) 749ms
+ ✓ src/components/admin/channel/__tests__/types.spec.ts (38 tests) 52ms
+ ✓ src/views/admin/__tests__/AccountsView.lite.spec.ts (7 tests) 532ms
+ ✓ src/components/admin/user/__tests__/UserBalanceHistoryModal.spec.ts (21 tests) 476ms
+ ✓ src/components/admin/subscription/__tests__/BulkSubscriptionActionDialog.spec.ts (20 tests) 419ms
+ ✓ src/views/admin/affiliates/__tests__/AffiliateOfflineWithdrawDialog.spec.ts (8 tests) 292ms
+ ✓ src/views/__tests__/KeyUsageView.spec.ts (4 tests) 334ms
+ ✓ src/themes/qx/dashboard/__tests__/QxDashboardView.spec.ts (10 tests) 369ms
+ ✓ src/views/user/__tests__/StripePaymentView.spec.ts (10 tests) 160ms
+ ✓ src/components/user/dashboard/__tests__/AnnouncementBanner.spec.ts (14 tests) 1903ms
+ ✓ src/__tests__/integration/usage-reasoning-effort.spec.ts (3 tests) 470ms
+ ✓ src/api/__tests__/admin.finance.spec.ts (10 tests) 25ms
+ ✓ src/components/user/profile/__tests__/ProfileAvatarCard.spec.ts (4 tests) 122ms
+stderr | src/views/admin/ops/components/__tests__/OpsOpenAITokenStatsCard.spec.ts > OpsOpenAITokenStatsCard > 接口异常时显示错误提示
+[OpsOpenAITokenStatsCard] Failed to load data Error: 加载失败
+    at /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/ops/components/__tests__/OpsOpenAITokenStatsCard.spec.ts:296:47
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)
+    at startTests (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/vitest@2.1.9_@types+node@20.19.27_jsdom@24.1.3/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11
+
+ ✓ src/views/admin/ops/components/__tests__/OpsOpenAITokenStatsCard.spec.ts (8 tests) 299ms
+ ✓ src/views/admin/settings/__tests__/AdminAffiliateBindInviterDialog.spec.ts (4 tests) 326ms
+stderr | src/views/admin/__tests__/AccountsView.selectAllResults.spec.ts > admin AccountsView select all filtered results > keeps the original page selection when loading all results fails
+Failed to select all account results: Error: load all failed
+    at Object.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/__tests__/AccountsView.selectAllResults.spec.ts:243:15)
+    at Object.mockCall (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+spy@2.1.9/node_modules/@vitest/spy/dist/index.js:61:17)
+    at Object.spy [as list] (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/tinyspy@3.0.2/node_modules/tinyspy/dist/index.js:45:80)
+    at /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/AccountsView.vue:2084:61
+    at Module.fetchAllAccountIds (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/utils/accountSelection.ts:28:27)
+    at handleSelectAllResults (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/AccountsView.vue:2083:23)
+    at callWithErrorHandling (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vue+runtime-core@3.5.43/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:200:19)
+    at callWithAsyncErrorHandling (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vue+runtime-core@3.5.43/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:207:17)
+    at emit (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vue+runtime-core@3.5.43/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js:4545:5)
+    at onClick (eval at compileToFunction (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/vue@3.5.43_typescript@5.6.3/node_modules/vue/dist/vue.cjs.js:71:18), <anonymous>:28:29)
+
+ ✓ src/views/admin/__tests__/AccountsView.selectAllResults.spec.ts (5 tests) 497ms
+ ✓ src/views/admin/__tests__/SubscriptionsView.userUsageLink.spec.ts (6 tests) 499ms
+ ✓ src/components/admin/settings/__tests__/FxRateCard.spec.ts (11 tests) 297ms
+ ✓ src/components/admin/group/__tests__/GroupModelRatesEditor.spec.ts (16 tests) 282ms
+ ✓ src/views/admin/__tests__/GroupsView.codexManifest.spec.ts (1 test) 229ms
+ ✓ src/components/keys/__tests__/BulkEditKeysModal.spec.ts (11 tests) 347ms
+ ✓ src/themes/qx/__tests__/QxHomeView.spec.ts (11 tests) 324ms
+ ✓ src/components/account/__tests__/OpenAIReferralCell.spec.ts (9 tests) 330ms
+ ✓ src/views/user/__tests__/CustomPageView.spec.ts (9 tests) 210ms
+ ✓ src/composables/__tests__/useRoutePrefetch.spec.ts (15 tests) 2725ms
+   ✓ useRoutePrefetch > requestIdleCallback 超时处理 > 超时后仍能正常执行预加载 2102ms
+ ✓ src/components/account/__tests__/UsageProgressBar.spec.ts (12 tests) 138ms
+ ✓ src/themes/qx/shell/__tests__/useQxNav.spec.ts (10 tests) 109ms
+stderr | VirtualConsole.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/virtual-console.js:29:45)
+Error: Error: connect ECONNREFUSED 127.0.0.1:3000
+    at Object.dispatchError (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/xhr-utils.js:63:19)
+    at Request.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:521:24)
+    at ClientRequest.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/helpers/http-request.js:127:14)
+    at ClientRequest.emit (node:events:509:28)
+    at emitErrorEvent (node:_http_client:109:11)
+    at Socket.socketErrorListener (node:_http_client:593:5)
+    at Socket.emit (node:events:509:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) undefined
+Error: Error: connect ECONNREFUSED 127.0.0.1:3000
+    at Object.dispatchError (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/xhr-utils.js:63:19)
+    at Request.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:521:24)
+    at ClientRequest.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/helpers/http-request.js:127:14)
+    at ClientRequest.emit (node:events:509:28)
+    at emitErrorEvent (node:_http_client:109:11)
+    at Socket.socketErrorListener (node:_http_client:593:5)
+    at Socket.emit (node:events:509:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) undefined
+
+ ✓ src/components/admin/group/__tests__/CodexManifestAccountsField.spec.ts (4 tests) 144ms
+stderr | src/views/admin/__tests__/AccountsView.usageWindowsHint.spec.ts > admin AccountsView usage windows hint > keeps groups available when loading proxies fails
+Failed to load proxies: Error: proxy service unavailable
+    at /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/__tests__/AccountsView.usageWindowsHint.spec.ts:162:37
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)
+    at startTests (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)
+
+ ✓ src/views/admin/__tests__/AccountsView.usageWindowsHint.spec.ts (5 tests) 519ms
+stderr | src/views/admin/ops/components/__tests__/OpsSystemLogTable.spec.ts > rolling log retention settings > does not overwrite saved retention with defaults after a load failure
+[OpsSystemLogTable] Failed to load runtime log config Error: unavailable
+    at /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/views/admin/ops/components/__tests__/OpsSystemLogTable.spec.ts:207:47
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)
+    at startTests (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/vitest@2.1.9_@types+node@20.19.27_jsdom@24.1.3/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11
+
+ ✓ src/views/admin/ops/components/__tests__/OpsSystemLogTable.spec.ts (7 tests) 336ms
+ ✓ src/views/admin/__tests__/PluginsView.spec.ts (6 tests) 385ms
+stderr | src/stores/__tests__/subscriptions.spec.ts > useSubscriptionStore > fetchActiveSubscriptions > API 错误时抛出异常
+Failed to fetch active subscriptions: Error: Network error
+    at /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/stores/__tests__/subscriptions.spec.ts:141:52
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)
+
+ ✓ src/stores/__tests__/subscriptions.spec.ts (13 tests) 44ms
+ ✓ src/views/auth/__tests__/OAuthCallbackView.spec.ts (6 tests) 138ms
+ ✓ src/api/__tests__/tokenRefresh.spec.ts (7 tests) 84ms
+ ✓ src/components/channels/__tests__/AvailableChannelsTable.spec.ts (6 tests) 167ms
+ ✓ src/components/admin/channel/__tests__/TimePricingSection.spec.ts (11 tests) 260ms
+stderr | src/components/payment/__tests__/SubscriptionPlanCard.spec.ts > SubscriptionPlanCard > does not show Antigravity model scopes for OpenAI plans
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+
+stderr | src/components/payment/__tests__/SubscriptionPlanCard.spec.ts > SubscriptionPlanCard > shows model scopes for Antigravity plans
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+
+stderr | src/components/payment/__tests__/SubscriptionPlanCard.spec.ts > SubscriptionPlanCard > renders plural admin-form validity units instead of mislabeled days (#4607)
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.perMonth'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.months'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.weeks'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+
+stderr | src/components/payment/__tests__/SubscriptionPlanCard.spec.ts > SubscriptionPlanCard > uses the configured currency symbol while preserving USD for legacy plans
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+
+stderr | src/components/payment/__tests__/SubscriptionPlanCard.spec.ts > SubscriptionPlanCard > keeps the full long Chinese plan title accessible in a bounded two-line area
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+
+stderr | src/components/payment/__tests__/SubscriptionPlanCard.spec.ts > SubscriptionPlanCard > keeps the full long English plan title accessible in a bounded two-line area
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+
+stderr | src/components/payment/__tests__/SubscriptionPlanCard.spec.ts > SubscriptionPlanCard > keeps the full unbroken token plan title accessible in a bounded two-line area
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+
+stderr | src/components/payment/__tests__/SubscriptionPlanCard.spec.ts > SubscriptionPlanCard > keeps title, badge, price, description, and purchase action in separate bounded regions
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+
+stderr | src/components/payment/__tests__/SubscriptionPlanCard.spec.ts > SubscriptionPlanCard > keeps short plan titles compact and aligned
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+
+stderr | src/components/payment/__tests__/SubscriptionPlanCard.spec.ts > SubscriptionPlanCard > shows limits in the balance unit without the group price ratio or peak price
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+
+stderr | src/components/payment/__tests__/SubscriptionPlanCard.spec.ts > SubscriptionPlanCard > links the plan group to the model plaza
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.days'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.quota'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.planCard.unlimited'.
+[intlify] The message format compilation is not supported in this build. Because message compiler isn't included. You need to pre-compilation all message format. So translate function return 'payment.subscribeNow'.
+
+ ✓ src/components/payment/__tests__/SubscriptionPlanCard.spec.ts (11 tests) 225ms
+ ✓ src/components/admin/group/__tests__/GroupI18nField.spec.ts (10 tests) 223ms
+ ✓ src/components/admin/channel/__tests__/PricingEntryCard.timePricing.spec.ts (14 tests) 323ms
+stderr | src/composables/__tests__/useTableLoader.spec.ts > useTableLoader > 错误处理 > 非取消错误会被抛出
+Table load error: Error: Server error
+    at /home/qlqq/workspace/sub2api-upstream-candidate/frontend/src/composables/__tests__/useTableLoader.spec.ts:237:49
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)
+    at startTests (file:///home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)
+
+ ✓ src/composables/__tests__/useTableLoader.spec.ts (12 tests) 39ms
+ ✓ src/api/__tests__/auth-oauth-adoption.spec.ts (13 tests) 140ms
+ ✓ src/views/admin/__tests__/ChannelMonitorView.duplicate.spec.ts (5 tests) 194ms
+ ✓ src/themes/qx/shell/__tests__/QxSidebar.spec.ts (8 tests) 584ms
+stderr | src/themes/qx/shell/__tests__/QxSidebar.spec.ts
+Error: Error: connect ECONNREFUSED 127.0.0.1:3000
+    at Object.dispatchError (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/xhr-utils.js:63:19)
+    at Request.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:521:24)
+    at ClientRequest.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/helpers/http-request.js:127:14)
+    at ClientRequest.emit (node:events:509:28)
+    at emitErrorEvent (node:_http_client:109:11)
+    at Socket.socketErrorListener (node:_http_client:593:5)
+    at Socket.emit (node:events:509:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) undefined
+Error: Error: connect ECONNREFUSED 127.0.0.1:3000
+    at Object.dispatchError (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/xhr-utils.js:63:19)
+    at Request.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:521:24)
+    at ClientRequest.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/helpers/http-request.js:127:14)
+    at ClientRequest.emit (node:events:509:28)
+    at emitErrorEvent (node:_http_client:109:11)
+    at Socket.socketErrorListener (node:_http_client:593:5)
+    at Socket.emit (node:events:509:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) undefined
+
+ ✓ src/views/auth/__tests__/TencentCaptchaActionGate.spec.ts (7 tests) 269ms
+ ✓ src/views/admin/__tests__/AccountsView.schedulerScore.spec.ts (5 tests) 343ms
+ ✓ src/components/auth/__tests__/WechatOAuthSection.spec.ts (6 tests) 76ms
+ ✓ src/views/admin/finance/__tests__/AdminFinanceView.spec.ts (7 tests) 350ms
+ ✓ src/utils/__tests__/clientDownloads.spec.ts (12 tests) 25ms
+ ✓ src/views/admin/__tests__/SubscriptionsView.bulkActions.spec.ts (4 tests) 426ms
+ ✓ src/components/user/profile/__tests__/ProfileInfoCard.spec.ts (8 tests) 341ms
+ ✓ src/components/account/__tests__/OllamaCloudUsageSettings.spec.ts (5 tests) 177ms
+ ✓ src/components/admin/account/__tests__/AccountTestModal.spec.ts (3 tests) 223ms
+ ✓ src/features/channel-monitor-v2/__tests__/RelayPulseMatrix.spec.ts (2 tests) 141ms
+ ✓ src/components/modelPlaza/__tests__/PlazaGroupSection.spec.ts (11 tests) 133ms
+ ✓ src/composables/__tests__/useAffiliateTeamQuery.spec.ts (13 tests) 54ms
+ ✓ src/components/account/__tests__/AccountStatusIndicator.spec.ts (6 tests) 100ms
+ ✓ src/utils/__tests__/rechargeBonus.spec.ts (10 tests) 14ms
+ ✓ src/components/common/__tests__/Select.spec.ts (8 tests) 269ms
+ ✓ src/components/admin/account/__tests__/AccountActionMenu.spark_shadow.spec.ts (11 tests) 192ms
+ ✓ src/components/charts/__tests__/ModelDistributionChart.spec.ts (4 tests) 147ms
+ ✓ src/__tests__/integration/data-import.spec.ts (6 tests) 153ms
+ ✓ src/themes/qx/__tests__/pricing.spec.ts (12 tests) 24ms
+ ✓ src/components/__tests__/AliyunCaptchaWidget.spec.ts (7 tests) 164ms
+ ✓ src/router/__tests__/feature-access.spec.ts (10 tests) 160ms
+ ✓ src/components/account/__tests__/OpenCodeGoUsageCell.spec.ts (6 tests) 109ms
+ ✓ src/api/__tests__/passkey.spec.ts (4 tests) 11ms
+ ✓ src/features/channel-monitor-v2/__tests__/MonitorSettingsPanel.spec.ts (4 tests) 343ms
+ ✓ src/views/admin/__tests__/groupsProfitControl.spec.ts (13 tests) 10ms
+ ✓ src/__tests__/integration/proxy-data-import.spec.ts (7 tests) 158ms
+ ✓ src/components/payment/__tests__/AmountInput.spec.ts (13 tests) 221ms
+ ✓ src/components/user/dashboard/__tests__/UserDashboardStats.spec.ts (9 tests) 261ms
+ ✓ src/views/__tests__/HomeView.compact.spec.ts (13 tests) 269ms
+ ✓ src/components/__tests__/LoginForm.spec.ts (5 tests) 123ms
+ ✓ src/utils/__tests__/registrationEmailPolicy.spec.ts (13 tests) 12ms
+ ✓ src/components/user/profile/__tests__/totp-timer-cleanup.spec.ts (6 tests) 133ms
+ ✓ src/features/channel-monitor-v2/__tests__/monitorFormat.spec.ts (13 tests) 33ms
+ ✓ src/components/layout/__tests__/AppSidebar.spec.ts (12 tests) 10ms
+ ✓ src/views/admin/__tests__/ChannelMonitorView.grok.spec.ts (2 tests) 234ms
+ ✓ src/components/admin/user/__tests__/BulkEditUserModal.spec.ts (9 tests) 224ms
+ ✓ src/views/admin/__tests__/ChannelsView.modelSync.spec.ts (7 tests) 864ms
+ ✓ src/components/admin/finance/__tests__/FinanceExpenseDialog.spec.ts (5 tests) 341ms
+ ✓ src/views/admin/__tests__/groupModelAllowlist.spec.ts (13 tests) 11ms
+ ✓ src/views/admin/__tests__/RedeemView.batchUpdate.spec.ts (1 test) 316ms
+   ✓ admin RedeemView batch update > submits only checked fields for selected redeem codes 314ms
+ ✓ src/views/admin/__tests__/DashboardView.spec.ts (2 tests) 154ms
+ ✓ src/components/admin/account/__tests__/AccountActionMenu.position.spec.ts (10 tests) 208ms
+ ✓ src/views/admin/orders/__tests__/PlanEditDialog.spec.ts (3 tests) 165ms
+ ✓ src/components/__tests__/ApiKeyCreate.spec.ts (5 tests) 129ms
+ ✓ src/composables/__tests__/useNavigationLoading.spec.ts (11 tests) 16ms
+ ✓ src/views/admin/ops/components/__tests__/OpsRequestDetailsModal.spec.ts (5 tests) 268ms
+ ✓ src/components/__tests__/Dashboard.spec.ts (5 tests) 110ms
+ ✓ src/components/downloads/__tests__/ClientDownloadsContent.spec.ts (6 tests) 200ms
+ ✓ src/composables/__tests__/useClipboard.spec.ts (10 tests) 49ms
+ ✓ src/components/account/__tests__/EditAccountModal.grokMediaEligibility.spec.ts (3 tests) 491ms
+   ✓ EditAccountModal Grok media eligibility > shows only for Grok OAuth and fills the current decision 314ms
+ ✓ src/components/account/__tests__/OllamaCloudUsageCell.spec.ts (4 tests) 99ms
+ ✓ src/components/modelPlaza/__tests__/ModelPlazaContent.spec.ts (6 tests) 217ms
+ ✓ src/utils/__tests__/accountUsageRefresh.spec.ts (8 tests) 17ms
+ ✓ src/components/account/__tests__/AccountTestModal.spec.ts (2 tests) 129ms
+ ✓ src/utils/__tests__/ccswitchImport.spec.ts (18 tests) 21ms
+ ✓ src/components/admin/group/__tests__/GroupRateMultipliersModal.requests.spec.ts (5 tests) 219ms
+ ✓ src/components/common/__tests__/PlatformTypeBadge.grok.spec.ts (6 tests) 146ms
+ ✓ src/components/payment/__tests__/alipayDeepLink.spec.ts (7 tests) 17ms
+ ✓ src/components/admin/group/__tests__/GroupRPMOverridesModal.requests.spec.ts (5 tests) 227ms
+ ✓ src/views/admin/__tests__/AccountsView.priorityColumn.spec.ts (3 tests) 225ms
+ ✓ src/views/admin/__tests__/ChannelMonitorView.checkModeBadge.spec.ts (3 tests) 159ms
+ ✓ src/components/user/profile/__tests__/ProfileBalanceNotifyCard.spec.ts (5 tests) 211ms
+ ✓ src/components/admin/user/__tests__/UserBalanceModal.spec.ts (7 tests) 270ms
+ ✓ src/router/__tests__/title.spec.ts (12 tests) 13ms
+ ✓ src/views/admin/ops/components/__tests__/OpsErrorLogTable.spec.ts (6 tests) 220ms
+ ✓ src/components/common/__tests__/MonitorQuotaView.spec.ts (7 tests) 96ms
+ ✓ src/components/admin/group/__tests__/ReasoningEffortPolicyFields.spec.ts (3 tests) 112ms
+ ✓ src/views/user/__tests__/CustomPageView.race.spec.ts (6 tests) 173ms
+ ✓ src/views/admin/ops/utils/__tests__/errorDetailResponse.spec.ts (7 tests) 5ms
+ ✓ src/features/channel-monitor-v2/__tests__/designSystem.structure.spec.ts (7 tests) 9ms
+ ✓ src/api/__tests__/admin.users.spec.ts (3 tests) 7ms
+ ✓ src/utils/__tests__/financeExpense.spec.ts (7 tests) 32ms
+ ✓ src/views/admin/ops/components/__tests__/OpsSettingsDialog.loading.spec.ts (3 tests) 95ms
+ ✓ src/components/common/__tests__/PlazaPriceLink.spec.ts (10 tests) 110ms
+stderr | src/components/common/__tests__/AnnouncementPopup.spec.ts > AnnouncementPopup > renders mixed Markdown and HTML inside the shared styled container
+[intlify] Not found 'common.time.daysAgo' key in 'en' locale messages.
+[intlify] Not found 'common.time.never' key in 'en' locale messages.
+
+stderr | src/components/common/__tests__/AnnouncementPopup.spec.ts > AnnouncementPopup > previews an admin announcement without marking it as read
+[intlify] Not found 'common.time.daysAgo' key in 'en' locale messages.
+[intlify] Not found 'common.time.never' key in 'en' locale messages.
+
+stderr | src/components/common/__tests__/AnnouncementPopup.spec.ts > AnnouncementPopup > keeps the existing user popup dismissal behavior
+[intlify] Not found 'common.time.daysAgo' key in 'en' locale messages.
+[intlify] Not found 'common.time.never' key in 'en' locale messages.
+
+ ✓ src/components/common/__tests__/AnnouncementPopup.spec.ts (12 tests) 205ms
+ ✓ src/composables/__tests__/useStepUp.spec.ts (11 tests) 121ms
+ ✓ src/components/channels/__tests__/SupportedModelChip.spec.ts (3 tests) 111ms
+ ✓ src/components/auth/__tests__/EmailOAuthButtons.spec.ts (5 tests) 82ms
+ ✓ src/views/admin/__tests__/apiKeyGroupFilterOptions.spec.ts (6 tests) 7ms
+ ✓ src/components/admin/payment/__tests__/orderCurrencyDisplay.spec.ts (4 tests) 133ms
+ ✓ src/views/admin/ops/components/__tests__/OpsErrorScopeCharts.spec.ts (3 tests) 85ms
+ ✓ src/components/account/__tests__/AccountPriorityCell.spec.ts (5 tests) 114ms
+ ✓ src/components/admin/user/__tests__/UserApiKeysModal.spec.ts (4 tests) 144ms
+ ✓ src/api/__tests__/admin.channelMonitor.duplicate.spec.ts (5 tests) 25ms
+ ✓ src/components/admin/announcements/__tests__/AnnouncementBannerDialog.spec.ts (4 tests) 152ms
+ ✓ src/components/common/__tests__/PlatformTypeBadge.openaiPlans.spec.ts (15 tests) 206ms
+ ✓ src/components/payment/__tests__/providerConfig.spec.ts (10 tests) 8ms
+ ✓ src/api/__tests__/admin.groups.duplicate.spec.ts (5 tests) 24ms
+ ✓ src/components/account/__tests__/CNProviderQuotaCell.spec.ts (2 tests) 91ms
+ ✓ src/stores/__tests__/announcements.fetch.spec.ts (6 tests) 22ms
+ ✓ src/components/common/__tests__/IpGeoCell.spec.ts (6 tests) 69ms
+ ✓ src/components/user/profile/__tests__/Totp.errors.spec.ts (11 tests) 202ms
+ ✓ src/utils/__tests__/magpieImport.spec.ts (15 tests) 15ms
+ ✓ src/components/payment/__tests__/PaymentProviderDialog.channelFee.spec.ts (5 tests) 324ms
+ ✓ src/components/admin/monitor/__tests__/MonitorTemplateApplyPickerDialog.spec.ts (5 tests) 113ms
+ ✓ src/api/__tests__/codex.spec.ts (7 tests) 15ms
+ ✓ src/components/admin/channel/__tests__/PricingEntryCard.modelDefaultPrice.spec.ts (4 tests) 111ms
+ ✓ src/constants/__tests__/platforms.spec.ts (5 tests) 14ms
+ ✓ src/views/auth/__tests__/WechatPaymentCallbackView.spec.ts (3 tests) 69ms
+ ✓ src/components/charts/__tests__/GroupDistributionChart.spec.ts (3 tests) 104ms
+ ✓ src/views/user/__tests__/AirwallexPaymentView.spec.ts (2 tests) 56ms
+ ✓ src/composables/__tests__/useForm.spec.ts (7 tests) 27ms
+ ✓ src/views/user/__tests__/ChannelStatusV1View.refresh.spec.ts (5 tests) 351ms
+ ✓ src/views/admin/settings/__tests__/OpenAIFastPolicyUserSelector.spec.ts (3 tests) 87ms
+ ✓ src/components/user/__tests__/UserErrorDetailModal.spec.ts (4 tests) 113ms
+ ✓ src/views/admin/__tests__/ProxiesView.filters.spec.ts (5 tests) 319ms
+ ✓ src/components/admin/account/__tests__/ScheduledTestsPanel.results.spec.ts (4 tests) 281ms
+ ✓ src/components/admin/channel/__tests__/AccountStatsPricingRulesEditor.spec.ts (3 tests) 165ms
+ ✓ src/features/prompt-audit/__tests__/viewModel.spec.ts (6 tests) 10ms
+ ✓ src/themes/qx/chat/__tests__/chatSession.spec.ts (5 tests) 13ms
+ ✓ src/utils/__tests__/modelPlazaTimePricing.spec.ts (7 tests) 13ms
+ ✓ src/views/user/__tests__/ChannelStatusV1View.details.spec.ts (4 tests) 252ms
+ ✓ src/themes/qx/chat/__tests__/chatBridge.spec.ts (4 tests) 8ms
+ ✓ src/views/admin/ops/components/__tests__/OpsAlertEventsCard.pagination.spec.ts (4 tests) 279ms
+ ✓ src/components/admin/user/__tests__/UserAllowedGroupsModal.spec.ts (4 tests) 144ms
+ ✓ src/stores/__tests__/adminCompliance.reset.spec.ts (7 tests) 21ms
+ ✓ src/api/admin/__tests__/financeRecalculation.spec.ts (3 tests) 12ms
+ ✓ src/components/admin/channel/__tests__/ModelTagInput.keyboard.spec.ts (9 tests) 133ms
+ ✓ src/components/user/profile/__tests__/TotpSetupModal.inputs.spec.ts (3 tests) 214ms
+ ✓ src/views/admin/__tests__/groupsMessagesDispatch.spec.ts (5 tests) 16ms
+ ✓ src/stores/__tests__/payment.config.spec.ts (4 tests) 13ms
+ ✓ src/components/account/__tests__/TempUnschedStatusModal.spec.ts (3 tests) 107ms
+ ✓ src/components/user/__tests__/MonitorCard.quota.spec.ts (5 tests) 84ms
+ ✓ src/components/account/__tests__/OpenCodeGoProtocolRulesEditor.spec.ts (3 tests) 112ms
+ ✓ src/utils/__tests__/balanceCurrency.spec.ts (12 tests) 26ms
+ ✓ src/components/admin/__tests__/ErrorPassthroughRulesModal.toggle.spec.ts (4 tests) 137ms
+ ✓ src/components/account/__tests__/OpenAIReferralCell.transport.spec.ts (6 tests) 364ms
+ ✓ src/utils/__tests__/priceDiscount.spec.ts (44 tests) 14ms
+ ✓ src/components/user/profile/__tests__/ProfilePasswordForm.spec.ts (4 tests) 133ms
+ ✓ src/components/common/__tests__/HelpTooltip.spec.ts (3 tests) 106ms
+ ✓ src/components/account/__tests__/AccountModelCostEditor.spec.ts (4 tests) 128ms
+ ✓ src/utils/__tests__/openaiWsMode.spec.ts (6 tests) 5ms
+ ✓ src/components/charts/__tests__/TokenUsageTrend.spec.ts (3 tests) 63ms
+ ✓ src/views/user/__tests__/paymentUx.spec.ts (9 tests) 7ms
+ ✓ src/composables/__tests__/useOpenAIOAuth.spec.ts (4 tests) 6ms
+ ✓ src/views/auth/__tests__/TencentCaptchaForgotPassword.spec.ts (2 tests) 120ms
+ ✓ src/components/admin/usage/__tests__/UsageCleanupDialog.spec.ts (3 tests) 146ms
+ ✓ src/components/admin/monitor/__tests__/MonitorTemplateManagerDialog.requests.spec.ts (4 tests) 117ms
+ ✓ src/views/user/__tests__/ProfileView.spec.ts (1 test) 82ms
+ ✓ src/views/admin/__tests__/ChannelsView.accountStatsRules.spec.ts (1 test) 253ms
+ ✓ src/components/user/__tests__/UserAttributesConfigModal.spec.ts (5 tests) 289ms
+ ✓ src/utils/__tests__/device.spec.ts (9 tests) 6ms
+ ✓ src/i18n/__tests__/localesNoKeyCollision.spec.ts (6 tests) 7ms
+ ✓ src/components/admin/finance/__tests__/FinanceSettingsTab.spec.ts (2 tests) 150ms
+ ✓ src/views/auth/__tests__/LoginView.spec.ts (2 tests) 97ms
+ ✓ src/components/common/__tests__/Select.searchHighlight.spec.ts (5 tests) 223ms
+ ✓ src/views/admin/ops/components/__tests__/OpsDashboardHeader.spec.ts (4 tests) 332ms
+ ✓ src/components/__tests__/TurnstileWidget.spec.ts (4 tests) 74ms
+ ✓ src/themes/qx/dashboard/__tests__/metrics.spec.ts (9 tests) 9ms
+ ✓ src/utils/__tests__/financeFormat.spec.ts (6 tests) 12ms
+stderr | src/views/admin/__tests__/ProxiesView.credentials.spec.ts > proxy credential updates > sends an explicit empty username when cleared
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | src/views/admin/__tests__/ProxiesView.credentials.spec.ts > proxy credential updates > sends an explicit empty password when the user clears the field
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ src/utils/__tests__/groupModelRates.spec.ts (18 tests) 15ms
+stderr | src/views/admin/__tests__/ProxiesView.credentials.spec.ts > proxy credential updates > sends an explicit empty password when the user clears the field
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | src/views/admin/__tests__/ProxiesView.credentials.spec.ts > proxy credential updates > omits an untouched password when saving other settings
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | src/views/admin/__tests__/ProxiesView.credentials.spec.ts > proxy credential updates > omits an untouched password when saving other settings
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | src/views/admin/__tests__/ProxiesView.credentials.spec.ts > proxy credential updates > keeps trimming a replacement password
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+stderr | src/views/admin/__tests__/ProxiesView.credentials.spec.ts > proxy credential updates > keeps trimming a replacement password
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=true  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-props attributes (columns, loading, server-side-sort, default-sort-key, default-sort-order) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+[Vue warn]: Extraneous non-emits event listeners (sort) were passed to component but could not be automatically inherited because component renders fragment or text root nodes. If the listener is intended to be a component custom event listener only, declare it using the "emits" option. 
+  at <Anonymous columns= [
+  { key: 'select', label: '', sortable: false },
+  { key: 'name', label: 'admin.proxies.columns.name', sortable: true },
+  {
+    key: 'protocol',
+    label: 'admin.proxies.columns.protocol',
+    sortable: true
+  },
+  {
+    key: 'address',
+    label: 'admin.proxies.columns.address',
+    sortable: false
+  },
+  { key: 'auth', label: 'admin.proxies.columns.auth', sortable: false },
+  {
+    key: 'location',
+    label: 'admin.proxies.columns.location',
+    sortable: false
+  },
+  {
+    key: 'account_count',
+    label: 'admin.proxies.columns.accounts',
+    sortable: true
+  },
+  {
+    key: 'latency',
+    label: 'admin.proxies.columns.latency',
+    sortable: false
+  },
+  {
+    key: 'expiry',
+    label: 'admin.proxies.columns.expiry',
+    sortable: true
+  },
+  {
+    key: 'created_at',
+    label: 'admin.proxies.columns.createdAt',
+    sortable: true
+  },
+  {
+    key: 'status',
+    label: 'admin.proxies.columns.status',
+    sortable: true
+  },
+  {
+    key: 'actions',
+    label: 'admin.proxies.columns.actions',
+    sortable: false
+  }
+] data= [
+  {
+    id: 9,
+    name: 'proxy',
+    protocol: 'http',
+    host: 'proxy.example',
+    port: 8080,
+    username: 'old-user',
+    status: 'active'
+  }
+] loading=false  ... > 
+  at <Anonymous> 
+  at <Anonymous> 
+  at <ProxiesView ref="VTU_COMPONENT" > 
+  at <VTUROOT>
+
+ ✓ src/views/admin/__tests__/ProxiesView.credentials.spec.ts (4 tests) 275ms
+ ✓ src/components/user/__tests__/UserPlatformQuotaCell.spec.ts (5 tests) 56ms
+ ✓ src/components/admin/user/__tests__/UserEditModal.spec.ts (2 tests) 93ms
+ ✓ src/components/admin/group/__tests__/GroupRateMultipliersModal.spec.ts (5 tests) 216ms
+ ✓ src/composables/__tests__/useSwipeSelect.spec.ts (5 tests) 5ms
+ ✓ src/stores/__tests__/announcements.markAll.spec.ts (3 tests) 12ms
+ ✓ src/components/admin/group/__tests__/GroupRPMOverridesModal.spec.ts (5 tests) 221ms
+ ✓ src/api/__tests__/adminUIRequest.spec.ts (57 tests) 47ms
+ ✓ src/components/common/__tests__/DateRangePicker.spec.ts (2 tests) 85ms
+ ✓ src/utils/__tests__/featureFlags.spec.ts (5 tests) 11ms
+ ✓ src/components/account/__tests__/UpstreamRequestIdHeaderField.spec.ts (4 tests) 92ms
+ ✓ src/components/payment/__tests__/paymentCountdown.spec.ts (9 tests) 113ms
+ ✓ src/components/common/__tests__/ImageUpload.readOrder.spec.ts (5 tests) 102ms
+ ✓ src/views/admin/ops/components/__tests__/OpsAlertRulesCard.duration.spec.ts (3 tests) 200ms
+ ✓ src/components/admin/user/__tests__/GroupReplaceModal.spec.ts (4 tests) 147ms
+ ✓ src/components/admin/settings/__tests__/ClientDownloadsSettings.spec.ts (2 tests) 138ms
+ ✓ src/components/user/__tests__/AffiliateSectionTabs.spec.ts (3 tests) 92ms
+ ✓ src/api/__tests__/admin.accounts.ollamaCloudUsage.spec.ts (2 tests) 12ms
+ ✓ src/views/admin/ops/components/__tests__/OpsDashboardHeader.timezone.spec.ts (3 tests) 164ms
+ ✓ src/themes/qx/shell/__tests__/useQxNav.drift.spec.ts (1 test) 71ms
+stderr | VirtualConsole.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/virtual-console.js:29:45)
+Error: Error: connect ECONNREFUSED 127.0.0.1:3000
+    at Object.dispatchError (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/xhr-utils.js:63:19)
+    at Request.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:521:24)
+    at ClientRequest.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/helpers/http-request.js:127:14)
+    at ClientRequest.emit (node:events:509:28)
+    at emitErrorEvent (node:_http_client:109:11)
+    at Socket.socketErrorListener (node:_http_client:593:5)
+    at Socket.emit (node:events:509:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) undefined
+Error: Error: connect ECONNREFUSED 127.0.0.1:3000
+    at Object.dispatchError (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/xhr-utils.js:63:19)
+    at Request.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/xhr/XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:521:24)
+    at ClientRequest.<anonymous> (/home/qlqq/workspace/sub2api-upstream-candidate/frontend/node_modules/.pnpm/jsdom@24.1.3/node_modules/jsdom/lib/jsdom/living/helpers/http-request.js:127:14)
+    at ClientRequest.emit (node:events:509:28)
+    at emitErrorEvent (node:_http_client:109:11)
+    at Socket.socketErrorListener (node:_http_client:593:5)
+    at Socket.emit (node:events:509:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) undefined
+
+ ✓ src/components/admin/finance/__tests__/FinanceReconcileTab.spec.ts (2 tests) 157ms
+ ✓ src/composables/__tests__/useGrokOAuth.spec.ts (2 tests) 8ms
+ ✓ src/router/__tests__/admin-affiliate-team-route.spec.ts (5 tests) 645ms
+   ✓ admin affiliate team routes > serves the three levels of an agent view with the same lazily loaded view 477ms
+ ✓ src/components/common/__tests__/GroupBadge.spec.ts (5 tests) 88ms
+ ✓ src/composables/__tests__/useKeyedDebouncedSearch.spec.ts (3 tests) 15ms
+ ✓ src/components/admin/group/__tests__/GroupRateMultipliersModal.edit.spec.ts (5 tests) 222ms
+ ✓ src/components/admin/monitor/MonitorActionsCell.spec.ts (3 tests) 65ms
+ ✓ src/i18n/__tests__/openaiFastPolicyLocales.spec.ts (3 tests) 5ms
+ ✓ src/themes/qx/__tests__/QxAuthLayout.spec.ts (2 tests) 92ms
+ ✓ src/components/admin/usage/__tests__/UsageStatsCards.spec.ts (2 tests) 86ms
+ ✓ src/components/common/__tests__/NavigationProgress.spec.ts (5 tests) 137ms
+ ✓ src/components/user/profile/__tests__/ProfileEditForm.draft.spec.ts (4 tests) 114ms
+ ✓ src/views/admin/ops/components/__tests__/OpsErrorDetailModal.spec.ts (1 test) 75ms
+ ✓ src/components/user/__tests__/MonitorDetailDialog.spec.ts (3 tests) 78ms
+ ✓ src/utils/__tests__/tablePreferences.spec.ts (6 tests) 8ms
+ ✓ src/components/common/__tests__/ProxySelector.testing.spec.ts (2 tests) 189ms
+ ✓ src/themes/qx/chat/__tests__/chatNav.spec.ts (3 tests) 96ms
+ ✓ src/views/user/__tests__/AirwallexPaymentView.lifecycle.spec.ts (3 tests) 74ms
+ ✓ src/components/admin/subscription/__tests__/bulkSubscriptionOperation.spec.ts (3 tests) 7ms
+ ✓ src/components/payment/__tests__/PaymentQRDialog.spec.ts (1 test) 71ms
+ ✓ src/features/prompt-audit/__tests__/api.spec.ts (3 tests) 12ms
+ ✓ src/components/common/__tests__/DateRangePicker.dismiss.spec.ts (4 tests) 182ms
+ ✓ src/views/admin/orders/__tests__/AdminPaymentPlansView.spec.ts (1 test) 64ms
+ ✓ src/utils/__tests__/subscriptionQuota.spec.ts (5 tests) 6ms
+ ✓ src/stores/__tests__/adminSettings.retry.spec.ts (4 tests) 14ms
+ ✓ src/components/payment/__tests__/PaymentMethodSelector.spec.ts (3 tests) 68ms
+ ✓ src/views/admin/__tests__/groupsImagePricing.spec.ts (7 tests) 6ms
+ ✓ src/components/account/__tests__/credentialsBuilder.cnAdaptive.spec.ts (5 tests) 6ms
+ ✓ src/components/user/__tests__/UserAttributeForm.race.spec.ts (3 tests) 63ms
+ ✓ src/router/__tests__/affiliate-team-route.spec.ts (4 tests) 720ms
+   ✓ affiliate team routes > serves all three route names with the same lazily loaded view 543ms
+ ✓ src/components/account/__tests__/CNProviderBalanceCell.spec.ts (3 tests) 66ms
+ ✓ src/components/common/__tests__/AnnouncementBell.spec.ts (1 test) 145ms
+ ✓ src/utils/__tests__/latencyHealth.spec.ts (22 tests) 8ms
+ ✓ src/api/__tests__/keys.bulkUpdate.spec.ts (3 tests) 6ms
+ ✓ src/utils/__tests__/embedded-url.spec.ts (4 tests) 18ms
+ ✓ src/components/admin/usage/__tests__/UserTokenRanking.spec.ts (2 tests) 109ms
+ ✓ src/themes/qx/shell/__tests__/AppLayout.spec.ts (2 tests) 57ms
+ ✓ src/views/user/__tests__/UserOrdersView.filters.spec.ts (2 tests) 149ms
+ ✓ src/components/admin/payment/__tests__/AdminRefundDialog.balance.spec.ts (4 tests) 136ms
+ ✓ src/composables/__tests__/antigravityMappings.retry.spec.ts (4 tests) 69ms
+ ✓ src/components/common/__tests__/GroupOptionItem.spec.ts (3 tests) 58ms
+ ✓ src/components/admin/announcements/__tests__/AnnouncementReadStatusDialog.spec.ts (1 test) 60ms
+ ✓ src/stores/__tests__/subscriptions.clear.spec.ts (3 tests) 13ms
+ ✓ src/components/admin/user/__tests__/OfflineBackfillModal.spec.ts (2 tests) 130ms
+ ✓ src/api/__tests__/settings.paymentVisibleMethods.spec.ts (3 tests) 6ms
+ ✓ src/utils/__tests__/proxyExpiry.spec.ts (9 tests) 15ms
+ ✓ src/features/channel-monitor-v2/__tests__/MetricCell.spec.ts (4 tests) 73ms
+ ✓ src/components/common/__tests__/Select.keyboard.spec.ts (4 tests) 170ms
+ ✓ src/views/admin/affiliates/__tests__/affiliateWithdrawOperation.spec.ts (3 tests) 7ms
+ ✓ src/utils/__tests__/geminiExplicitCache.spec.ts (5 tests) 9ms
+ ✓ src/components/admin/monitor/__tests__/MonitorPrimaryModelCell.spec.ts (2 tests) 77ms
+ ✓ src/features/channel-monitor-v2/__tests__/monitorZoom.spec.ts (5 tests) 16ms
+ ✓ src/utils/__tests__/codexCatalogConfig.spec.ts (5 tests) 7ms
+ ✓ src/components/keys/__tests__/EndpointPopover.spec.ts (2 tests) 63ms
+ ✓ src/components/admin/group/__tests__/GroupRPMOverridesModal.edit.spec.ts (6 tests) 229ms
+ ✓ src/api/__tests__/admin.accounts.duplicate.spec.ts (3 tests) 19ms
+ ✓ src/utils/__tests__/accountSelection.spec.ts (3 tests) 12ms
+ ✓ src/themes/qx/studio/__tests__/studioBridge.spec.ts (3 tests) 11ms
+ ✓ src/i18n/__tests__/financeRecalculation.spec.ts (4 tests) 7ms
+ ✓ src/components/admin/channel/__tests__/accountStatsPricing.spec.ts (2 tests) 6ms
+ ✓ src/components/common/__tests__/SearchInput.spec.ts (3 tests) 68ms
+ ✓ src/api/__tests__/admin.accounts.opencodeGoUsage.spec.ts (2 tests) 14ms
+ ✓ src/composables/__tests__/useGeminiOAuth.errors.spec.ts (5 tests) 26ms
+ ✓ src/i18n/__tests__/opsLocaleKeys.spec.ts (27 tests) 148ms
+ ✓ src/components/admin/group/__tests__/GroupModal.cleanup.spec.ts (4 tests) 109ms
+ ✓ src/api/__tests__/admin.accounts.upstreamBillingProbe.spec.ts (2 tests) 8ms
+ ✓ src/components/admin/account/__tests__/ReAuthAccountModal.grok.spec.ts (4 tests) 5ms
+ ✓ src/composables/__tests__/useAntigravityOAuth.spec.ts (6 tests) 14ms
+ ✓ src/features/prompt-audit/__tests__/integrationSurface.spec.ts (3 tests) 6ms
+ ✓ src/views/admin/__tests__/ProxiesView.ipv6.spec.ts (12 tests) 7ms
+ ✓ src/components/common/__tests__/LocaleSwitcher.spec.ts (2 tests) 77ms
+ ✓ src/components/common/__tests__/disabledSelectors.spec.ts (2 tests) 130ms
+ ✓ src/components/auth/__tests__/OAuthLoginSections.spec.ts (4 tests) 75ms
+ ✓ src/components/payment/__tests__/validity.spec.ts (6 tests) 5ms
+ ✓ src/router/__tests__/wechat-route.spec.ts (2 tests) 188ms
+ ✓ src/views/admin/__tests__/modelAllowlistCandidates.spec.ts (3 tests) 4ms
+ ✓ src/utils/__tests__/usageServiceTier.spec.ts (5 tests) 4ms
+ ✓ src/utils/__tests__/formatDateTimeLocalInput.spec.ts (5 tests) 23ms
+ ✓ src/utils/__tests__/accountModelCost.spec.ts (3 tests) 10ms
+ ✓ src/components/common/__tests__/DateRangePicker.midnight.spec.ts (4 tests) 176ms
+ ✓ src/composables/__tests__/useAdminAffiliateTeamQuery.spec.ts (4 tests) 6ms
+ ✓ src/utils/__tests__/siteBillingMode.spec.ts (5 tests) 5ms
+ ✓ src/api/__tests__/admin.system.rollback.spec.ts (3 tests) 9ms
+ ✓ src/components/account/__tests__/CreateAccountModal.grok.spec.ts (4 tests) 6ms
+ ✓ src/components/user/__tests__/UserAttributeForm.spec.ts (4 tests) 100ms
+ ✓ src/themes/qx/shell/__tests__/QxShell.spec.ts (1 test) 44ms
+ ✓ src/views/user/__tests__/paymentWechatResume.spec.ts (3 tests) 10ms
+ ✓ src/utils/__tests__/oauthAffiliate.spec.ts (3 tests) 6ms
+ ✓ src/components/common/__tests__/GroupSelector.spec.ts (3 tests) 71ms
+ ✓ src/components/common/__tests__/BaseDialog.scrollLock.spec.ts (4 tests) 117ms
+ ✓ src/components/user/profile/__tests__/ProfileEditForm.spec.ts (3 tests) 69ms
+ ✓ src/components/account/__tests__/GrokQuotaProbeCell.spec.ts (1 test) 48ms
+ ✓ src/composables/__tests__/useBatchImageAccess.retry.spec.ts (2 tests) 22ms
+ ✓ src/i18n/__tests__/localeKeyCompleteness.spec.ts (3 tests) 68ms
+ ✓ src/views/admin/__tests__/groupsVideoModelPricing.spec.ts (3 tests) 6ms
+ ✓ src/components/admin/channel/__tests__/PricingEntryCard.compact.spec.ts (2 tests) 100ms
+ ✓ src/views/admin/__tests__/groupsOpenAIFast.spec.ts (3 tests) 6ms
+ ✓ src/components/common/__tests__/Select.ime.spec.ts (4 tests) 153ms
+ ✓ src/api/__tests__/admin.grok.spec.ts (5 tests) 12ms
+ ✓ src/api/__tests__/admin.subscriptions.bulk.spec.ts (2 tests) 7ms
+ ✓ src/i18n/__tests__/localesMessageCompile.spec.ts (2 tests) 349ms
+ ✓ src/components/common/__tests__/Pagination.jump.spec.ts (4 tests) 114ms
+ ✓ src/components/layout/__tests__/docUrlSanitization.spec.ts (6 tests) 6ms
+ ✓ src/views/admin/ops/components/__tests__/OpsThroughputTrendChart.spec.ts (1 test) 54ms
+ ✓ src/components/common/__tests__/SubscriptionProgressMini.spec.ts (4 tests) 99ms
+ ✓ src/views/admin/__tests__/platformFilterCatalogUsage.spec.ts (3 tests) 7ms
+ ✓ src/api/admin/__tests__/financeCostConfig.spec.ts (2 tests) 7ms
+ ✓ src/components/common/__tests__/BaseDialog.ids.spec.ts (2 tests) 89ms
+ ✓ src/components/admin/account/__tests__/AccountBulkActionsBar.spec.ts (2 tests) 49ms
+ ✓ src/components/layout/__tests__/siteLogoSanitization.spec.ts (4 tests) 5ms
+ ✓ src/api/__tests__/admin.affiliates.spec.ts (2 tests) 21ms
+ ✓ src/utils/__tests__/intervalPrices.spec.ts (4 tests) 5ms
+ ✓ src/api/__tests__/auth-captcha-oauth-start.spec.ts (2 tests) 8ms
+ ✓ src/api/__tests__/channelMonitorV2.spec.ts (2 tests) 9ms
+ ✓ src/components/admin/channel/__tests__/IntervalRow.spec.ts (4 tests) 110ms
+ ✓ src/components/common/__tests__/BaseDialog.escape.spec.ts (2 tests) 95ms
+ ✓ src/views/user/__tests__/ChannelStatusView.mode.spec.ts (2 tests) 43ms
+ ✓ src/utils/__tests__/affiliateTeam.spec.ts (3 tests) 32ms
+ ✓ src/views/admin/__tests__/codexFingerprintSignals.spec.ts (3 tests) 5ms
+ ✓ src/views/user/__tests__/stripeLazyLoading.spec.ts (4 tests) 9ms
+ ✓ src/i18n/__tests__/riskControlLocales.spec.ts (3 tests) 4ms
+ ✓ src/utils/__tests__/authError.spec.ts (4 tests) 7ms
+ ✓ src/utils/__tests__/formatReasoningEffort.spec.ts (4 tests) 7ms
+ ✓ src/api/__tests__/admin.proxies.spec.ts (24 tests) 16ms
+ ✓ src/themes/qx/__tests__/theme.spec.ts (1 test) 48ms
+ ✓ src/utils/__tests__/stableObjectKey.spec.ts (3 tests) 5ms
+ ✓ src/utils/__tests__/floatingPanel.spec.ts (3 tests) 11ms
+ ✓ src/components/common/__tests__/BaseDialog.spec.ts (1 test) 116ms
+ ✓ src/components/auth/__tests__/TotpLoginModal.spec.ts (1 test) 61ms
+ ✓ src/api/__tests__/user.spec.ts (1 test) 116ms
+ ✓ src/utils/__tests__/ccswitchImport.antigravityUrl.spec.ts (4 tests) 26ms
+ ✓ src/utils/__tests__/proxyExpiry.boundary.spec.ts (6 tests) 14ms
+ ✓ src/components/layout/__tests__/TablePageLayout.spec.ts (1 test) 6ms
+ ✓ src/components/account/__tests__/longContextBilling.spec.ts (3 tests) 4ms
+ ✓ src/views/admin/__tests__/groupsSupportedModelScopes.spec.ts (4 tests) 12ms
+ ✓ src/api/__tests__/payment.spec.ts (2 tests) 6ms
+ ✓ src/utils/__tests__/formatMultiplier.spec.ts (4 tests) 5ms
+ ✓ src/i18n/__tests__/ipGeoLocales.spec.ts (2 tests) 7ms
+ ✓ src/views/admin/__tests__/groupModelAllowlistLayout.spec.ts (2 tests) 5ms
+ ✓ src/views/admin/ops/utils/__tests__/opsFormatters.spec.ts (3 tests) 4ms
+ ✓ src/components/account/__tests__/accountExpiry.spec.ts (5 tests) 4ms
+ ✓ src/components/admin/finance/__tests__/FinanceMoney.spec.ts (2 tests) 49ms
+ ✓ src/api/__tests__/announcementBanner.spec.ts (3 tests) 12ms
+ ✓ src/utils/__tests__/billingMode.spec.ts (3 tests) 5ms
+ ✓ src/api/__tests__/settings.wechatConnect.spec.ts (2 tests) 7ms
+ ✓ src/i18n/__tests__/usageServiceTierLocales.spec.ts (2 tests) 4ms
+ ✓ src/views/admin/__tests__/channelPlatformOptions.spec.ts (1 test) 6ms
+ ✓ src/api/__tests__/redeem.spec.ts (3 tests) 11ms
+ ✓ src/utils/__tests__/pricing.formatScaled.spec.ts (11 tests) 7ms
+ ✓ src/utils/__tests__/formatCompactNumber.spec.ts (3 tests) 4ms
+ ✓ src/components/payment/__tests__/currency.spec.ts (2 tests) 22ms
+ ✓ src/api/__tests__/admin.groups.usage-summary.spec.ts (1 test) 5ms
+ ✓ src/utils/__tests__/branding.spec.ts (2 tests) 34ms
+ ✓ src/composables/__tests__/usePersistedPageSize.spec.ts (1 test) 5ms
+ ✓ src/views/admin/ops/utils/__tests__/opsErrorParams.spec.ts (2 tests) 4ms
+ ✓ src/utils/__tests__/formatDateLocalInput.spec.ts (2 tests) 5ms
+ ✓ src/utils/__tests__/formatBytes.spec.ts (5 tests) 5ms
+ ✓ src/i18n/__tests__/wsModeLocaleDesc.spec.ts (1 test) 3ms
+ ✓ src/utils/__tests__/formatDateTimeToMinute.spec.ts (2 tests) 21ms
+ ✓ src/views/admin/__tests__/GroupsView.compositePlatforms.spec.ts (1 test) 4ms
+
+ Test Files  437 passed (437)
+      Tests  3463 passed (3463)
+   Start at  15:49:59
+   Duration  63.93s (transform 54.54s, setup 42.27s, collect 155.00s, tests 99.20s, environment 248.93s, prepare 41.47s)
+

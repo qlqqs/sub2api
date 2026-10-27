@@ -1,0 +1,287 @@
+{
+  "recorded_at": "2026-10-27T15:43:29.940284+00:00",
+  "refs": {
+    "HEAD": "98894b242c672937173f5af630eb65e68c565c6d",
+    "main": "8f2cbb53d9d1c40e1865b07ac460571f7d4c48de",
+    "origin/main": "8f2cbb53d9d1c40e1865b07ac460571f7d4c48de",
+    "upstream/main": "dba770d56a0ee0ae5bad1b3dc5e11614d323163c"
+  },
+  "files": {
+    ".trellis/spec/backend/index.md": {
+      "status": " M",
+      "sha256": "d0ab72b941031596cb62a3405b337023dcc4ca1b3980ad84affa59a8d0d2d92f"
+    },
+    "backend/cmd/server/wire_gen.go": {
+      "status": " M",
+      "sha256": "ad16ca1d7d4a63f674782854d17955df334647b3cd63af77f95d61f8822ffc2f"
+    },
+    "backend/internal/handler/admin/admin_basic_handlers_test.go": {
+      "status": " M",
+      "sha256": "ab4719edfe3888de82cd39187d15598078b73e870443e5420edf4a2c67a65254"
+    },
+    "backend/internal/handler/admin/admin_service_stub_test.go": {
+      "status": " M",
+      "sha256": "82b60d6967fdbb101a0aaac9bd46a9d0e8c644c805fdc4fbcb0c7362522c83f5"
+    },
+    "backend/internal/handler/admin/setting_handler.go": {
+      "status": " M",
+      "sha256": "fa9bdd51ef253d72302049cba7c2505b3a4b73a2d0207e503f3b89d6e9dcf77e"
+    },
+    "backend/internal/handler/admin/setting_handler_audit.go": {
+      "status": " M",
+      "sha256": "20418c551686ae7de34e8f9ad09b044f4a8cb10b2e6418ab98e39207f36cc84f"
+    },
+    "backend/internal/handler/admin/setting_handler_update.go": {
+      "status": " M",
+      "sha256": "5c748406d9962d0ada4870efac6d94a775b3e55ff94e7203d3e703bbde5aa78c"
+    },
+    "backend/internal/handler/admin/user_handler.go": {
+      "status": " M",
+      "sha256": "8963407cca94cedf320f8c71b3d0090df515289660353cb87d9c70f188e51aa9"
+    },
+    "backend/internal/handler/admin/user_handler_activity_test.go": {
+      "status": " M",
+      "sha256": "63b4af114ec27e78d49682226e4e84e59bd86d69f461a7d51e3a6592254d0caf"
+    },
+    "backend/internal/handler/admin/user_handler_batch_limits_test.go": {
+      "status": " M",
+      "sha256": "399696c888b79ddb29616ee3649ee047f23ecd321a5ce1d29ef043eef494dd1d"
+    },
+    "backend/internal/handler/admin/user_handler_get_deleted_test.go": {
+      "status": " M",
+      "sha256": "b52a29f59b4bfb798e9fe9321f95d765ec8d1c10ff284662ec7d9c0eb685b558"
+    },
+    "backend/internal/handler/admin/user_handler_list_apikey_group_test.go": {
+      "status": " M",
+      "sha256": "7f8cc514219892b49f798fc1a39d37cd6c0b57b28a6ccc42fc81266f859219e9"
+    },
+    "backend/internal/handler/admin/user_handler_role_stepup_test.go": {
+      "status": " M",
+      "sha256": "8a047318e03ed9986bff0866eba5f77f57f7b9b8cd01271325b252ee8085939d"
+    },
+    "backend/internal/handler/auth_oauth_pending_flow_test.go": {
+      "status": " M",
+      "sha256": "c5fc5cf285950fb4ca446f645b1b1be0313c4dabab2f31a1228ae426c32b62a5"
+    },
+    "backend/internal/handler/dto/settings.go": {
+      "status": " M",
+      "sha256": "07bb3c21502afac18bf983e6a3389f833b13da9a3809985dd6baf248187ca8ea"
+    },
+    "backend/internal/payment/types.go": {
+      "status": " M",
+      "sha256": "0e66c68a2e91631a45fc905f21a5d772a08630ca2914a684974ef47f06e18cef"
+    },
+    "backend/internal/repository/finance_repo.go": {
+      "status": " M",
+      "sha256": "08f3c2914e4819cdf8d3a89268cacea94abab7855973c3040ad0d1cc30634801"
+    },
+    "backend/internal/repository/redeem_code_repo.go": {
+      "status": " M",
+      "sha256": "a0d74d6351af5634f80940859b41ddc6e17941e95e274bb03a238cd44388246e"
+    },
+    "backend/internal/server/api_contract_test.go": {
+      "status": " M",
+      "sha256": "812e9a1a5076e305deffc7f20dfc51ec10eb9a18fade2d2cae06eb9e2977735b"
+    },
+    "backend/internal/server/routes/admin.go": {
+      "status": " M",
+      "sha256": "9de50d3d02a47979ae3381a319f61b639dd4a818474511e42feb3f5785881ac4"
+    },
+    "backend/internal/service/admin_balance_history_test.go": {
+      "status": " M",
+      "sha256": "1c186b90ebec18fb0feceb5d0a0bb68514e1eaed6a405365c40ba6626f882c9e"
+    },
+    "backend/internal/service/admin_service.go": {
+      "status": " M",
+      "sha256": "29034b38dc4b5b5f51fff9e21be9c2a7c5116cd6d1317783cfd0c948bf9528fb"
+    },
+    "backend/internal/service/admin_service_delete_test.go": {
+      "status": " M",
+      "sha256": "8500fe5b8c73b1b8581f659ab3dfb1d42b8a4d3d8a895ccb3720bb9ed161a273"
+    },
+    "backend/internal/service/admin_service_search_test.go": {
+      "status": " M",
+      "sha256": "9d9cc50ecb2cf42af74231331a55efe6af194a1e37f0bd2528cf2a8ec5c02cfd"
+    },
+    "backend/internal/service/admin_service_update_balance_test.go": {
+      "status": " M",
+      "sha256": "545ec248ac9636151331c6b1ff942874d53731a656938a3ab60ac7b3bbce18af"
+    },
+    "backend/internal/service/admin_user.go": {
+      "status": " M",
+      "sha256": "74fe6a42ffc25a38af46b9de6d14798794b8f9a9862620df8a0ef5490e646124"
+    },
+    "backend/internal/service/affiliate_service.go": {
+      "status": " M",
+      "sha256": "b1bbecb09d1483c8fae8c3a58513169653a40e587253f8a8c4d55d99be2977b4"
+    },
+    "backend/internal/service/auth_oauth_email_flow_test.go": {
+      "status": " M",
+      "sha256": "062f342526b6a988c4adafe47930d95338f2a2b6719476cd448dd4f9a962146b"
+    },
+    "backend/internal/service/domain_constants.go": {
+      "status": " M",
+      "sha256": "3e303d9d33ce92790210a3b907ac2f087d6eb806c2be52449a53ca4dbd68644c"
+    },
+    "backend/internal/service/payment_fulfillment.go": {
+      "status": " M",
+      "sha256": "067ff8aaf077291f6e4c0b5c8f34f45b43334e89e381e7c320ec294a4318a873"
+    },
+    "backend/internal/service/payment_order_lifecycle.go": {
+      "status": " M",
+      "sha256": "d472192d09f085111e06b941fff5c3d1fa1edb2efe8a57cf3f464f6450a04c92"
+    },
+    "backend/internal/service/payment_order_lifecycle_test.go": {
+      "status": " M",
+      "sha256": "4e119654e854972381113a14f6718026ea5e705a0b79c2c6194e630319f66791"
+    },
+    "backend/internal/service/payment_refund.go": {
+      "status": " M",
+      "sha256": "06b2af7018206750490643f0a0934e880470e95788c7c805e6fa2a84daea5396"
+    },
+    "backend/internal/service/redeem_service.go": {
+      "status": " M",
+      "sha256": "4d5f1984be73a30f806b8f11b457f2be73e9eba038dbc8fdf4ad44d5cf3aae9f"
+    },
+    "backend/internal/service/redeem_service_redeem_test.go": {
+      "status": " M",
+      "sha256": "4db7ce987934c46c23261a73f4f6e8f19dba69b161e68be889b6902e5a875a5f"
+    },
+    "backend/internal/service/setting_features.go": {
+      "status": " M",
+      "sha256": "2054363387833c8e82870c4589b20649ce524bfa089fa6a1ab69f9498d506db0"
+    },
+    "backend/internal/service/setting_parse.go": {
+      "status": " M",
+      "sha256": "44c18f6ae51110caa6d12e8d5c55cf1f89b679d78d6a77b96b23df7fce901dd8"
+    },
+    "backend/internal/service/setting_service_update_test.go": {
+      "status": " M",
+      "sha256": "4fbd4156b0251bdf595fe67537771e0906ab5c55f35a9ca52201bb62e3f217db"
+    },
+    "backend/internal/service/setting_update.go": {
+      "status": " M",
+      "sha256": "8bf41c905b3131e75a7800dd70a650206cc439b047be38d236e3bf42804c027f"
+    },
+    "backend/internal/service/settings_view.go": {
+      "status": " M",
+      "sha256": "de626ade57100dcff407647781acebc28b8ebf2112856db8c6b289dc0d667f99"
+    },
+    "frontend/src/api/admin/settings.ts": {
+      "status": " M",
+      "sha256": "7b28cd23e61a3cad0bbd5ed1bb03a2570a05288f771c6599bc53866735cdf57d"
+    },
+    "frontend/src/api/admin/users.ts": {
+      "status": " M",
+      "sha256": "97b2fb53206e3403e2139610e644f421ce9878514ee1d8d951a0fae4f4477be8"
+    },
+    "frontend/src/components/admin/payment/AdminOrderTable.vue": {
+      "status": " M",
+      "sha256": "da7ad362b4a2df928e5ca8905430612f2e3ed75baf65391a0555e5e4bd909205"
+    },
+    "frontend/src/components/admin/payment/AdminRefundDialog.vue": {
+      "status": " M",
+      "sha256": "b3553a71c280b0ce3c6f53ecfc38fbfbb4fd82e22a2ad43abdcff9fb76caf0fc"
+    },
+    "frontend/src/components/admin/user/UserBalanceHistoryModal.vue": {
+      "status": " M",
+      "sha256": "6c2e1942d85f8ceb87cf9afce93a199a8785dbe31b5abdd778020c2c700a6cc0"
+    },
+    "frontend/src/components/admin/user/UserBalanceModal.vue": {
+      "status": " M",
+      "sha256": "a772094822d7c7674bb1071b41392500108f52e2b93dd2e64ea1508915ec00f4"
+    },
+    "frontend/src/components/admin/user/__tests__/UserBalanceHistoryModal.spec.ts": {
+      "status": " M",
+      "sha256": "3c484f87c2ac3c0bede5abced9a3d6197a00363729466fed91fb0521284e23d0"
+    },
+    "frontend/src/components/admin/user/__tests__/UserBalanceModal.spec.ts": {
+      "status": " M",
+      "sha256": "4c15573aabf6c26869bc9b973d33fcb39a3337a615f8dd62a840262ee454bdee"
+    },
+    "frontend/src/i18n/locales/en/admin/overview.ts": {
+      "status": " M",
+      "sha256": "34274c5a5962dec5237089497f062a70cf0796f32aa39cb5d51b9373edba3538"
+    },
+    "frontend/src/i18n/locales/en/admin/settings.ts": {
+      "status": " M",
+      "sha256": "2a6f53ac8827a9b624141d3f733936394bcaa55a170f2336b5c1951f4cc3c1ec"
+    },
+    "frontend/src/i18n/locales/en/misc.ts": {
+      "status": " M",
+      "sha256": "a3cf4a94c457a53693f74416b7e4c1599161b698a5357798372af424db326741"
+    },
+    "frontend/src/i18n/locales/zh/admin/overview.ts": {
+      "status": " M",
+      "sha256": "afdc2c257c15c6c7d054f51b0647b911fd57ff3ba7fa42394e190042e55cebab"
+    },
+    "frontend/src/i18n/locales/zh/admin/settings.ts": {
+      "status": " M",
+      "sha256": "01d0a3fe32c558b999d4cc0ba18247115bf0076b0eb7eb3b0be69fbf598350cc"
+    },
+    "frontend/src/i18n/locales/zh/misc.ts": {
+      "status": " M",
+      "sha256": "33407ed22f3d69a3a783e46ae5a99f20b6e8c7f1b5700ff2cbef9429403ccfcf"
+    },
+    "frontend/src/views/admin/SettingsView.vue": {
+      "status": " M",
+      "sha256": "00d9455777d23fc04d30e0cb029e3b8469744a18795ca5cf97ebbf797bc13091"
+    },
+    "frontend/src/views/admin/__tests__/SettingsView.spec.ts": {
+      "status": " M",
+      "sha256": "b4be1a2566c8df758d3601a5c71750e7235efb8a1a5f1c125cff63583339be54"
+    },
+    "frontend/src/views/admin/orders/AdminOrdersView.vue": {
+      "status": " M",
+      "sha256": "810ec82a107011f8a227b549895bb51da289c3669c4dc75fc98fe82f0401d814"
+    },
+    "frontend/src/views/user/UserOrdersView.vue": {
+      "status": " M",
+      "sha256": "adafbc1f336940175a98bd2839d2ac5744a8818175aef75958896fcc08ec7564"
+    },
+    ".trellis/spec/backend/admin-offline-recharge.md": {
+      "status": "??",
+      "sha256": "3e03a3d547f326536275788b84705b074913cb9f144b19ba09f3fc1b911393f3"
+    },
+    "backend/internal/handler/admin/user_offline_handler.go": {
+      "status": "??",
+      "sha256": "3a3ff26032a7eed6335c8b4729dd06b12c4d9117c75a9beba3a0a4ee9adfe77b"
+    },
+    "backend/internal/handler/admin/user_offline_handler_test.go": {
+      "status": "??",
+      "sha256": "6f0251b0099bf939e8b9ab270871ff5846ca539b92e3d8c24c790fb1464003ee"
+    },
+    "backend/internal/repository/payment_accounting.go": {
+      "status": "??",
+      "sha256": "a2891f3a58bbd6919e0d1c59138b71c1730d698f1e426b1d5254c8ef8aa941fc"
+    },
+    "backend/internal/repository/payment_offline_integration_test.go": {
+      "status": "??",
+      "sha256": "18e3696513709dcd857b0653354d7500d806e4f5b257bbbf23552f9fe1d2ee2b"
+    },
+    "backend/internal/repository/redeem_code_totals_test.go": {
+      "status": "??",
+      "sha256": "a5e83bfc57f94663111371ed6b731e41e3458b0720b2c8e45cebf600a5d4f631"
+    },
+    "backend/internal/service/payment_offline.go": {
+      "status": "??",
+      "sha256": "6115bd4ce01470e16773c2a70b8fc343e3588cd7039cbadefb5b4fbcb24dd1a8"
+    },
+    "backend/internal/service/payment_offline_test.go": {
+      "status": "??",
+      "sha256": "384fe28dcf99f25e5c8e83e379c5e982c083023c0b75da1a297ab058d09b0809"
+    },
+    "frontend/src/components/admin/user/OfflineBackfillModal.vue": {
+      "status": "??",
+      "sha256": "3371fec9ed85d4675d74e48956e78e417475debf589fa7fd74b47d666aecd48b"
+    },
+    "frontend/src/components/admin/user/OfflineReceiptFields.vue": {
+      "status": "??",
+      "sha256": "96fb9f4a617fc118b8ff348065b92d225c3fa0ddf5c3ce7cf4de90619d3d6728"
+    },
+    "frontend/src/components/admin/user/__tests__/OfflineBackfillModal.spec.ts": {
+      "status": "??",
+      "sha256": "ac36dc3a4f44db13bc22aca1ba6c38bec4bace752ae8c6e9cde43a655e5c3e84"
+    }
+  }
+}

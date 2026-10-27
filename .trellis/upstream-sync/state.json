@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "source_repo": "Wei-Shaw/sub2api",
+  "source_ref": "refs/heads/main",
+  "target_branch": "sub2api-custom",
+  "baseline": {
+    "sha": "8f2cbb53d9d1c40e1865b07ac460571f7d4c48de",
+    "kind": "imported_baseline"
+  },
+  "last_fetched": {
+    "sha": "f178e5ae32659e8901644a9f2378a0439ffa36ae",
+    "observed_at": "2026-10-27T16:33:47.054922+00:00",
+    "evidence": ".trellis/tasks/10-27-upstream-sync/verification/sync-baseline.json"
+  },
+  "local_main_sha": "f178e5ae32659e8901644a9f2378a0439ffa36ae",
+  "origin_main_pushed": false,
+  "last_contiguous_reviewed": {
+    "sha": "f178e5ae32659e8901644a9f2378a0439ffa36ae",
+    "meaning": "scope dispositions cover every first-parent unit; NOT all patches technically reviewed/tested/integrated"
+  },
+  "last_event_seq": 52,
+  "active_run": {
+    "id": "2026-10-27-maintenance",
+    "custom_base_sha": "a18a7a3a4d7d5f81284f8165a2f9cd464a0bf132",
+    "candidate_worktree": "/home/qlqq/workspace/sub2api-upstream-candidate",
+    "candidate_branch": "upstream-sync/2026-10-27-maintenance",
+    "task_path": ".trellis/tasks/10-27-upstream-sync",
+    "status": "committed_quality_followup_pending",
+    "validation_summary": {
+      "unit_frontend_build_vet": "passed",
+      "local_e2e": "394/395 passed; FIN-24 failed; exit 1",
+      "raw_production_audit": "exit 1; existing exception policy exit 0",
+      "ci_lint": "not_run"
+    },
+    "evidence": ".trellis/tasks/10-27-upstream-sync/verification/commit-report.md",
+    "records_synchronized": true,
+    "product_commit": "b95be64f6d06a9c617b4690ac1f0d50c78366d4d"
+  },
+  "integrated_custom_commits": [
+    "b95be64f6d06a9c617b4690ac1f0d50c78366d4d"
+  ],
+  "shipped": false
+}

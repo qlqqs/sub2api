@@ -1,0 +1,52 @@
+{
+  "recorded_at": "2026-10-27T16:45:20.780784+00:00",
+  "custom_base": "a18a7a3a4d7d5f81284f8165a2f9cd464a0bf132",
+  "main_sha": "f178e5ae32659e8901644a9f2378a0439ffa36ae",
+  "product_file_count": 14,
+  "candidate_and_custom_hashes_match_transfer": true,
+  "file_sha256": {
+    ".github/workflows/backend-ci.yml": "aef50bfa77ac18bda71957ff91ea9b82d8dfeb13d0bee0f05d2f07ab238a3b9c",
+    ".github/workflows/release.yml": "471f80360653d4897383460cbd464d61e3c99cee4cbe7a7432bf03205e75c102",
+    ".github/workflows/security-scan.yml": "26f0bc656865588a929af205d983e2e6faacc309c7bedef9c6fcb2129c212879",
+    "Dockerfile": "bdc6a77381a31931dbd7b2e92843ca93008eefe9a912e7beb6c8417b8dc793b9",
+    "backend/go.mod": "adf5c15bf5fb54d5957279d0fcaf7281f49651a754c9deb89fed0f44a8799135",
+    "frontend/package.json": "b9b0f9906decc591868a5e5836906521219aa866b857a03c59ba1c189b38a52c",
+    "frontend/pnpm-lock.yaml": "f8db731dbe42ac0e796312724424b826817ca528ad847c8aa1aad7193c908f30",
+    "backend/internal/service/model_rate_limit.go": "bbd6ff4fe648f4d082f34ebc0dd8323b5a2e77a6f9025f1ecdecae360d643705",
+    "backend/internal/service/ratelimit_service.go": "2d54e833e6bba9fe196bc9efc65fecd121c625fc4158dd116b2598aea41582a1",
+    "backend/internal/service/ratelimit_service_403_html_test.go": "1fa935c1764d7e703cce14fa61dec462de8515172ab3ca84d546d459a6cda419",
+    "backend/internal/service/openai_gateway_passthrough.go": "90536adca0ec90ca67a61d0533944083c40c390fe9720193d3bb7804e7c4e856",
+    "backend/internal/service/openai_capacity_shed_test.go": "d43242121d0a19fe33765041617e11d0b07d7c76bbbcdff669ff42d9cb41c545",
+    "backend/internal/service/openai_ws_http_bridge_test.go": "845a155883e8aaf13cd203eb2734c01f5497299ed295f744b51c78847cf0ab55",
+    "backend/internal/service/model_rate_limit_snapshot_cow_test.go": "6deb0c56af332a15b2cb114de99caf1b401979f28801ec4b746311b4681d3130"
+  },
+  "staged_paths": [],
+  "backend_vet_exit": 0,
+  "local_e2e": {
+    "run_dir": "/home/qlqq/workspace/sub2api-local/e2e/runs/20261027-163158",
+    "raw_events": 397,
+    "aggregation": "latest event per tc, as report.py; FX-07 has 3 passing events",
+    "checks": 395,
+    "passed": 394,
+    "failed": 1,
+    "failed_cases": [
+      "FIN-24"
+    ],
+    "exit_code": 1,
+    "raw_file_sha256": {
+      "report.md": "4b73f8a1b7c140d438bedd48fcaeefbb1d8dc5ae0cf14a3118dbc11b8f31295d",
+      "results.jsonl": "6ca1648319374840e7e4eba6dbb25d1b89fc413f4126656f889b54c6d8871892"
+    }
+  },
+  "raw_production_audit": {
+    "exit_code": 1,
+    "high": 2,
+    "moderate": 13,
+    "low": 2,
+    "existing_exception_policy_exit_code": 0
+  },
+  "target_commits": [],
+  "pushed": false,
+  "deployed": false,
+  "quality_gate": "not_all_green"
+}

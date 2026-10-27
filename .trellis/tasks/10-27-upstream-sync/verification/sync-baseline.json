@@ -1,0 +1,7 @@
+{
+  "fetched_at": "2026-10-27T15:44:36.965651+00:00",
+  "upstream_target": "f178e5ae32659e8901644a9f2378a0439ffa36ae",
+  "main": "f178e5ae32659e8901644a9f2378a0439ffa36ae",
+  "candidate_base": "a18a7a3a4d7d5f81284f8165a2f9cd464a0bf132",
+  "note": "Another task committed offline recharge work during preflight; candidate created from actual HEAD after that commit. No original changes stashed/reset."
+}

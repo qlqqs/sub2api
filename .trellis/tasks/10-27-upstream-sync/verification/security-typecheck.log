@@ -1,0 +1,4 @@
+
+> sub2api-frontend@1.0.0 typecheck /home/qlqq/workspace/sub2api-upstream-candidate/frontend
+> vue-tsc --noEmit
+

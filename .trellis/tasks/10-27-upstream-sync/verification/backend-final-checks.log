@@ -1,0 +1,32 @@
+2026-10-27T16:03:31Z
+a18a7a3a4d7d5f81284f8165a2f9cd464a0bf132
+git diff --check: PASS
+git index unchanged: PASS
+backend/go.mod: OK
+backend/go.sum: OK
+backend/internal/service/model_rate_limit.go: OK
+backend/internal/service/model_rate_limit_snapshot_cow_test.go: OK
+backend/internal/service/ratelimit_service.go: OK
+backend/internal/service/ratelimit_service_403_html_test.go: OK
+backend/internal/service/openai_gateway_passthrough.go: OK
+backend/internal/service/openai_capacity_shed_test.go: OK
+backend/internal/service/openai_ws_http_bridge_test.go: OK
+
+gofmt output (expected empty):
+
+Candidate status, including files owned by security implementer:
+ M .github/workflows/backend-ci.yml
+ M .github/workflows/release.yml
+ M .github/workflows/security-scan.yml
+ M Dockerfile
+ M backend/go.mod
+ M backend/internal/service/model_rate_limit.go
+ M backend/internal/service/openai_capacity_shed_test.go
+ M backend/internal/service/openai_gateway_passthrough.go
+ M backend/internal/service/openai_ws_http_bridge_test.go
+ M backend/internal/service/ratelimit_service.go
+ M backend/internal/service/ratelimit_service_403_html_test.go
+ M frontend/package.json
+ M frontend/pnpm-lock.yaml
+?? .trellis/tasks/10-27-upstream-sync/
+?? backend/internal/service/model_rate_limit_snapshot_cow_test.go

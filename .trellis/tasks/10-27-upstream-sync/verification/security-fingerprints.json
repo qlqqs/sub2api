@@ -1,0 +1,39 @@
+{
+  "base_sha": "a18a7a3a4d7d5f81284f8165a2f9cd464a0bf132",
+  "candidate_workspace": "/home/qlqq/workspace/sub2api-upstream-candidate",
+  "source_order": [
+    {
+      "sha": "cacc80b8620e11e9655ab307471f71eb9ee31a0e",
+      "patch_sha256": "3a6144ca83064140de493de8db38effa926863aca6fe8bb841bf4f15f141bb2d",
+      "patch_id_stable": "420915740be7127bba8bee3f317dfe4b3197c51f"
+    },
+    {
+      "sha": "4c940c3cb7069d23cd304fc378f29ffae1ceb80f",
+      "patch_sha256": "34ae9a8ba4c503f00feb01a1922e4b7c1c2aaa7ff63b9bc11481bc926aa60369",
+      "patch_id_stable": "fc361bce47303f01076864b431f7d5122f13014f"
+    },
+    {
+      "sha": "59100d324e9fafa6776182b3d3ea2b36e3edaf14",
+      "patch_sha256": "d46b21beb1ccfbecd7a4222f5db74915f8cc505111f541608aa6cf3491f9f1b2",
+      "patch_id_stable": "27e8b91358d97e35bbce4eb55e2a228787515fc6"
+    },
+    {
+      "sha": "8286268047cbbca4e7f5fbb63ff0890c1ea37cf5",
+      "patch_sha256": "6be8f2d342e15d63657f0434d00520d549c969cd2632cead39282fede15c84b5",
+      "patch_id_stable": "7a5d53b6e037483661f28ad83ee9a8c91aef378b"
+    }
+  ],
+  "owned_files_sha256": {
+    "backend/go.mod": "adf5c15bf5fb54d5957279d0fcaf7281f49651a754c9deb89fed0f44a8799135",
+    "Dockerfile": "bdc6a77381a31931dbd7b2e92843ca93008eefe9a912e7beb6c8417b8dc793b9",
+    ".github/workflows/security-scan.yml": "26f0bc656865588a929af205d983e2e6faacc309c7bedef9c6fcb2129c212879",
+    ".github/workflows/backend-ci.yml": "aef50bfa77ac18bda71957ff91ea9b82d8dfeb13d0bee0f05d2f07ab238a3b9c",
+    ".github/workflows/release.yml": "471f80360653d4897383460cbd464d61e3c99cee4cbe7a7432bf03205e75c102",
+    "frontend/package.json": "b9b0f9906decc591868a5e5836906521219aa866b857a03c59ba1c189b38a52c",
+    "frontend/pnpm-lock.yaml": "f8db731dbe42ac0e796312724424b826817ca528ad847c8aa1aad7193c908f30"
+  },
+  "candidate_owned_diff_sha256": "163ec6cf63a802ba937b02d55bdeef6176244b7f67f47f323b06ff86db9678b0",
+  "candidate_owned_patch_id_stable": "8850990b86ebc385e994128022b4d35a4c5c579a",
+  "frontend_tracked_file_manifest_sha256": "9b75a8aa4796065bddf227e686e3c580bc14937edce6aeb43af2db944f3bb7f2",
+  "notes": "Fingerprints only cover this worker scope plus tracked frontend test inputs; not entire concurrently modified candidate tree."
+}

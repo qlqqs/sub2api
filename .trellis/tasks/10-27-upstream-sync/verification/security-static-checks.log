@@ -1,0 +1,15 @@
+PASS Dockerfile differs only in Go image; Node 24.22.1 and build flags retained
+PASS go.mod differs only in Go patch version
+PASS only Go version assertion changed: .github/workflows/backend-ci.yml
+PASS only Go version assertion changed: .github/workflows/release.yml
+PASS only Go version assertion changed: .github/workflows/security-scan.yml
+PASS untouched: .github/audit-exceptions.yml
+PASS untouched: .github/workflows/custom-image.yml
+PASS untouched: .github/workflows/custom-security.yml
+PASS untouched: backend/go.sum
+PASS untouched: backend/Dockerfile
+PASS untouched: deploy/Dockerfile
+PASS package.json only approved dependency changes
+PASS no generated pnpm-workspace.yaml
+frontend/package.json: OK
+frontend/pnpm-lock.yaml: OK

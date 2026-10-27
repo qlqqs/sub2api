@@ -24,6 +24,7 @@ These guides help you **ask the right questions before coding**.
 | [Code Reuse Thinking Guide](./code-reuse-thinking-guide.md) | Identify patterns and reduce duplication | When you notice repeated patterns |
 | [Cross-Layer Thinking Guide](./cross-layer-thinking-guide.md) | Think through data flow across layers | Features spanning multiple layers |
 | [Embedded Workbench Guide](./embedded-workbench-guide.md) | Conventions for embedding a forked third-party app via same-origin iframe + reverse proxy | Adding or changing `/studio`, `/chat` or a similar workbench |
+| [Upstream Sync Guide](./upstream-sync-guide.md) | 上游镜像、选择性合并、增量审查台账和收尾记录 | 同步上游、挑选补丁、恢复合并进度时 |
 
 ---
 

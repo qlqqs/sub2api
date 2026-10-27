@@ -1,0 +1,6 @@
+install	0
+lint:check	0
+typecheck	0
+test:run	0
+audit --prod --audit-level=high --json	1
+audit-exceptions	0

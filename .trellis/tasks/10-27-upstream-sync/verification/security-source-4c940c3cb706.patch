@@ -1,0 +1,35 @@
+diff --git a/.github/workflows/backend-ci.yml b/.github/workflows/backend-ci.yml
+index 7367f680c..c9a140f88 100644
+--- a/.github/workflows/backend-ci.yml
++++ b/.github/workflows/backend-ci.yml
+@@ -35,7 +35,7 @@ jobs:
+           cache-dependency-path: backend/go.sum
+       - name: Verify Go version
+         run: |
+-          go version | grep -q 'go1.27.2'
++          go version | grep -q 'go1.27.3'
+       - name: Unit tests
+         working-directory: backend
+         run: make test-unit
+@@ -75,7 +75,7 @@ jobs:
+           cache-dependency-path: backend/go.sum
+       - name: Verify Go version
+         run: |
+-          go version | grep -q 'go1.27.2'
++          go version | grep -q 'go1.27.3'
+       - name: golangci-lint
+         uses: golangci/golangci-lint-action@v9
+         with:
+diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
+index e70f1680e..9cef765b6 100644
+--- a/.github/workflows/release.yml
++++ b/.github/workflows/release.yml
+@@ -137,7 +137,7 @@ jobs:
+           check-latest: false
+           cache: false
+       - name: Verify Go version
+-        run: go version | grep -q 'go1.27.2'
++        run: go version | grep -q 'go1.27.3'
+       - name: Restore target-specific Go cache
+         id: go-cache
+         uses: actions/cache/restore@v6

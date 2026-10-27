@@ -1,0 +1,4 @@
+
+> sub2api-frontend@1.0.0 lint:check /home/qlqq/workspace/sub2api-upstream-candidate/frontend
+> eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts
+
