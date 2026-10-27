@@ -7558,18 +7558,6 @@
             </div>
 
             <div v-if="form.affiliate_enabled" class="space-y-6" data-test="affiliate-rules">
-              <div class="flex items-center justify-between">
-                <div>
-                  <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {{ t('admin.settings.features.affiliate.adminRechargeRebate') }}
-                  </label>
-                  <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                    {{ t('admin.settings.features.affiliate.adminRechargeRebateHint') }}
-                  </p>
-                </div>
-                <Toggle v-model="form.affiliate_admin_recharge_enabled" />
-              </div>
-
               <!-- 1. 代理利润 -->
               <section class="rounded-lg border border-gray-200 p-4 dark:border-dark-700" data-test="affiliate-block-profit">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
@@ -10001,7 +9989,6 @@ const form = reactive<SettingsForm>({
   affiliate_rebate_freeze_hours: 0,
   affiliate_rebate_duration_days: 0,
   affiliate_rebate_per_invitee_cap: 0,
-  affiliate_admin_recharge_enabled: false,
   affiliate_rebate_base: "consumption" as "recharge" | "consumption",
   affiliate_agent_upgrade_mode: "manual" as "manual" | "auto",
   affiliate_agent_level2_threshold: 0,
@@ -11735,7 +11722,6 @@ async function saveSettings() {
       affiliate_rebate_freeze_hours: Math.max(0, Math.min(720, Number(form.affiliate_rebate_freeze_hours) || 0)),
       affiliate_rebate_duration_days: Math.max(0, Math.min(3650, Math.floor(Number(form.affiliate_rebate_duration_days) || 0))),
       affiliate_rebate_per_invitee_cap: Math.max(0, Number(form.affiliate_rebate_per_invitee_cap) || 0),
-      affiliate_admin_recharge_enabled: form.affiliate_admin_recharge_enabled,
       affiliate_rebate_base: form.affiliate_rebate_base === "recharge" ? "recharge" : "consumption",
       affiliate_agent_upgrade_mode: form.affiliate_agent_upgrade_mode === "auto" ? "auto" : "manual",
       affiliate_agent_level2_threshold: Math.max(0, Math.floor(Number(form.affiliate_agent_level2_threshold) || 0)),

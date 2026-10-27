@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -83,4 +85,34 @@ func TestMergeBalanceHistoryCodesPaginatesAfterCombiningSources(t *testing.T) {
 	require.Len(t, got, 2)
 	require.Equal(t, RedeemTypeConcurrency, got[0].Type)
 	require.Equal(t, int64(-4), got[1].ID)
+}
+
+// CUSTOM(fork): Totals are fetched once per request without the list filter/page.
+type balanceHistoryTotalsRepo struct {
+	RedeemCodeRepository
+	calls int
+	err   error
+}
+
+func (r *balanceHistoryTotalsRepo) GetBalanceHistoryTotals(_ context.Context, userID int64) (BalanceHistoryTotals, error) {
+	r.calls++
+	return BalanceHistoryTotals{TotalRecharged: 100, TotalGifted: 25}, r.err
+}
+func (r *balanceHistoryTotalsRepo) ListByUserPaginated(_ context.Context, _ int64, _ pagination.PaginationParams, _ string) ([]RedeemCode, *pagination.PaginationResult, error) {
+	return []RedeemCode{}, &pagination.PaginationResult{Total: 0}, nil
+}
+func TestAdminBalanceHistoryTotalsIgnoreFilterAndPage(t *testing.T) {
+	for _, filter := range []string{"", "admin_balance", "balance", "subscription", RedeemTypeAffiliateBalance} {
+		for _, page := range []int{1, 2, 10} {
+			repo := &balanceHistoryTotalsRepo{}
+			svc := &adminServiceImpl{redeemCodeRepo: repo}
+			_, _, totals, err := svc.GetUserBalanceHistory(context.Background(), 42, page, 1, filter)
+			require.NoError(t, err)
+			require.Equal(t, BalanceHistoryTotals{TotalRecharged: 100, TotalGifted: 25}, totals)
+			require.Equal(t, 1, repo.calls)
+			repo.err = errors.New("totals unavailable")
+			_, _, _, err = svc.GetUserBalanceHistory(context.Background(), 42, page, 1, filter)
+			require.ErrorIs(t, err, repo.err)
+		}
+	}
 }

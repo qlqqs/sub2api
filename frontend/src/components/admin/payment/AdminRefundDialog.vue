@@ -6,6 +6,8 @@
     @close="emit('cancel')"
   >
     <form id="refund-form" @submit.prevent="handleSubmit" class="space-y-4">
+      <!-- CUSTOM(fork): Offline receipts must not imply a gateway cash refund. -->
+      <p v-if="order?.payment_type === 'offline'" class="rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">{{ t('admin.users.offlineRecharge.refundHint') }}</p>
       <!-- Refund Request Info -->
       <div
         v-if="order?.refund_requested_at || order?.refund_request_reason"

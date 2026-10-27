@@ -178,7 +178,6 @@ type SystemSettings struct {
 	AffiliateRebateFreezeHours   int
 	AffiliateRebateDurationDays  int
 	AffiliateRebatePerInviteeCap float64
-	AdminRechargeRebateEnabled   bool
 	AffiliateRebateBase          string
 	// 两级代理分润与邀请奖励（AffiliateRebateRate 即利润池 P）
 	AffiliateAgentLevel2Rate           float64

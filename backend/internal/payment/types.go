@@ -12,6 +12,8 @@ type PaymentType = string
 
 // Supported payment type constants.
 const (
+	// CUSTOM(fork): Booked by administrators; never routed to a payment provider.
+	TypeOffline      PaymentType = "offline"
 	TypeAlipay       PaymentType = "alipay"
 	TypeWxpay        PaymentType = "wxpay"
 	TypeAlipayDirect PaymentType = "alipay_direct"

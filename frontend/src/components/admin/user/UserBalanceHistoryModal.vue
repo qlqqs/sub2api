@@ -35,15 +35,19 @@
             </p>
           </div>
         </div>
-        <!-- Row 2: notes + total recharged -->
-        <div class="mt-2.5 flex items-center justify-between border-t border-gray-200/60 pt-2.5 dark:border-dark-600/60">
+        <!-- CUSTOM(fork): Global totals are independent of history filters/pagination. -->
+        <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200/60 pt-2.5 dark:border-dark-600/60">
           <p class="min-w-0 flex-1 truncate text-xs text-gray-500 dark:text-dark-400" :title="user.notes || ''">
             <template v-if="user.notes">{{ t('admin.users.notes') }}: {{ user.notes }}</template>
             <template v-else>&nbsp;</template>
           </p>
-          <p class="ml-4 flex-shrink-0 text-xs text-gray-500 dark:text-dark-400">
-            {{ t('admin.users.totalRecharged') }}: <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ BALANCE_SYMBOL }}{{ totalRecharged.toFixed(2) }}</span>
-          </p>
+          <div class="text-xs text-gray-500 dark:text-dark-400 sm:text-right">
+            <p data-testid="balance-history-totals">
+              {{ t('admin.users.totalRecharged') }} <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ BALANCE_SYMBOL }}{{ totalRecharged.toFixed(2) }}</span>
+              · {{ t('admin.users.totalGifted') }} <span class="font-semibold text-gray-700 dark:text-dark-200">{{ BALANCE_SYMBOL }}{{ totalGifted.toFixed(2) }}</span>
+            </p>
+            <p class="mt-1 text-gray-400 dark:text-dark-500">{{ t('admin.users.totalGiftedHint') }}</p>
+          </div>
         </div>
       </div>
 
@@ -95,6 +99,7 @@
         <div
           v-for="item in history"
           :key="item.id"
+          :data-testid="`balance-history-item-${item.id}`"
           class="rounded-xl border border-gray-200 bg-white p-4 dark:border-dark-600 dark:bg-dark-800"
         >
           <div class="flex items-start justify-between">
@@ -112,6 +117,18 @@
                 <p class="text-sm font-medium text-gray-900 dark:text-white">
                   {{ getItemTitle(item) }}
                 </p>
+                <!-- CUSTOM(fork): Linked receipts are no longer gift accounting. -->
+                <p v-if="item.offline_order" class="mt-1 text-xs text-primary-600 dark:text-primary-400">
+                  {{ t('admin.users.offlineRecharge.paid') }} ¥{{ item.offline_order.paid_amount.toFixed(2) }} · {{ item.offline_order.out_trade_no }}
+                  <!-- CUSTOM(fork): Only settled refunds carry a red balance-amount badge. -->
+                  <span
+                    v-if="item.offline_order.status === 'REFUNDED' || item.offline_order.status === 'PARTIALLY_REFUNDED'"
+                    class="ml-1 inline-flex rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                  >
+                    {{ t(item.offline_order.status === 'REFUNDED' ? 'admin.users.offlineRecharge.refunded' : 'admin.users.offlineRecharge.partiallyRefunded', { amount: formatBalance(item.offline_order.refund_amount) }) }}
+                  </span>
+                </p>
+                <button v-else-if="!hideActions && !user.deleted_at && item.type === 'admin_balance' && item.value > 0 && item.used_at && !item.has_payment_order" type="button" class="mt-1 text-xs text-primary-600 hover:underline dark:text-primary-400" @click="backfillItem = item">{{ t('admin.users.offlineRecharge.backfill') }}</button>
                 <!-- Notes (admin adjustment reason) -->
                 <p
                   v-if="item.notes"
@@ -134,7 +151,7 @@
                 v-if="isAdminType(item.type)"
                 class="text-xs text-gray-400 dark:text-dark-500"
               >
-                {{ t('redeem.adminAdjustment') }}
+                {{ getAdminLabel(item) }}
               </p>
               <p
                 v-else
@@ -169,6 +186,7 @@
       </div>
     </div>
   </BaseDialog>
+  <OfflineBackfillModal v-if="backfillItem && user && show" :user-id="user.id" :item="backfillItem" @close="backfillItem = null" @success="backfillItem = null; loadHistory(currentPage)" />
 </template>
 
 <script setup lang="ts">
@@ -180,17 +198,20 @@ import { formatDateTime } from '@/utils/format'
 import type { AdminUser } from '@/types'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import Select from '@/components/common/Select.vue'
+import OfflineBackfillModal from './OfflineBackfillModal.vue'
 import Icon from '@/components/icons/Icon.vue'
 
 const props = defineProps<{ show: boolean; user: AdminUser | null; hideActions?: boolean }>()
 const emit = defineEmits(['close', 'deposit', 'withdraw'])
 const { t } = useI18n()
 
+const backfillItem = ref<BalanceHistoryItem | null>(null)
 const history = ref<BalanceHistoryItem[]>([])
 const loading = ref(false)
 const currentPage = ref(1)
 const total = ref(0)
 const totalRecharged = ref(0)
+const totalGifted = ref(0)
 const pageSize = 15
 const typeFilter = ref('')
 let requestVersion = 0
@@ -213,6 +234,7 @@ const typeOptions = computed(() => [
 // Watch modal open
 watch(() => props.show, (v) => {
   requestVersion++
+  backfillItem.value = null
   if (v && props.user) {
     typeFilter.value = ''
     loadHistory(1)
@@ -235,6 +257,7 @@ const loadHistory = async (page: number) => {
     history.value = res.items || []
     total.value = res.total || 0
     totalRecharged.value = res.total_recharged || 0
+    totalGifted.value = res.total_gifted || 0
   } catch (error) {
     if (version !== requestVersion) return
     console.error('Failed to load balance history:', error)
@@ -298,6 +321,20 @@ const getValueColor = (item: BalanceHistoryItem) => {
     : 'text-orange-600 dark:text-orange-400'
 }
 
+// CUSTOM(fork): Classify only positive admin credits here; shared user history stays unchanged.
+const getAdminCreditKind = (item: BalanceHistoryItem) => {
+  if (item.type !== 'admin_balance' || item.value <= 0) return null
+  if (item.offline_order) return 'offline'
+  return item.has_payment_order ? null : 'gift'
+}
+
+const getAdminLabel = (item: BalanceHistoryItem) => {
+  const kind = getAdminCreditKind(item)
+  if (kind === 'offline') return t('admin.users.offlineRecharge.offline')
+  if (kind === 'gift') return t('admin.users.offlineRecharge.giftLabel')
+  return t('redeem.adminAdjustment')
+}
+
 // Item title
 const getItemTitle = (item: BalanceHistoryItem) => {
   switch (item.type) {
@@ -305,8 +342,11 @@ const getItemTitle = (item: BalanceHistoryItem) => {
       return t('redeem.balanceAddedRedeem')
     case 'affiliate_balance':
       return t('redeem.balanceAddedAffiliate')
-    case 'admin_balance':
+    case 'admin_balance': {
+      const kind = getAdminCreditKind(item)
+      if (kind) return t(`admin.users.offlineRecharge.${kind}`)
       return item.value >= 0 ? t('redeem.balanceAddedAdmin') : t('redeem.balanceDeductedAdmin')
+    }
     case 'concurrency':
       return t('redeem.concurrencyAddedRedeem')
     case 'admin_concurrency':

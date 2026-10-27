@@ -162,8 +162,8 @@ func (s *redeemRepoStubForAdminList) ListByUserPaginated(_ context.Context, user
 	panic("unexpected ListByUserPaginated call")
 }
 
-func (s *redeemRepoStubForAdminList) SumPositiveBalanceByUser(_ context.Context, userID int64) (float64, error) {
-	panic("unexpected SumPositiveBalanceByUser call")
+func (s *redeemRepoStubForAdminList) GetBalanceHistoryTotals(_ context.Context, userID int64) (BalanceHistoryTotals, error) {
+	panic("unexpected GetBalanceHistoryTotals call")
 }
 
 func TestAdminService_ListAccounts_WithSearch(t *testing.T) {

@@ -174,6 +174,8 @@ async function confirmRefund() {
 }
 
 function canRequestRefund(order: PaymentOrder): boolean {
+  // CUSTOM(fork): Cash is returned offline by an administrator.
+  if (order.payment_type === 'offline') return false
   if (order.status !== 'COMPLETED') return false
   if (!order.provider_instance_id) return false
   return refundEligibleProviders.value.has(order.provider_instance_id)

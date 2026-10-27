@@ -5,13 +5,14 @@ import UserBalanceHistoryModal from '../UserBalanceHistoryModal.vue'
 
 const mocks = vi.hoisted(() => ({ getUserBalanceHistory: vi.fn() }))
 vi.mock('@/api/admin', () => ({ adminAPI: { users: mocks } }))
+vi.mock('@/stores/app', () => ({ useAppStore: () => ({ showError: vi.fn(), showSuccess: vi.fn() }) }))
 vi.mock('@/utils/format', () => ({ formatDateTime: () => 'date' }))
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string, params?: { amount: string }) => params ? `${key} ${params.amount}` : key }) }))
 enableAutoUnmount(afterEach)
 beforeEach(() => { vi.clearAllMocks(); vi.spyOn(console, 'error').mockImplementation(() => {}) })
 afterEach(() => vi.restoreAllMocks())
 function result(id: number) {
-  return { items: [{ id, type: 'admin_balance', value: id, notes: `History ${id}` }], total: 1, total_recharged: id }
+  return { items: [{ id, type: 'admin_balance', value: id, notes: `History ${id}` }], total: 1, total_recharged: id, total_gifted: 25 }
 }
 function deferred() {
   let resolve!: (value: ReturnType<typeof result>) => void
@@ -78,5 +79,95 @@ describe('UserBalanceHistoryModal request ordering', () => {
     await flushPromises()
     expect(console.error).toHaveBeenCalledWith('Failed to load balance history:', error)
     expect(wrapper.find('svg.animate-spin').exists()).toBe(false)
+  })
+})
+
+// CUSTOM(fork): Only positive unlinked adjustments offer receipt backfill.
+describe('offline history metadata', () => {
+  it('renders receipt labels and allows only eligible historical gifts', async () => {
+    mocks.getUserBalanceHistory.mockResolvedValueOnce({ items: [
+      { id: 1, type: 'admin_balance', value: 110, used_at: '2026-10-27', offline_order: { id: 9, out_trade_no: 'sub2_offline', paid_amount: 100 } },
+      { id: 2, type: 'admin_balance', value: 10, used_at: '2026-10-27' },
+      { id: 3, type: 'admin_balance', value: -10, used_at: '2026-10-27' },
+      { id: 4, type: 'admin_concurrency', value: 10, used_at: '2026-10-27' },
+      { id: 5, type: 'admin_balance', value: 10, used_at: '2026-10-27', has_payment_order: true },
+    ], total: 5 })
+    const w = await openDialog(); await flushPromises()
+    expect(w.text()).toContain('sub2_offline')
+    expect(w.text()).toContain('¥100.00')
+    const buttons = w.findAll('button').filter(b => b.text() === 'admin.users.offlineRecharge.backfill')
+    expect(buttons).toHaveLength(1)
+    await w.setProps({ hideActions: true })
+    expect(w.findAll('button').filter(b => b.text() === 'admin.users.offlineRecharge.backfill')).toHaveLength(0)
+  })
+})
+
+// CUSTOM(fork): Display API totals, never sum the current filtered page.
+describe('balance history cash and gifts', () => {
+  it('preserves both global totals across filtering and pagination', async () => {
+    mocks.getUserBalanceHistory.mockResolvedValue({ ...result(999), total: 31, total_recharged: 115.5, total_gifted: 30 })
+    const w = await openDialog()
+    await flushPromises()
+    const totals = () => w.get('[data-testid="balance-history-totals"]').text()
+    expect(totals()).toContain('admin.users.totalRecharged ¥115.50')
+    expect(totals()).toContain('admin.users.totalGifted ¥30.00')
+    expect(w.text()).toContain('admin.users.totalGiftedHint')
+    expect(totals()).not.toContain('999')
+    const filter = w.findComponent({ name: 'Select' })
+    filter.vm.$emit('update:modelValue', 'subscription')
+    filter.vm.$emit('change', 'subscription')
+    await flushPromises()
+    expect(mocks.getUserBalanceHistory).toHaveBeenLastCalledWith(1, 1, 15, 'subscription')
+    await w.findAll('button').find(b => b.text() === 'pagination.next')!.trigger('click')
+    await flushPromises()
+    expect(mocks.getUserBalanceHistory).toHaveBeenLastCalledWith(1, 2, 15, 'subscription')
+    expect(totals()).toContain('¥115.50')
+    expect(totals()).toContain('¥30.00')
+  })
+})
+
+// CUSTOM(fork): Only this admin modal reclassifies gifts and annotates completed refunds.
+describe('administrator history titles and refunds', () => {
+  it.each([
+    { name: 'gift', type: 'admin_balance', value: 10, linked: false, offline: false, title: 'admin.users.offlineRecharge.gift', label: 'admin.users.offlineRecharge.giftLabel' },
+    { name: 'offline', type: 'admin_balance', value: 110, linked: true, offline: true, title: 'admin.users.offlineRecharge.offline', label: 'admin.users.offlineRecharge.offline' },
+    { name: 'deduction', type: 'admin_balance', value: -10, linked: false, offline: false, title: 'redeem.balanceDeductedAdmin', label: 'redeem.adminAdjustment' },
+    { name: 'concurrency', type: 'admin_concurrency', value: 10, linked: false, offline: false, title: 'redeem.concurrencyAddedAdmin', label: 'redeem.adminAdjustment' },
+    { name: 'other linked order', type: 'admin_balance', value: 10, linked: true, offline: false, title: 'redeem.balanceAddedAdmin', label: 'redeem.adminAdjustment' },
+    { name: 'zero adjustment', type: 'admin_balance', value: 0, linked: false, offline: false, title: 'redeem.balanceAddedAdmin', label: 'redeem.adminAdjustment' },
+    { name: 'redeem code', type: 'balance', value: 10, linked: false, offline: false, title: 'redeem.balanceAddedRedeem', label: 'ABCDEFGH...' },
+  ])('renders $name without changing unrelated history', async ({ type, value, linked, offline, title, label }) => {
+    mocks.getUserBalanceHistory.mockResolvedValueOnce({ items: [{
+      id: 1, code: 'ABCDEFGHIJK', type, value, has_payment_order: linked,
+      offline_order: offline ? { id: 9, out_trade_no: 'sub2_offline', paid_amount: 100, amount: 110, status: 'COMPLETED', refund_amount: 0 } : undefined,
+    }], total: 1 })
+    const w = await openDialog()
+    await flushPromises()
+    const row = w.get('[data-testid="balance-history-item-1"]')
+    expect(row.get('p.text-sm.font-medium').text()).toBe(title)
+    expect(row.get('div.text-right p.text-xs').text()).toBe(label)
+    if (value < 0) expect(row.text()).toContain('-¥10.00')
+  })
+
+  it.each([
+    { status: 'REFUNDED', refund: 110, key: 'refunded' },
+    { status: 'PARTIALLY_REFUNDED', refund: 55.25, key: 'partiallyRefunded' },
+    { status: 'COMPLETED', refund: 0, key: null },
+    { status: 'REFUND_REQUESTED', refund: 110, key: null },
+    { status: 'REFUNDING', refund: 110, key: null },
+    { status: 'REFUND_PENDING', refund: 110, key: null },
+    { status: 'REFUND_FAILED', refund: 110, key: null },
+  ])('shows only settled refund badges for $status', async ({ status, refund, key }) => {
+    mocks.getUserBalanceHistory.mockResolvedValueOnce({ items: [{
+      id: 1, type: 'admin_balance', value: 110, has_payment_order: true,
+      offline_order: { id: 9, out_trade_no: 'sub2_refund', paid_amount: 100, amount: 110, status, refund_amount: refund },
+    }], total: 1 })
+    const w = await openDialog()
+    await flushPromises()
+    const row = w.get('[data-testid="balance-history-item-1"]')
+    expect(row.get('p.text-sm.font-medium').text()).toBe('admin.users.offlineRecharge.offline')
+    const badge = row.find('span.bg-red-100')
+    expect(badge.exists()).toBe(Boolean(key))
+    if (key) expect(badge.text()).toBe(`admin.users.offlineRecharge.${key} ¥${refund.toFixed(2)}`)
   })
 })

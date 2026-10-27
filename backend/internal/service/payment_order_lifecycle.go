@@ -401,6 +401,10 @@ func (s *PaymentService) ExpireTimedOutOrders(ctx context.Context) (int, error) 
 // getOrderProvider creates a provider using the order's original instance config.
 // Falls back to registry lookup if instance ID is missing (legacy orders).
 func (s *PaymentService) getOrderProvider(ctx context.Context, o *dbent.PaymentOrder) (payment.Provider, error) {
+	// CUSTOM(fork): Offline receipts never resolve a gateway, even during reconciliation.
+	if o.PaymentType == payment.TypeOffline {
+		return nil, infraerrors.BadRequest("OFFLINE_NO_PROVIDER", "offline orders have no payment provider")
+	}
 	inst, err := s.getOrderProviderInstance(ctx, o)
 	if err != nil {
 		return nil, fmt.Errorf("load order provider instance: %w", err)

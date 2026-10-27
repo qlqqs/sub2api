@@ -3,6 +3,7 @@
  * Handles user management for administrators
  */
 
+import type { OrderStatus } from '@/types/payment'
 import { apiClient } from '../client'
 import { listPlatformIds } from '@/constants/platformCatalog'
 import type { AccountPlatform, AdminUser, UpdateUserRequest, PaginatedResponse, ApiKey } from '@/types'
@@ -176,12 +177,14 @@ export async function updateBalance(
   id: number,
   balance: number,
   operation: 'set' | 'add' | 'subtract' = 'set',
-  notes?: string
+  notes?: string,
+  receipt: { kind: 'gift' | 'offline' } & Partial<OfflineReceipt> = { kind: 'gift' }
 ): Promise<AdminUser> {
   const { data } = await apiClient.post<AdminUser>(`/admin/users/${id}/balance`, {
     balance,
     operation,
-    notes: notes || ''
+    notes: notes || '',
+    ...receipt
   })
   return data
 }
@@ -254,7 +257,28 @@ export async function getUserUsageStats(
 /**
  * Balance history item returned from the API
  */
+// CUSTOM(fork): Shared offline receipt form and history API contract.
+export interface OfflineReceipt {
+  paid_amount: number
+  offline_channel: '' | 'wechat' | 'alipay' | 'bank' | 'other'
+  trade_no: string
+}
+// CUSTOM(fork): Refund amounts are balance credits, not proportional cash refunds.
+export interface OfflineOrderSummary {
+  id: number
+  out_trade_no: string
+  paid_amount: number
+  amount: number
+  status: OrderStatus
+  refund_amount: number
+}
+export async function backfillOfflineRecharge(id: number, redeemId: number, receipt: OfflineReceipt & { notes: string }): Promise<OfflineOrderSummary> {
+  const { data } = await apiClient.post<OfflineOrderSummary>(`/admin/users/${id}/balance-history/${redeemId}/offline`, receipt)
+  return data
+}
 export interface BalanceHistoryItem {
+  offline_order?: OfflineOrderSummary
+  has_payment_order?: boolean
   id: number
   code: string
   type: string
@@ -270,9 +294,10 @@ export interface BalanceHistoryItem {
   group?: { id: number; name: string } | null
 }
 
-// Balance history response extends pagination with total_recharged summary
+// Balance history response extends pagination with global cash and gift totals summary
 export interface BalanceHistoryResponse extends PaginatedResponse<BalanceHistoryItem> {
   total_recharged: number
+  total_gifted: number
 }
 
 /**
@@ -281,7 +306,7 @@ export interface BalanceHistoryResponse extends PaginatedResponse<BalanceHistory
  * @param page - Page number
  * @param pageSize - Items per page
  * @param type - Optional type filter (balance, affiliate_balance, admin_balance, concurrency, admin_concurrency, subscription)
- * @returns Paginated balance history with total_recharged
+ * @returns Paginated balance history with global cash and gift totals
  */
 export async function getUserBalanceHistory(
   id: number,
@@ -417,6 +442,7 @@ export const usersAPI = {
   getUserApiKeys,
   getUserUsageStats,
   getUserBalanceHistory,
+  backfillOfflineRecharge,
   replaceGroup,
   bindUserAuthIdentity,
   getPlatformQuotas,

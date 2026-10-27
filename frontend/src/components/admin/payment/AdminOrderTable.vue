@@ -221,6 +221,8 @@ const statusFilterOptions = computed(() => [
 
 const paymentTypeFilterOptions = computed(() => [
   { value: '', label: t('payment.admin.allPaymentTypes') },
+  // CUSTOM(fork): Administrator-booked cash receipts are filterable too.
+  { value: 'offline', label: t('payment.methods.offline') },
   { value: 'alipay', label: t('payment.methods.alipay') },
   { value: 'wxpay', label: t('payment.methods.wxpay') },
   { value: 'stripe', label: t('payment.methods.stripe') },

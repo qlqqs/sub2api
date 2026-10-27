@@ -27,6 +27,7 @@ type UserWithConcurrency struct {
 
 // UserHandler handles admin user management
 type UserHandler struct {
+	paymentService        *service.PaymentService // CUSTOM(fork): offline receipt creation/history
 	adminService          service.AdminService
 	concurrencyService    *service.ConcurrencyService
 	userPlatformQuotaRepo service.UserPlatformQuotaRepository // T13 admin quota view
@@ -45,8 +46,10 @@ func NewUserHandler(
 	totpService *service.TotpService,
 	userService *service.UserService,
 	settingService *service.SettingService,
+	paymentService *service.PaymentService,
 ) *UserHandler {
 	return &UserHandler{
+		paymentService:        paymentService,
 		adminService:          adminService,
 		concurrencyService:    concurrencyService,
 		userPlatformQuotaRepo: userPlatformQuotaRepo,
@@ -92,9 +95,14 @@ type UpdateUserRequest struct {
 
 // UpdateBalanceRequest represents balance update request
 type UpdateBalanceRequest struct {
-	Balance   float64 `json:"balance" binding:"required,gt=0"`
-	Operation string  `json:"operation" binding:"required,oneof=set add subtract"`
-	Notes     string  `json:"notes"`
+	// CUSTOM(fork): Omitted kind remains gift for legacy API clients.
+	Kind           string  `json:"kind"`
+	PaidAmount     float64 `json:"paid_amount"`
+	OfflineChannel string  `json:"offline_channel"`
+	TradeNo        string  `json:"trade_no"`
+	Balance        float64 `json:"balance" binding:"required,gt=0"`
+	Operation      string  `json:"operation" binding:"required,oneof=set add subtract"`
+	Notes          string  `json:"notes"`
 }
 
 type BindUserAuthIdentityRequest struct {
@@ -400,6 +408,11 @@ func (h *UserHandler) UpdateBalance(c *gin.Context) {
 		return
 	}
 
+	if err := service.ValidateAdminBalanceKind(req.Kind, req.Operation); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	subject, _ := middleware.GetAuthSubjectFromContext(c)
 	idempotencyPayload := struct {
 		UserID int64                `json:"user_id"`
 		Body   UpdateBalanceRequest `json:"body"`
@@ -408,7 +421,13 @@ func (h *UserHandler) UpdateBalance(c *gin.Context) {
 		Body:   req,
 	}
 	executeAdminIdempotentJSON(c, "admin.users.balance.update", idempotencyPayload, service.DefaultWriteIdempotencyTTL(), func(ctx context.Context) (any, error) {
-		user, execErr := h.adminService.UpdateUserBalance(ctx, userID, req.Balance, req.Operation, req.Notes)
+		var user *service.User
+		var execErr error
+		if req.Kind == "offline" {
+			user, execErr = h.paymentService.AdminCreateOfflineRecharge(ctx, service.AdminOfflineRechargeInput{UserID: userID, AdminID: subject.UserID, Amount: req.Balance, PaidAmount: req.PaidAmount, OfflineChannel: req.OfflineChannel, TradeNo: req.TradeNo, Notes: req.Notes})
+		} else {
+			user, execErr = h.adminService.UpdateUserBalance(ctx, userID, req.Balance, req.Operation, req.Notes)
+		}
 		if execErr != nil {
 			return nil, execErr
 		}
@@ -476,19 +495,34 @@ func (h *UserHandler) GetBalanceHistory(c *gin.Context) {
 	page, pageSize := response.ParsePagination(c)
 	codeType := c.Query("type")
 
-	codes, total, totalRecharged, err := h.adminService.GetUserBalanceHistory(c.Request.Context(), userID, page, pageSize, codeType)
+	codes, total, totals, err := h.adminService.GetUserBalanceHistory(c.Request.Context(), userID, page, pageSize, codeType)
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return
 	}
 
 	// Convert to admin DTO (includes notes field for admin visibility)
-	out := make([]dto.AdminRedeemCode, 0, len(codes))
+	// CUSTOM(fork): Enrich only the admin history, not public redemption records.
+	var summaries map[string]*service.OfflineOrderSummary
+	var linked map[string]bool
+	if h.paymentService != nil {
+		summaries, linked, err = h.paymentService.AdminBalanceHistoryOrders(c.Request.Context(), codes)
+		if err != nil {
+			response.ErrorFrom(c, err)
+			return
+		}
+	}
+	type historyItem struct {
+		*dto.AdminRedeemCode
+		OfflineOrder    *service.OfflineOrderSummary `json:"offline_order,omitempty"`
+		HasPaymentOrder bool                         `json:"has_payment_order"`
+	}
+	out := make([]historyItem, 0, len(codes))
 	for i := range codes {
-		out = append(out, *dto.RedeemCodeFromServiceAdmin(&codes[i]))
+		out = append(out, historyItem{dto.RedeemCodeFromServiceAdmin(&codes[i]), summaries[codes[i].Code], linked[codes[i].Code]})
 	}
 
-	// Custom response with total_recharged alongside pagination
+	// CUSTOM(fork): Global cash/gift totals alongside the filtered history page.
 	pages := int((total + int64(pageSize) - 1) / int64(pageSize))
 	if pages < 1 {
 		pages = 1
@@ -499,7 +533,8 @@ func (h *UserHandler) GetBalanceHistory(c *gin.Context) {
 		"page":            page,
 		"page_size":       pageSize,
 		"pages":           pages,
-		"total_recharged": totalRecharged,
+		"total_recharged": totals.TotalRecharged,
+		"total_gifted":    totals.TotalGifted,
 	})
 }
 

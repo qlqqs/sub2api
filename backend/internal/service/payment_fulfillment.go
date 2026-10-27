@@ -109,6 +109,10 @@ func (s *PaymentService) confirmPayment(ctx context.Context, oid int64, tradeNo 
 		slog.Error("order not found", "orderID", oid)
 		return nil
 	}
+	// CUSTOM(fork): Never let callbacks fulfill or mutate an offline receipt.
+	if o.PaymentType == payment.TypeOffline {
+		return infraerrors.BadRequest("OFFLINE_CALLBACK_REJECTED", "offline orders do not accept payment callbacks")
+	}
 	instanceProviderKey := ""
 	if inst, instErr := s.getOrderProviderInstance(ctx, o); instErr == nil && inst != nil {
 		instanceProviderKey = inst.ProviderKey

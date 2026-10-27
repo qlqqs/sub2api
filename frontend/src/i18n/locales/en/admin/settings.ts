@@ -120,8 +120,6 @@ export default {
           description: 'A fixed profit pool is split between two agent tiers by rate difference, with nothing kept by the platform. Invite rewards between regular users and the invitee first-recharge bonus are paid separately. Disabled by default.',
           enabled: 'Enable Affiliate',
           enabledHint: 'When off, the affiliate menu is hidden, the aff parameter is ignored at signup, and no new rebates or rewards are generated. Existing rebate balances can still be transferred.',
-          adminRechargeRebate: 'Rebate Admin Deposits',
-          adminRechargeRebateHint: 'When enabled, balance added through User Management > Deposit generates agent profit and invite rewards. Setting a balance or withdrawing funds does not.',
           manageAgentsHint: 'Manage the agent list, levels, exclusive rates and exclusive invite codes under Affiliate > Agents.',
           manageAgentsLink: 'Open agent management',
           rebateBase: 'Rebate Base',

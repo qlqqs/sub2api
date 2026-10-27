@@ -876,7 +876,6 @@ func TestAPIContracts(t *testing.T) {
 					"affiliate_rebate_freeze_hours": 0,
 					"affiliate_rebate_duration_days": 0,
 					"affiliate_rebate_per_invitee_cap": 0,
-					"affiliate_admin_recharge_enabled": false,
 					"affiliate_agent_level2_rate": 10,
 					"affiliate_agent_custom_rate_enabled": false,
 					"affiliate_agent_appoint_enabled": true,
@@ -1278,7 +1277,6 @@ func TestAPIContracts(t *testing.T) {
 					"affiliate_rebate_freeze_hours": 0,
 					"affiliate_rebate_duration_days": 0,
 					"affiliate_rebate_per_invitee_cap": 0,
-					"affiliate_admin_recharge_enabled": false,
 					"affiliate_agent_level2_rate": 10,
 					"affiliate_agent_custom_rate_enabled": false,
 					"affiliate_agent_appoint_enabled": true,
@@ -1587,7 +1585,7 @@ func newContractDeps(t *testing.T) *contractDeps {
 	settingRepo := newStubSettingRepo()
 	settingService := service.NewSettingService(settingRepo, cfg)
 
-	adminService := service.NewAdminService(nil, userRepo, groupRepo, &accountRepo, proxyRepo, apiKeyRepo, redeemRepo, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	adminService := service.NewAdminService(nil, userRepo, groupRepo, &accountRepo, proxyRepo, apiKeyRepo, redeemRepo, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	authHandler := handler.NewAuthHandler(cfg, nil, userService, settingService, nil, redeemService, nil, nil)
 	apiKeyHandler := handler.NewAPIKeyHandler(apiKeyService)
 	usageHandler := handler.NewUsageHandler(usageService, apiKeyService, nil, nil)
@@ -2307,8 +2305,8 @@ func (stubRedeemCodeRepo) ListByUserPaginated(ctx context.Context, userID int64,
 	return nil, nil, errors.New("not implemented")
 }
 
-func (stubRedeemCodeRepo) SumPositiveBalanceByUser(ctx context.Context, userID int64) (float64, error) {
-	return 0, errors.New("not implemented")
+func (stubRedeemCodeRepo) GetBalanceHistoryTotals(ctx context.Context, userID int64) (service.BalanceHistoryTotals, error) {
+	return service.BalanceHistoryTotals{}, errors.New("not implemented")
 }
 
 type stubUserSubscriptionRepo struct {

@@ -102,8 +102,8 @@ func (s *redeemCodeRepoStub) ListByUserPaginated(context.Context, int64, paginat
 	panic("unexpected ListByUserPaginated call")
 }
 
-func (s *redeemCodeRepoStub) SumPositiveBalanceByUser(context.Context, int64) (float64, error) {
-	panic("unexpected SumPositiveBalanceByUser call")
+func (s *redeemCodeRepoStub) GetBalanceHistoryTotals(context.Context, int64) (BalanceHistoryTotals, error) {
+	panic("unexpected GetBalanceHistoryTotals call")
 }
 
 func newOAuthEmailFlowAuthService(

@@ -387,6 +387,7 @@ export default {
     actualPay: '实付金额',
     createOrder: '确认支付',
     methods: {
+      offline: "线下充值",
       easypay: '易支付',
       alipay: '支付宝',
       wxpay: '微信支付',
@@ -491,6 +492,16 @@ export default {
     airwallexLoadFailed: 'Airwallex 支付组件加载失败，请刷新页面重试',
     airwallexMissingParams: '缺少 Airwallex 支付参数',
     errors: {
+      OFFLINE_INVALID_AMOUNT: "金额须大于 0、不超过 100000000，且最多两位小数",
+      OFFLINE_INVALID_CHANNEL: "请选择有效的收款方式",
+      OFFLINE_INVALID_RECEIPT: "流水号或备注过长",
+      OFFLINE_INVALID_KIND: "请选择赠送或线下充值；线下充值仅支持加余额",
+      OFFLINE_INVALID_HISTORY: "仅可补登已使用的正数管理员余额记录",
+      OFFLINE_ALREADY_LINKED: "此记录已关联支付订单，不能重复补登",
+      OFFLINE_DUPLICATE_TRADE: "此线下流水号已存在，可能重复入账",
+      OFFLINE_USER_REFUND_DISABLED: "线下充值请联系管理员退款",
+      OFFLINE_CALLBACK_REJECTED: "线下订单不接受支付回调",
+
       tooManyPending: '待支付订单过多（最多 {max} 个），请先完成或取消现有订单',
       cancelRateLimited: '取消订单过于频繁，请稍后再试',
       wechatH5NotAuthorized: '当前商户未开通微信 H5 支付，请在微信中打开当前页面继续支付。',

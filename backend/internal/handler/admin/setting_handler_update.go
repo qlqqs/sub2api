@@ -178,7 +178,6 @@ type UpdateSettingsRequest struct {
 	AffiliateRebateFreezeHours                *int                              `json:"affiliate_rebate_freeze_hours"`
 	AffiliateRebateDurationDays               *int                              `json:"affiliate_rebate_duration_days"`
 	AffiliateRebatePerInviteeCap              *float64                          `json:"affiliate_rebate_per_invitee_cap"`
-	AdminRechargeRebateEnabled                *bool                             `json:"affiliate_admin_recharge_enabled"`
 	AffiliateAgentLevel2Rate                  *float64                          `json:"affiliate_agent_level2_rate"`
 	AffiliateAgentCustomRateEnabled           *bool                             `json:"affiliate_agent_custom_rate_enabled"`
 	AffiliateAgentAppointEnabled              *bool                             `json:"affiliate_agent_appoint_enabled"`
@@ -618,10 +617,6 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 	}
 	if affiliateRebatePerInviteeCap < 0 {
 		affiliateRebatePerInviteeCap = service.AffiliateRebatePerInviteeCapDefault
-	}
-	adminRechargeRebateEnabled := previousSettings.AdminRechargeRebateEnabled
-	if req.AdminRechargeRebateEnabled != nil {
-		adminRechargeRebateEnabled = *req.AdminRechargeRebateEnabled
 	}
 	affiliateAgentLevel2Rate := clampAffiliateRateInput(previousSettings.AffiliateAgentLevel2Rate, req.AffiliateAgentLevel2Rate)
 	if affiliateAgentLevel2Rate > affiliateRebateRate {
@@ -1779,7 +1774,6 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AffiliateRebateFreezeHours:             affiliateRebateFreezeHours,
 		AffiliateRebateDurationDays:            affiliateRebateDurationDays,
 		AffiliateRebatePerInviteeCap:           affiliateRebatePerInviteeCap,
-		AdminRechargeRebateEnabled:             adminRechargeRebateEnabled,
 		AffiliateAgentLevel2Rate:               affiliateAgentLevel2Rate,
 		AffiliateAgentCustomRateEnabled:        affiliateAgentCustomRateEnabled,
 		AffiliateAgentAppointEnabled:           affiliateAgentAppointEnabled,
@@ -2465,7 +2459,6 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AffiliateRebateFreezeHours:                             updatedSettings.AffiliateRebateFreezeHours,
 		AffiliateRebateDurationDays:                            updatedSettings.AffiliateRebateDurationDays,
 		AffiliateRebatePerInviteeCap:                           updatedSettings.AffiliateRebatePerInviteeCap,
-		AdminRechargeRebateEnabled:                             updatedSettings.AdminRechargeRebateEnabled,
 		AffiliateAgentLevel2Rate:                               updatedSettings.AffiliateAgentLevel2Rate,
 		AffiliateAgentCustomRateEnabled:                        updatedSettings.AffiliateAgentCustomRateEnabled,
 		AffiliateAgentAppointEnabled:                           updatedSettings.AffiliateAgentAppointEnabled,

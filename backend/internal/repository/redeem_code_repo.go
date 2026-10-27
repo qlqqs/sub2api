@@ -386,26 +386,32 @@ func (r *redeemCodeRepository) ListByUserPaginated(ctx context.Context, userID i
 	return redeemCodeEntitiesToService(codes), paginationResultFromTotal(int64(total), params), nil
 }
 
-// SumPositiveBalanceByUser returns total recharged amount (sum of value > 0 where type is balance/admin_balance).
-func (r *redeemCodeRepository) SumPositiveBalanceByUser(ctx context.Context, userID int64) (float64, error) {
-	var result []struct {
-		Sum float64 `json:"sum"`
-	}
-	err := r.client.RedeemCode.Query().
-		Where(
-			redeemcode.UsedByEQ(userID),
-			redeemcode.ValueGT(0),
-			redeemcode.TypeIn("balance", "admin_balance"),
-		).
-		Aggregate(dbent.As(dbent.Sum(redeemcode.FieldValue), "sum")).
-		Scan(ctx, &result)
+// CUSTOM(fork): One statement gives both totals a consistent snapshot. Order-linked
+// internal redemption records never count as gifts, regardless of order status.
+func (r *redeemCodeRepository) GetBalanceHistoryTotals(ctx context.Context, userID int64) (service.BalanceHistoryTotals, error) {
+	var totals service.BalanceHistoryTotals
+	rows, err := clientFromContext(ctx, r.client).QueryContext(ctx, `
+ WITH paid AS (
+   SELECT COALESCE(SUM(o.pay_amount - (`+paymentRefundCashSQL+`)),0) AS cash,
+          COALESCE(SUM(o.bonus_amount),0) AS bonus
+   FROM payment_orders o
+   WHERE o.user_id=$1 AND o.order_type='balance' AND o.status IN `+paidPaymentOrderStatuses+`
+ ), gifts AS (
+   SELECT COALESCE(SUM(r.value),0) AS amount FROM redeem_codes r
+   WHERE r.used_by=$1 AND r.value>0 AND r.type IN ('balance','admin_balance')
+     AND NOT EXISTS (SELECT 1 FROM payment_orders o WHERE o.recharge_code=r.code)
+ )
+ SELECT paid.cash, paid.bonus+gifts.amount FROM paid CROSS JOIN gifts`, userID)
 	if err != nil {
-		return 0, err
+		return totals, err
 	}
-	if len(result) == 0 {
-		return 0, nil
+	defer func() { _ = rows.Close() }()
+	if rows.Next() {
+		if err := rows.Scan(&totals.TotalRecharged, &totals.TotalGifted); err != nil {
+			return totals, err
+		}
 	}
-	return result[0].Sum, nil
+	return totals, rows.Err()
 }
 
 func redeemCodeEntityToService(m *dbent.RedeemCode) *service.RedeemCode {

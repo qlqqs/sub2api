@@ -3014,8 +3014,8 @@ func (r *oauthPendingFlowRedeemCodeRepo) ListByUserPaginated(context.Context, in
 	panic("unexpected ListByUserPaginated call")
 }
 
-func (r *oauthPendingFlowRedeemCodeRepo) SumPositiveBalanceByUser(context.Context, int64) (float64, error) {
-	panic("unexpected SumPositiveBalanceByUser call")
+func (r *oauthPendingFlowRedeemCodeRepo) GetBalanceHistoryTotals(context.Context, int64) (service.BalanceHistoryTotals, error) {
+	panic("unexpected GetBalanceHistoryTotals call")
 }
 
 func decodeJSONResponseData(t *testing.T, recorder *httptest.ResponseRecorder) map[string]any {

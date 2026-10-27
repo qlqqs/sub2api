@@ -484,8 +484,8 @@ func (s *redeemRepoStub) ListByUserPaginated(ctx context.Context, userID int64, 
 	panic("unexpected ListByUserPaginated call")
 }
 
-func (s *redeemRepoStub) SumPositiveBalanceByUser(ctx context.Context, userID int64) (float64, error) {
-	panic("unexpected SumPositiveBalanceByUser call")
+func (s *redeemRepoStub) GetBalanceHistoryTotals(ctx context.Context, userID int64) (BalanceHistoryTotals, error) {
+	panic("unexpected GetBalanceHistoryTotals call")
 }
 
 type subscriptionInvalidateCall struct {

@@ -81,7 +81,7 @@ func (r *financeRepository) Load(ctx context.Context, span service.FinanceRange)
 	err = financeRows(ctx, tx, `SELECT o.id,o.out_trade_no,o.user_id,o.user_email,o.payment_type,o.status,o.order_type,o.completed_at,
  CASE WHEN o.status IN ('REFUNDED','PARTIALLY_REFUNDED') THEN o.refund_at END,
  o.pay_amount,o.amount-o.bonus_amount,o.bonus_amount,COALESCE(o.channel_fee_rate,p.channel_fee_rate,0),
- CASE WHEN o.status IN ('REFUNDED','PARTIALLY_REFUNDED') AND o.refund_at IS NOT NULL THEN COALESCE(o.refund_amount,0) ELSE 0 END,
+ `+paymentRefundCashSQL+`,
  CASE WHEN o.status IN ('REFUNDED','PARTIALLY_REFUNDED') AND o.refund_at IS NOT NULL THEN COALESCE(o.refund_balance_deducted,o.refund_amount,0) ELSE 0 END,
  o.channel_fee_rate IS NULL, o.refund_at IS NOT NULL AND o.refund_balance_deducted IS NULL
  FROM payment_orders o LEFT JOIN payment_provider_instances p ON p.id::text=o.provider_instance_id

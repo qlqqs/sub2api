@@ -226,8 +226,7 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyPluginManagementEnabled: "false",
 
 		// Affiliate (邀请返利) feature (default disabled; opt-in)
-		SettingKeyAffiliateEnabled:              "false",
-		SettingKeyAffiliateAdminRechargeEnabled: strconv.FormatBool(AdminRechargeRebateEnabledDefault),
+		SettingKeyAffiliateEnabled: "false",
 
 		// 风控中心功能（默认关闭，显式启用）
 		SettingKeyRiskControlEnabled: "false",
@@ -439,7 +438,6 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 	if perInviteeCap, err := strconv.ParseFloat(settings[SettingKeyAffiliateRebatePerInviteeCap], 64); err == nil && perInviteeCap >= 0 {
 		result.AffiliateRebatePerInviteeCap = perInviteeCap
 	}
-	result.AdminRechargeRebateEnabled = settings[SettingKeyAffiliateAdminRechargeEnabled] == "true"
 	// 奖励配置与运行时共用解析；利润池等沿用的旧键也以它为准（含 R2 ≤ P 约束）。
 	parseAffiliateRewardConfig(settings).applyToSettings(result)
 	result.AffiliateRebateBase = normalizeAffiliateRebateBase(settings[SettingKeyAffiliateRebateBase])

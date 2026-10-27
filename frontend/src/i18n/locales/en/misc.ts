@@ -363,6 +363,7 @@ export default {
     actualPay: 'Actual Payment',
     createOrder: 'Confirm Payment',
     methods: {
+      offline: "Offline recharge",
       easypay: 'EasyPay',
       alipay: 'Alipay',
       wxpay: 'WeChat Pay',
@@ -467,6 +468,16 @@ export default {
     airwallexLoadFailed: 'Failed to load Airwallex payment component. Please refresh and try again.',
     airwallexMissingParams: 'Missing Airwallex payment parameters',
     errors: {
+      OFFLINE_INVALID_AMOUNT: "Amount must be positive, at most 100000000, with up to two decimal places",
+      OFFLINE_INVALID_CHANNEL: "Select a valid receipt channel",
+      OFFLINE_INVALID_RECEIPT: "Transaction reference or notes are too long",
+      OFFLINE_INVALID_KIND: "Select gift or offline recharge; offline recharge only supports adding balance",
+      OFFLINE_INVALID_HISTORY: "Only used positive admin balance records can be backfilled",
+      OFFLINE_ALREADY_LINKED: "This record is already linked to an order",
+      OFFLINE_DUPLICATE_TRADE: "This transaction reference already exists; possible duplicate receipt",
+      OFFLINE_USER_REFUND_DISABLED: "Contact an administrator for an offline refund",
+      OFFLINE_CALLBACK_REJECTED: "Offline orders do not accept payment callbacks",
+
       tooManyPending: 'Too many pending orders (max {max}). Please complete or cancel existing orders first.',
       cancelRateLimited: 'Too many cancellations. Please try again later.',
       wechatH5NotAuthorized: 'This merchant has not enabled WeChat H5 payment. Open this page in WeChat to continue.',

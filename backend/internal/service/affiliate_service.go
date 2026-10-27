@@ -102,7 +102,7 @@ type AffiliateSummary struct {
 
 // AffiliateAccrueSource 标识一笔返利的来源：充值订单（OrderID）或消费结算
 // （UsageUntil 为本次结算覆盖到的 usage_logs.created_at 上界）。两者都为 nil
-// 时来自兑换码或管理员加款。BaseAmount 是这笔返利的计算基数（充值额或计入返利的消费）。
+// 时来自兑换码或历史管理员加款（新赠送不返利，线下充值带 OrderID）。BaseAmount 是这笔返利的计算基数（充值额或计入返利的消费）。
 type AffiliateAccrueSource struct {
 	OrderID    *int64
 	UsageUntil *time.Time

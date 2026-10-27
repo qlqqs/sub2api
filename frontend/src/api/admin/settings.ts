@@ -432,7 +432,6 @@ export interface SystemSettings {
   affiliate_rebate_freeze_hours: number;
   affiliate_rebate_duration_days: number;
   affiliate_rebate_per_invitee_cap: number;
-  affiliate_admin_recharge_enabled: boolean;
   affiliate_rebate_base: "recharge" | "consumption";
   affiliate_agent_upgrade_mode: "manual" | "auto";
   affiliate_agent_level2_threshold: number;
@@ -811,7 +810,6 @@ export interface UpdateSettingsRequest {
   affiliate_rebate_freeze_hours?: number;
   affiliate_rebate_duration_days?: number;
   affiliate_rebate_per_invitee_cap?: number;
-  affiliate_admin_recharge_enabled?: boolean;
   affiliate_rebate_base?: "recharge" | "consumption";
   affiliate_agent_upgrade_mode?: "manual" | "auto";
   affiliate_agent_level2_threshold?: number;

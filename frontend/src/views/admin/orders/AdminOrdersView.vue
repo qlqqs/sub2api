@@ -208,6 +208,8 @@ const statusFilterOptions = computed(() => [
 
 const paymentTypeFilterOptions = computed(() => [
   { value: '', label: t('payment.admin.allPaymentTypes') },
+  // CUSTOM(fork): Offline receipts share the administrative order list.
+  { value: 'offline', label: t('payment.methods.offline') },
   { value: 'alipay', label: t('payment.methods.alipay') },
   { value: 'wxpay', label: t('payment.methods.wxpay') },
   { value: 'stripe', label: t('payment.methods.stripe') },

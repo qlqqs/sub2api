@@ -33,7 +33,6 @@ const (
 	AffiliateRebateDurationDaysDefault  = 0     // 0 = 永久有效
 	AffiliateRebateDurationDaysMax      = 3650  // ~10 年
 	AffiliateRebatePerInviteeCapDefault = 0.0   // 0 = 无上限
-	AdminRechargeRebateEnabledDefault   = false // 管理员充值默认不产生返利
 
 	// 代理等级：1 一级代理，2 二级代理，3 普通用户（新用户默认）。
 	AffiliateAgentLevelTop     = 1
@@ -290,7 +289,6 @@ const (
 	SettingKeyAffiliateRebateFreezeHours          = "affiliate_rebate_freeze_hours"           // 返利冻结期（小时，0=不冻结）
 	SettingKeyAffiliateRebateDurationDays         = "affiliate_rebate_duration_days"          // 返利有效期（天，0=永久）
 	SettingKeyAffiliateRebatePerInviteeCap        = "affiliate_rebate_per_invitee_cap"        // 单人返利上限（0=无上限）
-	SettingKeyAffiliateAdminRechargeEnabled       = "affiliate_admin_recharge_enabled"        // 管理员充值是否产生返利
 	SettingKeyAffiliateAgentLevel2Rate            = "affiliate_agent_level2_rate"             // 二级代理比例 R2（≤ 利润池）
 	SettingKeyAffiliateAgentCustomRateEnabled     = "affiliate_agent_custom_rate_enabled"     // 专属比例开关
 	SettingKeyAffiliateAgentAppointEnabled        = "affiliate_agent_appoint_enabled"         // 允许一级代理任命二级

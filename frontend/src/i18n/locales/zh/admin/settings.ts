@@ -120,8 +120,6 @@ export default {
           description: '两级代理按级差分利润池，平台不截留；普通用户之间的邀请奖励与被邀请人首充奖励另算。默认关闭。',
           enabled: '启用邀请返利',
           enabledHint: '关闭后用户菜单中的邀请页面入口隐藏、注册时忽略邀请码、不再产生新的返利与奖励。已有返利额度仍可转入余额。',
-          adminRechargeRebate: '管理员充值参与返利',
-          adminRechargeRebateHint: '开启后，通过“用户管理 > 充值”增加的余额会产生代理利润与邀请奖励；设置余额和扣款不参与。',
           manageAgentsHint: '代理名单、等级、专属比例与专属邀请码请在「邀请返利 → 代理管理」中设置。',
           manageAgentsLink: '前往代理管理',
           rebateBase: '返利基数',
