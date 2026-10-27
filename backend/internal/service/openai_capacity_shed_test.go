@@ -124,6 +124,8 @@ func TestOpenAIStreamErrorFrameDoesNotStartClientOutput(t *testing.T) {
 		{`{"type":"error","error":{"type":"invalid_request_error","code":"content_policy_violation","message":"blocked"}}`, "error", true},
 		{`{"type":"response.failed","response":{"error":{"code":"server_is_overloaded"}}}`, "response.failed", false},
 		{`{"type":"response.created","response":{"id":"resp_1"}}`, "response.created", false},
+		{`{"type":"response.queued","response":{"id":"resp_1","status":"queued"}}`, "response.queued", false},
+		{`{"type":"response.metadata","response_id":"resp_1","metadata":{"openai_chatgpt_moderation_metadata":{"prompt":{}}}}`, "response.metadata", false},
 		{`{"type":"response.in_progress","response":{"id":"resp_1"}}`, "response.in_progress", false},
 		{`{"type":"keepalive"}`, "keepalive", false},
 		{`{"type":"unknown_event"}`, "unknown_event", true},
@@ -133,6 +135,10 @@ func TestOpenAIStreamErrorFrameDoesNotStartClientOutput(t *testing.T) {
 		{`{"type":"response.reasoning_summary_part.added","part":{"type":"summary_text","text":"thinking"}}`, "response.reasoning_summary_part.added", true},
 		{`{"type":"response.content_part.added","part":{"type":"output_text","text":""}}`, "response.content_part.added", false},
 		{`{"type":"response.output_text.delta","delta":"hi"}`, "response.output_text.delta", true},
+		{`{"type":"response.output_item.added","item":{"type":"function_call","arguments":"{}"}}`, "response.output_item.added", true},
+		{`{"type":"response.function_call_arguments.delta","delta":"{}"}`, "response.function_call_arguments.delta", true},
+		{`{"type":"response.image_generation_call.partial_image","partial_image_b64":"aW1hZ2U="}`, "response.image_generation_call.partial_image", true},
+		{`{"type":"response.output_text.annotation.added","annotation":{"type":"url_citation","url":"https://example.com"}}`, "response.output_text.annotation.added", true},
 		{`[DONE]`, "", true},
 	}
 	for _, tc := range cases {
@@ -146,6 +152,12 @@ func TestOpenAIStreamMetadataAndKeepaliveBeforeOverloadFailOver(t *testing.T) {
 	stream := strings.Join([]string{
 		"event: response.created",
 		`data: {"type":"response.created","response":{"id":"resp_1","metadata":{"padding":"` + largeMetadata + `"}}}`,
+		"",
+		"event: response.queued",
+		`data: {"type":"response.queued","response":{"id":"resp_1","status":"queued"}}`,
+		"",
+		"event: response.metadata",
+		`data: {"type":"response.metadata","response_id":"resp_1","metadata":{"openai_chatgpt_moderation_metadata":{"prompt":{}}}}`,
 		"",
 		"event: response.output_item.added",
 		`data: {"type":"response.output_item.added","item":{"type":"reasoning","summary":[]}}`,
