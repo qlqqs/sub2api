@@ -188,6 +188,7 @@ export interface AffiliateRewardTotals {
   agent: number
   invite: number
   invitee_bonus: number
+  invitee_signup_bonus: number
 }
 
 export interface UserAffiliateDetail {
@@ -213,6 +214,8 @@ export interface UserAffiliateDetail {
   owned_customer_count?: number
   /** 仅普通用户且模式非 off 时出现。 */
   invite_reward?: AffiliateInviteRewardInfo | null
+  /** 好友通过邀请码注册可获赠的余额，总开关关闭时为 0。 */
+  invitee_signup_bonus: number
   /** 模式非 off 时出现：好友首充能得什么。 */
   invitee_bonus?: AffiliateInviteeBonusInfo | null
   /** 我自己可领的首充奖励（有邀请人、未发放、模式非 off）。 */
@@ -562,6 +565,7 @@ export interface PublicSettings {
   affiliate_invitee_bonus_value?: number
   affiliate_invitee_bonus_min_recharge?: number
   affiliate_invitee_bonus_max?: number
+  affiliate_invitee_signup_bonus?: number
   allow_user_view_error_requests?: boolean
 }
 

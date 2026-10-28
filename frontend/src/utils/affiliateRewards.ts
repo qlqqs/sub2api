@@ -5,6 +5,7 @@
  */
 
 import { BALANCE_SYMBOL } from './balanceCurrency'
+import type { AffiliateRewardTotals } from '@/types'
 
 export interface InviteeBonusLike {
   mode: string
@@ -13,6 +14,16 @@ export interface InviteeBonusLike {
   min_recharge: number
   /** percent mode cap; 0 = no cap. */
   max: number
+}
+
+/** 兼容旧接口缺省字段，非法或负金额按关闭处理。 */
+export function normalizeInviteeSignupBonus(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0
+}
+
+/** 奖励分类互相独立，旧接口缺少的注册赠送合计归零。 */
+export function normalizeAffiliateRewardTotals(totals: AffiliateRewardTotals | null | undefined): AffiliateRewardTotals | null {
+  return totals ? { ...totals, invitee_signup_bonus: normalizeInviteeSignupBonus(totals.invitee_signup_bonus) } : null
 }
 
 type Translate = (key: string, params?: Record<string, unknown>) => string

@@ -113,6 +113,34 @@ describe('AffiliateView', () => {
     vi.useRealTimers()
   })
 
+  it.each([1, 2, 3])('所有身份都提示好友注册赠送，且不依赖首充：%s', async (agent_level) => {
+    getAffiliateDetail.mockResolvedValueOnce(baseDetail({ agent_level, invitee_signup_bonus: 5 }))
+    const wrapper = mountView()
+    await flushPromises()
+    expect(wrapper.get('[data-test="affiliate-invite-text"]').text()).toContain('affiliate.invite.friendSignupBonus{"amount":"¥5"}')
+  })
+
+  it.each([0, undefined, -1])('关闭或缺省时不展示好友注册赠送：%s', async (invitee_signup_bonus) => {
+    getAffiliateDetail.mockResolvedValueOnce(baseDetail({ invitee_signup_bonus }))
+    const wrapper = mountView()
+    await flushPromises()
+    expect(wrapper.get('[data-test="affiliate-invite-text"]').text()).not.toContain('affiliate.invite.friendSignupBonus')
+    expect(wrapper.find('[data-test="affiliate-signup-bonus-received"]').exists()).toBe(false)
+  })
+
+  it('已领注册赠送独立展示为余额，不混入返利余额', async () => {
+    getAffiliateDetail.mockResolvedValueOnce(baseDetail({
+      invitee_signup_bonus: 0,
+      aff_quota: 2,
+      reward_totals: { agent: 0, invite: 0, invitee_bonus: 3, invitee_signup_bonus: 5 },
+    }))
+    const wrapper = mountView()
+    await flushPromises()
+    expect(wrapper.get('[data-test="affiliate-signup-bonus-received"]').text()).toContain('¥5.00')
+    expect(wrapper.get('[data-test="affiliate-signup-bonus-received"]').text()).toContain('affiliate.stats.signupBonusReceivedHint')
+    expect(wrapper.get('[data-test="affiliate-available-quota"]').text()).toBe('¥2.00')
+  })
+
   it('stacks long values and copy controls on mobile while retaining desktop rows', async () => {
     const wrapper = mountView()
 

@@ -262,7 +262,7 @@ func financeReplays(data *FinanceData) map[int64]FinanceRevenue {
 		if l.Action == "transfer" {
 			kind = "commission"
 		}
-		if l.Action == "invitee_bonus" {
+		if l.Action == "invitee_bonus" || l.Action == "invitee_signup_bonus" {
 			kind = "free"
 		}
 		if kind != "" {
@@ -295,7 +295,7 @@ func financeWarnings(data *FinanceData, r FinanceRange, replays map[int64]Financ
 		w = append(w, "历史订单使用支付实例当前通道费率或退款扣回兼容值")
 	}
 	for _, l := range data.Ledger {
-		if l.Action == "accrue" && r.Contains(l.At) && l.RewardType != "agent_direct" && l.RewardType != "agent_diff" && l.RewardType != "invite_percent" && l.RewardType != "invite_fixed" && l.RewardType != "invitee_bonus" {
+		if l.Action == "accrue" && r.Contains(l.At) && l.RewardType != "agent_direct" && l.RewardType != "agent_diff" && l.RewardType != "invite_percent" && l.RewardType != "invite_fixed" && l.RewardType != "invitee_bonus" && l.RewardType != "invitee_signup_bonus" {
 			w = append(w, "存在未知类型分润，已计入总支出，未归入四种分类")
 			break
 		}

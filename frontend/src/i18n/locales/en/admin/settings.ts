@@ -186,6 +186,11 @@ export default {
             fixedAmount: 'Reward to inviter',
             firstRechargeHint: 'When the invitee\'s first real balance recharge reaching the threshold is credited, the inviter receives a fixed amount (into the rebate balance).',
           },
+          inviteeSignupBonus: {
+            title: 'Invitee signup gift',
+            description: 'Invitees, including those invited directly by agents, receive this gift in their balance immediately after signing up and binding through an invite code. It counts as a gift; administrator bindings do not qualify. 0 = off.',
+            amount: 'Gift amount (¥)',
+          },
           inviteeBonus: {
             title: 'Invitee First-Recharge Bonus',
             description: 'Invitees (including those invited directly by agents) get extra balance on their first real balance recharge that reaches the threshold, credited directly. Recharges below the threshold do not use up eligibility.',

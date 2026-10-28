@@ -1265,7 +1265,7 @@ describe("admin SettingsView payment visible method controls", () => {
     const wrapper = mountView();
     await flushPromises();
 
-    for (const block of ["profit", "upgrade", "invite-reward", "invitee-bonus"]) {
+    for (const block of ["profit", "upgrade", "invite-reward", "invitee-bonus", "invitee-signup-bonus"]) {
       expect(wrapper.find(`[data-test="affiliate-block-${block}"]`).exists()).toBe(true);
     }
     // Old layered-rebate controls and the custom-user list are gone from settings.
@@ -1304,6 +1304,8 @@ describe("admin SettingsView payment visible method controls", () => {
     await wrapper.find('[data-test="affiliate-invitee-bonus-min"]').setValue("10");
     await wrapper.find('[data-test="affiliate-invitee-bonus-value"]').setValue("10");
     await wrapper.find('[data-test="affiliate-invitee-bonus-max"]').setValue("20");
+    expect(wrapper.get('[data-test="affiliate-invitee-signup-bonus"]').element).toHaveProperty('value', '0');
+    await wrapper.get('[data-test="affiliate-invitee-signup-bonus"]').setValue("5");
 
     await wrapper.find("form").trigger("submit.prevent");
     await flushPromises();
@@ -1327,11 +1329,29 @@ describe("admin SettingsView payment visible method controls", () => {
         affiliate_invitee_bonus_min_recharge: 10,
         affiliate_invitee_bonus_value: 10,
         affiliate_invitee_bonus_max: 20,
+        affiliate_invitee_signup_bonus: 5,
       }),
     );
     const payload = updateSettings.mock.calls[0]?.[0] ?? {};
     expect(payload).not.toHaveProperty("affiliate_rebate_levels");
     expect(payload).not.toHaveProperty("affiliate_rebate_rate_l2");
+  });
+
+  it("注册赠送读回后独立保存，负值阻止提交，空值按关闭保存", async () => {
+    getSettings.mockResolvedValueOnce({ ...baseSettingsResponse, affiliate_enabled: true, affiliate_invitee_signup_bonus: 5 });
+    const wrapper = mountView();
+    await flushPromises();
+    const input = wrapper.get('[data-test="affiliate-invitee-signup-bonus"]');
+    expect(input.element).toHaveProperty('value', '5');
+    await input.setValue('-1');
+    await wrapper.find('form').trigger('submit.prevent');
+    await flushPromises();
+    expect(updateSettings).not.toHaveBeenCalled();
+    expect(wrapper.get('[data-test="affiliate-validation-error"]').text()).toBe('admin.settings.features.affiliate.invalidAmount');
+    await input.setValue('');
+    await wrapper.find('form').trigger('submit.prevent');
+    await flushPromises();
+    expect(updateSettings).toHaveBeenCalledWith(expect.objectContaining({ affiliate_invitee_signup_bonus: 0 }));
   });
 
   it("refreshes the profit example live and blocks saving when the level-2 rate exceeds the pool", async () => {

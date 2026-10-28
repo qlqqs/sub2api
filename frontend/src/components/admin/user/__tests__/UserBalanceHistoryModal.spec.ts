@@ -104,6 +104,23 @@ describe('offline history metadata', () => {
 
 // CUSTOM(fork): Display API totals, never sum the current filtered page.
 describe('balance history cash and gifts', () => {
+  it('注册赠送按余额展示金额和标签，并支持独立筛选', async () => {
+    mocks.getUserBalanceHistory.mockResolvedValue({ items: [{ id: 1, code: 'SIGNUP-BONUS', type: 'invitee_signup_bonus', value: 5 }], total: 1, total_gifted: 5, total_recharged: 0 })
+    const w = await openDialog()
+    await flushPromises()
+    const row = w.get('[data-testid="balance-history-item-1"]')
+    expect(row.text()).toContain('redeem.balanceAddedInviteeSignupBonus')
+    expect(row.text()).toContain('+¥5.00')
+    expect(row.find('p.text-emerald-600').exists()).toBe(true)
+    const filter = w.findComponent({ name: 'Select' })
+    expect(filter.props('options')).toContainEqual({ value: 'invitee_signup_bonus', label: 'admin.users.typeInviteeSignupBonus' })
+    filter.vm.$emit('update:modelValue', 'invitee_signup_bonus')
+    filter.vm.$emit('change', 'invitee_signup_bonus')
+    await flushPromises()
+    expect(mocks.getUserBalanceHistory).toHaveBeenLastCalledWith(1, 1, 15, 'invitee_signup_bonus')
+    expect(w.get('[data-testid="balance-history-totals"]').text()).toContain('admin.users.totalGifted ¥5.00')
+  })
+
   it('preserves both global totals across filtering and pagination', async () => {
     mocks.getUserBalanceHistory.mockResolvedValue({ ...result(999), total: 31, total_recharged: 115.5, total_gifted: 30 })
     const w = await openDialog()

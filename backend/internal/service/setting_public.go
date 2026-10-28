@@ -661,6 +661,7 @@ type PublicSettingsInjectionPayload struct {
 	AffiliateInviteeBonusValue       float64 `json:"affiliate_invitee_bonus_value"`
 	AffiliateInviteeBonusMinRecharge float64 `json:"affiliate_invitee_bonus_min_recharge"`
 	AffiliateInviteeBonusMax         float64 `json:"affiliate_invitee_bonus_max"`
+	AffiliateInviteeSignupBonus      float64 `json:"affiliate_invitee_signup_bonus"`
 	RiskControlEnabled               bool    `json:"risk_control_enabled"`
 	AllowUserViewErrorRequests       bool    `json:"allow_user_view_error_requests"`
 	USDCNYRate                       float64 `json:"usd_cny_rate"` // CUSTOM: 美元汇率
@@ -752,6 +753,7 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		AffiliateInviteeBonusValue:           settings.AffiliateInviteeBonusValue,
 		AffiliateInviteeBonusMinRecharge:     settings.AffiliateInviteeBonusMinRecharge,
 		AffiliateInviteeBonusMax:             settings.AffiliateInviteeBonusMax,
+		AffiliateInviteeSignupBonus:          settings.AffiliateInviteeSignupBonus,
 		RiskControlEnabled:                   settings.RiskControlEnabled,
 		AllowUserViewErrorRequests:           settings.AllowUserViewErrorRequests,
 		USDCNYRate:                           settings.USDCNYRate, // CUSTOM: 美元汇率
@@ -880,14 +882,17 @@ func parseCustomMenuItemURLs(raw string) []string {
 	return urls
 }
 
-// applyPublicInviteeBonus 填充公开设置里的被邀请人首充奖励；邀请返利关闭或奖励无效时为 off。
-// 只暴露这一项，不暴露利润池、二级比例、邀请人奖励等其它返利设置。
+// applyPublicInviteeBonus 只公开被邀请人的首充与注册赠送，不暴露代理分润设置。
+// 总开关关闭时奖励全部隐藏，两种赠送的开关互相独立。
 func applyPublicInviteeBonus(public *PublicSettings, settings map[string]string) {
 	public.AffiliateInviteeBonusMode = AffiliateInviteeBonusModeOff
+	public.AffiliateInviteeSignupBonus = 0
 	if !public.AffiliateEnabled {
 		return
 	}
-	bonus := inviteeBonusInfo(parseAffiliateRewardConfig(settings))
+	cfg := parseAffiliateRewardConfig(settings)
+	public.AffiliateInviteeSignupBonus = cfg.InviteeSignupBonus
+	bonus := inviteeBonusInfo(cfg)
 	if bonus == nil {
 		return
 	}

@@ -105,6 +105,7 @@ export default {
       giftTitle: '赠送（不计收入入账）',
       gift: {
         recharge_bonus: '充值赠送',
+        invitee_signup_bonus: '注册赠送',
         invitee_bonus: '首充奖励',
         promo: '优惠码',
         admin_adjust_in: '管理员加余额',

@@ -1452,3 +1452,7 @@ var _ AffiliateRepository = (*paymentFulfillmentAffiliateRepoStub)(nil)
 func ptrIntValue(v int) *int { return &v }
 
 var _ SettingRepository = (*paymentFulfillmentSettingRepoStub)(nil)
+
+func (r *paymentFulfillmentAffiliateRepoStub) CreditInviteeSignupBonus(context.Context, int64, float64) (bool, error) {
+	return false, nil
+}

@@ -8078,6 +8078,30 @@
                 </div>
               </section>
 
+              <!-- 注册赠送与首充奖励独立，可以叠加。 -->
+              <section class="rounded-lg border border-gray-200 p-4 dark:border-dark-700" data-test="affiliate-block-invitee-signup-bonus">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                  {{ t('admin.settings.features.affiliate.inviteeSignupBonus.title') }}
+                </h3>
+                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                  {{ t('admin.settings.features.affiliate.inviteeSignupBonus.description') }}
+                </p>
+                <div class="mt-4">
+                  <label class="input-label" for="affiliate-invitee-signup-bonus">
+                    {{ t('admin.settings.features.affiliate.inviteeSignupBonus.amount') }}
+                  </label>
+                  <input
+                    id="affiliate-invitee-signup-bonus"
+                    v-model.number="form.affiliate_invitee_signup_bonus"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    class="input"
+                    data-test="affiliate-invitee-signup-bonus"
+                  />
+                </div>
+              </section>
+
               <p
                 v-if="affiliateValidationError"
                 role="alert"
@@ -10009,6 +10033,7 @@ const form = reactive<SettingsForm>({
   affiliate_invitee_bonus_value: 0,
   affiliate_invitee_bonus_min_recharge: 0,
   affiliate_invitee_bonus_max: 0,
+  affiliate_invitee_signup_bonus: 0,
   default_concurrency: 1,
   default_subscriptions: [],
   force_email_on_third_party_signup: false,
@@ -11751,6 +11776,7 @@ async function saveSettings() {
           : nonNegativeAffiliateAmount(form.affiliate_invitee_bonus_value),
       affiliate_invitee_bonus_min_recharge: nonNegativeAffiliateAmount(form.affiliate_invitee_bonus_min_recharge),
       affiliate_invitee_bonus_max: nonNegativeAffiliateAmount(form.affiliate_invitee_bonus_max),
+      affiliate_invitee_signup_bonus: nonNegativeAffiliateAmount(form.affiliate_invitee_signup_bonus),
       default_concurrency: form.default_concurrency,
       default_subscriptions: normalizedDefaultSubscriptions,
       force_email_on_third_party_signup: form.force_email_on_third_party_signup,
@@ -13273,6 +13299,7 @@ const affiliateValidationError = computed(() => {
     form.affiliate_invite_reward_min_recharge,
     form.affiliate_invitee_bonus_min_recharge,
     form.affiliate_invitee_bonus_max,
+    form.affiliate_invitee_signup_bonus,
     form.affiliate_invitee_bonus_value,
   ];
   if (amounts.some((a) => { const n = affiliateNumber(a); return !Number.isFinite(n) || n < 0; })) {

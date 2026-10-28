@@ -12,7 +12,7 @@ import (
 // ErrAffiliateLevel2RateExceedsPool：二级比例不能超过利润池（一级比例）。
 var ErrAffiliateLevel2RateExceedsPool = infraerrors.BadRequest("AFFILIATE_LEVEL2_RATE_EXCEEDS_POOL", "level-2 agent rate cannot exceed the profit pool rate")
 
-// AffiliateRewardConfig 汇总两级代理分润、普通用户邀请奖励和被邀请人首充奖励的全部设置。
+// AffiliateRewardConfig 汇总两级代理分润、普通用户邀请奖励及被邀请人首充/注册赠送设置。
 // 运行时（分润、首充）与设置页读写共用同一套解析和约束，保证两边看到的值一致。
 type AffiliateRewardConfig struct {
 	// PoolRate 是利润池 P，也是一级代理比例；Level2Rate 是二级比例 R2，始终 ≤ PoolRate。
@@ -37,6 +37,7 @@ type AffiliateRewardConfig struct {
 	InviteeBonusValue       float64
 	InviteeBonusMinRecharge float64
 	InviteeBonusMax         float64
+	InviteeSignupBonus      float64
 }
 
 var affiliateRewardConfigKeys = []string{
@@ -58,6 +59,7 @@ var affiliateRewardConfigKeys = []string{
 	SettingKeyAffiliateInviteeBonusValue,
 	SettingKeyAffiliateInviteeBonusMinRecharge,
 	SettingKeyAffiliateInviteeBonusMax,
+	SettingKeyAffiliateInviteeSignupBonus,
 }
 
 // defaultAffiliateRewardConfig 是没有任何设置时的配置。
@@ -129,6 +131,9 @@ func parseAffiliateRewardConfig(m map[string]string) AffiliateRewardConfig {
 	if v, ok := parseAffiliateFloat(m[SettingKeyAffiliateInviteeBonusMax]); ok {
 		cfg.InviteeBonusMax = v
 	}
+	if v, ok := parseAffiliateFloat(m[SettingKeyAffiliateInviteeSignupBonus]); ok {
+		cfg.InviteeSignupBonus = v
+	}
 	return cfg.Normalized()
 }
 
@@ -167,6 +172,7 @@ func (c AffiliateRewardConfig) Normalized() AffiliateRewardConfig {
 	}
 	c.InviteeBonusMinRecharge = clampAffiliateRewardAmount(c.InviteeBonusMinRecharge)
 	c.InviteeBonusMax = clampAffiliateRewardAmount(c.InviteeBonusMax)
+	c.InviteeSignupBonus = clampAffiliateRewardAmount(c.InviteeSignupBonus)
 	return c
 }
 
@@ -189,6 +195,7 @@ func (c AffiliateRewardConfig) settingUpdates() map[string]string {
 		SettingKeyAffiliateInviteeBonusValue:         formatAffiliateFloat(c.InviteeBonusValue),
 		SettingKeyAffiliateInviteeBonusMinRecharge:   formatAffiliateFloat(c.InviteeBonusMinRecharge),
 		SettingKeyAffiliateInviteeBonusMax:           formatAffiliateFloat(c.InviteeBonusMax),
+		SettingKeyAffiliateInviteeSignupBonus:        formatAffiliateFloat(c.InviteeSignupBonus),
 	}
 }
 
@@ -213,6 +220,7 @@ func affiliateRewardConfigFromSettings(s *SystemSettings) AffiliateRewardConfig 
 		InviteeBonusValue:       s.AffiliateInviteeBonusValue,
 		InviteeBonusMinRecharge: s.AffiliateInviteeBonusMinRecharge,
 		InviteeBonusMax:         s.AffiliateInviteeBonusMax,
+		InviteeSignupBonus:      s.AffiliateInviteeSignupBonus,
 	}
 }
 
@@ -236,6 +244,7 @@ func (c AffiliateRewardConfig) applyToSettings(s *SystemSettings) {
 	s.AffiliateInviteeBonusValue = c.InviteeBonusValue
 	s.AffiliateInviteeBonusMinRecharge = c.InviteeBonusMinRecharge
 	s.AffiliateInviteeBonusMax = c.InviteeBonusMax
+	s.AffiliateInviteeSignupBonus = c.InviteeSignupBonus
 }
 
 // GetAffiliateRewardConfig 一次读取全部奖励设置；读取失败时返回默认配置，

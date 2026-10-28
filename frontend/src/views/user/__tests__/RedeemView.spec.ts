@@ -55,6 +55,14 @@ describe('RedeemView refresh after redemption', () => {
     vi.restoreAllMocks()
   })
 
+  it('注册赠送明细使用独立标签并显示人民币金额', async () => {
+    getHistory.mockResolvedValue({ items: [{ id: 1, code: 'SIGNUP-GIFT', type: 'invitee_signup_bonus', value: 5, used_at: '2026-10-27T00:00:00Z' }], total: 1 })
+    const wrapper = mount(RedeemView, { global: { stubs: { AppLayout: { template: '<main><slot /></main>' }, Icon: true } } })
+    await flushPromises()
+    expect(wrapper.text()).toContain('redeem.balanceAddedInviteeSignupBonus')
+    expect(wrapper.text()).toContain('+¥5.00')
+  })
+
   it.each(['balance', 'concurrency', 'subscription'])(
     'keeps a successful %s redemption when profile refresh fails', async (type) => {
       redeem.mockResolvedValue({ type, value: 20, message: 'Code applied' })

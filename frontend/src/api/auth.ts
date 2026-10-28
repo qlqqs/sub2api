@@ -3,6 +3,7 @@
  * Handles user login, registration, and logout operations
  */
 
+import { normalizeInviteeSignupBonus } from '@/utils/affiliateRewards'
 import { apiClient } from './client'
 import { refreshAuthTokens, type RefreshTokenResponse } from './tokenRefresh'
 export type { RefreshTokenResponse } from './tokenRefresh'
@@ -352,7 +353,7 @@ export function isAuthenticated(): boolean {
  */
 export async function getPublicSettings(): Promise<PublicSettings> {
   const { data } = await apiClient.get<PublicSettings>('/settings/public')
-  return data
+  return { ...data, affiliate_invitee_signup_bonus: data.affiliate_enabled ? normalizeInviteeSignupBonus(data.affiliate_invitee_signup_bonus) : 0 }
 }
 
 export type WeChatOAuthMode = 'open' | 'mp'

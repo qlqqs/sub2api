@@ -72,7 +72,7 @@ func financeSummary(data *FinanceData, span FinanceRange) map[string]any {
 		}
 	}
 	for _, l := range data.Ledger {
-		if l.Action == "accrue" && l.RewardType != "invitee_bonus" {
+		if l.Action == "accrue" && l.RewardType != "invitee_bonus" && l.RewardType != "invitee_signup_bonus" {
 			if m := daily[financeDay(l.At)]; m != nil {
 				m.add("commission", l.Amount)
 			}
@@ -123,7 +123,7 @@ func (s *FinanceService) Recharge(ctx context.Context, span FinanceRange) (map[s
 	}
 	amounts := financeAmounts{"cash_received": decimal.Zero, "channel_fee": decimal.Zero, "refund_cash": decimal.Zero, "net_cash": decimal.Zero, "principal": decimal.Zero, "commission_transfer_in": decimal.Zero}
 	gift := financeAmounts{}
-	for _, k := range []string{"recharge_bonus", "invitee_bonus", "promo", "admin_adjust_in", "admin_adjust_out", "redeem_code", "total"} {
+	for _, k := range []string{"recharge_bonus", "invitee_bonus", "invitee_signup_bonus", "promo", "admin_adjust_in", "admin_adjust_out", "redeem_code", "total"} {
 		gift[k] = decimal.Zero
 	}
 	orders := []map[string]any{}
@@ -158,8 +158,8 @@ func (s *FinanceService) Recharge(ctx context.Context, span FinanceRange) (map[s
 		if !span.Contains(l.At) {
 			continue
 		}
-		if l.Action == "invitee_bonus" {
-			gift.add("invitee_bonus", l.Amount)
+		if l.Action == "invitee_bonus" || l.Action == "invitee_signup_bonus" {
+			gift.add(l.Action, l.Amount)
 		}
 		if l.Action == "transfer" {
 			amounts.add("commission_transfer_in", l.Amount)
@@ -329,7 +329,7 @@ func (s *FinanceService) Affiliate(ctx context.Context, span FinanceRange) (map[
 		key := ""
 		switch l.Action {
 		case "accrue":
-			if l.RewardType == "invitee_bonus" {
+			if l.RewardType == "invitee_bonus" || l.RewardType == "invitee_signup_bonus" {
 				continue
 			}
 			key = "accrued"

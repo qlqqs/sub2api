@@ -211,6 +211,7 @@
           <OverviewStat :label="t('admin.affiliates.overview.rewardAgent')" :value="BALANCE_SYMBOL + formatAmount(selectedOverview.reward_totals?.agent)" />
           <OverviewStat :label="t('admin.affiliates.overview.rewardInvite')" :value="BALANCE_SYMBOL + formatAmount(selectedOverview.reward_totals?.invite)" />
           <OverviewStat :label="t('admin.affiliates.overview.rewardInviteeBonus')" :value="BALANCE_SYMBOL + formatAmount(selectedOverview.reward_totals?.invitee_bonus)" />
+          <OverviewStat :label="t('admin.affiliates.overview.rewardInviteeSignupBonus')" :value="BALANCE_SYMBOL + formatAmount(selectedOverview.reward_totals?.invitee_signup_bonus)" />
         </div>
       </div>
     </BaseDialog>

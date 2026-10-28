@@ -62,6 +62,9 @@ func (s *AffiliateService) GetAffiliateDetail(ctx context.Context, userID int64)
 			MinRecharge:   cfg.InviteMinRecharge,
 		}
 	}
+	if s.IsEnabled(ctx) {
+		detail.InviteeSignupBonus = cfg.InviteeSignupBonus
+	}
 	if bonus := inviteeBonusInfo(cfg); bonus != nil {
 		detail.InviteeBonus = bonus
 		if summary.InviterID != nil {

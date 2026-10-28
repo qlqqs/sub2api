@@ -18,7 +18,7 @@ vi.mock('@/api/admin/settings', () => ({
 
 vi.mock('@/api/admin/affiliates', () => {
   const affiliatesAPI = { listInviteRecords, listRebateRecords, listTransferRecords, getUserOverview }
-  const AFFILIATE_REWARD_TYPES = ['agent_direct', 'agent_diff', 'invite_percent', 'invite_fixed', 'invitee_bonus']
+  const AFFILIATE_REWARD_TYPES = ['agent_direct', 'agent_diff', 'invite_percent', 'invite_fixed', 'invitee_bonus', 'invitee_signup_bonus']
   return { affiliatesAPI, AFFILIATE_REWARD_TYPES, default: affiliatesAPI }
 })
 
@@ -71,7 +71,7 @@ function mountTable(type: 'invites' | 'rebates' | 'transfers') {
         Pagination: true,
         Icon: true,
         OrderStatusBadge: true,
-        BaseDialog: true,
+        BaseDialog: { props: ['show'], template: '<div v-if="show" data-test="overview-dialog"><slot /></div>' },
         AffiliateOfflineWithdrawDialog: WithdrawDialogStub,
       },
     },
@@ -89,7 +89,7 @@ describe('AdminAffiliateRecordsTable', () => {
     getSettings.mockResolvedValue({ affiliate_rebate_base: 'recharge' })
   })
 
-  it('renders non-order rebate accruals with empty order fields', async () => {
+  it.each(['agent_diff', 'invitee_signup_bonus'])('无订单奖励展示独立类型标签：%s', async (rewardType) => {
     listRebateRecords.mockResolvedValue(page([
       {
         order_id: null,
@@ -103,7 +103,7 @@ describe('AdminAffiliateRecordsTable', () => {
         order_amount: null,
         pay_amount: null,
         rebate_amount: 2,
-        reward_type: 'agent_diff',
+        reward_type: rewardType,
         payment_type: '',
         order_status: '',
         created_at: '2026-09-17T08:00:00Z',
@@ -120,9 +120,24 @@ describe('AdminAffiliateRecordsTable', () => {
     expect(row.get('[data-test="cell-payment_type"]').text()).toBe('-')
     expect(row.get('[data-test="cell-order_status"]').text()).toBe('-')
     expect(row.get('[data-test="cell-rebate_amount"]').text()).toBe('¥2.00')
-    expect(row.get('[data-test="cell-reward_type"]').text()).toBe('admin.affiliates.rewardTypes.agent_diff')
+    expect(row.get('[data-test="cell-reward_type"]').text()).toBe(`admin.affiliates.rewardTypes.${rewardType}`)
     expect(wrapper.find('[data-test="cell-rebate_level"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="affiliate-withdraw-open"]').exists()).toBe(false)
+  })
+
+  it('用户汇总单列注册赠送，不并入首充奖励', async () => {
+    listRebateRecords.mockResolvedValue(page([{ inviter_id: 1, invitee_id: 2, reward_type: 'invitee_signup_bonus', rebate_amount: 5 }]))
+    getUserOverview.mockResolvedValue({ user_id: 1, agent_level: 3, reward_totals: { agent: 0, invite: 0, invitee_bonus: 2, invitee_signup_bonus: 5 } })
+    const wrapper = mountTable('rebates')
+    await flushPromises()
+    await wrapper.get('[data-test="cell-inviter"] button').trigger('click')
+    await flushPromises()
+    expect(getUserOverview).toHaveBeenCalledWith(1)
+    const stats = wrapper.get('[data-test="affiliate-overview-stats"]')
+    const signup = stats.findAll('div').find(row => row.text().includes('admin.affiliates.overview.rewardInviteeSignupBonus'))
+    expect(signup?.text()).toContain('¥5.00')
+    expect(stats.text()).toContain('admin.affiliates.overview.rewardInviteeBonus')
+    expect(stats.text()).toContain('¥2.00')
   })
 
   it('switches rebate columns to source, base and usage cutoff when the rebate base is consumption', async () => {
@@ -224,7 +239,7 @@ describe('AdminAffiliateRecordsTable', () => {
     expect(wrapper.find('[data-test="cell-base_amount"]').exists()).toBe(false)
   })
 
-  it('filters rebate records by reward type', async () => {
+  it.each(['invitee_bonus', 'invitee_signup_bonus'])('独立筛选奖励类型：%s', async (rewardType) => {
     listRebateRecords.mockResolvedValue(page([]))
 
     const wrapper = mountTable('rebates')
@@ -232,11 +247,11 @@ describe('AdminAffiliateRecordsTable', () => {
     expect(listRebateRecords).toHaveBeenCalledTimes(1)
     expect(listRebateRecords.mock.calls[0][0]).toMatchObject({ reward_type: undefined })
 
-    await wrapper.get('[data-test="affiliate-reward-type-filter"]').setValue('invitee_bonus')
+    await wrapper.get('[data-test="affiliate-reward-type-filter"]').setValue(rewardType)
     await flushPromises()
 
     expect(listRebateRecords).toHaveBeenCalledTimes(2)
-    expect(listRebateRecords.mock.calls[1][0]).toMatchObject({ page: 1, reward_type: 'invitee_bonus' })
+    expect(listRebateRecords.mock.calls[1][0]).toMatchObject({ page: 1, reward_type: rewardType })
   })
 
   it('prefills the search box from initialSearch', async () => {

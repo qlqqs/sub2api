@@ -557,6 +557,7 @@ export default {
         agent_diff: '渠道经理差额',
         invite_percent: '普通邀请',
         invite_fixed: '首充-邀请人',
+        invitee_signup_bonus: '注册赠送-被邀请人',
         invitee_bonus: '首充-被邀请人'
       },
       overview: {
@@ -574,6 +575,7 @@ export default {
         ownedCustomerCount: '归属客户数',
         rewardAgent: '代理分润合计',
         rewardInvite: '邀请奖励合计',
+        rewardInviteeSignupBonus: '注册赠送合计',
         rewardInviteeBonus: '首充奖励合计'
       },
       agents: {
@@ -947,6 +949,7 @@ export default {
       noBalanceHistory: '暂无变动记录',
       allTypes: '全部类型',
       typeBalance: '余额（兑换码）',
+      typeInviteeSignupBonus: '余额（注册赠送）',
       typeAffiliateBalance: '余额（返利转入）',
       typeAdminBalance: '余额（管理员调整）',
       typeConcurrency: '并发（兑换码）',
@@ -956,7 +959,7 @@ export default {
       createdAt: '创建时间',
       totalRecharged: '累计充值（实收）',
     totalGifted: '累计赠送',
-    totalGiftedHint: '管理员赠送、兑换码、充值赠送',
+    totalGiftedHint: '管理员赠送、兑换码、充值赠送与邀请赠送',
       // Settings Dropdowns
       filterSettings: '筛选设置',
       columnSettings: '列设置',

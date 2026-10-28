@@ -557,6 +557,7 @@ export default {
         agent_diff: 'Channel manager difference',
         invite_percent: 'Invite (percentage)',
         invite_fixed: 'First recharge (inviter)',
+        invitee_signup_bonus: 'Signup gift (invitee)',
         invitee_bonus: 'First recharge (invitee)'
       },
       overview: {
@@ -574,6 +575,7 @@ export default {
         ownedCustomerCount: 'Owned Customers',
         rewardAgent: 'Agent Profit Total',
         rewardInvite: 'Invite Reward Total',
+        rewardInviteeSignupBonus: 'Signup Gift Total',
         rewardInviteeBonus: 'First-Recharge Bonus Total'
       },
       agents: {
@@ -946,6 +948,7 @@ export default {
       noBalanceHistory: 'No records found for this user',
       allTypes: 'All Types',
       typeBalance: 'Balance (Redeem)',
+      typeInviteeSignupBonus: 'Balance (Signup Gift)',
       typeAffiliateBalance: 'Balance (Affiliate Transfer)',
       typeAdminBalance: 'Balance (Admin)',
       typeConcurrency: 'Concurrency (Redeem)',
@@ -955,7 +958,7 @@ export default {
       createdAt: 'Created',
       totalRecharged: 'Total Recharged (Cash Received)',
     totalGifted: 'Total Gifted',
-    totalGiftedHint: 'Admin gifts, redemption codes, and recharge bonuses',
+    totalGiftedHint: 'Admin gifts, redemption codes, recharge bonuses, and invitation gifts',
       roles: {
         admin: 'Admin',
         user: 'User'

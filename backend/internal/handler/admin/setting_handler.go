@@ -287,6 +287,7 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 		AffiliateInviteeBonusValue:                             settings.AffiliateInviteeBonusValue,
 		AffiliateInviteeBonusMinRecharge:                       settings.AffiliateInviteeBonusMinRecharge,
 		AffiliateInviteeBonusMax:                               settings.AffiliateInviteeBonusMax,
+		AffiliateInviteeSignupBonus:                            settings.AffiliateInviteeSignupBonus,
 		AffiliateRebateBase:                                    settings.AffiliateRebateBase,
 		AffiliateAgentUpgradeMode:                              settings.AffiliateAgentUpgradeMode,
 		AffiliateAgentLevel2Threshold:                          settings.AffiliateAgentLevel2Threshold,

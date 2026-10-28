@@ -3,6 +3,7 @@
  * Handles system settings management for administrators
  */
 
+import { normalizeInviteeSignupBonus } from "@/utils/affiliateRewards";
 import { apiClient } from "../client";
 import { listPlatformIds } from "@/constants/platformCatalog";
 import type {
@@ -454,6 +455,7 @@ export interface SystemSettings {
   affiliate_invitee_bonus_value: number;
   affiliate_invitee_bonus_min_recharge: number;
   affiliate_invitee_bonus_max: number;
+  affiliate_invitee_signup_bonus: number;
   default_concurrency: number;
   default_user_rpm_limit: number;
   default_subscriptions: DefaultSubscriptionSetting[];
@@ -832,6 +834,7 @@ export interface UpdateSettingsRequest {
   affiliate_invitee_bonus_value?: number;
   affiliate_invitee_bonus_min_recharge?: number;
   affiliate_invitee_bonus_max?: number;
+  affiliate_invitee_signup_bonus?: number;
   default_concurrency?: number;
   default_user_rpm_limit?: number;
   default_subscriptions?: DefaultSubscriptionSetting[];
@@ -1129,7 +1132,7 @@ export interface UpdateSettingsRequest {
  */
 export async function getSettings(): Promise<SystemSettings> {
   const { data } = await apiClient.get<SystemSettings>("/admin/settings");
-  return data;
+  return { ...data, affiliate_invitee_signup_bonus: normalizeInviteeSignupBonus(data.affiliate_invitee_signup_bonus) };
 }
 
 /**
@@ -1144,7 +1147,7 @@ export async function updateSettings(
     "/admin/settings",
     settings,
   );
-  return data;
+  return { ...data, affiliate_invitee_signup_bonus: normalizeInviteeSignupBonus(data.affiliate_invitee_signup_bonus) };
 }
 
 /**

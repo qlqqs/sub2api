@@ -85,3 +85,13 @@ return tx.Commit()
 - 原生 SQL 忘记软删除条件或 `updated_at = NOW()`，与 Ent 行为不一致。
 - 事务中继续使用 `r.client`/`r.sql` 的非事务连接，造成部分提交。
 - 在 service/handler 中依赖 PostgreSQL、Ent 或 Redis 的具体错误与类型。
+
+## 注册可选赠送与外层事务（2026-10-27）
+
+- **范围**：注册附带的可选赠送，特别是 pending OAuth 的 `FinalizeOAuthEmailAccount` 外层事务。
+- **签名/存储**：`AffiliateRepository.CreditInviteeSignupBonus(ctx, userID, amount)`；`user_affiliate_ledger` 的 action/reward_type 为 `invitee_signup_bonus`；迁移262的独立 `(source_user_id,reward_type)` 部分唯一索引。
+- **合约**：账本和余额增量同事务，每个来源用户最多一次；注册绑定 `bound=true` 后才发，管理员补绑不发。仓储返回错误后，外层注册仍须能提交。
+- **错误边界**：赠送 SQL 放在保存点内，失败先 `ROLLBACK TO SAVEPOINT` 再 `RELEASE`，保留原错误链。不能只在 service 里吞错误——PostgreSQL 的 aborted 状态会让外层提交失败。连接不可用/请求取消仍属于注册本身无法完成的基础设施故障，不承诺恢复。
+- **正例/基线/反例**：金额5→余额+5、一条赠送；重复→false、无增量；触发器拒绝余额更新→账本无残留、余额不变、外层后续写入和 commit 仍成功。
+- **测试**：`affiliate_signup_bonus_integration_test.go` 覆盖索引、并发、回滚、故障保存点、真实充值上限、累计赠送与余额历史；`TestCompleteEmailOAuthRegistrationUsesAffiliateCodeFromPendingSession` 覆盖 pending 最终建号与会话重放。
+- **错误与正确**：不要在持有事务连接时为刷新响应调用不识别 tx 的普通读取；SQLite 单连接会阻塞，PostgreSQL 可能读到旧余额。pending 响应只有令牌，提交后客户端读余额；非事务注册才刷新响应中的余额。不能通过增大测试连接池或超时掩盖这类问题。

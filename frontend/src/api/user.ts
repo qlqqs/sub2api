@@ -3,6 +3,7 @@
  * Handles user profile management and password changes
  */
 
+import { normalizeAffiliateRewardTotals, normalizeInviteeSignupBonus } from '@/utils/affiliateRewards'
 import { apiClient } from './client'
 import {
   resolveWeChatOAuthStartStrict,
@@ -182,7 +183,7 @@ export async function startOAuthBinding(
 
 export async function getAffiliateDetail(): Promise<UserAffiliateDetail> {
   const { data } = await apiClient.get<UserAffiliateDetail>('/user/aff')
-  return data
+  return { ...data, invitee_signup_bonus: normalizeInviteeSignupBonus(data.invitee_signup_bonus), reward_totals: normalizeAffiliateRewardTotals(data.reward_totals) }
 }
 
 export interface AffiliateInviteeListParams {

@@ -37,6 +37,14 @@
           {{ inviteeBonusHint }}
         </p>
 
+        <p
+          v-if="inviteeSignupBonusHint"
+          class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
+          data-testid="register-invitee-signup-bonus-hint"
+        >
+          {{ inviteeSignupBonusHint }}
+        </p>
+
         <!-- Email Input -->
         <div>
           <label for="email" class="input-label">
@@ -435,7 +443,7 @@ import {
   resolveAffiliateReferralCode
 } from '@/utils/oauthAffiliate'
 import type { LoginAgreementDocument } from '@/types'
-import { describeInviteeBonusValue, formatUsdShort, isInviteeBonusActive, type InviteeBonusLike } from '@/utils/affiliateRewards'
+import { describeInviteeBonusValue, formatUsdShort, normalizeInviteeSignupBonus, isInviteeBonusActive, type InviteeBonusLike } from '@/utils/affiliateRewards'
 
 const { t, locale } = useI18n()
 const LOGIN_AGREEMENT_STORAGE_KEY = 'sub2api_login_agreement_consent'
@@ -468,6 +476,7 @@ const promoCodeEnabled = ref<boolean>(
 )
 const invitationCodeEnabled = ref<boolean>(false)
 const affiliateEnabled = ref<boolean>(false)
+const inviteeSignupBonus = ref(0)
 const inviteeBonus = ref<InviteeBonusLike | null>(null)
 // Code taken from the invite link (?aff= / ?aff_code=), not typed by hand.
 const inviteLinkCode = ref('')
@@ -598,7 +607,12 @@ function syncAffiliateReferralCode(): string {
   return code
 }
 
-// 「通过邀请注册，首充可额外获得 …」— same copy whether the inviter is a regular user or an agent.
+// 注册赠送独立于首充奖励，仅从邀请链接进入时提示。
+const inviteeSignupBonusHint = computed(() => {
+  if (!affiliateEnabled.value || !inviteLinkCode.value || inviteeSignupBonus.value <= 0) return ''
+  return t('auth.inviteeSignupBonusHint', { amount: formatUsdShort(inviteeSignupBonus.value) })
+})
+
 const inviteeBonusHint = computed(() => {
   const bonus = inviteeBonus.value
   if (!affiliateEnabled.value || !inviteLinkCode.value || !isInviteeBonusActive(bonus)) return ''
@@ -620,6 +634,7 @@ onMounted(async () => {
     promoCodeEnabled.value = settings.promo_code_enabled
     invitationCodeEnabled.value = settings.invitation_code_enabled
     affiliateEnabled.value = settings.affiliate_enabled
+    inviteeSignupBonus.value = normalizeInviteeSignupBonus(settings.affiliate_invitee_signup_bonus)
     inviteeBonus.value = settings.affiliate_invitee_bonus_mode && settings.affiliate_invitee_bonus_mode !== 'off'
       ? {
           mode: settings.affiliate_invitee_bonus_mode,

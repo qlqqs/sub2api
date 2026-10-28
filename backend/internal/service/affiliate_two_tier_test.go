@@ -103,7 +103,7 @@ func (r *fakeAffiliateRepo) BindInviter(_ context.Context, userID, inviterID int
 }
 
 func isFirstRechargeType(rt string) bool {
-	return rt == AffiliateRewardInviteFixed || rt == AffiliateRewardInviteeBonus
+	return rt == AffiliateRewardInviteFixed || rt == AffiliateRewardInviteeBonus || rt == AffiliateRewardInviteeSignupBonus
 }
 
 func (r *fakeAffiliateRepo) hasReward(source int64, rt string) bool {
@@ -202,6 +202,8 @@ func (r *fakeAffiliateRepo) SumRewardTotals(_ context.Context, beneficiaryID int
 			t.Invite += e.amount
 		case AffiliateRewardInviteeBonus:
 			t.InviteeBonus += e.amount
+		case AffiliateRewardInviteeSignupBonus:
+			t.InviteeSignupBonus += e.amount
 		}
 	}
 	return t, nil
@@ -1326,4 +1328,13 @@ func TestAdminSetAgentOwner_KeepsInviteRewardEligibilityFromBind(t *testing.T) {
 	setLevel(t, svc, 4, 2)
 	require.NoError(t, svc.AdminSetAgentOwner(ctx, 4, &owner, 99))
 	require.Equal(t, map[int64]float64{5: 30, 3: 5}, consume(t, svc, repo, 4, 100))
+}
+
+func (r *fakeAffiliateRepo) CreditInviteeSignupBonus(_ context.Context, userID int64, amount float64) (bool, error) {
+	if r.hasReward(userID, AffiliateRewardInviteeSignupBonus) {
+		return false, nil
+	}
+	r.ledger = append(r.ledger, fakeLedgerEntry{userID: userID, sourceUserID: userID, amount: amount, action: AffiliateRewardInviteeSignupBonus, rewardType: AffiliateRewardInviteeSignupBonus})
+	r.balances[userID] += amount
+	return true, nil
 }

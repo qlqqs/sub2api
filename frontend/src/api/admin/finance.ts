@@ -75,6 +75,7 @@ export interface FinanceSummary {
 export interface FinanceGiftTotals {
   recharge_bonus: FinanceAmount
   invitee_bonus: FinanceAmount
+  invitee_signup_bonus: FinanceAmount
   promo: FinanceAmount
   admin_adjust_in: FinanceAmount
   admin_adjust_out: FinanceAmount
@@ -323,6 +324,7 @@ export function normalizeSummary(data: unknown): FinanceSummary {
 const GIFT_KEYS = [
   'recharge_bonus',
   'invitee_bonus',
+  'invitee_signup_bonus',
   'promo',
   'admin_adjust_in',
   'admin_adjust_out',

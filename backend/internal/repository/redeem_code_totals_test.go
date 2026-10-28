@@ -19,6 +19,9 @@ func TestBalanceHistoryTotals(t *testing.T) {
 
 func assertBalanceHistoryTotals(t *testing.T, ctx context.Context, c *dbent.Client) {
 	t.Helper()
+	// SQLite 的 Ent 建表不含原生迁移表；PostgreSQL 已有完整表，保持不变。
+	_, err := c.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS user_affiliate_ledger (user_id bigint, action text, amount numeric, created_at timestamp, updated_at timestamp)`)
+	require.NoError(t, err)
 	u, err := c.User.Create().SetEmail(fmt.Sprintf("totals-%d@test.local", time.Now().UnixNano())).SetPasswordHash("test").Save(ctx)
 	require.NoError(t, err)
 	other, err := c.User.Create().SetEmail(fmt.Sprintf("other-totals-%d@test.local", u.ID)).SetPasswordHash("test").Save(ctx)
@@ -62,7 +65,13 @@ func assertBalanceHistoryTotals(t *testing.T, ctx context.Context, c *dbent.Clie
 			amount, cash, bonus, refund, net float64
 		}{status, "alipay", "balance", status, 3, 1, 2, 1, 1})
 	}
-	want := service.BalanceHistoryTotals{TotalGifted: 50}
+	_, err = c.ExecContext(ctx, `INSERT INTO user_affiliate_ledger (user_id, action, amount, created_at, updated_at) VALUES
+ ($1, 'invitee_bonus', 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+ ($1, 'invitee_signup_bonus', 5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+ ($1, 'transfer', 99, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+ ($2, 'invitee_signup_bonus', 999, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`, u.ID, other.ID)
+	require.NoError(t, err)
+	want := service.BalanceHistoryTotals{TotalGifted: 58}
 	for _, tc := range cases {
 		code := prefix + tc.name
 		// Both online internal codes and offline admin adjustments must be excluded,

@@ -4,8 +4,9 @@
  * exclusive invite codes (overrides aff_code) and exclusive rebate rates.
  */
 
+import { normalizeAffiliateRewardTotals } from '@/utils/affiliateRewards'
 import { apiClient } from '../client'
-import type { PaginatedResponse } from '@/types'
+import type { AffiliateRewardTotals, PaginatedResponse } from '@/types'
 
 /** 1 = 一级代理, 2 = 二级代理, 3 = 普通用户. */
 export type AgentLevel = 1 | 2 | 3
@@ -85,6 +86,7 @@ export type AffiliateRewardType =
   | 'invite_percent'
   | 'invite_fixed'
   | 'invitee_bonus'
+  | 'invitee_signup_bonus'
 
 export const AFFILIATE_REWARD_TYPES: readonly AffiliateRewardType[] = [
   'agent_direct',
@@ -92,6 +94,7 @@ export const AFFILIATE_REWARD_TYPES: readonly AffiliateRewardType[] = [
   'invite_percent',
   'invite_fixed',
   'invitee_bonus',
+  'invitee_signup_bonus',
 ]
 
 export interface ListAffiliateRecordsParams {
@@ -196,7 +199,7 @@ export interface AffiliateUserOverview extends Partial<AffiliateAgentSnapshot> {
   /** Only for agents (level 1/2); null otherwise. */
   agent_rate_percent?: number | null
   owned_customer_count?: number
-  reward_totals?: { agent: number; invite: number; invitee_bonus: number } | null
+  reward_totals?: AffiliateRewardTotals | null
   invited_count: number
   rebated_invitee_count: number
   available_quota: number
@@ -433,7 +436,7 @@ export async function getUserOverview(
   const { data } = await apiClient.get<AffiliateUserOverview>(
     `/admin/affiliates/users/${userId}/overview`,
   )
-  return data
+  return { ...data, reward_totals: normalizeAffiliateRewardTotals(data.reward_totals) }
 }
 
 /**

@@ -267,6 +267,42 @@ describe('RegisterView', () => {
     expect(bonusOff.find('[data-testid="register-invitee-bonus-hint"]').exists()).toBe(false)
   })
 
+  it('注册赠送与首充奖励提示可以同时出现', async () => {
+    routeMock.query = { aff: 'INVITE1' }
+    getPublicSettingsMock.mockResolvedValueOnce({
+      ...publicSettings,
+      affiliate_invitee_bonus_mode: 'fixed',
+      affiliate_invitee_bonus_value: 2,
+      affiliate_invitee_signup_bonus: 5,
+    })
+    const wrapper = mountRegister()
+    await flushPromises()
+    expect(wrapper.find('[data-testid="register-invitee-bonus-hint"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="register-invitee-signup-bonus-hint"]').exists()).toBe(true)
+  })
+
+  it.each([
+    { query: { aff: 'INVITE1' }, enabled: true, amount: 5, visible: true },
+    { query: { aff_code: 'INVITE1' }, enabled: true, amount: 5, visible: true },
+    { query: {}, enabled: true, amount: 5, visible: false },
+    { query: { aff: 'INVITE1' }, enabled: false, amount: 5, visible: false },
+    { query: { aff: 'INVITE1' }, enabled: true, amount: 0, visible: false },
+    { query: { aff: 'INVITE1' }, enabled: true, amount: -5, visible: false },
+    { query: { aff: 'INVITE1' }, enabled: true, amount: undefined, visible: false },
+  ])('注册赠送提示独立于首充开关：$query / $enabled / $amount', async ({ query, enabled, amount, visible }) => {
+    routeMock.query = query
+    getPublicSettingsMock.mockResolvedValueOnce({
+      ...publicSettings,
+      affiliate_enabled: enabled,
+      affiliate_invitee_bonus_mode: 'off',
+      affiliate_invitee_signup_bonus: amount,
+    })
+    const wrapper = mountRegister()
+    await flushPromises()
+    expect(wrapper.find('[data-testid="register-invitee-signup-bonus-hint"]').exists()).toBe(visible)
+    expect(wrapper.find('[data-testid="register-invitee-bonus-hint"]').exists()).toBe(false)
+  })
+
   it('uses the mandatory invitation field without duplicating the affiliate field', async () => {
     getPublicSettingsMock.mockResolvedValueOnce({
       ...publicSettings,

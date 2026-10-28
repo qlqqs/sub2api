@@ -192,6 +192,7 @@ type UpdateSettingsRequest struct {
 	AffiliateInviteeBonusValue                *float64                          `json:"affiliate_invitee_bonus_value"`
 	AffiliateInviteeBonusMinRecharge          *float64                          `json:"affiliate_invitee_bonus_min_recharge"`
 	AffiliateInviteeBonusMax                  *float64                          `json:"affiliate_invitee_bonus_max"`
+	AffiliateInviteeSignupBonus               *float64                          `json:"affiliate_invitee_signup_bonus"`
 	AffiliateRebateBase                       *string                           `json:"affiliate_rebate_base"`
 	AffiliateAgentUpgradeMode                 *string                           `json:"affiliate_agent_upgrade_mode"`
 	AffiliateAgentLevel2Threshold             *int                              `json:"affiliate_agent_level2_threshold"`
@@ -670,6 +671,10 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 	affiliateInviteeBonusMinRecharge := previousSettings.AffiliateInviteeBonusMinRecharge
 	if req.AffiliateInviteeBonusMinRecharge != nil {
 		affiliateInviteeBonusMinRecharge = *req.AffiliateInviteeBonusMinRecharge
+	}
+	affiliateInviteeSignupBonus := previousSettings.AffiliateInviteeSignupBonus
+	if req.AffiliateInviteeSignupBonus != nil {
+		affiliateInviteeSignupBonus = *req.AffiliateInviteeSignupBonus
 	}
 	affiliateInviteeBonusMax := previousSettings.AffiliateInviteeBonusMax
 	if req.AffiliateInviteeBonusMax != nil {
@@ -1788,6 +1793,7 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AffiliateInviteeBonusValue:             affiliateInviteeBonusValue,
 		AffiliateInviteeBonusMinRecharge:       affiliateInviteeBonusMinRecharge,
 		AffiliateInviteeBonusMax:               affiliateInviteeBonusMax,
+		AffiliateInviteeSignupBonus:            affiliateInviteeSignupBonus,
 		AffiliateRebateBase:                    affiliateRebateBase,
 		AffiliateAgentUpgradeMode:              affiliateAgentUpgradeMode,
 		AffiliateAgentLevel2Threshold:          affiliateAgentLevel2Threshold,
@@ -2473,6 +2479,7 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AffiliateInviteeBonusValue:                             updatedSettings.AffiliateInviteeBonusValue,
 		AffiliateInviteeBonusMinRecharge:                       updatedSettings.AffiliateInviteeBonusMinRecharge,
 		AffiliateInviteeBonusMax:                               updatedSettings.AffiliateInviteeBonusMax,
+		AffiliateInviteeSignupBonus:                            updatedSettings.AffiliateInviteeSignupBonus,
 		AffiliateRebateBase:                                    updatedSettings.AffiliateRebateBase,
 		AffiliateAgentUpgradeMode:                              updatedSettings.AffiliateAgentUpgradeMode,
 		AffiliateAgentLevel2Threshold:                          updatedSettings.AffiliateAgentLevel2Threshold,

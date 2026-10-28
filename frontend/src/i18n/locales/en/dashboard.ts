@@ -774,6 +774,7 @@ export default {
     invite: {
       title: 'Invite Friends',
       separator: '; ',
+      friendSignupBonus: 'Friends receive {amount} when signing up by invitation',
       noReward: 'Share your code or link to invite friends',
       rewardPercent: 'You earn {rate}% of each friend {base}',
       rewardPercentDays: ' (for {days} days after binding)',
@@ -805,6 +806,8 @@ export default {
       availableQuota: 'Rebate Balance',
       totalQuota: 'Total Earnings',
       frozenQuota: 'Frozen',
+      signupBonusReceived: 'Signup Gift Received',
+      signupBonusReceivedHint: 'Already credited to your account balance as a gift, not affiliate quota.',
       totalBreakdown: 'Agent profit {agent} + invite rewards {invite}',
       invitedUsers: 'Invited Users'
     },
@@ -967,6 +970,7 @@ export default {
     recentActivity: 'Recent Activity',
     historyWillAppear: 'Your redemption history will appear here',
     balanceAddedRedeem: 'Balance Added (Redeem)',
+    balanceAddedInviteeSignupBonus: 'Balance Gift (Invited Signup)',
     balanceAddedAffiliate: 'Balance Added (Affiliate Transfer)',
     balanceAddedAdmin: 'Balance Added (Admin)',
     balanceDeductedAdmin: 'Balance Deducted (Admin)',

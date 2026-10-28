@@ -289,6 +289,66 @@ RETURNING id`, userID, amount, nullableInt64Arg(sourceOrderID))
 	return applied, nil
 }
 
+// CreditInviteeSignupBonus 写被邀请人注册赠送流水并加到用户余额；唯一索引冲突表示已发过。
+func (r *affiliateRepository) CreditInviteeSignupBonus(ctx context.Context, userID int64, amount float64) (bool, error) {
+	if amount <= 0 {
+		return false, nil
+	}
+	var applied bool
+	err := r.withTx(ctx, func(txCtx context.Context, txClient *dbent.Client) (creditErr error) {
+		// pending OAuth 可能复用外层建号事务。SQL 失败必须先回滚保存点，
+		// 否则 PostgreSQL 的 aborted 状态会把「赠送失败不阻断注册」变成空承诺。
+		if _, err := txClient.ExecContext(txCtx, "SAVEPOINT affiliate_signup_bonus"); err != nil {
+			return fmt.Errorf("创建注册赠送保存点: %w", err)
+		}
+		defer func() {
+			if creditErr != nil {
+				if _, err := txClient.ExecContext(txCtx, "ROLLBACK TO SAVEPOINT affiliate_signup_bonus"); err != nil {
+					creditErr = errors.Join(creditErr, fmt.Errorf("回滚注册赠送保存点: %w", err))
+					return
+				}
+			}
+			if _, err := txClient.ExecContext(txCtx, "RELEASE SAVEPOINT affiliate_signup_bonus"); err != nil {
+				creditErr = errors.Join(creditErr, fmt.Errorf("释放注册赠送保存点: %w", err))
+			}
+		}()
+
+		rows, err := txClient.QueryContext(txCtx, `
+INSERT INTO user_affiliate_ledger (user_id, action, amount, source_user_id, source_order_id, reward_type, created_at, updated_at)
+SELECT $1, 'invitee_signup_bonus', $2, $1, NULL, 'invitee_signup_bonus', NOW(), NOW()
+WHERE EXISTS (SELECT 1 FROM users WHERE id = $1 AND deleted_at IS NULL)
+ON CONFLICT (source_user_id, reward_type) WHERE reward_type = 'invitee_signup_bonus' DO NOTHING
+RETURNING id`, userID, amount)
+		if err != nil {
+			return fmt.Errorf("写入注册赠送流水: %w", err)
+		}
+		inserted := rows.Next()
+		if err := rows.Err(); err != nil {
+			_ = rows.Close()
+			return fmt.Errorf("写入注册赠送流水: %w", err)
+		}
+		if err := rows.Close(); err != nil {
+			return fmt.Errorf("关闭注册赠送流水结果集: %w", err)
+		}
+		if !inserted {
+			return nil
+		}
+		affected, err := txClient.User.Update().Where(user.IDEQ(userID)).AddBalance(amount).Save(txCtx)
+		if err != nil {
+			return fmt.Errorf("增加注册赠送余额: %w", err)
+		}
+		if affected == 0 {
+			return service.ErrUserNotFound
+		}
+		applied = true
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+	return applied, nil
+}
+
 func (r *affiliateRepository) HasRewardForSource(ctx context.Context, sourceUserID int64, rewardType string) (bool, error) {
 	client := clientFromContext(ctx, r.client)
 	n, err := scanInt64(ctx, client, `
@@ -308,15 +368,16 @@ func (r *affiliateRepository) SumRewardTotals(ctx context.Context, beneficiaryID
 	rows, err := client.QueryContext(ctx, `
 SELECT COALESCE(SUM(amount) FILTER (WHERE reward_type IN ('agent_direct', 'agent_diff')), 0)::double precision,
        COALESCE(SUM(amount) FILTER (WHERE reward_type IN ('invite_percent', 'invite_fixed')), 0)::double precision,
-       COALESCE(SUM(amount) FILTER (WHERE reward_type = 'invitee_bonus'), 0)::double precision
+       COALESCE(SUM(amount) FILTER (WHERE reward_type = 'invitee_bonus'), 0)::double precision,
+       COALESCE(SUM(amount) FILTER (WHERE reward_type = 'invitee_signup_bonus'), 0)::double precision
 FROM user_affiliate_ledger
-WHERE user_id = $1 AND action IN ('accrue', 'invitee_bonus')`, beneficiaryID)
+WHERE user_id = $1 AND action IN ('accrue', 'invitee_bonus', 'invitee_signup_bonus')`, beneficiaryID)
 	if err != nil {
 		return totals, fmt.Errorf("sum affiliate reward totals: %w", err)
 	}
 	defer func() { _ = rows.Close() }()
 	if rows.Next() {
-		if err := rows.Scan(&totals.Agent, &totals.Invite, &totals.InviteeBonus); err != nil {
+		if err := rows.Scan(&totals.Agent, &totals.Invite, &totals.InviteeBonus, &totals.InviteeSignupBonus); err != nil {
 			return totals, err
 		}
 	}
@@ -844,7 +905,7 @@ FROM user_affiliate_ledger ual
 JOIN users inviter ON inviter.id = ual.user_id
 LEFT JOIN users invitee ON invitee.id = ual.source_user_id
 LEFT JOIN payment_orders po ON po.id = ual.source_order_id
-WHERE ual.action IN ('accrue', 'invitee_bonus')`
+WHERE ual.action IN ('accrue', 'invitee_bonus', 'invitee_signup_bonus')`
 	if where != "" {
 		where = strings.Replace(where, "WHERE ", " AND ", 1)
 	}

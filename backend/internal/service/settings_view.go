@@ -194,6 +194,7 @@ type SystemSettings struct {
 	AffiliateInviteeBonusValue         float64
 	AffiliateInviteeBonusMinRecharge   float64
 	AffiliateInviteeBonusMax           float64
+	AffiliateInviteeSignupBonus        float64
 	AffiliateAgentUpgradeMode          string
 	AffiliateAgentLevel2Threshold      int
 	AffiliateAgentLevel1Threshold      int
@@ -443,6 +444,7 @@ type PublicSettings struct {
 	AffiliateInviteeBonusValue       float64 `json:"affiliate_invitee_bonus_value"`
 	AffiliateInviteeBonusMinRecharge float64 `json:"affiliate_invitee_bonus_min_recharge"`
 	AffiliateInviteeBonusMax         float64 `json:"affiliate_invitee_bonus_max"`
+	AffiliateInviteeSignupBonus      float64 `json:"affiliate_invitee_signup_bonus"`
 
 	// 风控中心功能开关
 	RiskControlEnabled bool `json:"risk_control_enabled"`

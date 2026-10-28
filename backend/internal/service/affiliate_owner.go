@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
+	"go.uber.org/zap"
 )
 
 // affiliateChainMaxHops 限制沿邀请链 / 归属链向上查找的步数，防止异常数据导致长时间循环。
@@ -198,6 +200,14 @@ func (s *AffiliateService) BindInviterByCode(ctx context.Context, userID int64, 
 	}
 	if !bound {
 		return ErrAffiliateAlreadyBound
+	}
+	// 此入口只用于注册，且只在本次成功绑定时发放；补绑和重放不补发。
+	if amount := s.rewardConfig(ctx).InviteeSignupBonus; amount > 0 {
+		if applied, err := s.repo.CreditInviteeSignupBonus(ctx, userID, amount); err != nil {
+			logger.FromContext(ctx).Warn("affiliate.signup_bonus_credit_failed", zap.Int64("user_id", userID), zap.Error(err))
+		} else if applied {
+			s.invalidateAffiliateCaches(ctx, userID)
+		}
 	}
 	s.tryAutoUpgradeAgentLevel(ctx, inviterSummary.UserID)
 	return nil

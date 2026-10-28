@@ -72,9 +72,16 @@ describe('admin finance api (CUSTOM)', () => {
     expect(recharge.totals.order_count).toBe(4)
     expect(recharge.totals.cash_received).toBe('26.00')
     expect(recharge.totals.net_cash).toBe('0')
-    expect(recharge.totals.gift).toMatchObject({ invitee_bonus: '2.00', total: '112.00', promo: '0' })
+    expect(recharge.totals.gift).toMatchObject({ invitee_bonus: '2.00', invitee_signup_bonus: '0', total: '112.00', promo: '0' })
     expect(recharge.orders[0]).toMatchObject({ id: 59, pay_amount: '10.00', channel_fee_rate: '0.0320', refund_cash: '0' })
     expect(recharge.orders_truncated).toBe(true)
+  })
+
+  it('注册赠送财务分类单列且保留金额精度', () => {
+    const gift = normalizeRecharge({ totals: { gift: { invitee_bonus: '2.00', invitee_signup_bonus: '5.12345678', total: '7.12345678' } } }).totals.gift
+    expect(gift.invitee_signup_bonus).toBe('5.12345678')
+    expect(gift.invitee_bonus).toBe('2.00')
+    expect(gift.total).toBe('7.12345678')
   })
 
   it('passes the breakdown dimension and drops unknown cost modes', async () => {

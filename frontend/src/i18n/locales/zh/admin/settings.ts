@@ -186,6 +186,11 @@ export default {
             fixedAmount: '奖励邀请人',
             firstRechargeHint: '好友第一笔达到门槛的真实余额充值到账后，给邀请人发放固定金额（进入返利余额）。',
           },
+          inviteeSignupBonus: {
+            title: '被邀请人注册赠送',
+            description: '被邀请人（含代理直接邀请的人）通过邀请码注册并绑定成功后立即赠送，直接进入余额，计为赠送；管理员补绑不发放；0 = 关闭。',
+            amount: '赠送金额（¥）',
+          },
           inviteeBonus: {
             title: '被邀请人首充奖励',
             description: '被邀请人（含代理直接邀请的人）第一笔达到门槛的真实余额充值到账后加赠，直接进入余额；未达门槛的充值不消耗资格。',

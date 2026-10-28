@@ -680,8 +680,8 @@ func (s *adminServiceImpl) GetUserUsageStats(ctx context.Context, userID int64, 
 // GetUserBalanceHistory returns paginated balance/concurrency change records for a user.
 func (s *adminServiceImpl) GetUserBalanceHistory(ctx context.Context, userID int64, page, pageSize int, codeType string) ([]RedeemCode, int64, BalanceHistoryTotals, error) {
 	params := pagination.PaginationParams{Page: page, PageSize: pageSize}
-	if codeType == RedeemTypeAffiliateBalance {
-		codes, total, err := s.listAffiliateBalanceHistory(ctx, userID, params)
+	if codeType == RedeemTypeAffiliateBalance || codeType == AffiliateRewardInviteeSignupBonus {
+		codes, total, err := s.listAffiliateBalanceHistory(ctx, userID, params, codeType)
 		if err != nil {
 			return nil, 0, BalanceHistoryTotals{}, err
 		}
@@ -772,7 +772,7 @@ func (s *adminServiceImpl) listAffiliateBalanceHistoryForMerge(ctx context.Conte
 	)
 	for page := 1; len(out) < needed; page++ {
 		params := pagination.PaginationParams{Page: page, PageSize: 1000}
-		codes, currentTotal, err := s.listAffiliateBalanceHistory(ctx, userID, params)
+		codes, currentTotal, err := s.listAffiliateBalanceHistory(ctx, userID, params, "")
 		if err != nil {
 			return nil, 0, err
 		}
@@ -788,7 +788,7 @@ func (s *adminServiceImpl) listAffiliateBalanceHistoryForMerge(ctx context.Conte
 	return out, total, nil
 }
 
-func (s *adminServiceImpl) listAffiliateBalanceHistory(ctx context.Context, userID int64, params pagination.PaginationParams) ([]RedeemCode, int64, error) {
+func (s *adminServiceImpl) listAffiliateBalanceHistory(ctx context.Context, userID int64, params pagination.PaginationParams, codeType string) ([]RedeemCode, int64, error) {
 	if s == nil || s.entClient == nil || userID <= 0 {
 		return nil, 0, nil
 	}
@@ -796,13 +796,15 @@ func (s *adminServiceImpl) listAffiliateBalanceHistory(ctx context.Context, user
 	rows, err := s.entClient.QueryContext(ctx, `
 SELECT id,
        amount::double precision,
-       created_at
+       created_at,
+       action
 FROM user_affiliate_ledger
 WHERE user_id = $1
-  AND action IN ('transfer', 'invitee_bonus')
+  AND action IN ('transfer', 'invitee_bonus', 'invitee_signup_bonus')
+  AND ($4 = '' OR ($4 = 'affiliate_balance' AND action <> 'invitee_signup_bonus') OR action = $4)
 ORDER BY created_at DESC, id DESC
 OFFSET $2
-LIMIT $3`, userID, params.Offset(), params.Limit())
+LIMIT $3`, userID, params.Offset(), params.Limit(), codeType)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -813,15 +815,20 @@ LIMIT $3`, userID, params.Offset(), params.Limit())
 		var id int64
 		var amount float64
 		var createdAt time.Time
-		if err := rows.Scan(&id, &amount, &createdAt); err != nil {
+		var action string
+		if err := rows.Scan(&id, &amount, &createdAt, &action); err != nil {
 			return nil, 0, err
+		}
+		historyType := RedeemTypeAffiliateBalance
+		if action == AffiliateRewardInviteeSignupBonus {
+			historyType = AffiliateRewardInviteeSignupBonus
 		}
 		usedBy := userID
 		usedAt := createdAt
 		codes = append(codes, RedeemCode{
 			ID:        -id,
 			Code:      fmt.Sprintf("AFF-%d", id),
-			Type:      RedeemTypeAffiliateBalance,
+			Type:      historyType,
 			Value:     amount,
 			Status:    StatusUsed,
 			UsedBy:    &usedBy,
@@ -833,19 +840,20 @@ LIMIT $3`, userID, params.Offset(), params.Limit())
 		return nil, 0, err
 	}
 
-	total, err := countAffiliateBalanceHistory(ctx, s.entClient, userID)
+	total, err := countAffiliateBalanceHistory(ctx, s.entClient, userID, codeType)
 	if err != nil {
 		return nil, 0, err
 	}
 	return codes, total, nil
 }
 
-func countAffiliateBalanceHistory(ctx context.Context, client *dbent.Client, userID int64) (int64, error) {
+func countAffiliateBalanceHistory(ctx context.Context, client *dbent.Client, userID int64, codeType string) (int64, error) {
 	rows, err := client.QueryContext(ctx, `
 SELECT COUNT(*)
 FROM user_affiliate_ledger
 WHERE user_id = $1
-  AND action IN ('transfer', 'invitee_bonus')`, userID)
+  AND action IN ('transfer', 'invitee_bonus', 'invitee_signup_bonus')
+  AND ($2 = '' OR ($2 = 'affiliate_balance' AND action <> 'invitee_signup_bonus') OR action = $2)`, userID, codeType)
 	if err != nil {
 		return 0, err
 	}

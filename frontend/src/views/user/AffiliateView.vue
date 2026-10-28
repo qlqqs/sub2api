@@ -102,6 +102,12 @@
           </div>
         </div>
 
+        <div v-if="(detail.reward_totals?.invitee_signup_bonus ?? 0) > 0" class="card p-5" data-test="affiliate-signup-bonus-received">
+          <p class="text-sm text-gray-500 dark:text-dark-400">{{ t('affiliate.stats.signupBonusReceived') }}</p>
+          <p class="mt-2 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(detail.reward_totals?.invitee_signup_bonus) }}</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-dark-400">{{ t('affiliate.stats.signupBonusReceivedHint') }}</p>
+        </div>
+
         <!-- 邀请列表：分页 + 搜索（昵称模糊 / 完整邮箱） -->
         <div class="card overflow-hidden p-6" data-test="affiliate-invitees">
           <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -237,6 +243,7 @@ import {
   formatRatePercent,
   formatUsdShort,
   isInviteeBonusActive,
+  normalizeInviteeSignupBonus,
 } from '@/utils/affiliateRewards'
 
 const { t } = useI18n()
@@ -315,6 +322,8 @@ const inviteText = computed(() => {
   const d = detail.value
   if (!d) return ''
   const parts: string[] = []
+  const signupBonus = normalizeInviteeSignupBonus(d.invitee_signup_bonus)
+  if (signupBonus > 0) parts.push(t('affiliate.invite.friendSignupBonus', { amount: formatUsdShort(signupBonus) }))
   const reward = isAgent.value ? null : d.invite_reward
   if (reward?.mode === 'percent' && reward.rate_percent > 0) {
     const base = d.rebate_base === 'recharge' ? t('affiliate.invite.baseRecharge') : t('affiliate.invite.baseConsumption')

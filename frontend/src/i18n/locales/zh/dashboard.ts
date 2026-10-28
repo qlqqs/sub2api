@@ -776,6 +776,7 @@ export default {
     invite: {
       title: '邀请好友',
       separator: '；',
+      friendSignupBonus: '好友通过邀请注册即得 {amount}',
       noReward: '分享邀请码或链接，邀请好友注册',
       rewardPercent: '好友每笔{base}，你得 {rate}%',
       rewardPercentDays: '（绑定后 {days} 天内）',
@@ -807,6 +808,8 @@ export default {
       availableQuota: '返利余额',
       totalQuota: '累计收益',
       frozenQuota: '冻结',
+      signupBonusReceived: '已领取注册赠送',
+      signupBonusReceivedHint: '已直接计入账户余额，计为赠送，不计入返利余额。',
       totalBreakdown: '代理分润 {agent} + 邀请奖励 {invite}',
       invitedUsers: '邀请人数'
     },
@@ -969,6 +972,7 @@ export default {
     recentActivity: '最近活动',
     historyWillAppear: '您的兑换历史将显示在这里',
     balanceAddedRedeem: '余额充值（兑换）',
+    balanceAddedInviteeSignupBonus: '余额赠送（邀请注册）',
     balanceAddedAffiliate: '余额充值（返利转入）',
     balanceAddedAdmin: '余额充值（管理员）',
     balanceDeductedAdmin: '余额扣除（管理员）',

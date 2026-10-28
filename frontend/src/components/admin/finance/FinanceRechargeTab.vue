@@ -12,7 +12,7 @@
 
       <section class="card p-4">
         <h3 class="mb-3 text-sm font-semibold text-gray-900 dark:text-white">{{ t('admin.finance.recharge.giftTitle') }}</h3>
-        <dl class="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-7">
+        <dl class="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
           <div v-for="key in GIFT_KEYS" :key="key" class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-dark-800/60">
             <dt
               class="text-xs text-gray-500 dark:text-gray-400"
@@ -103,6 +103,7 @@ const { t } = useI18n()
 const GIFT_KEYS: Array<keyof FinanceGiftTotals> = [
   'recharge_bonus',
   'invitee_bonus',
+  'invitee_signup_bonus',
   'promo',
   'admin_adjust_in',
   'redeem_code',

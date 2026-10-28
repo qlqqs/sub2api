@@ -125,6 +125,7 @@ func (h *SettingHandler) GetPublicSettings(c *gin.Context) {
 		AffiliateInviteeBonusValue:       settings.AffiliateInviteeBonusValue,
 		AffiliateInviteeBonusMinRecharge: settings.AffiliateInviteeBonusMinRecharge,
 		AffiliateInviteeBonusMax:         settings.AffiliateInviteeBonusMax,
+		AffiliateInviteeSignupBonus:      settings.AffiliateInviteeSignupBonus,
 
 		RiskControlEnabled: settings.RiskControlEnabled,
 

@@ -56,3 +56,9 @@
 - API `total_gifted`：上述订单 bonus_amount + 本人正数 balance/admin_balance 兑换记录；`NOT EXISTS payment_orders.recharge_code=code` 排除所有已关联记录（不限订单类型/状态），避免内部兑换码/调账重复计。
 - 赠送是累计发生额，不随退款扣减；非当前余额，也不是返利汇总。UI 显示「累计充值（实收）/累计赠送」与赠送说明，中英文齐全。
 - `redeem_code_totals_test.go` 在 SQLite 与真实 PostgreSQL 共用用例：在线/线下、部分/全额退款及按分取整、订阅/未付/退款流程状态、正负兑换码/赠送、关联排除、用户隔离、空历史。service/handler/UI 测试覆盖全局汇总契约；OFF-09..11 覆盖真实接口与履约。
+
+### 注册赠送的并列口径（2026-10-27）
+
+- `GetBalanceHistoryTotals` 的同一快照额外汇总本人 ledger 中 `invitee_bonus` 与 `invitee_signup_bonus`，两者只进入 `total_gifted`，不进入 `total_recharged`；分润 `transfer` 不算赠送。
+- 管理端余额历史将新 action 映射为独立 `type=invitee_signup_bonus`，支持独立筛选；旧首充记录仍保留 `affiliate_balance` 兼容类型，未筛选时合并两种来源。
+- 财务 `gift.invitee_signup_bonus` 单列注册赠送，收入重放为免费余额，分润 accrue 排除该类型。消费返利上限只取真实充值订单，不取余额/赠送。

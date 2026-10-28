@@ -64,11 +64,12 @@ const (
 	AffiliateInviteeBonusModeFixed   = "fixed"
 
 	// 奖励流水类型（user_affiliate_ledger.reward_type）
-	AffiliateRewardAgentDirect   = "agent_direct"
-	AffiliateRewardAgentDiff     = "agent_diff"
-	AffiliateRewardInvitePercent = "invite_percent"
-	AffiliateRewardInviteFixed   = "invite_fixed"
-	AffiliateRewardInviteeBonus  = "invitee_bonus"
+	AffiliateRewardAgentDirect        = "agent_direct"
+	AffiliateRewardAgentDiff          = "agent_diff"
+	AffiliateRewardInvitePercent      = "invite_percent"
+	AffiliateRewardInviteFixed        = "invite_fixed"
+	AffiliateRewardInviteeBonus       = "invitee_bonus"
+	AffiliateRewardInviteeSignupBonus = "invitee_signup_bonus"
 
 	// 金额类设置的上限，防止误填天文数字。
 	AffiliateRewardAmountMax = 1000000.0
@@ -303,6 +304,7 @@ const (
 	SettingKeyAffiliateInviteeBonusValue          = "affiliate_invitee_bonus_value"           // 比例或金额
 	SettingKeyAffiliateInviteeBonusMinRecharge    = "affiliate_invitee_bonus_min_recharge"    // 首充门槛
 	SettingKeyAffiliateInviteeBonusMax            = "affiliate_invitee_bonus_max"             // 比例模式封顶（0=不封顶）
+	SettingKeyAffiliateInviteeSignupBonus         = "affiliate_invitee_signup_bonus"          // 被邀请人注册赠送（0=关闭）
 	SettingKeyAffiliateRebateBase                 = "affiliate_rebate_base"                   // 返利基数：recharge（充值）/ consumption（消费）
 	SettingKeyAffiliateAgentUpgradeMode           = "affiliate_agent_upgrade_mode"            // 代理升级方式：manual / auto
 	SettingKeyAffiliateAgentLevel2Threshold       = "affiliate_agent_level2_threshold"        // 自动升 2 级所需邀请人数（0=不自动升）

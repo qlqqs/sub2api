@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -232,7 +233,8 @@ func TestCompleteEmailOAuthRegistrationUsesAffiliateCodeFromPendingSession(t *te
 	handler, client := newOAuthPendingFlowTestHandlerWithDependencies(t, oauthPendingFlowTestHandlerOptions{
 		invitationEnabled: true,
 		settingValues: map[string]string{
-			service.SettingKeyAffiliateEnabled: "true",
+			service.SettingKeyAffiliateEnabled:            "true",
+			service.SettingKeyAffiliateInviteeSignupBonus: "5",
 		},
 		affiliateFactory: func(_ *dbent.Client, settingSvc *service.SettingService) *service.AffiliateService {
 			return service.NewAffiliateService(affiliateRepo, settingSvc, nil, nil)
@@ -292,6 +294,16 @@ func TestCompleteEmailOAuthRegistrationUsesAffiliateCodeFromPendingSession(t *te
 	require.NoError(t, err)
 	require.Zero(t, tamperedCount)
 	require.Equal(t, []oauthEmailAffiliateBindCall{{userID: user.ID, inviterID: 2002}}, affiliateRepo.bindCalls)
+	require.Equal(t, []int64{user.ID}, affiliateRepo.signupUserIDs)
+	require.Equal(t, []float64{5}, affiliateRepo.signupAmounts)
+	// 重放相同 pending 会话不得再次发放。
+	replay := httptest.NewRecorder()
+	c2, _ := gin.CreateTestContext(replay)
+	c2.Request = req.Clone(ctx)
+	c2.Request.Body = io.NopCloser(strings.NewReader(`{"password":"secret-123","invitation_code":"INVITE456"}`))
+	handler.completeEmailOAuthRegistration(c2, "google")
+	require.NotEqual(t, http.StatusOK, replay.Code)
+	require.Len(t, affiliateRepo.signupUserIDs, 1)
 	storedInvitation, err := client.RedeemCode.Query().Where(redeemcode.IDEQ(invitation.ID)).Only(ctx)
 	require.NoError(t, err)
 	require.NotNil(t, storedInvitation.UsedBy)
@@ -367,6 +379,8 @@ type oauthEmailAffiliateRepoStub struct {
 	codeOwners    map[string]int64
 	ensureUserIDs []int64
 	bindCalls     []oauthEmailAffiliateBindCall
+	signupUserIDs []int64
+	signupAmounts []float64
 }
 
 func newOAuthEmailAffiliateRepoStub(codeOwners map[string]int64) *oauthEmailAffiliateRepoStub {
@@ -539,4 +553,10 @@ func findSetCookieValue(cookies []*http.Cookie, name string) string {
 		}
 	}
 	return ""
+}
+
+func (r *oauthEmailAffiliateRepoStub) CreditInviteeSignupBonus(_ context.Context, userID int64, amount float64) (bool, error) {
+	r.signupUserIDs = append(r.signupUserIDs, userID)
+	r.signupAmounts = append(r.signupAmounts, amount)
+	return true, nil
 }

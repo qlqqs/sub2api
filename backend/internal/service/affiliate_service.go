@@ -166,9 +166,10 @@ type AffiliateAgentRef struct {
 
 // AffiliateRewardTotals 是某用户作为受益人收到的奖励按类别的合计。
 type AffiliateRewardTotals struct {
-	Agent        float64 `json:"agent"`
-	Invite       float64 `json:"invite"`
-	InviteeBonus float64 `json:"invitee_bonus"`
+	Agent              float64 `json:"agent"`
+	Invite             float64 `json:"invite"`
+	InviteeBonus       float64 `json:"invitee_bonus"`
+	InviteeSignupBonus float64 `json:"invitee_signup_bonus"`
 }
 
 type AffiliateInviterBindingResult struct {
@@ -255,6 +256,7 @@ type AffiliateDetail struct {
 	InviteReward *AffiliateInviteRewardInfo `json:"invite_reward,omitempty"`
 	// InviteeBonus 是好友（被邀请人）首充能得什么；FirstRechargeBonus 是我自己尚可领取的首充奖励。
 	InviteeBonus       *AffiliateInviteeBonusInfo `json:"invitee_bonus,omitempty"`
+	InviteeSignupBonus float64                    `json:"invitee_signup_bonus"`
 	FirstRechargeBonus *AffiliateInviteeBonusInfo `json:"first_recharge_bonus,omitempty"`
 	RewardTotals       AffiliateRewardTotals      `json:"reward_totals"`
 	Appoint            *AffiliateAppointInfo      `json:"appoint,omitempty"`
@@ -276,6 +278,8 @@ type AffiliateRepository interface {
 	GetAffiliateNodes(ctx context.Context, userIDs []int64) (map[int64]AffiliateNode, error)
 	// CreditInviteeBonus 把被邀请人首充奖励直接加到用户余额并写流水；已发过返回 false。
 	CreditInviteeBonus(ctx context.Context, userID int64, amount float64, sourceOrderID *int64) (bool, error)
+	// CreditInviteeSignupBonus 把注册赠送直接计入余额与流水，每人最多一次。
+	CreditInviteeSignupBonus(ctx context.Context, userID int64, amount float64) (bool, error)
 	// HasRewardForSource 判断某来源用户是否已产生过指定类型的奖励流水。
 	HasRewardForSource(ctx context.Context, sourceUserID int64, rewardType string) (bool, error)
 	CountOwnedCustomers(ctx context.Context, agentID int64) (int, error)

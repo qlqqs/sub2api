@@ -105,6 +105,7 @@ export default {
       giftTitle: 'Gifts (non-revenue credits)',
       gift: {
         recharge_bonus: 'Recharge bonus',
+        invitee_signup_bonus: 'Signup gift',
         invitee_bonus: 'First-recharge reward',
         promo: 'Promo codes',
         admin_adjust_in: 'Admin added',

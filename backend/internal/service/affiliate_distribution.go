@@ -226,7 +226,7 @@ func (s *AffiliateService) distributeRewards(ctx context.Context, consumer *Affi
 func normalizeAffiliateRewardTypeFilter(value string) string {
 	switch v := strings.TrimSpace(value); v {
 	case AffiliateRewardAgentDirect, AffiliateRewardAgentDiff, AffiliateRewardInvitePercent,
-		AffiliateRewardInviteFixed, AffiliateRewardInviteeBonus:
+		AffiliateRewardInviteFixed, AffiliateRewardInviteeBonus, AffiliateRewardInviteeSignupBonus:
 		return v
 	default:
 		return ""

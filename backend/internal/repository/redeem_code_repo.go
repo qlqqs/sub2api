@@ -386,8 +386,8 @@ func (r *redeemCodeRepository) ListByUserPaginated(ctx context.Context, userID i
 	return redeemCodeEntitiesToService(codes), paginationResultFromTotal(int64(total), params), nil
 }
 
-// CUSTOM(fork): One statement gives both totals a consistent snapshot. Order-linked
-// internal redemption records never count as gifts, regardless of order status.
+// 同一快照聚合实收与赠送；任何订单关联的内部兑换记录不重复计赠送。
+// 注册与首充奖励只计赠送，不计实收或返利基数。
 func (r *redeemCodeRepository) GetBalanceHistoryTotals(ctx context.Context, userID int64) (service.BalanceHistoryTotals, error) {
 	var totals service.BalanceHistoryTotals
 	rows, err := clientFromContext(ctx, r.client).QueryContext(ctx, `
@@ -401,7 +401,10 @@ func (r *redeemCodeRepository) GetBalanceHistoryTotals(ctx context.Context, user
    WHERE r.used_by=$1 AND r.value>0 AND r.type IN ('balance','admin_balance')
      AND NOT EXISTS (SELECT 1 FROM payment_orders o WHERE o.recharge_code=r.code)
  )
- SELECT paid.cash, paid.bonus+gifts.amount FROM paid CROSS JOIN gifts`, userID)
+ SELECT paid.cash, paid.bonus+gifts.amount+
+   (SELECT COALESCE(SUM(amount),0) FROM user_affiliate_ledger
+    WHERE user_id=$1 AND action IN ('invitee_bonus','invitee_signup_bonus'))
+ FROM paid CROSS JOIN gifts`, userID)
 	if err != nil {
 		return totals, err
 	}
