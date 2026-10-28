@@ -216,3 +216,7 @@ env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY -u OPENAI_API_KEY 
 - `golangci-lint` 本机未安装，按 AGENTS.md 留给 CI；没有声称已经运行。Vite 的旧 Browserslist 数据、产物体积及 Node 弃用提示是非阻塞构建警告，本任务没有升级依赖。
 - 本任务没有要求的完整模式 p5/p6/p8/p9 未额外重跑；消费基数已用单测、真实仓储 PaidTotal 查询与 SGB 用例核对，本次要求的 fast 与独立 p10 均已完成。
 - 所有操作仅本机隔离环境。未 git commit、未 push、未部署一号机、未全局 Docker 清理；未使用全局 pnpm。代码保持未提交，任务不归档，以免触发 Trellis 自动提交。
+
+## 六、后续授权发布（2026-10-28 UTC）
+
+以上「未提交/未部署」为实现验收当时的记录。后续用户授权推送并部署；产品提交 `1dafd13b7` 已推送，CI `40624930942` 四个任务成功，一号机 sub2api-custom 已更新并完成只读验证，注册赠送保持0。详见 `release-report.md`。
