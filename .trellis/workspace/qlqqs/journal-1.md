@@ -451,3 +451,38 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Next Steps
 
 - 任务仍保留测试fixture、原始依赖审计及未演练流程场景跟进，不归档。详细发布证据在10-27-upstream-sync/verification/release-report.md；下次仅增量审查新单元和触发重开的旧项。
+
+
+## Session 20: 注册赠送推送与一号机发布
+<!-- trellis-session: v=2 fp=f226c86447e7a6a9 -->
+
+**Date**: 2026-10-28
+**Task**: 注册赠送推送与一号机发布
+**Branch**: `sub2api-custom`
+
+### Summary
+
+用户授权推送部署；Custom Image 40624930942四个任务全部成功。一号机sub2api-custom精确更新至1dafd13b7，备份校验、迁移262、健康及双域名只读验证通过，其他容器未变，注册赠送保持0；归档本任务。
+
+### Main Changes
+
+- 仅更新一号机sub2api-custom主应用；保留既有网络/认证/监听与业务设置
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1dafd13b7fa2645e54b2b9d07ad24c60840f488c` | Add invitee signup bonus |
+
+### Testing
+
+- [OK] 本机fast 221/221与独立财务34/34；CI unit/integration/lint/frontend/image全部通过
+- [OK] 生产loopback与主站域名smoke通过；API域名直连TLS reset，使用既有网络代理完整重试通过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 如需开启注册赠送，在后台邀请返利设置填入金额；本次未开启
