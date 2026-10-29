@@ -305,7 +305,7 @@ export default {
     promoCodeAlreadyUsed: 'You have already used this promo code',
     promoCodeValidating: 'Promo code is being validated, please wait',
     promoCodeInvalidCannotRegister: 'Invalid promo code. Please check and try again or clear the promo code field',
-    inviteeSignupBonusHint: 'Sign up by invitation to receive {amount} directly in your balance',
+    inviteeSignupBonusHint: 'Sign up through this invitation and receive {amount} in balance',
     inviteeBonusHint: 'Signed up by invitation: get an extra {bonus} on your first recharge',
     inviteeBonusHintWithMin: 'Signed up by invitation: get an extra {bonus} on a first recharge of {min} or more',
     invitationCodeLabel: 'Invitation Code',

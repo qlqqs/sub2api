@@ -388,6 +388,9 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 	if v := settings.AffiliateInviteeSignupBonus; math.IsNaN(v) || math.IsInf(v, 0) || v < 0 {
 		return nil, infraerrors.BadRequest("AFFILIATE_INVALID_SIGNUP_BONUS", "注册赠送金额必须为非负有限数值")
 	}
+	if source := settings.AffiliateInviteeSignupBonusSource; source != "" && !validAffiliateSignupSource(source) {
+		return nil, infraerrors.BadRequest("AFFILIATE_INVALID_SIGNUP_SOURCE", "Invalid signup gift invitation source")
+	}
 	rewardCfg := affiliateRewardConfigFromSettings(settings).Normalized()
 	rewardCfg.applyToSettings(settings)
 	for key, value := range rewardCfg.settingUpdates() {

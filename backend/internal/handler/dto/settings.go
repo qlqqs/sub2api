@@ -187,6 +187,7 @@ type SystemSettings struct {
 	AffiliateInviteeBonusValue         float64                      `json:"affiliate_invitee_bonus_value"`
 	AffiliateInviteeBonusMinRecharge   float64                      `json:"affiliate_invitee_bonus_min_recharge"`
 	AffiliateInviteeBonusMax           float64                      `json:"affiliate_invitee_bonus_max"`
+	AffiliateInviteeSignupBonusSource  string                       `json:"affiliate_invitee_signup_bonus_source"`
 	AffiliateInviteeSignupBonus        float64                      `json:"affiliate_invitee_signup_bonus"`
 	AffiliateRebateBase                string                       `json:"affiliate_rebate_base"`
 	AffiliateAgentUpgradeMode          string                       `json:"affiliate_agent_upgrade_mode"`

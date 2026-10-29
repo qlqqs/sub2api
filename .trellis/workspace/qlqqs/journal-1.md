@@ -486,3 +486,37 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Next Steps
 
 - 如需开启注册赠送，在后台邀请返利设置填入金额；本次未开启
+
+
+## Session 21: 注册赠送按邀请来源筛选：实现与本机验收
+<!-- trellis-session: v=2 fp=3fb36493925ec39c -->
+
+**Date**: 2026-10-29
+**Task**: 注册赠送按邀请来源筛选：实现与本机验收
+**Branch**: `sub2api-custom`
+
+### Summary
+
+完成全部/代理/普通邀请来源下拉、绑定快照发放、匿名金额预览与简短UI文案；本机验收通过，未提交或部署。
+
+### Main Changes
+
+- 新增 affiliate_invitee_signup_bonus_source，默认all，保留统一金额和历史账本。
+- 注册页提示按邀请码查询，支持链接变化和手动编辑防抖/取消；邀请页按本人身份展示。
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] 后端全量unit、Affiliate集成、go build通过；前端lint/typecheck与3512项测试通过。
+- [OK] 本机fast e2e252/252，来源专项31/31，UI11/11；报告在任务verification.md。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 等待用户同意后再提交、推送、部署一号机sub2api-custom；当前不归档以避免自动提交。

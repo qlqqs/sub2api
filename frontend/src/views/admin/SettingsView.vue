@@ -8087,6 +8087,18 @@
                   {{ t('admin.settings.features.affiliate.inviteeSignupBonus.description') }}
                 </p>
                 <div class="mt-4">
+                  <label class="input-label" for="affiliate-invitee-signup-source">
+                    {{ t('admin.settings.features.affiliate.inviteeSignupBonus.source') }}
+                  </label>
+                  <Select
+                    id="affiliate-invitee-signup-source"
+                    v-model="form.affiliate_invitee_signup_bonus_source"
+                    :options="affiliateSignupSourceOptions"
+                    :aria-label="t('admin.settings.features.affiliate.inviteeSignupBonus.source')"
+                    data-test="affiliate-invitee-signup-source"
+                  />
+                </div>
+                <div class="mt-4">
                   <label class="input-label" for="affiliate-invitee-signup-bonus">
                     {{ t('admin.settings.features.affiliate.inviteeSignupBonus.amount') }}
                   </label>
@@ -8098,7 +8110,11 @@
                     min="0"
                     class="input"
                     data-test="affiliate-invitee-signup-bonus"
+                    aria-describedby="affiliate-invitee-signup-bonus-hint"
                   />
+                  <p id="affiliate-invitee-signup-bonus-hint" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {{ t('admin.settings.features.affiliate.inviteeSignupBonus.amountHint') }}
+                  </p>
                 </div>
               </section>
 
@@ -10033,6 +10049,7 @@ const form = reactive<SettingsForm>({
   affiliate_invitee_bonus_value: 0,
   affiliate_invitee_bonus_min_recharge: 0,
   affiliate_invitee_bonus_max: 0,
+  affiliate_invitee_signup_bonus_source: "all" as "all" | "agent" | "user",
   affiliate_invitee_signup_bonus: 0,
   default_concurrency: 1,
   default_subscriptions: [],
@@ -11776,6 +11793,7 @@ async function saveSettings() {
           : nonNegativeAffiliateAmount(form.affiliate_invitee_bonus_value),
       affiliate_invitee_bonus_min_recharge: nonNegativeAffiliateAmount(form.affiliate_invitee_bonus_min_recharge),
       affiliate_invitee_bonus_max: nonNegativeAffiliateAmount(form.affiliate_invitee_bonus_max),
+      affiliate_invitee_signup_bonus_source: form.affiliate_invitee_signup_bonus_source,
       affiliate_invitee_signup_bonus: nonNegativeAffiliateAmount(form.affiliate_invitee_signup_bonus),
       default_concurrency: form.default_concurrency,
       default_subscriptions: normalizedDefaultSubscriptions,
@@ -13252,6 +13270,12 @@ const affiliateInviteRewardModeOptions = computed(() => [
   { value: "off", label: t("admin.settings.features.affiliate.inviteReward.modeOff") },
   { value: "percent", label: t("admin.settings.features.affiliate.inviteReward.modePercent") },
   { value: "first_recharge", label: t("admin.settings.features.affiliate.inviteReward.modeFirstRecharge") },
+]);
+
+const affiliateSignupSourceOptions = computed(() => [
+  { value: "all", label: t("admin.settings.features.affiliate.inviteeSignupBonus.sourceAll") },
+  { value: "agent", label: t("admin.settings.features.affiliate.inviteeSignupBonus.sourceAgent") },
+  { value: "user", label: t("admin.settings.features.affiliate.inviteeSignupBonus.sourceUser") },
 ]);
 
 const affiliateInviteeBonusModeOptions = computed(() => [

@@ -137,6 +137,7 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyAffiliateAgentAppointMax:                  strconv.Itoa(AffiliateAgentAppointMaxDefault),
 		SettingKeyAffiliateInviteRewardMode:                 AffiliateInviteRewardModeOff,
 		SettingKeyAffiliateInviteeBonusMode:                 AffiliateInviteeBonusModeOff,
+		SettingKeyAffiliateInviteeSignupBonusSource:         AffiliateSignupSourceAll,
 		SettingKeyAffiliateInviteeSignupBonus:               "0",
 		SettingKeyAffiliateRebateBase:                       AffiliateRebateBaseDefault,
 		SettingKeyAffiliateAgentUpgradeMode:                 AffiliateAgentUpgradeModeDefault,

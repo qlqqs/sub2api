@@ -86,3 +86,10 @@ const emit = defineEmits<{
 - **用例**：双方相同时段均翻倍时折扣不变；窗口部分重叠时按边界切分；每日规则与仅周一至周五规则分开显示周末。
 - **回归**：`model_plaza_service_test.go` 验证官方规则不取渠道规则；`model_plaza_handler_test.go` 验证嵌套 JSON 与缺省省略；`modelPlazaTimePricing.spec.ts` / `PlazaModelPricingTable.spec.ts` 验证价格、折扣与旧接口兼容。
 - **错误与正确**：错误是将渠道高峰倍率直接乘到官方价，或高峰本站价仍比较空闲官方价；正确是各自解析时段后对齐比较。此展示修复不改实际扣费和节假日能力。
+
+## 邀请注册赠送来源提示（2026-10-29）
+
+- 后台 `affiliate_invitee_signup_bonus_source` 复用 Select，标签「邀请来源」，选项全部/代理/普通用户邀请，共用原金额；缺省 all。UI 只放简短业务文案，不把补绑、快照等实现说明放入卡片。
+- 注册页 `getAffiliateSignupBonus(affCode, signal?)` 查询 `POST /auth/affiliate-signup-bonus`，不能直接显示公开设置中的全站金额。邀请链接变化或进入后手动编辑邀请码时先清旧金额并取消旧请求，手动编辑防抖300ms；空输入遵循原注册流程的邀请链接回退，不修改归因。过期响应、失败与卸载后都不回写。预览为0不渲染提示，不以全站金额兜底，也不弹失败 toast。
+- 我的邀请页使用后端已筛选的 detail 金额；刷新页面时重新获取，不做实时推送；已领取卡片始终用 reward_totals 历史合计。
+- `RegisterView.spec.ts` 覆盖预览排除、失败、请求乱序与卸载；`SettingsView.spec.ts` 覆盖三选项回显/保存；本机 `signup_source_ui.sh` 实测下拉保存刷新、金额调整、来源隐藏及移动端。

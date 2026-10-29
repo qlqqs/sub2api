@@ -188,7 +188,12 @@ export default {
           },
           inviteeSignupBonus: {
             title: '被邀请人注册赠送',
-            description: '被邀请人（含代理直接邀请的人）通过邀请码注册并绑定成功后立即赠送，直接进入余额，计为赠送；管理员补绑不发放；0 = 关闭。',
+            description: '通过邀请注册的新用户可获得余额赠送。',
+            source: '邀请来源',
+            sourceAll: '全部邀请',
+            sourceAgent: '代理邀请',
+            sourceUser: '普通用户邀请',
+            amountHint: '0 表示不赠送',
             amount: '赠送金额（¥）',
           },
           inviteeBonus: {

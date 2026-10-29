@@ -304,22 +304,23 @@ const (
 	SettingKeyAffiliateInviteeBonusValue          = "affiliate_invitee_bonus_value"           // 比例或金额
 	SettingKeyAffiliateInviteeBonusMinRecharge    = "affiliate_invitee_bonus_min_recharge"    // 首充门槛
 	SettingKeyAffiliateInviteeBonusMax            = "affiliate_invitee_bonus_max"             // 比例模式封顶（0=不封顶）
-	SettingKeyAffiliateInviteeSignupBonus         = "affiliate_invitee_signup_bonus"          // 被邀请人注册赠送（0=关闭）
-	SettingKeyAffiliateRebateBase                 = "affiliate_rebate_base"                   // 返利基数：recharge（充值）/ consumption（消费）
-	SettingKeyAffiliateAgentUpgradeMode           = "affiliate_agent_upgrade_mode"            // 代理升级方式：manual / auto
-	SettingKeyAffiliateAgentLevel2Threshold       = "affiliate_agent_level2_threshold"        // 自动升 2 级所需邀请人数（0=不自动升）
-	SettingKeyAffiliateAgentLevel1Threshold       = "affiliate_agent_level1_threshold"        // 自动升 1 级所需邀请人数（0=不自动升）
-	SettingKeyAffiliateAgentCountMode             = "affiliate_agent_count_mode"              // 邀请人数口径：all / recharged
-	SettingKeyAffiliateSettleIntervalMinutes      = "affiliate_settle_interval_minutes"       // 消费返利结算周期（分钟）
-	SettingKeyRiskControlEnabled                  = "risk_control_enabled"                    // 是否启用风控中心入口与审计链路
-	SettingKeyContentModerationConfig             = "content_moderation_config"               // 内容审计配置（JSON）
-	SettingKeyCyberSessionBlockEnabled            = "cyber_session_block_enabled"             // cyber 命中后会话级自动屏蔽总开关(默认关)
-	SettingKeyCyberPolicyUserAllowlist            = "cyber_policy_user_allowlist"             // Platform user IDs with log-only cyber handling
-	SettingKeyCyberSessionBlockTTLSeconds         = "cyber_session_block_ttl_seconds"         // 会话屏蔽 TTL 秒数(默认 3600)
-	SettingKeyLoginAgreementEnabled               = "login_agreement_enabled"                 // 登录前是否要求同意条款
-	SettingKeyLoginAgreementMode                  = "login_agreement_mode"                    // 条款确认展示模式：modal / checkbox
-	SettingKeyLoginAgreementUpdatedAt             = "login_agreement_updated_at"              // 条款更新日期（展示用）
-	SettingKeyLoginAgreementDocuments             = "login_agreement_documents"               // 条款文档列表（JSON，Markdown 内容）
+	SettingKeyAffiliateInviteeSignupBonusSource   = "affiliate_invitee_signup_bonus_source"
+	SettingKeyAffiliateInviteeSignupBonus         = "affiliate_invitee_signup_bonus"    // 被邀请人注册赠送（0=关闭）
+	SettingKeyAffiliateRebateBase                 = "affiliate_rebate_base"             // 返利基数：recharge（充值）/ consumption（消费）
+	SettingKeyAffiliateAgentUpgradeMode           = "affiliate_agent_upgrade_mode"      // 代理升级方式：manual / auto
+	SettingKeyAffiliateAgentLevel2Threshold       = "affiliate_agent_level2_threshold"  // 自动升 2 级所需邀请人数（0=不自动升）
+	SettingKeyAffiliateAgentLevel1Threshold       = "affiliate_agent_level1_threshold"  // 自动升 1 级所需邀请人数（0=不自动升）
+	SettingKeyAffiliateAgentCountMode             = "affiliate_agent_count_mode"        // 邀请人数口径：all / recharged
+	SettingKeyAffiliateSettleIntervalMinutes      = "affiliate_settle_interval_minutes" // 消费返利结算周期（分钟）
+	SettingKeyRiskControlEnabled                  = "risk_control_enabled"              // 是否启用风控中心入口与审计链路
+	SettingKeyContentModerationConfig             = "content_moderation_config"         // 内容审计配置（JSON）
+	SettingKeyCyberSessionBlockEnabled            = "cyber_session_block_enabled"       // cyber 命中后会话级自动屏蔽总开关(默认关)
+	SettingKeyCyberPolicyUserAllowlist            = "cyber_policy_user_allowlist"       // Platform user IDs with log-only cyber handling
+	SettingKeyCyberSessionBlockTTLSeconds         = "cyber_session_block_ttl_seconds"   // 会话屏蔽 TTL 秒数(默认 3600)
+	SettingKeyLoginAgreementEnabled               = "login_agreement_enabled"           // 登录前是否要求同意条款
+	SettingKeyLoginAgreementMode                  = "login_agreement_mode"              // 条款确认展示模式：modal / checkbox
+	SettingKeyLoginAgreementUpdatedAt             = "login_agreement_updated_at"        // 条款更新日期（展示用）
+	SettingKeyLoginAgreementDocuments             = "login_agreement_documents"         // 条款文档列表（JSON，Markdown 内容）
 
 	// 邮件服务设置
 	SettingKeySMTPHost     = "smtp_host"      // SMTP服务器地址

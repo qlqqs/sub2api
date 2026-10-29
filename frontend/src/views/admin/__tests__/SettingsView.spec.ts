@@ -1337,6 +1337,19 @@ describe("admin SettingsView payment visible method controls", () => {
     expect(payload).not.toHaveProperty("affiliate_rebate_rate_l2");
   });
 
+  it.each(["all", "agent", "user"])("注册赠送来源 %s 读回与保存", async (source) => {
+    getSettings.mockResolvedValueOnce({ ...baseSettingsResponse, affiliate_enabled: true, affiliate_invitee_signup_bonus_source: source });
+    const wrapper = mountView();
+    await flushPromises();
+    const select = wrapper.get('[data-test="affiliate-invitee-signup-source"]');
+    expect(select.element).toHaveProperty('value', source);
+    await select.setValue(source === "agent" ? "user" : "agent");
+    await wrapper.find('form').trigger('submit.prevent');
+    await flushPromises();
+    expect(updateSettings).toHaveBeenCalledWith(expect.objectContaining({ affiliate_invitee_signup_bonus_source: source === "agent" ? "user" : "agent" }));
+    wrapper.unmount();
+  });
+
   it("注册赠送读回后独立保存，负值阻止提交，空值按关闭保存", async () => {
     getSettings.mockResolvedValueOnce({ ...baseSettingsResponse, affiliate_enabled: true, affiliate_invitee_signup_bonus: 5 });
     const wrapper = mountView();

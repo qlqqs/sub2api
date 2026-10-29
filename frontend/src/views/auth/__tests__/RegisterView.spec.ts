@@ -1,10 +1,12 @@
-import { flushPromises, mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { reactive } from 'vue'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import { clearAffiliateReferralCode } from '@/utils/oauthAffiliate'
 
 const {
   getPublicSettingsMock,
+  getAffiliateSignupBonusMock,
   registerMock,
   showErrorMock,
   pushMock,
@@ -12,6 +14,7 @@ const {
   appStoreMock
 } = vi.hoisted(() => ({
   getPublicSettingsMock: vi.fn(),
+  getAffiliateSignupBonusMock: vi.fn(),
   registerMock: vi.fn(),
   showErrorMock: vi.fn(),
   pushMock: vi.fn(),
@@ -41,7 +44,7 @@ const publicSettings = {
   google_oauth_enabled: false
 }
 
-const routeMock = vi.hoisted(() => ({ query: {} as Record<string, unknown> }))
+const routeMock = reactive({ query: {} as Record<string, unknown> })
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: pushMock }),
@@ -72,7 +75,8 @@ vi.mock('@/api/auth', async () => {
   const actual = await vi.importActual<typeof import('@/api/auth')>('@/api/auth')
   return {
     ...actual,
-    getPublicSettings: (...args: unknown[]) => getPublicSettingsMock(...args)
+    getPublicSettings: (...args: unknown[]) => getPublicSettingsMock(...args),
+    getAffiliateSignupBonus: (...args: unknown[]) => getAffiliateSignupBonusMock(...args)
   }
 })
 
@@ -98,9 +102,12 @@ function mountRegister() {
   })
 }
 
+enableAutoUnmount(afterEach)
+
 describe('RegisterView', () => {
   beforeEach(() => {
     getPublicSettingsMock.mockReset()
+    getAffiliateSignupBonusMock.mockReset().mockResolvedValue(0)
     registerMock.mockReset()
     showErrorMock.mockReset()
     pushMock.mockReset()
@@ -268,6 +275,7 @@ describe('RegisterView', () => {
   })
 
   it('注册赠送与首充奖励提示可以同时出现', async () => {
+    getAffiliateSignupBonusMock.mockResolvedValue(5)
     routeMock.query = { aff: 'INVITE1' }
     getPublicSettingsMock.mockResolvedValueOnce({
       ...publicSettings,
@@ -291,6 +299,7 @@ describe('RegisterView', () => {
     { query: { aff: 'INVITE1' }, enabled: true, amount: undefined, visible: false },
   ])('注册赠送提示独立于首充开关：$query / $enabled / $amount', async ({ query, enabled, amount, visible }) => {
     routeMock.query = query
+    getAffiliateSignupBonusMock.mockResolvedValue(amount)
     getPublicSettingsMock.mockResolvedValueOnce({
       ...publicSettings,
       affiliate_enabled: enabled,
@@ -301,6 +310,68 @@ describe('RegisterView', () => {
     await flushPromises()
     expect(wrapper.find('[data-testid="register-invitee-signup-bonus-hint"]').exists()).toBe(visible)
     expect(wrapper.find('[data-testid="register-invitee-bonus-hint"]').exists()).toBe(false)
+  })
+
+  it('uses the invitation preview instead of the global gift amount', async () => {
+    routeMock.query = { aff: 'INVITE1' }
+    getPublicSettingsMock.mockResolvedValue({ ...publicSettings, affiliate_invitee_signup_bonus: 10 })
+    getAffiliateSignupBonusMock.mockResolvedValue(0)
+    const wrapper = mountRegister()
+    await flushPromises()
+    expect(getAffiliateSignupBonusMock).toHaveBeenCalledWith('INVITE1', expect.any(AbortSignal))
+    expect(wrapper.find('[data-testid="register-invitee-signup-bonus-hint"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('clears old amounts and ignores late preview responses after the link changes', async () => {
+    routeMock.query = { aff: 'FIRST1' }
+    let resolveFirst!: (amount: number) => void
+    getAffiliateSignupBonusMock.mockReturnValueOnce(new Promise<number>(resolve => { resolveFirst = resolve }))
+    getAffiliateSignupBonusMock.mockResolvedValueOnce(0)
+    const wrapper = mountRegister()
+    await flushPromises()
+    routeMock.query = { aff: 'SECOND2' }
+    await flushPromises()
+    resolveFirst(5)
+    await flushPromises()
+    expect(wrapper.find('[data-testid="register-invitee-signup-bonus-hint"]').exists()).toBe(false)
+    expect(getAffiliateSignupBonusMock.mock.calls[0][1].aborted).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('clears and refreshes the gift when the referral input is edited', async () => {
+    routeMock.query = { aff: 'AGENT1' }
+    getAffiliateSignupBonusMock.mockResolvedValueOnce(5).mockResolvedValueOnce(0)
+    const wrapper = mountRegister()
+    await flushPromises()
+    expect(wrapper.find('[data-testid="register-invitee-signup-bonus-hint"]').exists()).toBe(true)
+    await wrapper.get('#affiliate_code').setValue('USER22')
+    expect(wrapper.find('[data-testid="register-invitee-signup-bonus-hint"]').exists()).toBe(false)
+    await vi.waitFor(() => expect(getAffiliateSignupBonusMock).toHaveBeenCalledWith('USER22', expect.any(AbortSignal)))
+    await flushPromises()
+    expect(wrapper.find('[data-testid="register-invitee-signup-bonus-hint"]').exists()).toBe(false)
+    // Signup already falls back to the remembered link when the input is empty.
+    getAffiliateSignupBonusMock.mockResolvedValueOnce(5)
+    await wrapper.get('#affiliate_code').setValue('')
+    await flushPromises()
+    expect(getAffiliateSignupBonusMock).toHaveBeenLastCalledWith('AGENT1', expect.any(AbortSignal))
+    expect(wrapper.find('[data-testid="register-invitee-signup-bonus-hint"]').exists()).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('hides the hint on preview failure and cancels pending requests on unmount', async () => {
+    routeMock.query = { aff: 'INVITE1' }
+    getAffiliateSignupBonusMock.mockRejectedValueOnce(new Error('offline'))
+    const wrapper = mountRegister()
+    await flushPromises()
+    expect(wrapper.find('[data-testid="register-invitee-signup-bonus-hint"]').exists()).toBe(false)
+    expect(showErrorMock).not.toHaveBeenCalled()
+    getAffiliateSignupBonusMock.mockReturnValueOnce(new Promise(() => {}))
+    routeMock.query = { aff: 'INVITE2' }
+    await flushPromises()
+    const signal = getAffiliateSignupBonusMock.mock.calls[1][1] as AbortSignal
+    wrapper.unmount()
+    expect(signal.aborted).toBe(true)
   })
 
   it('uses the mandatory invitation field without duplicating the affiliate field', async () => {

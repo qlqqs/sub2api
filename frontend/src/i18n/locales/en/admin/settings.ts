@@ -188,7 +188,12 @@ export default {
           },
           inviteeSignupBonus: {
             title: 'Invitee signup gift',
-            description: 'Invitees, including those invited directly by agents, receive this gift in their balance immediately after signing up and binding through an invite code. It counts as a gift; administrator bindings do not qualify. 0 = off.',
+            description: 'New users who sign up through an invitation can receive a balance gift.',
+            source: 'Invitation source',
+            sourceAll: 'All invitations',
+            sourceAgent: 'Agent invitations',
+            sourceUser: 'Regular user invitations',
+            amountHint: '0 means no gift',
             amount: 'Gift amount (¥)',
           },
           inviteeBonus: {

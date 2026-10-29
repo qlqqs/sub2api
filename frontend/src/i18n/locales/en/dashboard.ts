@@ -774,7 +774,7 @@ export default {
     invite: {
       title: 'Invite Friends',
       separator: '; ',
-      friendSignupBonus: 'Friends receive {amount} when signing up by invitation',
+      friendSignupBonus: 'Friends who sign up through your invitation receive {amount} in balance',
       noReward: 'Share your code or link to invite friends',
       rewardPercent: 'You earn {rate}% of each friend {base}',
       rewardPercentDays: ' (for {days} days after binding)',

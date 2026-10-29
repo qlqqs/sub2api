@@ -455,6 +455,7 @@ export interface SystemSettings {
   affiliate_invitee_bonus_value: number;
   affiliate_invitee_bonus_min_recharge: number;
   affiliate_invitee_bonus_max: number;
+  affiliate_invitee_signup_bonus_source: "all" | "agent" | "user";
   affiliate_invitee_signup_bonus: number;
   default_concurrency: number;
   default_user_rpm_limit: number;
@@ -834,6 +835,7 @@ export interface UpdateSettingsRequest {
   affiliate_invitee_bonus_value?: number;
   affiliate_invitee_bonus_min_recharge?: number;
   affiliate_invitee_bonus_max?: number;
+  affiliate_invitee_signup_bonus_source?: "all" | "agent" | "user";
   affiliate_invitee_signup_bonus?: number;
   default_concurrency?: number;
   default_user_rpm_limit?: number;

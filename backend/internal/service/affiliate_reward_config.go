@@ -33,11 +33,12 @@ type AffiliateRewardConfig struct {
 	InviteFixedAmount   float64
 	InviteMinRecharge   float64
 
-	InviteeBonusMode        string
-	InviteeBonusValue       float64
-	InviteeBonusMinRecharge float64
-	InviteeBonusMax         float64
-	InviteeSignupBonus      float64
+	InviteeBonusMode         string
+	InviteeBonusValue        float64
+	InviteeBonusMinRecharge  float64
+	InviteeBonusMax          float64
+	InviteeSignupBonusSource string
+	InviteeSignupBonus       float64
 }
 
 var affiliateRewardConfigKeys = []string{
@@ -59,6 +60,7 @@ var affiliateRewardConfigKeys = []string{
 	SettingKeyAffiliateInviteeBonusValue,
 	SettingKeyAffiliateInviteeBonusMinRecharge,
 	SettingKeyAffiliateInviteeBonusMax,
+	SettingKeyAffiliateInviteeSignupBonusSource,
 	SettingKeyAffiliateInviteeSignupBonus,
 }
 
@@ -131,6 +133,7 @@ func parseAffiliateRewardConfig(m map[string]string) AffiliateRewardConfig {
 	if v, ok := parseAffiliateFloat(m[SettingKeyAffiliateInviteeBonusMax]); ok {
 		cfg.InviteeBonusMax = v
 	}
+	cfg.InviteeSignupBonusSource = m[SettingKeyAffiliateInviteeSignupBonusSource]
 	if v, ok := parseAffiliateFloat(m[SettingKeyAffiliateInviteeSignupBonus]); ok {
 		cfg.InviteeSignupBonus = v
 	}
@@ -172,6 +175,7 @@ func (c AffiliateRewardConfig) Normalized() AffiliateRewardConfig {
 	}
 	c.InviteeBonusMinRecharge = clampAffiliateRewardAmount(c.InviteeBonusMinRecharge)
 	c.InviteeBonusMax = clampAffiliateRewardAmount(c.InviteeBonusMax)
+	c.InviteeSignupBonusSource = normalizeAffiliateSignupSource(c.InviteeSignupBonusSource)
 	c.InviteeSignupBonus = clampAffiliateRewardAmount(c.InviteeSignupBonus)
 	return c
 }
@@ -195,6 +199,7 @@ func (c AffiliateRewardConfig) settingUpdates() map[string]string {
 		SettingKeyAffiliateInviteeBonusValue:         formatAffiliateFloat(c.InviteeBonusValue),
 		SettingKeyAffiliateInviteeBonusMinRecharge:   formatAffiliateFloat(c.InviteeBonusMinRecharge),
 		SettingKeyAffiliateInviteeBonusMax:           formatAffiliateFloat(c.InviteeBonusMax),
+		SettingKeyAffiliateInviteeSignupBonusSource:  c.InviteeSignupBonusSource,
 		SettingKeyAffiliateInviteeSignupBonus:        formatAffiliateFloat(c.InviteeSignupBonus),
 	}
 }
@@ -202,25 +207,26 @@ func (c AffiliateRewardConfig) settingUpdates() map[string]string {
 // affiliateRewardConfigFromSettings 从设置页提交的 SystemSettings 中取出奖励配置。
 func affiliateRewardConfigFromSettings(s *SystemSettings) AffiliateRewardConfig {
 	return AffiliateRewardConfig{
-		PoolRate:                s.AffiliateRebateRate,
-		Level2Rate:              s.AffiliateAgentLevel2Rate,
-		CustomRateEnabled:       s.AffiliateAgentCustomRateEnabled,
-		AgentDurationDays:       s.AffiliateRebateDurationDays,
-		AgentPerInviteeCap:      s.AffiliateRebatePerInviteeCap,
-		FreezeHours:             s.AffiliateRebateFreezeHours,
-		AppointEnabled:          s.AffiliateAgentAppointEnabled,
-		AppointMax:              s.AffiliateAgentAppointMax,
-		InviteMode:              s.AffiliateInviteRewardMode,
-		InviteRate:              s.AffiliateInviteRewardRate,
-		InviteDurationDays:      s.AffiliateInviteRewardDurationDays,
-		InvitePerInviteeCap:     s.AffiliateInviteRewardPerInviteeCap,
-		InviteFixedAmount:       s.AffiliateInviteRewardFixedAmount,
-		InviteMinRecharge:       s.AffiliateInviteRewardMinRecharge,
-		InviteeBonusMode:        s.AffiliateInviteeBonusMode,
-		InviteeBonusValue:       s.AffiliateInviteeBonusValue,
-		InviteeBonusMinRecharge: s.AffiliateInviteeBonusMinRecharge,
-		InviteeBonusMax:         s.AffiliateInviteeBonusMax,
-		InviteeSignupBonus:      s.AffiliateInviteeSignupBonus,
+		PoolRate:                 s.AffiliateRebateRate,
+		Level2Rate:               s.AffiliateAgentLevel2Rate,
+		CustomRateEnabled:        s.AffiliateAgentCustomRateEnabled,
+		AgentDurationDays:        s.AffiliateRebateDurationDays,
+		AgentPerInviteeCap:       s.AffiliateRebatePerInviteeCap,
+		FreezeHours:              s.AffiliateRebateFreezeHours,
+		AppointEnabled:           s.AffiliateAgentAppointEnabled,
+		AppointMax:               s.AffiliateAgentAppointMax,
+		InviteMode:               s.AffiliateInviteRewardMode,
+		InviteRate:               s.AffiliateInviteRewardRate,
+		InviteDurationDays:       s.AffiliateInviteRewardDurationDays,
+		InvitePerInviteeCap:      s.AffiliateInviteRewardPerInviteeCap,
+		InviteFixedAmount:        s.AffiliateInviteRewardFixedAmount,
+		InviteMinRecharge:        s.AffiliateInviteRewardMinRecharge,
+		InviteeBonusMode:         s.AffiliateInviteeBonusMode,
+		InviteeBonusValue:        s.AffiliateInviteeBonusValue,
+		InviteeBonusMinRecharge:  s.AffiliateInviteeBonusMinRecharge,
+		InviteeBonusMax:          s.AffiliateInviteeBonusMax,
+		InviteeSignupBonusSource: s.AffiliateInviteeSignupBonusSource,
+		InviteeSignupBonus:       s.AffiliateInviteeSignupBonus,
 	}
 }
 
@@ -244,6 +250,7 @@ func (c AffiliateRewardConfig) applyToSettings(s *SystemSettings) {
 	s.AffiliateInviteeBonusValue = c.InviteeBonusValue
 	s.AffiliateInviteeBonusMinRecharge = c.InviteeBonusMinRecharge
 	s.AffiliateInviteeBonusMax = c.InviteeBonusMax
+	s.AffiliateInviteeSignupBonusSource = c.InviteeSignupBonusSource
 	s.AffiliateInviteeSignupBonus = c.InviteeSignupBonus
 }
 

@@ -95,3 +95,13 @@ return tx.Commit()
 - **正例/基线/反例**：金额5→余额+5、一条赠送；重复→false、无增量；触发器拒绝余额更新→账本无残留、余额不变、外层后续写入和 commit 仍成功。
 - **测试**：`affiliate_signup_bonus_integration_test.go` 覆盖索引、并发、回滚、故障保存点、真实充值上限、累计赠送与余额历史；`TestCompleteEmailOAuthRegistrationUsesAffiliateCodeFromPendingSession` 覆盖 pending 最终建号与会话重放。
 - **错误与正确**：不要在持有事务连接时为刷新响应调用不识别 tx 的普通读取；SQLite 单连接会阻塞，PostgreSQL 可能读到旧余额。pending 响应只有令牌，提交后客户端读余额；非事务注册才刷新响应中的余额。不能通过增大测试连接池或超时掩盖这类问题。
+
+## 注册赠送邀请来源（2026-10-29）
+
+1. **范围**：注册赠送按直接邀请人分为代理/普通用户，不改变首充、分润或旧赠送账本。
+2. **签名/存储**：settings 键 `affiliate_invitee_signup_bonus_source`，枚举 `all|agent|user`、缺省 `all`；后台请求字段为可选指针，省略必须保留原值。`AffiliateRewardConfig.signupBonusFor(inviterWasAgent)` 为发放、detail 与预览共享的来源匹配逻辑。
+3. **契约**：`bindInviterWithOwner` 在绑定事务中把 `binding.InviterWasAgent` 附到非公开的返回字段，注册发放用该快照，不能用本次邀请自动升级后的等级。普通邀请人有代理上级仍属普通来源。`POST /api/v1/auth/affiliate-signup-bonus` 接收 `{aff_code}`，标准成功 envelope 内只返回 `{amount}`，只读、匿名、no-store、独立 IP 限流；用户邀请 detail 根据本人当前等级返回适用金额，已领取合计继续读账本。
+4. **校验/错误**：管理端显式空或非法来源为400；服务层拒绝非空非法来源。预览无效/不存在/已删除邀请人、来源不匹配、总开关或金额关闭均返回0；基础设施错误按 ErrorFrom 返回，不泄露用户身份或数据库详情。预览不创建档案、不绑定、不锁定发放金额。
+5. **正例/基线/反例**：all 保持原赠送；agent 只给代理直接邀请的新用户；普通用户归属代理不算 agent。本次注册促成代理升级仍按绑定前普通身份判断；金额5改10后新注册发10，历史5不变。
+6. **必需测试**：`TestSignupSourceMatrix`、`TestSignupSourceUsesDirectInviterSnapshot`、`TestSignupSourceOAuth`、`TestPreviewAffiliateSignupBonus`、`TestSignupSourceSettingRoundTripAndPartialUpdate`；原注册赠送并发/保存点集成测试继续通过；本机 SGS 用真实注册核对余额和账本。
+7. **错误与正确**：错误是用 `AgentOwnerID != nil` 判定代理邀请，或注册页直接读全站公开金额；正确是直接邀请人绑定快照与来源预览。公开金额旧字段为兼容保留，不代表每个邀请码都适用。

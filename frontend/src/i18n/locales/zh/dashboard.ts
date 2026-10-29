@@ -776,7 +776,7 @@ export default {
     invite: {
       title: '邀请好友',
       separator: '；',
-      friendSignupBonus: '好友通过邀请注册即得 {amount}',
+      friendSignupBonus: '好友通过你的邀请注册，即得 {amount} 余额',
       noReward: '分享邀请码或链接，邀请好友注册',
       rewardPercent: '好友每笔{base}，你得 {rate}%',
       rewardPercentDays: '（绑定后 {days} 天内）',

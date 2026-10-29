@@ -173,10 +173,11 @@ type AffiliateRewardTotals struct {
 }
 
 type AffiliateInviterBindingResult struct {
-	InviteeID int64     `json:"invitee_id"`
-	InviterID int64     `json:"inviter_id"`
-	BoundAt   time.Time `json:"bound_at"`
-	Source    string    `json:"source"`
+	InviterWasAgent bool      `json:"-"` // 与绑定事务使用同一个身份快照。
+	InviteeID       int64     `json:"invitee_id"`
+	InviterID       int64     `json:"inviter_id"`
+	BoundAt         time.Time `json:"bound_at"`
+	Source          string    `json:"source"`
 }
 
 type AffiliateInvitee struct {

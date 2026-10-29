@@ -304,7 +304,7 @@ export default {
     promoCodeAlreadyUsed: '您已使用过此优惠码',
     promoCodeValidating: '优惠码正在验证中，请稍候',
     promoCodeInvalidCannotRegister: '优惠码无效，请检查后重试或清空优惠码',
-    inviteeSignupBonusHint: '通过邀请注册即得 {amount}，直接进入余额',
+    inviteeSignupBonusHint: '通过邀请注册，即得 {amount} 余额',
     inviteeBonusHint: '通过邀请注册，首充可额外获得 {bonus}',
     inviteeBonusHintWithMin: '通过邀请注册，首充满 {min} 可额外获得 {bonus}',
     invitationCodeLabel: '邀请码',

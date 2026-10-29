@@ -424,6 +424,7 @@ import { useAuthStore, useAppStore } from '@/stores'
 import {
   buildOAuthLoginStartURL,
   getPublicSettings,
+  getAffiliateSignupBonus,
   isWeChatWebOAuthEnabled,
   startOAuthLogin,
   type OAuthLoginStart,
@@ -607,6 +608,30 @@ function syncAffiliateReferralCode(): string {
   return code
 }
 
+// Preview follows the code that signup will submit. A manually edited code is
+// debounced; the referral link remains the fallback when the input is empty.
+watch([inviteLinkCode, () => formData.aff_code.trim(), affiliateEnabled], ([linkCode, enteredCode, enabled], _previous, onCleanup) => {
+  inviteeSignupBonus.value = 0
+  if (!linkCode || !enabled) return
+  const code = enteredCode || linkCode
+  const controller = new AbortController()
+  let timer: ReturnType<typeof setTimeout> | undefined
+  onCleanup(() => {
+    controller.abort()
+    if (timer) clearTimeout(timer)
+  })
+  const refresh = async () => {
+    try {
+      const amount = await getAffiliateSignupBonus(code, controller.signal)
+      if (!controller.signal.aborted) inviteeSignupBonus.value = normalizeInviteeSignupBonus(amount)
+    } catch {
+      // Optional hint: leave signup available when the preview cannot be loaded.
+    }
+  }
+  if (code === linkCode) void refresh()
+  else timer = setTimeout(() => { void refresh() }, 300)
+})
+
 // 注册赠送独立于首充奖励，仅从邀请链接进入时提示。
 const inviteeSignupBonusHint = computed(() => {
   if (!affiliateEnabled.value || !inviteLinkCode.value || inviteeSignupBonus.value <= 0) return ''
@@ -634,7 +659,6 @@ onMounted(async () => {
     promoCodeEnabled.value = settings.promo_code_enabled
     invitationCodeEnabled.value = settings.invitation_code_enabled
     affiliateEnabled.value = settings.affiliate_enabled
-    inviteeSignupBonus.value = normalizeInviteeSignupBonus(settings.affiliate_invitee_signup_bonus)
     inviteeBonus.value = settings.affiliate_invitee_bonus_mode && settings.affiliate_invitee_bonus_mode !== 'off'
       ? {
           mode: settings.affiliate_invitee_bonus_mode,

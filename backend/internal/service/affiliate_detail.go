@@ -63,7 +63,7 @@ func (s *AffiliateService) GetAffiliateDetail(ctx context.Context, userID int64)
 		}
 	}
 	if s.IsEnabled(ctx) {
-		detail.InviteeSignupBonus = cfg.InviteeSignupBonus
+		detail.InviteeSignupBonus = cfg.signupBonusFor(isAgentLevel(level))
 	}
 	if bonus := inviteeBonusInfo(cfg); bonus != nil {
 		detail.InviteeBonus = bonus

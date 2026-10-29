@@ -194,6 +194,7 @@ type SystemSettings struct {
 	AffiliateInviteeBonusValue         float64
 	AffiliateInviteeBonusMinRecharge   float64
 	AffiliateInviteeBonusMax           float64
+	AffiliateInviteeSignupBonusSource  string
 	AffiliateInviteeSignupBonus        float64
 	AffiliateAgentUpgradeMode          string
 	AffiliateAgentLevel2Threshold      int

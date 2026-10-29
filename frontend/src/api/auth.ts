@@ -356,6 +356,12 @@ export async function getPublicSettings(): Promise<PublicSettings> {
   return { ...data, affiliate_invitee_signup_bonus: data.affiliate_enabled ? normalizeInviteeSignupBonus(data.affiliate_invitee_signup_bonus) : 0 }
 }
 
+/** Read-only preview for the referral link currently shown on the signup page. */
+export async function getAffiliateSignupBonus(affCode: string, signal?: AbortSignal): Promise<number> {
+  const { data } = await apiClient.post<{ amount: number }>('/auth/affiliate-signup-bonus', { aff_code: affCode }, { signal })
+  return normalizeInviteeSignupBonus(data.amount)
+}
+
 export type WeChatOAuthMode = 'open' | 'mp'
 export type WeChatOAuthUnavailableReason =
   | 'not_configured'

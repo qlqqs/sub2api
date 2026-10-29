@@ -148,6 +148,9 @@ func (s *AffiliateService) bindInviterWithOwner(ctx context.Context, inviteeID, 
 		binding.Owner = snapshot
 		binding.InviterWasAgent = snapshot.OwnerID != nil && *snapshot.OwnerID == inviterID
 		result, bound, err = s.repo.BindInviter(txCtx, inviteeID, inviterID, binding)
+		if err == nil && bound && result != nil {
+			result.InviterWasAgent = binding.InviterWasAgent
+		}
 		return err
 	})
 	if err != nil {
@@ -191,7 +194,7 @@ func (s *AffiliateService) BindInviterByCode(ctx context.Context, userID int64, 
 		return ErrAffiliateCodeInvalid
 	}
 
-	_, bound, err := s.bindInviterWithOwner(ctx, userID, inviterSummary.UserID, AffiliateInviterBinding{Source: "registration"})
+	binding, bound, err := s.bindInviterWithOwner(ctx, userID, inviterSummary.UserID, AffiliateInviterBinding{Source: "registration"})
 	if err != nil {
 		if errors.Is(err, ErrUserNotFound) {
 			return ErrAffiliateCodeInvalid
@@ -202,7 +205,7 @@ func (s *AffiliateService) BindInviterByCode(ctx context.Context, userID int64, 
 		return ErrAffiliateAlreadyBound
 	}
 	// 此入口只用于注册，且只在本次成功绑定时发放；补绑和重放不补发。
-	if amount := s.rewardConfig(ctx).InviteeSignupBonus; amount > 0 {
+	if amount := s.rewardConfig(ctx).signupBonusFor(binding != nil && binding.InviterWasAgent); amount > 0 {
 		if applied, err := s.repo.CreditInviteeSignupBonus(ctx, userID, amount); err != nil {
 			logger.FromContext(ctx).Warn("affiliate.signup_bonus_credit_failed", zap.Int64("user_id", userID), zap.Error(err))
 		} else if applied {
