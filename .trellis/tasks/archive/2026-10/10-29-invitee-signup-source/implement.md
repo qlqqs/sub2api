@@ -51,3 +51,7 @@ cd e2e && ./run_all.sh --fast
 - specs：后端赠送来源契约、前端异步提示契约。
 - 本机仓库外测试资产与详细结果见 `verification.md`。
 - 复用原表和仓储事务，无 migration、Ent 或 Wire 变更。
+
+## 发布完成
+
+2026-10-29按用户授权提交2ffc49db7，推送sub2api-custom；CI40827319767四项成功后备份并更新一号机主应用，06:22:36 UTC健康。只读生产验证通过，其他容器/compose/env/赠送设置不变。详见release-report.md。
