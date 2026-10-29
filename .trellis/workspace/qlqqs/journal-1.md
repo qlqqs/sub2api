@@ -520,3 +520,39 @@ user_affiliates 新增 agent_level/locked/source 与消费结算水位；两层�
 ### Next Steps
 
 - 等待用户同意后再提交、推送、部署一号机sub2api-custom；当前不归档以避免自动提交。
+
+
+## Session 22: 注册赠送来源：提交推送与一号机部署
+<!-- trellis-session: v=2 fp=d0042b004da68b16 -->
+
+**Date**: 2026-10-29
+**Task**: 注册赠送来源：提交推送与一号机部署
+**Branch**: `sub2api-custom`
+
+### Summary
+
+CI四项通过，已备份部署一号机sub2api-custom，运行revision核对及生产双域名只读检查通过。
+
+### Main Changes
+
+- 按用户授权提交、推送；只更新主应用，其他容器不变。任务归档，发布报告持久化。
+- 赠送配置保留¥0.50及all；备份pre-invitee-signup-source-20261029T062225Z，停机约11秒。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2ffc49db745c01351d0cef662c60053d7aebcfed` | Add invitation source filter for signup gifts |
+
+### Testing
+
+- [OK] Custom Image 40827319767：前端、后端unit/integration、backend-lint、image全部成功。
+- [OK] 生产loopback/www/api健康、静态资源、新邀请金额预览与鉴权检查通过，启动无fatal模式。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 管理员可在邀请来源下拉框选择适用来源；无需进一步部署。
