@@ -1,6 +1,6 @@
 # 实施：qxapi-client 更新器接入
 
-先决条件：`10-30-client-releases` 已在 `sub2api-local` 可用（端到端验证需要；单测不需要）。可选：`qxapi-doh` 分支已合入（Failover）。
+先决条件：`10-30-client-releases` 已在 `sub2api-local` 可用（端到端验证需要；单测不需要）。当前分支已有基础 Failover，直接复用；不依赖或合并 `qxapi-doh`。
 
 ## 步骤
 

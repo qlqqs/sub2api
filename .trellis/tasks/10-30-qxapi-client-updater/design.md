@@ -7,7 +7,7 @@
 - `update.Feed()`、`NotesFeed()`：QxAPI 模式下返回 `product.API + "/api/v1/client-releases/qxapi/latest"` 和 `.../notes`。`MAGPIE_UPDATE_FEED`、`MAGPIE_NOTES_FEED` 继续生效，它们由 `QXAPI_*` 映射而来。
 - 删除 `ErrNoFeed`（update.go:83-92），以及 `notes.go` 中 `askNotes`、`ShowNotes` 的提前返回。`ReleasePage` 改为返回 feed 中的 `url`；没有时返回 `product.Site + "/downloads"`。
 - 资产 URL 和 `url` 是相对路径时，以 feed 的最终请求地址为基准解析，在 `LatestIn` 解码之后统一完成；notes 里每条的 `url` 同样处理。下载代码仍然拿到绝对地址，不用改。sub2api 的 `frontend_url` 没设置时，`url` 就是 `/downloads`（本机测试环境即如此）。
-- 传输：在 `proxied()` 外面包一层 `product.Failover`，与 `qxapi.New`（`client.go:87-92`）的做法一致。这一步依赖 `qxapi-doh` 分支先合入；如果没有合入，先只用 `Dispatch`，合入后补上。
+- 传输：复用当前 `qxapi` 分支已有的 `product.Failover`，与 `qxapi.New` 的做法一致。2026-10-31 复核：基础备用域名切换已经合入；`qxapi-doh` 增加的是 DoH 及切换增强，本任务不合并该分支。相对 URL 解析需验证实际成功请求的 origin，不能假定外层 Response.Request 总是保留 transport 内部改写的地址。
 - QxAPI 模式下 `source.Do` 的 GitHub 镜像不起作用，也不加特殊处理。
 
 ## 默认开启

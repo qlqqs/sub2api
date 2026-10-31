@@ -46,7 +46,7 @@ gofmt -l .
 
 ```text
 /home/qlqq/go/pkg/mod/github.com/google/wire@v0.7.0/cmd/wire/main.go:34:2: missing go.sum entry for module providing package github.com/google/subcommands (imported by github.com/google/wire/cmd/wire); to add:
-	go get github.com/google/wire/cmd/wire@v0.7.0
+    go get github.com/google/wire/cmd/wire@v0.7.0
 cmd/server/main.go:3: running "go": exit status 1
 ```
 
@@ -55,14 +55,14 @@ cmd/server/main.go:3: running "go": exit status 1
 ### 未使用 import
 
 ```text
-ok  	github.com/Wei-Shaw/sub2api/internal/service	0.089s
+ok      github.com/Wei-Shaw/sub2api/internal/service    0.089s
 # github.com/Wei-Shaw/sub2api/internal/handler [github.com/Wei-Shaw/sub2api/internal/handler.test]
 internal/handler/client_release_handler_test.go:8:2: "net/http" imported and not used
-ok  	github.com/Wei-Shaw/sub2api/internal/repository	0.036s
-FAIL	github.com/Wei-Shaw/sub2api/internal/handler [build failed]
-ok  	github.com/Wei-Shaw/sub2api/internal/handler/admin	0.043s
-ok  	github.com/Wei-Shaw/sub2api/internal/server/routes	0.048s
-ok  	github.com/Wei-Shaw/sub2api/internal/server/middleware	0.027s
+ok      github.com/Wei-Shaw/sub2api/internal/repository 0.036s
+FAIL    github.com/Wei-Shaw/sub2api/internal/handler [build failed]
+ok      github.com/Wei-Shaw/sub2api/internal/handler/admin  0.043s
+ok      github.com/Wei-Shaw/sub2api/internal/server/routes  0.048s
+ok      github.com/Wei-Shaw/sub2api/internal/server/middleware  0.027s
 FAIL
 ```
 
@@ -71,20 +71,20 @@ FAIL
 ### 测试 fixture 排序后的状态修改
 
 ```text
-ok  	github.com/Wei-Shaw/sub2api/internal/service	0.055s
-ok  	github.com/Wei-Shaw/sub2api/internal/repository	0.035s
+ok      github.com/Wei-Shaw/sub2api/internal/service    0.055s
+ok      github.com/Wei-Shaw/sub2api/internal/repository 0.035s
 --- FAIL: TestClientReleasePublicHandlers (0.00s)
-    client_release_handler_test.go:125: 
-        	Error Trace:	/home/qlqq/workspace/sub2api/backend/internal/handler/client_release_handler_test.go:125
-        	Error:      	Not equal: 
-        	            	expected: 404
-        	            	actual  : 200
-        	Test:       	TestClientReleasePublicHandlers
+    client_release_handler_test.go:125:
+            Error Trace:    /home/qlqq/workspace/sub2api/backend/internal/handler/client_release_handler_test.go:125
+            Error:          Not equal:
+                            expected: 404
+                            actual  : 200
+            Test:           TestClientReleasePublicHandlers
 FAIL
-FAIL	github.com/Wei-Shaw/sub2api/internal/handler	0.040s
-ok  	github.com/Wei-Shaw/sub2api/internal/handler/admin	0.685s
-ok  	github.com/Wei-Shaw/sub2api/internal/server/routes	0.044s
-ok  	github.com/Wei-Shaw/sub2api/internal/server/middleware	0.030s
+FAIL    github.com/Wei-Shaw/sub2api/internal/handler    0.040s
+ok      github.com/Wei-Shaw/sub2api/internal/handler/admin  0.685s
+ok      github.com/Wei-Shaw/sub2api/internal/server/routes  0.044s
+ok      github.com/Wei-Shaw/sub2api/internal/server/middleware  0.030s
 FAIL
 ```
 

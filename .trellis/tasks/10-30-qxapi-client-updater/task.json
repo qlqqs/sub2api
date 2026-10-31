@@ -3,7 +3,7 @@
   "name": "qxapi-client-updater",
   "title": "qxapi-client 接入 sub2api 更新源与三平台发布包",
   "description": "更新器指向 sub2api、全部改名 qxapi、默认自动更新，打包流程出 0.1.0 三平台包与 release.json",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
