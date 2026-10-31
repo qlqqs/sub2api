@@ -1,0 +1,618 @@
+{
+  "recorded_at": "2026-10-31T08:20:29.222277+00:00",
+  "authorization": "用户在已知既有audit/CSP失败后明确要求“推送、更新部署”",
+  "product_commit": "5957c600052bee92c7feaf5fd22b7af9647413df",
+  "release_head": "5957c600052bee92c7feaf5fd22b7af9647413df",
+  "product_manifest_match": 21,
+  "origin_main_pushed": false,
+  "ci": {
+    "conclusion": "success",
+    "databaseId": 41182664896,
+    "headSha": "5957c600052bee92c7feaf5fd22b7af9647413df",
+    "jobs": [
+      {
+        "completedAt": "2026-10-31T08:10:31Z",
+        "conclusion": "success",
+        "databaseId": 124483095422,
+        "name": "backend-test",
+        "startedAt": "2026-10-31T07:58:13Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-go@v6",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Unit tests",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Integration tests",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-go@v6",
+            "number": 9,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 10,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 11,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/qlqqs/sub2api/actions/runs/41182664896/job/124483095422"
+      },
+      {
+        "completedAt": "2026-10-31T08:01:24Z",
+        "conclusion": "success",
+        "databaseId": 124483095615,
+        "name": "frontend-test",
+        "startedAt": "2026-10-31T07:58:13Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run pnpm/action-setup@v6",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v6",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Install dependencies",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Lint",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Typecheck",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Vitest",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v6",
+            "number": 14,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run pnpm/action-setup@v6",
+            "number": 15,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 16,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 17,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/qlqqs/sub2api/actions/runs/41182664896/job/124483095615"
+      },
+      {
+        "completedAt": "2026-10-31T08:02:50Z",
+        "conclusion": "success",
+        "databaseId": 124483095701,
+        "name": "backend-lint",
+        "startedAt": "2026-10-31T07:58:13Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-go@v6",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run golangci/golangci-lint-action@v9",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run golangci/golangci-lint-action@v9",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-go@v6",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 9,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/qlqqs/sub2api/actions/runs/41182664896/job/124483095701"
+      },
+      {
+        "completedAt": "2026-10-31T08:16:34Z",
+        "conclusion": "success",
+        "databaseId": 124485604923,
+        "name": "image",
+        "startedAt": "2026-10-31T08:10:34Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Resolve image name and tags",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run docker/setup-buildx-action@v3",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run docker/login-action@v3",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run docker/build-push-action@v6",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run docker/build-push-action@v6",
+            "number": 9,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run docker/login-action@v3",
+            "number": 10,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run docker/setup-buildx-action@v3",
+            "number": 11,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 12,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/qlqqs/sub2api/actions/runs/41182664896/job/124485604923"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/qlqqs/sub2api/actions/runs/41182664896"
+  },
+  "deployment": {
+    "target": "七号机 sub2api-custom",
+    "directory": "/root/sub2api-custom",
+    "previous_revision": "27d51f9b594d430efcf40570a6ce04063e09701e",
+    "previous_image": "sha256:f64390731560730bc460b9e114dda77b67b160bc276cae2676717d43a8830f3d",
+    "image_tag": "ghcr.io/qlqqs/sub2api:custom-5957c60",
+    "image_digest": "sha256:117884bf31a4d3c84e71f36e7e944d0ab6f793380e18737646ac96efe0bc6652",
+    "revision": "5957c600052bee92c7feaf5fd22b7af9647413df",
+    "backup": "/root/sub2api-custom/backups/pre-upstream-six-20261031T081719Z",
+    "backups_verified": true,
+    "stopped_at": "2026-10-31T08:17:21Z",
+    "deployment_success_at": "2026-10-31T08:17:41Z",
+    "final_health_check_at": "2026-10-31T08:19:03Z",
+    "health": "healthy",
+    "restart_count": 0,
+    "config_unchanged": true,
+    "other_containers_unchanged": true,
+    "migration_history_unchanged": true,
+    "rollback_used": false,
+    "server_local_smoke": {
+      "checks": [
+        {
+          "path": "/health",
+          "status": 200,
+          "type": "application/json; charset=utf-8",
+          "bytes": 15,
+          "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288"
+        },
+        {
+          "path": "/",
+          "status": 200,
+          "type": "text/html; charset=utf-8",
+          "bytes": 775720,
+          "sha256": "cfd56f83afe5b2babf91fb26f2e85b7d9170b287b116f7a6360598ccbfd5b181"
+        },
+        {
+          "path": "/assets/index-BlSHM3zp.css",
+          "status": 200,
+          "type": "text/css; charset=utf-8",
+          "bytes": 378218,
+          "sha256": "e32f9f72ae41be5807b4b453bc83ba4d0316b15954e496af8c40622ed6203b3a"
+        },
+        {
+          "path": "/assets/index-Cgon1L2p.js",
+          "status": 200,
+          "type": "text/javascript; charset=utf-8",
+          "bytes": 214166,
+          "sha256": "e51a441562e82c85aa46108091e8d29cc0a911eb6c66e00e56d0804f7ea355df"
+        },
+        {
+          "path": "/assets/vendor-i18n-cUQ4iEGc.js",
+          "status": 200,
+          "type": "text/javascript; charset=utf-8",
+          "bytes": 56991,
+          "sha256": "a5d40cf87c602c65aa28835ac32aa98f66f6d007d08ca52eb9d3b1502eb07614"
+        },
+        {
+          "path": "/assets/vendor-misc-DB0Q8XAf.css",
+          "status": 200,
+          "type": "text/css; charset=utf-8",
+          "bytes": 3938,
+          "sha256": "4b398481a7ce8375af4d9f58f39410c73a0b70726fe513686d3d51c10ad76cb5"
+        },
+        {
+          "path": "/assets/vendor-misc-dToxZ6J7.js",
+          "status": 200,
+          "type": "text/javascript; charset=utf-8",
+          "bytes": 280574,
+          "sha256": "27754c1623d1211ad9bef1cd3374309a5bcfa147cb56b91acf90271d52912812"
+        },
+        {
+          "path": "/assets/vendor-vue-Zd3DBHs6.js",
+          "status": 200,
+          "type": "text/javascript; charset=utf-8",
+          "bytes": 116386,
+          "sha256": "58ec69387b6ce47f62fa99c1caa87c65b9acb46d4dfb4d7e7ff068049a283269"
+        },
+        {
+          "path": "/admin/channels",
+          "status": 200,
+          "type": "text/html; charset=utf-8",
+          "bytes": 775720,
+          "sha256": "5efc2a8780510689a765fbc4409278b150676ae17a2d70fcec8e8f2af151d7f1"
+        },
+        {
+          "path": "/assets/index-BlSHM3zp.css",
+          "status": 200,
+          "type": "text/css; charset=utf-8",
+          "bytes": 378218,
+          "sha256": "e32f9f72ae41be5807b4b453bc83ba4d0316b15954e496af8c40622ed6203b3a"
+        },
+        {
+          "path": "/assets/index-Cgon1L2p.js",
+          "status": 200,
+          "type": "text/javascript; charset=utf-8",
+          "bytes": 214166,
+          "sha256": "e51a441562e82c85aa46108091e8d29cc0a911eb6c66e00e56d0804f7ea355df"
+        },
+        {
+          "path": "/assets/vendor-i18n-cUQ4iEGc.js",
+          "status": 200,
+          "type": "text/javascript; charset=utf-8",
+          "bytes": 56991,
+          "sha256": "a5d40cf87c602c65aa28835ac32aa98f66f6d007d08ca52eb9d3b1502eb07614"
+        },
+        {
+          "path": "/assets/vendor-misc-DB0Q8XAf.css",
+          "status": 200,
+          "type": "text/css; charset=utf-8",
+          "bytes": 3938,
+          "sha256": "4b398481a7ce8375af4d9f58f39410c73a0b70726fe513686d3d51c10ad76cb5"
+        },
+        {
+          "path": "/assets/vendor-misc-dToxZ6J7.js",
+          "status": 200,
+          "type": "text/javascript; charset=utf-8",
+          "bytes": 280574,
+          "sha256": "27754c1623d1211ad9bef1cd3374309a5bcfa147cb56b91acf90271d52912812"
+        },
+        {
+          "path": "/assets/vendor-vue-Zd3DBHs6.js",
+          "status": 200,
+          "type": "text/javascript; charset=utf-8",
+          "bytes": 116386,
+          "sha256": "58ec69387b6ce47f62fa99c1caa87c65b9acb46d4dfb4d7e7ff068049a283269"
+        },
+        {
+          "path": "/_nova/",
+          "status": 200,
+          "type": "text/html; charset=utf-8",
+          "bytes": 9596,
+          "sha256": "a6a21200d1d0e84ad7fcc2cc1303da0564b4b66a8275010d2e04e9199b9e555a"
+        },
+        {
+          "path": "/_nova/_next/static/chunks/410-77081d7755e11ce7.js",
+          "status": 200,
+          "type": "application/javascript; charset=utf-8",
+          "bytes": 4984,
+          "sha256": "8244cbdc0ca70eaceec16a898ccbac2a8c480243f8ff0dfc8bf36703fde41468"
+        },
+        {
+          "path": "/_nova/_next/static/chunks/4bd1b696-deb4a0a1da1923b0.js",
+          "status": 200,
+          "type": "application/javascript; charset=utf-8",
+          "bytes": 199869,
+          "sha256": "8d0152ad2dbbc15246a699fd767a332dc88f438ba12db5b859456cfd04fb0cf1"
+        },
+        {
+          "path": "/_nova/_next/static/chunks/552-979cb660ee1fad8d.js",
+          "status": 200,
+          "type": "application/javascript; charset=utf-8",
+          "bytes": 98704,
+          "sha256": "692497028574365c436481ef135b8efa90be2c08a61473c51c1356f8482a818a"
+        },
+        {
+          "path": "/_nova/_next/static/chunks/6-1355bf6874db22ca.js",
+          "status": 200,
+          "type": "application/javascript; charset=utf-8",
+          "bytes": 34810,
+          "sha256": "e10ba3fc17a5c7e8801c80caed39e87f9ae8376e35ba9cbae34ce7341f67e1e5"
+        },
+        {
+          "path": "/_nova/_next/static/chunks/794-9c5a74ea8c20e468.js",
+          "status": 200,
+          "type": "application/javascript; charset=utf-8",
+          "bytes": 223349,
+          "sha256": "0405972a725af2aae84525c6deb5ea775e6c0f503248b5134e9d63e8981f116e"
+        },
+        {
+          "path": "/_nova/_next/static/chunks/app/layout-67c507e2e9874a4c.js",
+          "status": 200,
+          "type": "application/javascript; charset=utf-8",
+          "bytes": 9387,
+          "sha256": "34700f7678da7004769e7a789ae7f5c2954f3b2e7e2023737693ccb4a932f4c8"
+        },
+        {
+          "path": "/_nova/_next/static/chunks/app/page-87d71fa80c7f5a0e.js",
+          "status": 200,
+          "type": "application/javascript; charset=utf-8",
+          "bytes": 51770,
+          "sha256": "54c568663d5698c026745d7f5d94311fee3c3ea3388c4e48656e52350e550a49"
+        },
+        {
+          "path": "/_nova/_next/static/chunks/main-app-b6508c5d80465c35.js",
+          "status": 200,
+          "type": "application/javascript; charset=utf-8",
+          "bytes": 526,
+          "sha256": "9314e2494cea25c449a8980f0320f5719df0c9cf1d8516c73df49565461c1475"
+        },
+        {
+          "path": "/_nova/_next/static/chunks/polyfills-42372ed130431b0a.js",
+          "status": 200,
+          "type": "application/javascript; charset=utf-8",
+          "bytes": 112594,
+          "sha256": "0973c1d64c88adc8e3c950410cb58b288f72118d5965b78049438deb8f2f9683"
+        },
+        {
+          "path": "/_nova/_next/static/chunks/webpack-2c28adaef38e7354.js",
+          "status": 200,
+          "type": "application/javascript; charset=utf-8",
+          "bytes": 3516,
+          "sha256": "ccfeeabad3b7aab8082c13dc4d6d3bd9ba3bbf6bf07405917c72acdac0f54b35"
+        },
+        {
+          "path": "/_nova/_next/static/css/b724892d43a85aea.css",
+          "status": 200,
+          "type": "text/css; charset=utf-8",
+          "bytes": 139364,
+          "sha256": "6fde7f47dffbd1cf1c1f6d36b733223267e5fcb583d3801684f0a47b70cfe7bb"
+        },
+        {
+          "path": "/api/v1/admin/finance/recalculations",
+          "status": 401,
+          "type": "application/json; charset=utf-8",
+          "bytes": 58,
+          "sha256": "45af71ac65d4166926a33cc89c2bde0a5884f2f84bb2809f369466b78e00dfb2"
+        },
+        {
+          "path": "/api/v1/admin/channels",
+          "status": 401,
+          "type": "application/json; charset=utf-8",
+          "bytes": 58,
+          "sha256": "45af71ac65d4166926a33cc89c2bde0a5884f2f84bb2809f369466b78e00dfb2"
+        },
+        {
+          "path": "/_chat/",
+          "status": 401,
+          "type": "application/json; charset=utf-8",
+          "bytes": 69,
+          "sha256": "112e0bd29a2cd5b3644b89c74d4477cea2bf364b884f5423d9dc6c1ed0fbea0d"
+        },
+        {
+          "path": "/api/v1/user/workbench/studio",
+          "status": 401,
+          "type": "application/json; charset=utf-8",
+          "bytes": 68,
+          "sha256": "6abf9a96f79c7426b94f6772aeb0ce7e5908c6c2c908977917af15d078b49138"
+        },
+        {
+          "path": "/_chat/__sub2api/workbench",
+          "status": 401,
+          "type": "application/json; charset=utf-8",
+          "bytes": 69,
+          "sha256": "112e0bd29a2cd5b3644b89c74d4477cea2bf364b884f5423d9dc6c1ed0fbea0d"
+        },
+        {
+          "path": "/api/v1/client-releases/qxapi/latest",
+          "status": 200,
+          "type": "application/json; charset=utf-8",
+          "bytes": 1588,
+          "sha256": "1fa92748b643f1fce94d4676f84212209ea8ae15bc60a7b6e355ec3ed9210afe"
+        }
+      ],
+      "result": "PASS",
+      "read_only": true
+    },
+    "public_smoke": {
+      "result": "PASS",
+      "checks": [
+        {
+          "method": "GET",
+          "path": "/health",
+          "status": 200,
+          "type": "application/json; charset=utf-8",
+          "content_length": "15"
+        },
+        {
+          "method": "HEAD",
+          "path": "/",
+          "status": 200,
+          "type": "text/html; charset=utf-8",
+          "content_length": null
+        },
+        {
+          "method": "HEAD",
+          "path": "/admin/channels",
+          "status": 200,
+          "type": "text/html; charset=utf-8",
+          "content_length": null
+        },
+        {
+          "method": "HEAD",
+          "path": "/assets/index-Cgon1L2p.js",
+          "status": 200,
+          "type": "text/javascript; charset=utf-8",
+          "content_length": "214166"
+        },
+        {
+          "method": "HEAD",
+          "path": "/assets/vendor-i18n-cUQ4iEGc.js",
+          "status": 200,
+          "type": "text/javascript; charset=utf-8",
+          "content_length": "56991"
+        },
+        {
+          "method": "HEAD",
+          "path": "/_nova/",
+          "status": 200,
+          "type": "text/html; charset=utf-8",
+          "content_length": null
+        },
+        {
+          "method": "GET",
+          "path": "/_chat/",
+          "status": 401,
+          "type": "application/json; charset=utf-8",
+          "content_length": "69"
+        }
+      ],
+      "scope": "Public health GET, page/static HEAD and unauthenticated Chat GET; not browser/full-body asset verification"
+    },
+    "startup_error_pattern_found": false,
+    "real_paid_inference_performed": false,
+    "production_business_writes_performed": false
+  },
+  "remaining_quality_issues": [
+    "baseline follow-redirects and xlsx audit failures; raw and exception policy exit1",
+    "baseline cached HTML / CSP nonce 304 mismatch"
+  ],
+  "govulncheck": "not run",
+  "public_full_body_probe": "pre-deployment local-to-public full-asset GET timed out; final public check explicitly uses health/auth GET and page/static HEAD; complete asset-body checks passed on server loopback",
+  "existing_commit_note": "Session began with existing clean HEAD 5957c6000; includes previously unrelated embedded-workbench guide correction to 七号机; no rewrite or new product edits in deployment session",
+  "raw_evidence_directory": "/tmp/sub2api-six-release"
+}

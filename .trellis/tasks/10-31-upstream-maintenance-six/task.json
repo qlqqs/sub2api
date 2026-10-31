@@ -15,18 +15,22 @@
   "branch": "upstream-sync/2026-10-31-six",
   "base_branch": "sub2api-custom",
   "worktree_path": "/home/qlqq/workspace/sub2api-upstream-six",
-  "commit": null,
+  "commit": "5957c600052bee92c7feaf5fd22b7af9647413df",
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": "10-27-upstream-sync",
   "relatedFiles": [],
-  "notes": "六项21个产品文件已移入custom未提交；unit/race/build/vet、前端3524测试、本机e2e442/442通过。正常缓存浏览器CSP失败（基线304 nonce），无缓存36/36通过；原始/策略audit均exit1（基线follow-redirects/xlsx）。质量门禁未全绿，未推送部署，保持in_progress。",
+  "notes": "用户授权“推送、更新部署”；已有产品5957c6000已推送，CI 41182664896全通过。七号机仅主应用备份后更新至5957c6000，healthy；配置/迁移/其他容器ID不变，服务器及公网限定只读检查通过。audit和CSP/304基线问题保留，任务in_progress跟进。详见verification/release-report.md。",
   "meta": {
     "upstream_target": "d851a38477597157e78450d30af2d8504764d085",
     "planning_custom_base": "27d51f9b594d430efcf40570a6ce04063e09701e",
     "dispatch": "inline",
-    "integration_status": "applied_in_custom_worktree",
-    "quality_followups_open": true
+    "integration_status": "integrated",
+    "quality_followups_open": true,
+    "pushed": true,
+    "deployed": true,
+    "release_head": "5957c600052bee92c7feaf5fd22b7af9647413df",
+    "ci_run_id": 41182664896
   }
 }

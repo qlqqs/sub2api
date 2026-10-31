@@ -591,3 +591,25 @@ CI四项通过，已备份部署一号机sub2api-custom，运行revision核对�
 ### Next Steps
 
 - 先决定follow-redirects与CSP/304跟进范围；另获提交、推送和七号机部署授权。本批不归档。
+
+
+## Session 24: 六项上游维护更新推送与七号机部署
+<!-- trellis-session: v=2 fp=1cb88f4d5ceea663 -->
+
+**Date**: 2026-10-31
+**Task**: 六项上游维护更新推送与七号机部署
+**Branch**: `sub2api-custom`
+
+### Summary
+
+用户授权发布；核对已有提交和21文件指纹，推送custom。CI 41182664896四任务全通过，备份后仅更新七号机主应用，healthy；配置/迁移/其他容器ID不变，服务器只读资源及公网限定GET/HEAD检查通过。既有audit和CSP/304问题保留，任务in_progress。发布记录已同步，无新产品代码改动。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5957c600052bee92c7feaf5fd22b7af9647413df` | Apply upstream maintenance fixes and regression coverage |
+
+### Status
+
+**发布完成**；audit及CSP/304质量跟进仍开放，任务保持in_progress。

@@ -19,17 +19,17 @@
     "sha": "d851a38477597157e78450d30af2d8504764d085",
     "meaning": "scope dispositions cover every first-parent unit; NOT all patches technically reviewed/tested/integrated"
   },
-  "last_event_seq": 88,
+  "last_event_seq": 97,
   "active_run": {
     "id": "2026-10-31-six",
     "custom_base_sha": "27d51f9b594d430efcf40570a6ce04063e09701e",
     "candidate_worktree": "/home/qlqq/workspace/sub2api-upstream-six",
     "candidate_branch": "upstream-sync/2026-10-31-six",
     "task_path": ".trellis/tasks/10-31-upstream-maintenance-six",
-    "status": "applied_in_custom_worktree_quality_followups_open",
+    "status": "deployed_documented_quality_followups_open",
     "records_synchronized": true,
-    "pushed": false,
-    "deployed": false,
+    "pushed": true,
+    "deployed": true,
     "validation_summary": {
       "backend_unit_focused_race_build_vet_module_verify": "passed",
       "frontend_lint_typecheck_tests": "passed: 443 files / 3524 tests, Node24.22.1",
@@ -38,18 +38,58 @@
       "browser_normal": "35 checks passed; CSP check failed; 3 baseline nonce/304 violations; exit1",
       "browser_no_http_cache": "36/36 passed; 0 CSP violations; exit0 (control only)",
       "production_audit": "exit1; three baseline highs remain; exception policy exit1",
-      "govulncheck_golangci_lint": "not installed, not run"
+      "govulncheck_golangci_lint": "govulncheck not run; golangci-lint passed in CI",
+      "ci_unit_integration_lint_frontend_image": "passed: 41182664896",
+      "production_smoke": "server loopback full bodies + public health/auth GET and page/asset HEAD passed"
     },
-    "evidence": ".trellis/tasks/10-31-upstream-maintenance-six/verification/final-report.md",
+    "evidence": ".trellis/tasks/10-31-upstream-maintenance-six/verification/release-report.md",
     "quality_followups": [
       "baseline follow-redirects + xlsx audit failures",
       "baseline CSP nonce/304 mismatch"
-    ]
+    ],
+    "product_commit": "5957c600052bee92c7feaf5fd22b7af9647413df",
+    "pushed_custom_head": "5957c600052bee92c7feaf5fd22b7af9647413df",
+    "release_head": "5957c600052bee92c7feaf5fd22b7af9647413df",
+    "ci_run_id": 41182664896,
+    "deployment": {
+      "target": "七号机 sub2api-custom",
+      "directory": "/root/sub2api-custom",
+      "previous_revision": "27d51f9b594d430efcf40570a6ce04063e09701e",
+      "previous_image": "sha256:f64390731560730bc460b9e114dda77b67b160bc276cae2676717d43a8830f3d",
+      "image_tag": "ghcr.io/qlqqs/sub2api:custom-5957c60",
+      "image_digest": "sha256:117884bf31a4d3c84e71f36e7e944d0ab6f793380e18737646ac96efe0bc6652",
+      "revision": "5957c600052bee92c7feaf5fd22b7af9647413df",
+      "backup": "/root/sub2api-custom/backups/pre-upstream-six-20261031T081719Z",
+      "backups_verified": true,
+      "stopped_at": "2026-10-31T08:17:21Z",
+      "deployment_success_at": "2026-10-31T08:17:41Z",
+      "final_health_check_at": "2026-10-31T08:19:03Z",
+      "health": "healthy",
+      "restart_count": 0,
+      "config_unchanged": true,
+      "other_containers_unchanged": true,
+      "migration_history_unchanged": true,
+      "rollback_used": false,
+      "server_local_smoke": {
+        "result": "PASS",
+        "http_checks": 33,
+        "evidence": ".trellis/tasks/10-31-upstream-maintenance-six/verification/release-verification.json"
+      },
+      "public_smoke": {
+        "result": "PASS",
+        "http_checks": 7,
+        "scope": "health/auth GET and pages/static HEAD; not browser or full asset-body verification"
+      },
+      "startup_error_pattern_found": false,
+      "real_paid_inference_performed": false,
+      "production_business_writes_performed": false
+    }
   },
   "integrated_custom_commits": [
-    "b95be64f6d06a9c617b4690ac1f0d50c78366d4d"
+    "b95be64f6d06a9c617b4690ac1f0d50c78366d4d",
+    "5957c600052bee92c7feaf5fd22b7af9647413df"
   ],
-  "shipped": false,
+  "shipped": true,
   "previous_runs": [
     {
       "id": "2026-10-27-maintenance",

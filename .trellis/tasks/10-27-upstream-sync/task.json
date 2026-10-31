@@ -28,7 +28,7 @@
     ".trellis/spec/guides/upstream-sync-guide.md",
     ".trellis/spec/guides/index.md"
   ],
-  "notes": "用户明确批准提交、推送及一号机更新。本轮产品b95be64f6、发布1fa919f68已推送；origin/main=f178e5ae3。CI 40546398450四任务全部通过（含unit/integration/lint）；一号机仅sub2api-custom主应用已备份并部署，健康/静态资源/鉴权检查通过，其他容器ID不变。原始e2e FIN-24和依赖审计限制保留；任务in_progress，不宣称全部质量待办已清。详见verification/release-report.md。\n2026-10-31：子任务10-31-upstream-maintenance-six将六项21文件移入custom工作区，尚未提交推送部署；e2e442/442通过，存量audit与CSP/304跟进未关闭。前述发布授权与事实仅属10月27日历史批次。",
+  "notes": "用户明确批准提交、推送及一号机更新。本轮产品b95be64f6、发布1fa919f68已推送；origin/main=f178e5ae3。CI 40546398450四任务全部通过（含unit/integration/lint）；一号机仅sub2api-custom主应用已备份并部署，健康/静态资源/鉴权检查通过，其他容器ID不变。原始e2e FIN-24和依赖审计限制保留；任务in_progress，不宣称全部质量待办已清。详见verification/release-report.md。\n2026-10-31：子任务10-31-upstream-maintenance-six将六项21文件移入custom工作区，尚未提交推送部署；e2e442/442通过，存量audit与CSP/304跟进未关闭。前述发布授权与事实仅属10月27日历史批次。\n2026-10-31追加发布：用户新授权后子批次5957c6000推送并部署七号机，CI 41182664896全通过，详情见子任务release-report.md；audit/CSP存量跟进保持开放。",
   "meta": {
     "upstream_target": "f178e5ae32659e8901644a9f2378a0439ffa36ae",
     "custom_base": "a18a7a3a4d7d5f81284f8165a2f9cd464a0bf132"
