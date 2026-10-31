@@ -1817,18 +1817,22 @@ func (s *BillingService) calculatePerRequestCost(resolved *ResolvedPricing, inpu
 
 	var unitPrice float64
 
-	if input.SizeTier != "" {
-		unitPrice = input.Resolver.GetRequestTierPrice(resolved, input.SizeTier)
-	}
+	if resolved.Mode == BillingModeVideo {
+		unitPrice = input.Resolver.GetVideoTierPrice(resolved, input.SizeTier)
+	} else {
+		if input.SizeTier != "" {
+			unitPrice = input.Resolver.GetRequestTierPrice(resolved, input.SizeTier)
+		}
 
-	if unitPrice == 0 {
-		totalContext := input.Tokens.InputTokens + input.Tokens.CacheCreationTokens + input.Tokens.CacheReadTokens
-		unitPrice = input.Resolver.GetRequestTierPriceByContext(resolved, totalContext)
-	}
+		if unitPrice == 0 {
+			totalContext := input.Tokens.InputTokens + input.Tokens.CacheCreationTokens + input.Tokens.CacheReadTokens
+			unitPrice = input.Resolver.GetRequestTierPriceByContext(resolved, totalContext)
+		}
 
-	// 回退到默认按次价格
-	if unitPrice == 0 {
-		unitPrice = resolved.DefaultPerRequestPrice
+		// 回退到默认按次价格
+		if unitPrice == 0 {
+			unitPrice = resolved.DefaultPerRequestPrice
+		}
 	}
 
 	totalCost := unitPrice * units
@@ -2267,7 +2271,7 @@ func (s *BillingService) CalculateImageCost(model string, imageSize string, imag
 
 // CalculateVideoCost 计算视频生成费用（按秒计费，与 xAI 口径一致）。
 // model: 请求的模型名称（用于获取默认价格）
-// resolution: 视频分辨率 "480p", "720p", "1080p"
+// resolution: 视频计费档位 480p/720p/1080p/4k，可带 -ref 后缀
 // videoCount: 生成的视频数量
 // durationSeconds: 单个视频时长（秒），<=0 时按上游默认时长计
 // groupConfig: 分组配置的每秒价格（可能为 nil，表示使用默认值）
@@ -2324,7 +2328,7 @@ func (s *BillingService) getVideoUnitPrice(model string, resolution string, grou
 		if price := LookupVideoModelPrice(groupConfig.ModelPrices, model, resolution); price != nil {
 			return *price
 		}
-		switch NormalizeVideoBillingResolutionOrDefault(resolution) {
+		switch VideoBillingTier(resolution, false) {
 		case VideoBillingResolution480P:
 			if groupConfig.Price480P != nil {
 				return *groupConfig.Price480P
@@ -2428,7 +2432,7 @@ func getDefaultGrokImagineVideoPrice(model string, resolution string) (float64, 
 	model = strings.ToLower(strings.TrimSpace(model))
 	switch {
 	case strings.HasPrefix(model, "grok-imagine-video-1.5"):
-		switch NormalizeVideoBillingResolutionOrDefault(resolution) {
+		switch VideoBillingTier(resolution, false) {
 		case VideoBillingResolution480P:
 			return defaultGrokImagineVideo15Price480P, true
 		case VideoBillingResolution720P:
@@ -2439,7 +2443,7 @@ func getDefaultGrokImagineVideoPrice(model string, resolution string) (float64, 
 			return defaultGrokImagineVideo15Price480P, true
 		}
 	case strings.HasPrefix(model, "grok-imagine-video"):
-		switch NormalizeVideoBillingResolutionOrDefault(resolution) {
+		switch VideoBillingTier(resolution, false) {
 		case VideoBillingResolution480P:
 			return defaultGrokImagineVideoPrice480P, true
 		case VideoBillingResolution720P, VideoBillingResolution1080P:

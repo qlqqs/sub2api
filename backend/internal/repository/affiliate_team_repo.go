@@ -569,6 +569,7 @@ func (r *affiliateTeamRepository) ListRequests(ctx context.Context, customerID i
 	limit, offset := args.add(query.PageSize), args.add((query.Page-1)*query.PageSize)
 	rows, err := clientFromContext(ctx, r.client).QueryContext(ctx, `
 SELECT ul.created_at,
+       CASE WHEN g.deleted_at IS NULL THEN g.id END,
        `+affiliateTeamRequestModelExpr+`,
        COALESCE(g.name, ''),
        COALESCE(ul.billing_mode, ''),
@@ -587,7 +588,7 @@ LIMIT `+limit+` OFFSET `+offset, args.values...)
 	items := make([]service.AffiliateTeamRequest, 0, query.PageSize)
 	for rows.Next() {
 		var item service.AffiliateTeamRequest
-		if err := rows.Scan(&item.CreatedAt, &item.Model, &item.GroupName, &item.BillingMode,
+		if err := rows.Scan(&item.CreatedAt, &item.GroupID, &item.Model, &item.GroupName, &item.BillingMode,
 			&item.InputTokens, &item.OutputTokens, &item.CacheCreationTokens, &item.CacheReadTokens,
 			&item.ImageCount, &item.VideoCount, &item.Cost); err != nil {
 			return nil, 0, err

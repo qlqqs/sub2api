@@ -181,6 +181,8 @@ type AffiliateTeamAgentEntry struct {
 }
 
 type AffiliateTeamRequest struct {
+	GroupID             *int64    `json:"-"`
+	RebateFactor        float64   `json:"rebate_factor"`
 	CreatedAt           time.Time `json:"created_at"`
 	Model               string    `json:"model"`
 	GroupName           string    `json:"group_name"`
@@ -421,7 +423,12 @@ func (s *AffiliateTeamService) listRequests(ctx context.Context, audience affili
 	}
 	query = normalizeAffiliateTeamListQuery(query, "", "")
 	query.Model = strings.TrimSpace(query.Model)
-	return s.repo.ListRequests(ctx, customerID, rng, query)
+	items, total, err := s.repo.ListRequests(ctx, customerID, rng, query)
+	if err != nil {
+		return nil, 0, err
+	}
+	fillAffiliateTeamRebateFactors(items, s.settingService.GetAffiliateGroupRebateFactors(ctx))
+	return items, total, nil
 }
 
 // HasTeamAccess 判断用户能否进入团队消费页：当前是代理，或名下仍有快照客户（被降级者看老客户）。

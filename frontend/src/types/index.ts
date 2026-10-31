@@ -360,6 +360,8 @@ export interface AffiliateTeamRequest {
   image_count: number
   video_count: number
   cost: number
+  /** 所在分组当前的分润系数（百分比）；未设置、无分组或分组已删除为 100。 */
+  rebate_factor: number
 }
 
 export type AffiliateTeamCustomerSort = 'cost' | 'requests' | 'earnings' | 'last_used_at'

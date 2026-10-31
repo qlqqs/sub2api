@@ -27,3 +27,24 @@ describe('pricing interval token bounds', () => {
     expect(wrapper.emitted('update')?.[1]?.[0]).toMatchObject({ max_tokens: max })
   })
 })
+
+describe('video tier select', () => {
+  it('lists every video tier with readable names and emits the raw tier_label', async () => {
+    const wrapper = mount(IntervalRow, { props: { interval: { ...interval, tier_label: '720p' }, mode: 'video' } })
+    const select = wrapper.get('[data-testid="video-tier-select"]')
+    expect(select.findAll('option').map((o) => [o.attributes('value'), o.text()])).toEqual([
+      ['480p', '480p'], ['720p', '720p'], ['1080p', '1080p'], ['4k', '4k'],
+      ['480p-ref', 'admin.channels.form.videoTierRef'], ['720p-ref', 'admin.channels.form.videoTierRef'],
+      ['1080p-ref', 'admin.channels.form.videoTierRef'], ['4k-ref', 'admin.channels.form.videoTierRef'],
+    ])
+    await select.setValue('1080p-ref')
+    expect(wrapper.emitted('update')?.[0]?.[0]).toMatchObject({ tier_label: '1080p-ref' })
+  })
+
+  it('keeps an existing label that is not in the list', () => {
+    const wrapper = mount(IntervalRow, { props: { interval: { ...interval, tier_label: '2k' }, mode: 'video' } })
+    const options = wrapper.findAll('[data-testid="video-tier-select"] option').map((o) => o.attributes('value'))
+    expect(options.at(-1)).toBe('2k')
+    expect((wrapper.get('[data-testid="video-tier-select"]').element as HTMLSelectElement).value).toBe('2k')
+  })
+})

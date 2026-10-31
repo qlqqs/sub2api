@@ -393,3 +393,16 @@ func (r *ModelPricingResolver) GetRequestTierPriceByContext(resolved *ResolvedPr
 	}
 	return 0
 }
+
+// GetVideoTierPrice 按计费档位取每秒价格；参考档缺失时回退同分辨率普通档。
+func (r *ModelPricingResolver) GetVideoTierPrice(resolved *ResolvedPricing, resolution string) float64 {
+	tier := NormalizeVideoBillingResolutionOrDefault(resolution)
+	for _, label := range []string{tier, strings.TrimSuffix(tier, "-ref")} {
+		for _, iv := range resolved.RequestTiers {
+			if normalized, ok := LookupVideoBillingResolution(iv.TierLabel); ok && normalized == label && iv.PerRequestPrice != nil {
+				return *iv.PerRequestPrice
+			}
+		}
+	}
+	return resolved.DefaultPerRequestPrice
+}

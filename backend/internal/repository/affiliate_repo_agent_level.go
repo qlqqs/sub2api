@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -176,7 +177,14 @@ LIMIT $2`, lag.Seconds(), limit)
 
 // LockPendingConsumption 锁定用户的 user_affiliates 行，并在同一语句内读取水位、
 // 窗口内余额消费合计与真实充值总额（到账金额 − 赠送 − 已退款）。
-func (r *affiliateRepository) LockPendingConsumption(ctx context.Context, userID int64, lag time.Duration) (*service.AffiliatePendingConsumption, error) {
+func (r *affiliateRepository) LockPendingConsumption(ctx context.Context, userID int64, lag time.Duration, factors []service.AffiliateGroupRebateFactor) (*service.AffiliatePendingConsumption, error) {
+	if factors == nil {
+		factors = []service.AffiliateGroupRebateFactor{}
+	}
+	rawFactors, err := json.Marshal(factors)
+	if err != nil {
+		return nil, err
+	}
 	client := clientFromContext(ctx, r.client)
 	rows, err := client.QueryContext(ctx, `
 WITH locked AS (
@@ -196,6 +204,13 @@ SELECT l.rebate_settled_at,
           AND ul.billing_type = 0
           AND ul.created_at > l.rebate_settled_at
           AND ul.created_at <= b.until_at)::double precision,
+       (SELECT COALESCE(SUM(ul.actual_cost * COALESCE(f.factor, 100) / 100), 0)
+        FROM usage_logs ul
+        LEFT JOIN jsonb_to_recordset($3::jsonb) AS f(group_id bigint, factor double precision) ON f.group_id = ul.group_id
+        WHERE ul.user_id = l.user_id
+          AND ul.billing_type = 0
+          AND ul.created_at > l.rebate_settled_at
+          AND ul.created_at <= b.until_at)::double precision,
        (SELECT COALESCE(SUM(po.amount - po.bonus_amount
                - CASE WHEN po.status IN ('PARTIALLY_REFUNDED', 'REFUNDED') THEN po.refund_amount ELSE 0 END), 0)
         FROM payment_orders po
@@ -203,7 +218,7 @@ SELECT l.rebate_settled_at,
           AND po.order_type = 'balance'
           AND po.status IN `+paidPaymentOrderStatuses+`)::double precision
 FROM locked l
-CROSS JOIN bounds b`, userID, lag.Seconds())
+CROSS JOIN bounds b`, userID, lag.Seconds(), string(rawFactors))
 	if err != nil {
 		return nil, fmt.Errorf("lock pending consumption: %w", err)
 	}
@@ -215,7 +230,7 @@ CROSS JOIN bounds b`, userID, lag.Seconds())
 		return nil, service.ErrUserNotFound
 	}
 	pending := &service.AffiliatePendingConsumption{UserID: userID}
-	if err := rows.Scan(&pending.SettledAt, &pending.UntilAt, &pending.SettledConsumption, &pending.DeltaCost, &pending.PaidTotal); err != nil {
+	if err := rows.Scan(&pending.SettledAt, &pending.UntilAt, &pending.SettledConsumption, &pending.DeltaCost, &pending.WeightedDeltaCost, &pending.PaidTotal); err != nil {
 		return nil, err
 	}
 	return pending, rows.Err()

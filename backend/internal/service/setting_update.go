@@ -408,6 +408,19 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 	updates[SettingKeyAffiliateAgentCountMode] = settings.AffiliateAgentCountMode
 	settings.AffiliateSettleIntervalMinutes = clampAffiliateSettleIntervalMinutes(settings.AffiliateSettleIntervalMinutes)
 	updates[SettingKeyAffiliateSettleIntervalMinutes] = strconv.Itoa(settings.AffiliateSettleIntervalMinutes)
+	// nil 表示未提交此字段，保留已存设置（包括已删除分组的历史配置）。
+	if settings.AffiliateGroupRebateFactors != nil {
+		factors, err := s.validateAffiliateGroupRebateFactors(ctx, settings.AffiliateGroupRebateFactors)
+		if err != nil {
+			return nil, err
+		}
+		settings.AffiliateGroupRebateFactors = factors
+		raw, err := json.Marshal(factors)
+		if err != nil {
+			return nil, err
+		}
+		updates[SettingKeyAffiliateGroupRebateFactors] = string(raw)
+	}
 	updates[SettingKeyDefaultUserRPMLimit] = strconv.Itoa(settings.DefaultUserRPMLimit)
 	defaultSubsJSON, err := json.Marshal(settings.DefaultSubscriptions)
 	if err != nil {

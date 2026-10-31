@@ -66,7 +66,14 @@
 
     <!-- Per-request / Image mode: tier label + context range + price -->
     <template v-else>
-      <div class="w-24">
+      <div v-if="mode === 'video'" class="w-44">
+        <label class="text-xs text-gray-400">{{ t('admin.channels.form.tierLabel') }}</label>
+        <select :value="interval.tier_label" @change="emitField('tier_label', ($event.target as HTMLSelectElement).value)"
+          class="input mt-0.5 text-xs" data-testid="video-tier-select">
+          <option v-for="opt in videoTierOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div v-else class="w-24">
         <label class="text-xs text-gray-400">
           {{ mode === 'image' ? t('admin.channels.form.resolution') : t('admin.channels.form.tierLabel') }}
         </label>
@@ -102,6 +109,7 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import type { IntervalFormEntry } from './types'
 import type { BillingMode } from '@/api/admin/channels'
+import { VIDEO_REF_TIER_SUFFIX, VIDEO_TIER_LABELS } from '@/constants/channel'
 
 const { t } = useI18n()
 
@@ -115,6 +123,19 @@ const emit = defineEmits<{
   update: [interval: IntervalFormEntry]
   remove: []
 }>()
+
+// 视频档位下拉：保存 tier_label 原文，显示「720p · 带参考视频」；不在列表里的旧值原样保留为一个选项。
+const videoTierOptions = computed(() => {
+  const labels = [...VIDEO_TIER_LABELS]
+  const current = props.interval.tier_label
+  if (current && !labels.includes(current)) labels.push(current)
+  return labels.map((value) => ({
+    value,
+    label: value.endsWith(VIDEO_REF_TIER_SUFFIX)
+      ? t('admin.channels.form.videoTierRef', { resolution: value.slice(0, -VIDEO_REF_TIER_SUFFIX.length) })
+      : value
+  }))
+})
 
 // 检测所有价格字段是否都为空
 const isEmpty = computed(() => {

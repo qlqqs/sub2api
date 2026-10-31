@@ -331,7 +331,7 @@ func TestFrontendServer_ServeIndexHTML(t *testing.T) {
 		assert.Contains(t, w2.Body.String(), `nonce="nonce2"`)
 	})
 
-	t.Run("sets_etag_header", func(t *testing.T) {
+	t.Run("revalidation_gets_full_html_with_current_nonce", func(t *testing.T) {
 		provider := &mockSettingsProvider{
 			settings: map[string]string{"test": "value"},
 		}
@@ -339,50 +339,28 @@ func TestFrontendServer_ServeIndexHTML(t *testing.T) {
 		server, err := NewFrontendServer(provider)
 		require.NoError(t, err)
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
-		c.Set(middleware.CSPNonceKey, "nonce123")
-
-		server.serveIndexHTML(c)
-
-		etag := w.Header().Get("ETag")
-		assert.NotEmpty(t, etag)
-		assert.True(t, strings.HasPrefix(etag, `"`))
-		assert.True(t, strings.HasSuffix(etag, `"`))
-	})
-
-	t.Run("returns_304_for_matching_etag", func(t *testing.T) {
-		provider := &mockSettingsProvider{
-			settings: map[string]string{"test": "value"},
-		}
-
-		server, err := NewFrontendServer(provider)
-		require.NoError(t, err)
-
-		// Use a real router for proper 304 handling
+		nonces := []string{"nonce-first", "nonce-second"}
 		router := gin.New()
 		router.Use(func(c *gin.Context) {
-			c.Set(middleware.CSPNonceKey, "test-nonce")
+			c.Set(middleware.CSPNonceKey, nonces[0])
+			nonces = nonces[1:]
 			c.Next()
 		})
 		router.Use(server.Middleware())
 
-		// First request to populate cache and get ETag
 		w1 := httptest.NewRecorder()
-		req1 := httptest.NewRequest(http.MethodGet, "/", nil)
-		router.ServeHTTP(w1, req1)
-		etag := w1.Header().Get("ETag")
-		require.NotEmpty(t, etag)
+		router.ServeHTTP(w1, httptest.NewRequest(http.MethodGet, "/", nil))
+		require.Equal(t, http.StatusOK, w1.Code)
+		assert.Empty(t, w1.Header().Get("ETag"))
 
-		// Second request with If-None-Match
-		w2 := httptest.NewRecorder()
+		// 浏览器带着缓存校验头再次请求时，也必须拿到带新 nonce 的完整 HTML。
 		req2 := httptest.NewRequest(http.MethodGet, "/", nil)
-		req2.Header.Set("If-None-Match", etag)
+		req2.Header.Set("If-None-Match", `"any"`)
+		w2 := httptest.NewRecorder()
 		router.ServeHTTP(w2, req2)
-
-		assert.Equal(t, http.StatusNotModified, w2.Code)
-		assert.Empty(t, w2.Body.String())
+		assert.Equal(t, http.StatusOK, w2.Code)
+		assert.Contains(t, w2.Body.String(), `nonce="nonce-second"`)
+		assert.NotContains(t, w2.Body.String(), `nonce="nonce-first"`)
 	})
 
 	t.Run("sets_cache_control_header", func(t *testing.T) {

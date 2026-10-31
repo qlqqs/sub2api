@@ -166,7 +166,7 @@ func TestAffiliateRepository_ConsumptionSettlementWatermarkAndCap(t *testing.T) 
 	require.Contains(t, ids, consumer.ID)
 	require.NotContains(t, ids, inviter.ID)
 
-	pending, err := repo.LockPendingConsumption(txCtx, consumer.ID, time.Minute)
+	pending, err := repo.LockPendingConsumption(txCtx, consumer.ID, time.Minute, nil)
 	require.NoError(t, err)
 	require.InDelta(t, 50, pending.DeltaCost, 1e-6)
 	require.InDelta(t, 90, pending.PaidTotal, 1e-6)
@@ -180,7 +180,7 @@ func TestAffiliateRepository_ConsumptionSettlementWatermarkAndCap(t *testing.T) 
 	require.NoError(t, repo.AdvanceConsumptionWatermark(txCtx, consumer.ID, until, 50))
 
 	// Second pass sees nothing new (the 7 is still inside the lag window).
-	pending, err = repo.LockPendingConsumption(txCtx, consumer.ID, time.Minute)
+	pending, err = repo.LockPendingConsumption(txCtx, consumer.ID, time.Minute, nil)
 	require.NoError(t, err)
 	require.Zero(t, pending.DeltaCost)
 	require.InDelta(t, 50, pending.SettledConsumption, 1e-6)
@@ -189,7 +189,7 @@ func TestAffiliateRepository_ConsumptionSettlementWatermarkAndCap(t *testing.T) 
 	require.NotContains(t, ids, consumer.ID)
 
 	// With zero lag the in-window row becomes visible.
-	pending, err = repo.LockPendingConsumption(txCtx, consumer.ID, 0)
+	pending, err = repo.LockPendingConsumption(txCtx, consumer.ID, 0, nil)
 	require.NoError(t, err)
 	require.InDelta(t, 7, pending.DeltaCost, 1e-6)
 
@@ -204,7 +204,7 @@ func TestAffiliateRepository_ConsumptionSettlementWatermarkAndCap(t *testing.T) 
 	require.Nil(t, orderID)
 	require.NoError(t, rows.Close())
 
-	_, err = repo.LockPendingConsumption(txCtx, 0, time.Minute)
+	_, err = repo.LockPendingConsumption(txCtx, 0, time.Minute, nil)
 	require.ErrorIs(t, err, service.ErrUserNotFound)
 }
 
@@ -429,4 +429,38 @@ func TestAffiliateRepository_SetAgentOwnerByAdminAndInviterWasAgent(t *testing.T
 	require.Nil(t, summary.AgentOwnerID)
 	require.Nil(t, summary.AgentOwnerLevel)
 	require.Nil(t, summary.AgentOwnerBoundAt)
+}
+
+func TestAffiliateRepository_ConsumptionGroupRebateFactors(t *testing.T) {
+	ctx := context.Background()
+	tx := testEntTx(t)
+	txCtx := dbent.NewTxContext(ctx, tx)
+	client := tx.Client()
+	repo := NewAffiliateRepository(client, integrationDB)
+	inviter := mustCreateAffiliateWithdrawUser(t, client, "factor-inviter")
+	consumer := mustCreateAffiliateWithdrawUser(t, client, "factor-consumer")
+	_, _, err := repo.BindInviter(txCtx, consumer.ID, inviter.ID, service.AffiliateInviterBinding{Source: "registration"})
+	require.NoError(t, err)
+	account := mustCreateAccount(t, client, &service.Account{Name: fmt.Sprintf("factor-%d", time.Now().UnixNano())})
+	key := mustCreateApiKey(t, client, &service.APIKey{UserID: consumer.ID, Name: "factor", Key: fmt.Sprintf("sk-factor-%d", time.Now().UnixNano())})
+	group30 := mustCreateGroup(t, client, &service.Group{Name: "factor30"})
+	group100 := mustCreateGroup(t, client, &service.Group{Name: "factor100"})
+	group0 := mustCreateGroup(t, client, &service.Group{Name: "factor0"})
+	_, err = client.ExecContext(txCtx, "UPDATE user_affiliates SET rebate_settled_at = NOW() - interval '1 day' WHERE user_id = $1", consumer.ID)
+	require.NoError(t, err)
+	for _, item := range []struct {
+		groupID *int64
+		cost    float64
+	}{{&group30.ID, 100}, {&group100.ID, 20}, {&group0.ID, 10}, {nil, 5}} {
+		_, err = client.ExecContext(txCtx, `INSERT INTO usage_logs (user_id, api_key_id, account_id, model, total_cost, actual_cost, billing_type, group_id, created_at)
+VALUES ($1, $2, $3, 'factor', $4, $4, 0, $5, NOW() - interval '1 hour')`, consumer.ID, key.ID, account.ID, item.cost, item.groupID)
+		require.NoError(t, err)
+	}
+	pending, err := repo.LockPendingConsumption(txCtx, consumer.ID, time.Minute, []service.AffiliateGroupRebateFactor{{GroupID: group30.ID, Factor: 30}, {GroupID: group0.ID, Factor: 0}})
+	require.NoError(t, err)
+	require.InDelta(t, 135, pending.DeltaCost, 1e-8)
+	require.InDelta(t, 55, pending.WeightedDeltaCost, 1e-8)
+	pending, err = repo.LockPendingConsumption(txCtx, consumer.ID, time.Minute, nil)
+	require.NoError(t, err)
+	require.Equal(t, pending.DeltaCost, pending.WeightedDeltaCost)
 }

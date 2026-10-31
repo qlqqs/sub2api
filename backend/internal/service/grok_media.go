@@ -57,19 +57,21 @@ func (e GrokMediaEndpoint) IsGenerationRequest() bool {
 }
 
 type GrokMediaRequestInfo struct {
-	Model           string
-	Prompt          string
-	N               int
-	Size            string
-	SizeTier        string
-	AspectRatio     string
-	ImageResolution string
-	Resolution      string
-	DurationSeconds int
-	InputImageURLs  []string
-	MaskImageURL    string
-	Uploads         []OpenAIImagesUpload
-	MaskUpload      *OpenAIImagesUpload
+	Model             string
+	Prompt            string
+	N                 int
+	Size              string
+	SizeTier          string
+	Ratio             string
+	HasReferenceVideo bool
+	AspectRatio       string
+	ImageResolution   string
+	Resolution        string
+	DurationSeconds   int
+	InputImageURLs    []string
+	MaskImageURL      string
+	Uploads           []OpenAIImagesUpload
+	MaskUpload        *OpenAIImagesUpload
 }
 
 func (r GrokMediaRequestInfo) ModerationBody() []byte {
@@ -375,6 +377,7 @@ func (s *OpenAIGatewayService) SelectMediaVideoRequestAccount(
 // first observes a completed video URL. Status may omit model/duration; we fall
 // back to this snapshot, then defaults.
 type GrokVideoPendingBilling struct {
+	HasReferenceVideo    bool   `json:"has_reference_video,omitempty"`
 	Model                string `json:"model"`
 	BillingModel         string `json:"billing_model,omitempty"`
 	UpstreamModel        string `json:"upstream_model,omitempty"`

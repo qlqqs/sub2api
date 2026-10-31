@@ -147,20 +147,14 @@ func (s *FrontendServer) serveIndexHTML(c *gin.Context) {
 	nonce := middleware.GetNonceFromContext(c)
 
 	// Check cache first
+	// HTML 不发 ETag、不回 304：每次响应的 CSP nonce 都不同，浏览器沿用缓存的旧 HTML 时，
+	// 内联的 __APP_CONFIG__ 会因 nonce 不匹配被拦截。
 	cached := s.cache.Get()
 	if cached != nil {
-		// Check If-None-Match for 304 response
-		if match := c.GetHeader("If-None-Match"); match == cached.ETag {
-			c.Status(http.StatusNotModified)
-			c.Abort()
-			return
-		}
-
 		// Replace nonce placeholder with actual nonce before serving
 		content := replaceNoncePlaceholder(cached.Content, nonce)
 
-		c.Header("ETag", cached.ETag)
-		c.Header("Cache-Control", "no-cache") // Must revalidate
+		c.Header("Cache-Control", "no-cache")
 		c.Data(http.StatusOK, "text/html; charset=utf-8", content)
 		c.Abort()
 		return
@@ -192,10 +186,6 @@ func (s *FrontendServer) serveIndexHTML(c *gin.Context) {
 	// Replace nonce placeholder with actual nonce before serving
 	content := replaceNoncePlaceholder(rendered, nonce)
 
-	cached = s.cache.Get()
-	if cached != nil {
-		c.Header("ETag", cached.ETag)
-	}
 	c.Header("Cache-Control", "no-cache")
 	c.Data(http.StatusOK, "text/html; charset=utf-8", content)
 	c.Abort()

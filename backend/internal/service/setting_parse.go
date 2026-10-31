@@ -146,6 +146,7 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyAffiliateAgentCountMode:                   AffiliateAgentCountModeDefault,
 		SettingKeyAffiliateSettleIntervalMinutes:            strconv.Itoa(AffiliateSettleIntervalMinutesDefault),
 		SettingKeyDefaultUserRPMLimit:                       "0",
+		SettingKeyAffiliateGroupRebateFactors:               "[]",
 		SettingKeyDefaultSubscriptions:                      "[]",
 		SettingKeyAuthSourceDefaultEmailBalance:             "0",
 		SettingKeyAuthSourceDefaultEmailConcurrency:         "5",
@@ -451,6 +452,7 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 	if minutes, err := strconv.Atoi(settings[SettingKeyAffiliateSettleIntervalMinutes]); err == nil {
 		result.AffiliateSettleIntervalMinutes = clampAffiliateSettleIntervalMinutes(minutes)
 	}
+	result.AffiliateGroupRebateFactors = parseAffiliateGroupRebateFactors(settings[SettingKeyAffiliateGroupRebateFactors])
 	result.DefaultSubscriptions = parseDefaultSubscriptions(settings[SettingKeyDefaultSubscriptions])
 
 	// 敏感信息直接返回，方便测试连接时使用

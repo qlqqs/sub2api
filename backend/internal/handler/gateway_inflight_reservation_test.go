@@ -202,3 +202,19 @@ func TestWebSearch_RejectsWhenInflightExceedsBalance(t *testing.T) {
 	require.Contains(t, w.Body.String(), "balance")
 	require.Equal(t, 1, cache.count(), "rejected request must not leave a reservation behind")
 }
+
+func TestSeedanceReservationRequiresFullBalanceForFirstRequest(t *testing.T) {
+	for _, enabled := range []bool{true, false} {
+		cache := newHandlerInflightCache(1)
+		cfg := &config.Config{}
+		cfg.Billing.InflightReservation = config.InflightReservationConfig{Enabled: enabled, TTLSeconds: 60}
+		billing := service.NewBillingCacheService(cache, nil, nil, nil, nil, nil, cfg, nil)
+		t.Cleanup(billing.Stop)
+		key := &service.APIKey{User: &service.User{ID: 1}}
+		estimator := &countingEstimator{cost: 4.5, priced: true}
+		request := grokMediaInflightEstimate(service.SeedanceEndpointCreate, "seedance-2.5", service.GrokMediaRequestInfo{DurationSeconds: 30}, nil)
+		_, err := reserveInflightBalance(newInflightTestGinContext(), billing, estimator, key, nil, request)
+		require.ErrorIs(t, err, service.ErrInsufficientBalance)
+		require.Zero(t, cache.count())
+	}
+}

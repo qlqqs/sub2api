@@ -737,8 +737,12 @@ export default {
       officialUnitPerMillion: '{symbol} / 1M token',
       perUnitRequest: '/ 次',
       perUnitImage: '/ 张',
+      perUnitSecond: '/ 秒',
       perRequest: '按次计费',
-      perImage: '按图片计费'
+      perImage: '按图片计费',
+      perSecond: '按秒计费',
+      plainVideo: '普通',
+      withRefVideo: '带参考视频'
     },
     // CUSTOM: 用户端各页面跳到模型广场的「查看价格」链接
     priceLink: {
@@ -872,6 +876,7 @@ export default {
       backToAffiliate: '返回邀请返利',
       deleted: '已删除',
       subAgent: '分销代理',
+      rebateFactor: '分润 {rate}%',
       historical: '历史',
       historicalHint: 'TA 已不是你的分销代理，之前的客户仍为你带来差额收益',
       myCustomer: '我的客户',

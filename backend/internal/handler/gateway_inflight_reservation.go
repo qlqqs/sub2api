@@ -42,6 +42,7 @@ func inflightNoop() {}
 // （停止续期并归还 handler 引用；没有提交计费任务时即刻释放）。
 // 开关关闭、订阅模式、Redis 故障时返回 no-op（fail-open）；无法定价时默认 fail-open，
 // 配置 fail_closed_on_unpriced=true 时返回 ErrInsufficientBalance。
+// Seedance 建任务始终校验完整预估余额，在途开关只控制并发预留。
 func reserveInflightBalance(
 	c *gin.Context,
 	billing *service.BillingCacheService,
@@ -71,15 +72,27 @@ func reserveInflightBalanceCtx(
 	subscription *service.UserSubscription,
 	req service.InflightEstimateRequest,
 ) (context.Context, func(), error) {
-	if billing == nil || estimator == nil || apiKey == nil || apiKey.User == nil || !billing.InflightReservationEnabled() {
+	if billing == nil || estimator == nil || apiKey == nil || apiKey.User == nil {
 		return ctx, inflightNoop, nil
 	}
 	if apiKey.Group != nil && apiKey.Group.IsSubscriptionType() && subscription != nil {
 		return ctx, inflightNoop, nil
 	}
+	if !billing.InflightReservationEnabled() && !req.RequireFullBalance {
+		return ctx, inflightNoop, nil
+	}
 	estimate, priced := estimator.EstimateInflightReservation(ctx, apiKey, req)
 	if !priced && billing.InflightReservationFailClosedOnUnpriced() {
 		return ctx, inflightNoop, service.ErrInsufficientBalance
+	}
+	if req.RequireFullBalance && estimate > 0 {
+		balance, err := billing.GetUserBalance(ctx, apiKey.User.ID)
+		if err != nil {
+			return ctx, inflightNoop, err
+		}
+		if balance < estimate {
+			return ctx, inflightNoop, service.ErrInsufficientBalance
+		}
 	}
 	if estimate <= 0 {
 		return ctx, inflightNoop, nil
@@ -100,6 +113,12 @@ func grokMediaInflightEstimate(endpoint service.GrokMediaEndpoint, model string,
 	if !endpoint.IsGenerationRequest() {
 		return service.InflightEstimateRequest{}
 	}
+	if endpoint == service.SeedanceEndpointCreate {
+		info.Resolution = service.VideoBillingTier(info.Resolution, info.HasReferenceVideo)
+	}
+	if endpoint == service.SeedanceEndpointCreate && info.HasReferenceVideo {
+		info.DurationSeconds = min(service.VideoBillingMaxDurationSeconds, info.DurationSeconds+(info.DurationSeconds*2+2)/3)
+	}
 	switch endpoint {
 	case service.GrokMediaEndpointImagesGenerations, service.GrokMediaEndpointImagesEdits:
 		return service.InflightEstimateRequest{Model: model, BodyBytes: len(body), Kind: service.InflightEstimateImage, Units: info.N}
@@ -111,6 +130,7 @@ func grokMediaInflightEstimate(endpoint service.GrokMediaEndpoint, model string,
 			Units:                1,
 			VideoResolution:      info.Resolution,
 			VideoDurationSeconds: info.DurationSeconds,
+			RequireFullBalance:   endpoint == service.SeedanceEndpointCreate,
 		}
 	}
 }

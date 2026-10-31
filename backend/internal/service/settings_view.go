@@ -201,6 +201,7 @@ type SystemSettings struct {
 	AffiliateAgentLevel1Threshold      int
 	AffiliateAgentCountMode            string
 	AffiliateSettleIntervalMinutes     int
+	AffiliateGroupRebateFactors        []AffiliateGroupRebateFactor
 	DefaultUserRPMLimit                int
 	DefaultSubscriptions               []DefaultSubscriptionSetting
 

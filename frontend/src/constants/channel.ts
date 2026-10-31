@@ -28,3 +28,16 @@ export type BillingModelSource =
   | typeof BILLING_MODEL_SOURCE_UPSTREAM
   | typeof BILLING_MODEL_SOURCE_CHANNEL_MAPPED
   | typeof BILLING_MODEL_SOURCE_RESPONSE
+
+/**
+ * Video billing tiers (must match the backend video billing resolutions).
+ * The channel base price is the 480p tier; `<resolution>-ref` is the tier used
+ * when the request carries a reference video.
+ */
+export const VIDEO_RESOLUTIONS = ['480p', '720p', '1080p', '4k'] as const
+export const VIDEO_BASE_RESOLUTION = '480p'
+export const VIDEO_REF_TIER_SUFFIX = '-ref'
+export const VIDEO_TIER_LABELS = [
+  ...VIDEO_RESOLUTIONS,
+  ...VIDEO_RESOLUTIONS.map((r) => `${r}${VIDEO_REF_TIER_SUFFIX}`)
+]

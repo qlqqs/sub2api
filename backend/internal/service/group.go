@@ -187,7 +187,7 @@ func (g *Group) GetImagePrice(imageSize string) *float64 {
 // GetVideoPrice 根据 resolution 返回对应的视频生成价格。
 // 如果分组未配置价格，返回 nil（调用方应使用默认值）。
 func (g *Group) GetVideoPrice(resolution string) *float64 {
-	switch NormalizeVideoBillingResolutionOrDefault(resolution) {
+	switch VideoBillingTier(resolution, false) {
 	case VideoBillingResolution480P:
 		return g.VideoPrice480P
 	case VideoBillingResolution720P:
@@ -195,7 +195,7 @@ func (g *Group) GetVideoPrice(resolution string) *float64 {
 	case VideoBillingResolution1080P:
 		return g.VideoPrice1080P
 	default:
-		return g.VideoPrice480P
+		return nil
 	}
 }
 

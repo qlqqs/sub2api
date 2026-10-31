@@ -172,72 +172,73 @@ type UpdateSettingsRequest struct {
 	CustomEndpoints             *[]dto.CustomEndpoint `json:"custom_endpoints"`
 
 	// 默认配置
-	DefaultConcurrency                        int                               `json:"default_concurrency"`
-	DefaultBalance                            float64                           `json:"default_balance"`
-	AffiliateRebateRate                       *float64                          `json:"affiliate_rebate_rate"`
-	AffiliateRebateFreezeHours                *int                              `json:"affiliate_rebate_freeze_hours"`
-	AffiliateRebateDurationDays               *int                              `json:"affiliate_rebate_duration_days"`
-	AffiliateRebatePerInviteeCap              *float64                          `json:"affiliate_rebate_per_invitee_cap"`
-	AffiliateAgentLevel2Rate                  *float64                          `json:"affiliate_agent_level2_rate"`
-	AffiliateAgentCustomRateEnabled           *bool                             `json:"affiliate_agent_custom_rate_enabled"`
-	AffiliateAgentAppointEnabled              *bool                             `json:"affiliate_agent_appoint_enabled"`
-	AffiliateAgentAppointMax                  *int                              `json:"affiliate_agent_appoint_max"`
-	AffiliateInviteRewardMode                 *string                           `json:"affiliate_invite_reward_mode"`
-	AffiliateInviteRewardRate                 *float64                          `json:"affiliate_invite_reward_rate"`
-	AffiliateInviteRewardDurationDays         *int                              `json:"affiliate_invite_reward_duration_days"`
-	AffiliateInviteRewardPerInviteeCap        *float64                          `json:"affiliate_invite_reward_per_invitee_cap"`
-	AffiliateInviteRewardFixedAmount          *float64                          `json:"affiliate_invite_reward_fixed_amount"`
-	AffiliateInviteRewardMinRecharge          *float64                          `json:"affiliate_invite_reward_min_recharge"`
-	AffiliateInviteeBonusMode                 *string                           `json:"affiliate_invitee_bonus_mode"`
-	AffiliateInviteeBonusValue                *float64                          `json:"affiliate_invitee_bonus_value"`
-	AffiliateInviteeBonusMinRecharge          *float64                          `json:"affiliate_invitee_bonus_min_recharge"`
-	AffiliateInviteeBonusMax                  *float64                          `json:"affiliate_invitee_bonus_max"`
-	AffiliateInviteeSignupBonusSource         *string                           `json:"affiliate_invitee_signup_bonus_source"`
-	AffiliateInviteeSignupBonus               *float64                          `json:"affiliate_invitee_signup_bonus"`
-	AffiliateRebateBase                       *string                           `json:"affiliate_rebate_base"`
-	AffiliateAgentUpgradeMode                 *string                           `json:"affiliate_agent_upgrade_mode"`
-	AffiliateAgentLevel2Threshold             *int                              `json:"affiliate_agent_level2_threshold"`
-	AffiliateAgentLevel1Threshold             *int                              `json:"affiliate_agent_level1_threshold"`
-	AffiliateAgentCountMode                   *string                           `json:"affiliate_agent_count_mode"`
-	AffiliateSettleIntervalMinutes            *int                              `json:"affiliate_settle_interval_minutes"`
-	DefaultUserRPMLimit                       int                               `json:"default_user_rpm_limit"`
-	DefaultSubscriptions                      []dto.DefaultSubscriptionSetting  `json:"default_subscriptions"`
-	AuthSourceDefaultEmailBalance             *float64                          `json:"auth_source_default_email_balance"`
-	AuthSourceDefaultEmailConcurrency         *int                              `json:"auth_source_default_email_concurrency"`
-	AuthSourceDefaultEmailSubscriptions       *[]dto.DefaultSubscriptionSetting `json:"auth_source_default_email_subscriptions"`
-	AuthSourceDefaultEmailGrantOnSignup       *bool                             `json:"auth_source_default_email_grant_on_signup"`
-	AuthSourceDefaultEmailGrantOnFirstBind    *bool                             `json:"auth_source_default_email_grant_on_first_bind"`
-	AuthSourceDefaultLinuxDoBalance           *float64                          `json:"auth_source_default_linuxdo_balance"`
-	AuthSourceDefaultLinuxDoConcurrency       *int                              `json:"auth_source_default_linuxdo_concurrency"`
-	AuthSourceDefaultLinuxDoSubscriptions     *[]dto.DefaultSubscriptionSetting `json:"auth_source_default_linuxdo_subscriptions"`
-	AuthSourceDefaultLinuxDoGrantOnSignup     *bool                             `json:"auth_source_default_linuxdo_grant_on_signup"`
-	AuthSourceDefaultLinuxDoGrantOnFirstBind  *bool                             `json:"auth_source_default_linuxdo_grant_on_first_bind"`
-	AuthSourceDefaultOIDCBalance              *float64                          `json:"auth_source_default_oidc_balance"`
-	AuthSourceDefaultOIDCConcurrency          *int                              `json:"auth_source_default_oidc_concurrency"`
-	AuthSourceDefaultOIDCSubscriptions        *[]dto.DefaultSubscriptionSetting `json:"auth_source_default_oidc_subscriptions"`
-	AuthSourceDefaultOIDCGrantOnSignup        *bool                             `json:"auth_source_default_oidc_grant_on_signup"`
-	AuthSourceDefaultOIDCGrantOnFirstBind     *bool                             `json:"auth_source_default_oidc_grant_on_first_bind"`
-	AuthSourceDefaultWeChatBalance            *float64                          `json:"auth_source_default_wechat_balance"`
-	AuthSourceDefaultWeChatConcurrency        *int                              `json:"auth_source_default_wechat_concurrency"`
-	AuthSourceDefaultWeChatSubscriptions      *[]dto.DefaultSubscriptionSetting `json:"auth_source_default_wechat_subscriptions"`
-	AuthSourceDefaultWeChatGrantOnSignup      *bool                             `json:"auth_source_default_wechat_grant_on_signup"`
-	AuthSourceDefaultWeChatGrantOnFirstBind   *bool                             `json:"auth_source_default_wechat_grant_on_first_bind"`
-	AuthSourceDefaultGitHubBalance            *float64                          `json:"auth_source_default_github_balance"`
-	AuthSourceDefaultGitHubConcurrency        *int                              `json:"auth_source_default_github_concurrency"`
-	AuthSourceDefaultGitHubSubscriptions      *[]dto.DefaultSubscriptionSetting `json:"auth_source_default_github_subscriptions"`
-	AuthSourceDefaultGitHubGrantOnSignup      *bool                             `json:"auth_source_default_github_grant_on_signup"`
-	AuthSourceDefaultGitHubGrantOnFirstBind   *bool                             `json:"auth_source_default_github_grant_on_first_bind"`
-	AuthSourceDefaultGoogleBalance            *float64                          `json:"auth_source_default_google_balance"`
-	AuthSourceDefaultGoogleConcurrency        *int                              `json:"auth_source_default_google_concurrency"`
-	AuthSourceDefaultGoogleSubscriptions      *[]dto.DefaultSubscriptionSetting `json:"auth_source_default_google_subscriptions"`
-	AuthSourceDefaultGoogleGrantOnSignup      *bool                             `json:"auth_source_default_google_grant_on_signup"`
-	AuthSourceDefaultGoogleGrantOnFirstBind   *bool                             `json:"auth_source_default_google_grant_on_first_bind"`
-	AuthSourceDefaultDingTalkBalance          *float64                          `json:"auth_source_default_dingtalk_balance"`
-	AuthSourceDefaultDingTalkConcurrency      *int                              `json:"auth_source_default_dingtalk_concurrency"`
-	AuthSourceDefaultDingTalkSubscriptions    *[]dto.DefaultSubscriptionSetting `json:"auth_source_default_dingtalk_subscriptions"`
-	AuthSourceDefaultDingTalkGrantOnSignup    *bool                             `json:"auth_source_default_dingtalk_grant_on_signup"`
-	AuthSourceDefaultDingTalkGrantOnFirstBind *bool                             `json:"auth_source_default_dingtalk_grant_on_first_bind"`
-	ForceEmailOnThirdPartySignup              *bool                             `json:"force_email_on_third_party_signup"`
+	DefaultConcurrency                        int                                   `json:"default_concurrency"`
+	DefaultBalance                            float64                               `json:"default_balance"`
+	AffiliateRebateRate                       *float64                              `json:"affiliate_rebate_rate"`
+	AffiliateRebateFreezeHours                *int                                  `json:"affiliate_rebate_freeze_hours"`
+	AffiliateRebateDurationDays               *int                                  `json:"affiliate_rebate_duration_days"`
+	AffiliateRebatePerInviteeCap              *float64                              `json:"affiliate_rebate_per_invitee_cap"`
+	AffiliateAgentLevel2Rate                  *float64                              `json:"affiliate_agent_level2_rate"`
+	AffiliateAgentCustomRateEnabled           *bool                                 `json:"affiliate_agent_custom_rate_enabled"`
+	AffiliateAgentAppointEnabled              *bool                                 `json:"affiliate_agent_appoint_enabled"`
+	AffiliateAgentAppointMax                  *int                                  `json:"affiliate_agent_appoint_max"`
+	AffiliateInviteRewardMode                 *string                               `json:"affiliate_invite_reward_mode"`
+	AffiliateInviteRewardRate                 *float64                              `json:"affiliate_invite_reward_rate"`
+	AffiliateInviteRewardDurationDays         *int                                  `json:"affiliate_invite_reward_duration_days"`
+	AffiliateInviteRewardPerInviteeCap        *float64                              `json:"affiliate_invite_reward_per_invitee_cap"`
+	AffiliateInviteRewardFixedAmount          *float64                              `json:"affiliate_invite_reward_fixed_amount"`
+	AffiliateInviteRewardMinRecharge          *float64                              `json:"affiliate_invite_reward_min_recharge"`
+	AffiliateInviteeBonusMode                 *string                               `json:"affiliate_invitee_bonus_mode"`
+	AffiliateInviteeBonusValue                *float64                              `json:"affiliate_invitee_bonus_value"`
+	AffiliateInviteeBonusMinRecharge          *float64                              `json:"affiliate_invitee_bonus_min_recharge"`
+	AffiliateInviteeBonusMax                  *float64                              `json:"affiliate_invitee_bonus_max"`
+	AffiliateInviteeSignupBonusSource         *string                               `json:"affiliate_invitee_signup_bonus_source"`
+	AffiliateInviteeSignupBonus               *float64                              `json:"affiliate_invitee_signup_bonus"`
+	AffiliateRebateBase                       *string                               `json:"affiliate_rebate_base"`
+	AffiliateAgentUpgradeMode                 *string                               `json:"affiliate_agent_upgrade_mode"`
+	AffiliateAgentLevel2Threshold             *int                                  `json:"affiliate_agent_level2_threshold"`
+	AffiliateAgentLevel1Threshold             *int                                  `json:"affiliate_agent_level1_threshold"`
+	AffiliateAgentCountMode                   *string                               `json:"affiliate_agent_count_mode"`
+	AffiliateGroupRebateFactors               *[]service.AffiliateGroupRebateFactor `json:"affiliate_group_rebate_factors"`
+	AffiliateSettleIntervalMinutes            *int                                  `json:"affiliate_settle_interval_minutes"`
+	DefaultUserRPMLimit                       int                                   `json:"default_user_rpm_limit"`
+	DefaultSubscriptions                      []dto.DefaultSubscriptionSetting      `json:"default_subscriptions"`
+	AuthSourceDefaultEmailBalance             *float64                              `json:"auth_source_default_email_balance"`
+	AuthSourceDefaultEmailConcurrency         *int                                  `json:"auth_source_default_email_concurrency"`
+	AuthSourceDefaultEmailSubscriptions       *[]dto.DefaultSubscriptionSetting     `json:"auth_source_default_email_subscriptions"`
+	AuthSourceDefaultEmailGrantOnSignup       *bool                                 `json:"auth_source_default_email_grant_on_signup"`
+	AuthSourceDefaultEmailGrantOnFirstBind    *bool                                 `json:"auth_source_default_email_grant_on_first_bind"`
+	AuthSourceDefaultLinuxDoBalance           *float64                              `json:"auth_source_default_linuxdo_balance"`
+	AuthSourceDefaultLinuxDoConcurrency       *int                                  `json:"auth_source_default_linuxdo_concurrency"`
+	AuthSourceDefaultLinuxDoSubscriptions     *[]dto.DefaultSubscriptionSetting     `json:"auth_source_default_linuxdo_subscriptions"`
+	AuthSourceDefaultLinuxDoGrantOnSignup     *bool                                 `json:"auth_source_default_linuxdo_grant_on_signup"`
+	AuthSourceDefaultLinuxDoGrantOnFirstBind  *bool                                 `json:"auth_source_default_linuxdo_grant_on_first_bind"`
+	AuthSourceDefaultOIDCBalance              *float64                              `json:"auth_source_default_oidc_balance"`
+	AuthSourceDefaultOIDCConcurrency          *int                                  `json:"auth_source_default_oidc_concurrency"`
+	AuthSourceDefaultOIDCSubscriptions        *[]dto.DefaultSubscriptionSetting     `json:"auth_source_default_oidc_subscriptions"`
+	AuthSourceDefaultOIDCGrantOnSignup        *bool                                 `json:"auth_source_default_oidc_grant_on_signup"`
+	AuthSourceDefaultOIDCGrantOnFirstBind     *bool                                 `json:"auth_source_default_oidc_grant_on_first_bind"`
+	AuthSourceDefaultWeChatBalance            *float64                              `json:"auth_source_default_wechat_balance"`
+	AuthSourceDefaultWeChatConcurrency        *int                                  `json:"auth_source_default_wechat_concurrency"`
+	AuthSourceDefaultWeChatSubscriptions      *[]dto.DefaultSubscriptionSetting     `json:"auth_source_default_wechat_subscriptions"`
+	AuthSourceDefaultWeChatGrantOnSignup      *bool                                 `json:"auth_source_default_wechat_grant_on_signup"`
+	AuthSourceDefaultWeChatGrantOnFirstBind   *bool                                 `json:"auth_source_default_wechat_grant_on_first_bind"`
+	AuthSourceDefaultGitHubBalance            *float64                              `json:"auth_source_default_github_balance"`
+	AuthSourceDefaultGitHubConcurrency        *int                                  `json:"auth_source_default_github_concurrency"`
+	AuthSourceDefaultGitHubSubscriptions      *[]dto.DefaultSubscriptionSetting     `json:"auth_source_default_github_subscriptions"`
+	AuthSourceDefaultGitHubGrantOnSignup      *bool                                 `json:"auth_source_default_github_grant_on_signup"`
+	AuthSourceDefaultGitHubGrantOnFirstBind   *bool                                 `json:"auth_source_default_github_grant_on_first_bind"`
+	AuthSourceDefaultGoogleBalance            *float64                              `json:"auth_source_default_google_balance"`
+	AuthSourceDefaultGoogleConcurrency        *int                                  `json:"auth_source_default_google_concurrency"`
+	AuthSourceDefaultGoogleSubscriptions      *[]dto.DefaultSubscriptionSetting     `json:"auth_source_default_google_subscriptions"`
+	AuthSourceDefaultGoogleGrantOnSignup      *bool                                 `json:"auth_source_default_google_grant_on_signup"`
+	AuthSourceDefaultGoogleGrantOnFirstBind   *bool                                 `json:"auth_source_default_google_grant_on_first_bind"`
+	AuthSourceDefaultDingTalkBalance          *float64                              `json:"auth_source_default_dingtalk_balance"`
+	AuthSourceDefaultDingTalkConcurrency      *int                                  `json:"auth_source_default_dingtalk_concurrency"`
+	AuthSourceDefaultDingTalkSubscriptions    *[]dto.DefaultSubscriptionSetting     `json:"auth_source_default_dingtalk_subscriptions"`
+	AuthSourceDefaultDingTalkGrantOnSignup    *bool                                 `json:"auth_source_default_dingtalk_grant_on_signup"`
+	AuthSourceDefaultDingTalkGrantOnFirstBind *bool                                 `json:"auth_source_default_dingtalk_grant_on_first_bind"`
+	ForceEmailOnThirdPartySignup              *bool                                 `json:"force_email_on_third_party_signup"`
 
 	// Model fallback configuration
 	EnableModelFallback      bool   `json:"enable_model_fallback"`
@@ -708,6 +709,10 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 	affiliateAgentCountMode := previousSettings.AffiliateAgentCountMode
 	if req.AffiliateAgentCountMode != nil {
 		affiliateAgentCountMode = *req.AffiliateAgentCountMode
+	}
+	var affiliateGroupRebateFactors []service.AffiliateGroupRebateFactor
+	if req.AffiliateGroupRebateFactors != nil {
+		affiliateGroupRebateFactors = append([]service.AffiliateGroupRebateFactor{}, (*req.AffiliateGroupRebateFactors)...)
 	}
 	affiliateSettleIntervalMinutes := previousSettings.AffiliateSettleIntervalMinutes
 	if req.AffiliateSettleIntervalMinutes != nil {
@@ -1810,6 +1815,7 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AffiliateAgentLevel1Threshold:          affiliateAgentLevel1Threshold,
 		AffiliateAgentCountMode:                affiliateAgentCountMode,
 		AffiliateSettleIntervalMinutes:         affiliateSettleIntervalMinutes,
+		AffiliateGroupRebateFactors:            affiliateGroupRebateFactors,
 		DefaultUserRPMLimit:                    req.DefaultUserRPMLimit,
 		DefaultSubscriptions:                   defaultSubscriptions,
 		EnableModelFallback:                    req.EnableModelFallback,
@@ -2497,6 +2503,7 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		AffiliateAgentLevel1Threshold:                          updatedSettings.AffiliateAgentLevel1Threshold,
 		AffiliateAgentCountMode:                                updatedSettings.AffiliateAgentCountMode,
 		AffiliateSettleIntervalMinutes:                         updatedSettings.AffiliateSettleIntervalMinutes,
+		AffiliateGroupRebateFactors:                            h.settingService.AffiliateGroupRebateFactorViews(c.Request.Context(), updatedSettings.AffiliateGroupRebateFactors),
 		DefaultUserRPMLimit:                                    updatedSettings.DefaultUserRPMLimit,
 		DefaultSubscriptions:                                   updatedDefaultSubscriptions,
 		EnableModelFallback:                                    updatedSettings.EnableModelFallback,

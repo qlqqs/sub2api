@@ -6,13 +6,14 @@ const (
 	VideoBillingResolution480P  = "480p"
 	VideoBillingResolution720P  = "720p"
 	VideoBillingResolution1080P = "1080p"
+	VideoBillingResolution4K    = "4k"
 )
 
-// xAI 视频生成按秒计费，duration 请求参数允许 1-15 秒；未指定时上游默认生成 8 秒。
-// 计费时长必须与上游实际消耗对齐，否则用户可通过拉长 duration 套利（提交时长由用户控制）。
+// 视频按秒计费。Seedance 计费上限 60 秒 = 成片 30 秒 + 参考视频 30 秒。
+// xAI 未指定时上游默认生成 8 秒。
 const (
 	VideoBillingMinDurationSeconds     = 1
-	VideoBillingMaxDurationSeconds     = 15
+	VideoBillingMaxDurationSeconds     = 60
 	VideoBillingDefaultDurationSeconds = 8
 )
 
@@ -32,19 +33,37 @@ func NormalizeVideoBillingDurationSecondsOrDefault(durationSeconds int) int {
 }
 
 // LookupVideoBillingResolution 归一化分辨率并报告是否为已知档位。
-// 配置解析路径必须用它而不是 OrDefault：把无法识别的档位（如 "4k"、拼错的
-// "1080i"）静默折算成 480p，会让管理员配的高分辨率单价被挂到低分辨率档上。
+// 配置解析路径用它拒绝未知档位，避免把拼错的高分辨率价格挂到 480p。
 func LookupVideoBillingResolution(resolution string) (string, bool) {
-	switch strings.ToLower(strings.TrimSpace(resolution)) {
+	tier := strings.ToLower(strings.TrimSpace(resolution))
+	suffix := ""
+	if strings.HasSuffix(tier, "-ref") {
+		tier = strings.TrimSuffix(tier, "-ref")
+		suffix = "-ref"
+	}
+	var normalized string
+	switch tier {
 	case "480", "480p", "sd":
-		return VideoBillingResolution480P, true
+		normalized = VideoBillingResolution480P
 	case "720", "720p", "hd":
-		return VideoBillingResolution720P, true
+		normalized = VideoBillingResolution720P
 	case "1080", "1080p", "full_hd", "full-hd", "fhd":
-		return VideoBillingResolution1080P, true
+		normalized = VideoBillingResolution1080P
+	case "4k", "2160p", "2160", "uhd":
+		normalized = VideoBillingResolution4K
 	default:
 		return "", false
 	}
+	return normalized + suffix, true
+}
+
+// VideoBillingTier 保留物理分辨率，并按参考视频选择计费档位。
+func VideoBillingTier(resolution string, hasReferenceVideo bool) string {
+	tier := strings.TrimSuffix(NormalizeVideoBillingResolutionOrDefault(resolution), "-ref")
+	if hasReferenceVideo {
+		tier += "-ref"
+	}
+	return tier
 }
 
 // NormalizeVideoBillingResolutionOrDefault 用于运行时计费：上游回传的分辨率

@@ -311,6 +311,7 @@ const (
 	SettingKeyAffiliateAgentLevel2Threshold       = "affiliate_agent_level2_threshold"  // 自动升 2 级所需邀请人数（0=不自动升）
 	SettingKeyAffiliateAgentLevel1Threshold       = "affiliate_agent_level1_threshold"  // 自动升 1 级所需邀请人数（0=不自动升）
 	SettingKeyAffiliateAgentCountMode             = "affiliate_agent_count_mode"        // 邀请人数口径：all / recharged
+	SettingKeyAffiliateGroupRebateFactors         = "affiliate_group_rebate_factors"    // 分组消费分润系数
 	SettingKeyAffiliateSettleIntervalMinutes      = "affiliate_settle_interval_minutes" // 消费返利结算周期（分钟）
 	SettingKeyRiskControlEnabled                  = "risk_control_enabled"              // 是否启用风控中心入口与审计链路
 	SettingKeyContentModerationConfig             = "content_moderation_config"         // 内容审计配置（JSON）

@@ -198,7 +198,29 @@
           <template v-else>
             <td :colspan="hasPaidContext ? 4 : 3" class="pz-cell px-3 py-2.5 align-middle">
               <div
-                v-if="requestIntervals(m).length"
+                v-if="videoTables.get(m)"
+                class="inline-grid items-center gap-x-3 gap-y-1 text-xs"
+                :style="{ gridTemplateColumns: `auto repeat(${videoTables.get(m)!.resolutions.length}, auto)` }"
+                data-test="plaza-video-tiers"
+              >
+                <span class="text-gray-400 dark:text-dark-500">{{ perUnitSuffix(m) }}</span>
+                <span
+                  v-for="resolution in videoTables.get(m)!.resolutions"
+                  :key="resolution"
+                  class="text-right text-gray-400 dark:text-dark-500"
+                >{{ resolution }}</span>
+                <template v-for="row in videoTables.get(m)!.rows" :key="row.key">
+                  <span class="text-gray-500 dark:text-dark-400">{{ row.label }}</span>
+                  <span
+                    v-for="(price, idx) in row.prices"
+                    :key="idx"
+                    class="text-right font-mono text-gray-800 dark:text-gray-200"
+                    :data-test="`plaza-video-${row.key}-price`"
+                  >{{ price }}</span>
+                </template>
+              </div>
+              <div
+                v-else-if="requestIntervals(m).length"
                 class="flex flex-wrap items-center gap-1.5"
               >
                 <span
@@ -354,6 +376,7 @@ import {
 import type { PlazaModel, PlazaTimePricing, PlazaTimePricingPeriod } from '@/api/modelPlaza'
 import { plazaPriceTimeRows } from '@/utils/modelPlazaTimePricing'
 import type { UserPricingInterval } from '@/api/channels'
+import { videoPriceTiers } from '@/utils/videoPricingTiers'
 
 function reasoningEffortMultipliers(model: PlazaModel): [string, number][] {
   const multipliers = model.pricing?.reasoning_effort_multipliers
@@ -442,9 +465,11 @@ function billingMode(m: PlazaModel): BillingMode {
 }
 
 function billingModeLabel(m: PlazaModel): string {
-  return billingMode(m) === BILLING_MODE_IMAGE
-    ? t('modelPlaza.table.perImage')
-    : t('modelPlaza.table.perRequest')
+  switch (billingMode(m)) {
+    case BILLING_MODE_IMAGE: return t('modelPlaza.table.perImage')
+    case BILLING_MODE_VIDEO: return t('modelPlaza.table.perSecond')
+    default: return t('modelPlaza.table.perRequest')
+  }
 }
 
 /** 价格统一保底 2 位小数,更长的有效小数原样保留。 */
@@ -604,11 +629,13 @@ function discountToneClass(tone: DiscountTone): string {
   }
 }
 
-/** 非 token 计费的单位后缀:按图片 → “/ 张”,按次 → “/ 次”。 */
+/** 非 token 计费的单位后缀:按图片 → “/ 张”,视频按秒 → “/ 秒”,按次 → “/ 次”。 */
 function perUnitSuffix(m: PlazaModel): string {
-  return billingMode(m) === BILLING_MODE_IMAGE
-    ? t('modelPlaza.table.perUnitImage')
-    : t('modelPlaza.table.perUnitRequest')
+  switch (billingMode(m)) {
+    case BILLING_MODE_IMAGE: return t('modelPlaza.table.perUnitImage')
+    case BILLING_MODE_VIDEO: return t('modelPlaza.table.perUnitSecond')
+    default: return t('modelPlaza.table.perUnitRequest')
+  }
 }
 
 function hasCachePricing(m: PlazaModel): boolean {
@@ -677,6 +704,22 @@ function tierHint(m: PlazaModel): string {
     : t('modelPlaza.table.tierHint')
 }
 
+
+const videoTables = computed(() => new Map(props.models.map((m) => [m, videoTierTable(m)])))
+
+/**
+ * 视频分档表:列为各分辨率,行为普通 / 带参考视频的每秒单价(未配置为 -);没有分档时为 null,按单一价格展示。
+ */
+function videoTierTable(m: PlazaModel): { resolutions: string[], rows: Array<{ key: string, label: string, prices: string[] }> } | null {
+  if (billingMode(m) !== BILLING_MODE_VIDEO) return null
+  const tiers = videoPriceTiers(m.pricing)
+  if (tiers.length === 0) return null
+  const rows = [{ key: 'plain', label: t('modelPlaza.table.plainVideo'), prices: tiers.map((tier) => paidRequestPrice(m, tier.price)) }]
+  if (tiers.some((tier) => tier.refPrice != null)) {
+    rows.push({ key: 'ref', label: t('modelPlaza.table.withRefVideo'), prices: tiers.map((tier) => paidRequestPrice(m, tier.refPrice)) })
+  }
+  return { resolutions: tiers.map((tier) => tier.resolution), rows }
+}
 
 /** 按次/按图模式的阶梯定价(仅保留配了按次价的档位)。 */
 function requestIntervals(m: PlazaModel): UserPricingInterval[] {

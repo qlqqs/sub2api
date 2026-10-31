@@ -18,7 +18,7 @@ const (
 type AffiliateSettleResult struct {
 	Users       int
 	Rebate      float64
-	Consumption float64
+	Consumption float64 // 占用真实充值额度的原始消费，不乘分组系数。
 }
 
 // SettleConsumptionRebates 按余额消费结算返利：对每个有邀请人且产生了新消费的用户，
@@ -37,6 +37,7 @@ func (s *AffiliateService) SettleConsumptionRebates(ctx context.Context, lag tim
 		lag = affiliateSettleLag
 	}
 
+	factors := s.settingService.GetAffiliateGroupRebateFactors(ctx)
 	userIDs, err := s.repo.ListUsersWithPendingConsumption(ctx, lag, affiliateSettleBatchSize)
 	if err != nil {
 		return result, err
@@ -45,7 +46,7 @@ func (s *AffiliateService) SettleConsumptionRebates(ctx context.Context, lag tim
 		if err := ctx.Err(); err != nil {
 			return result, err
 		}
-		rebate, consumption, err := s.settleUserConsumption(ctx, userID, lag)
+		rebate, consumption, err := s.settleUserConsumption(ctx, userID, lag, factors)
 		if err != nil {
 			// 单个用户失败不影响其余用户，下一轮会重试；用户被删除时直接跳过。
 			if errors.Is(err, ErrUserNotFound) {
@@ -60,12 +61,12 @@ func (s *AffiliateService) SettleConsumptionRebates(ctx context.Context, lag tim
 	return result, nil
 }
 
-// settleUserConsumption 在一个事务内结算单个用户，返回入账返利与计入返利的消费。
+// settleUserConsumption 在一个事务内结算单个用户，返回入账返利与封顶后的原始消费。
 // 无论是否产生返利都推进水位，避免反复扫描同一批记录。
-func (s *AffiliateService) settleUserConsumption(ctx context.Context, userID int64, lag time.Duration) (float64, float64, error) {
+func (s *AffiliateService) settleUserConsumption(ctx context.Context, userID int64, lag time.Duration, factors []AffiliateGroupRebateFactor) (float64, float64, error) {
 	var rebate, eligible float64
 	err := s.repo.WithTx(ctx, func(txCtx context.Context) error {
-		pending, err := s.repo.LockPendingConsumption(txCtx, userID, lag)
+		pending, err := s.repo.LockPendingConsumption(txCtx, userID, lag, factors)
 		if err != nil {
 			return err
 		}
@@ -73,13 +74,14 @@ func (s *AffiliateService) settleUserConsumption(ctx context.Context, userID int
 			return nil
 		}
 		eligible = eligibleConsumption(pending)
-		if eligible > 0 {
+		weighted := weightedEligibleConsumption(pending, eligible)
+		if weighted > 0 {
 			source, err := s.repo.EnsureUserAffiliate(txCtx, userID)
 			if err != nil {
 				return err
 			}
 			until := pending.UntilAt
-			rebate, err = s.distributeRewards(txCtx, source, eligible, AffiliateAccrueSource{UsageUntil: &until})
+			rebate, err = s.distributeRewards(txCtx, source, weighted, AffiliateAccrueSource{UsageUntil: &until})
 			if err != nil {
 				return err
 			}
@@ -102,4 +104,12 @@ func eligibleConsumption(p *AffiliatePendingConsumption) float64 {
 		return 0
 	}
 	return roundTo(math.Min(p.DeltaCost, remaining), 8)
+}
+
+// weightedEligibleConsumption 按真实消费的封顶比例缩放加权基数；水位仍记真实消费。
+func weightedEligibleConsumption(p *AffiliatePendingConsumption, eligibleRaw float64) float64 {
+	if p == nil || p.DeltaCost <= 0 {
+		return 0
+	}
+	return roundTo(p.WeightedDeltaCost*eligibleRaw/p.DeltaCost, 8)
 }

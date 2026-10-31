@@ -38,8 +38,8 @@ func (h *OpenAIGatewayHandler) SeedanceTasks(c *gin.Context) {
 	h.handleGrokMedia(c, endpoint, taskID)
 }
 
-// A succeeded task is billed once per second of actual output at its resolution
-// tier. Repeated polls share the durable task dedup key.
+// A succeeded task is billed once, including reference-video usage.
+// Repeated polls share the durable task dedup key.
 func prepareSeedanceCompletionBilling(ctx context.Context, h *OpenAIGatewayHandler, key *service.APIKey, subject middleware.AuthSubject, taskID string, result *service.OpenAIForwardResult) *service.OpenAIForwardResult {
 	if result == nil || result.VideoCount <= 0 {
 		return nil
@@ -53,6 +53,8 @@ func prepareSeedanceCompletionBilling(ctx context.Context, h *OpenAIGatewayHandl
 		return nil
 	}
 	merged := *result
+	merged.VideoDurationSeconds = service.SeedanceBillingDurationSeconds(result.VideoDurationSeconds, result.Usage.OutputTokens, result.VideoResolution, result.VideoRatio, pending.HasReferenceVideo)
+	merged.VideoResolution = service.VideoBillingTier(result.VideoResolution, pending.HasReferenceVideo)
 	merged.Model = pending.Model
 	merged.BillingModel = firstNonEmptyString(pending.BillingModel, pending.Model)
 	merged.UpstreamModel = firstNonEmptyString(pending.UpstreamModel, result.UpstreamModel)

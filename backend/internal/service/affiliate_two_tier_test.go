@@ -337,7 +337,7 @@ func (r *fakeAffiliateRepo) WithTx(ctx context.Context, fn func(context.Context)
 func (r *fakeAffiliateRepo) ListUsersWithPendingConsumption(context.Context, time.Duration, int) ([]int64, error) {
 	return r.pendingUsers, nil
 }
-func (r *fakeAffiliateRepo) LockPendingConsumption(_ context.Context, userID int64, _ time.Duration) (*AffiliatePendingConsumption, error) {
+func (r *fakeAffiliateRepo) LockPendingConsumption(_ context.Context, userID int64, _ time.Duration, factors []AffiliateGroupRebateFactor) (*AffiliatePendingConsumption, error) {
 	p, ok := r.pending[userID]
 	if !ok {
 		return nil, nil
@@ -1213,7 +1213,7 @@ func TestSettleConsumptionRebates_DistributesAndAdvancesWatermark(t *testing.T) 
 	until := time.Now().Add(-affiliateSettleLag).Truncate(time.Second)
 	repo.pendingUsers = []int64{userU2}
 	repo.pending[userU2] = &AffiliatePendingConsumption{
-		UserID: userU2, SettledAt: until.Add(-time.Hour), UntilAt: until, DeltaCost: 80, PaidTotal: 50,
+		UserID: userU2, SettledAt: until.Add(-time.Hour), UntilAt: until, DeltaCost: 80, WeightedDeltaCost: 80, PaidTotal: 50,
 	}
 	from := len(repo.ledger)
 	result, err := svc.SettleConsumptionRebates(context.Background(), 0)

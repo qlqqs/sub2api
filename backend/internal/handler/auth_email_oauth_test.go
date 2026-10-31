@@ -522,7 +522,7 @@ func (r *oauthEmailAffiliateRepoStub) ListUsersWithPendingConsumption(context.Co
 	panic("unexpected ListUsersWithPendingConsumption call")
 }
 
-func (r *oauthEmailAffiliateRepoStub) LockPendingConsumption(context.Context, int64, time.Duration) (*service.AffiliatePendingConsumption, error) {
+func (r *oauthEmailAffiliateRepoStub) LockPendingConsumption(context.Context, int64, time.Duration, []service.AffiliateGroupRebateFactor) (*service.AffiliatePendingConsumption, error) {
 	panic("unexpected LockPendingConsumption call")
 }
 

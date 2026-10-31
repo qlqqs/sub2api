@@ -151,6 +151,18 @@ export default {
             exampleLevel2Self: 'A distribution agent spends {amount} itself → channel manager {level1}',
             exampleNoUpline: 'Distribution Agent without a channel manager upline → itself {amount}',
           },
+          groupFactors: {
+            title: 'Group rebate factors',
+            hint: 'Spend in the group is scaled by the factor before profit sharing. Unlisted groups use 100%; 0 disables sharing. Applies to future settlements only.',
+            add: 'Add group',
+            group: 'Select group',
+            factor: 'Factor %',
+            deletedGroup: 'Deleted group #{id}',
+            preview: 'Channel Manager {level1}% · Distribution Agent {level2}% · Channel Manager difference {diff}%',
+            groupRequired: 'Select a group',
+            groupDuplicate: 'Duplicate group',
+            factorInvalid: 'Factor must be between 0 and 100',
+          },
           agentLevels: {
             title: 'Agent Upgrades',
             description: 'Manual by default: only users set under Agents are agents. Upgrades and demotions only affect relationships bound afterwards; existing customers keep their split.',

@@ -259,6 +259,8 @@ vi.mock("vue-i18n", async () => {
       "请由服务器运维在部署配置中将 webauthn.enabled 设为 true，填写 webauthn.rp_id（仅域名）与 webauthn.rp_origins（完整 HTTPS 来源），然后重启服务。",
     "admin.settings.site.uploadImage": "上传图片",
     "admin.settings.features.affiliate.profit.exampleSplit": "分销代理 {level2} · 渠道经理 {level1} · 平台 {platform}",
+    "admin.settings.features.affiliate.groupFactors.preview": "渠道经理 {level1}% · 分销代理 {level2}% · 渠道经理差额 {diff}%",
+    "admin.settings.features.affiliate.groupFactors.deletedGroup": "已删除分组 #{id}",
     "admin.settings.site.remove": "移除",
     "admin.settings.platformQuota.platform": "平台",
     "admin.settings.platformQuota.daily": "日限额 (USD)",
@@ -1335,6 +1337,136 @@ describe("admin SettingsView payment visible method controls", () => {
     const payload = updateSettings.mock.calls[0]?.[0] ?? {};
     expect(payload).not.toHaveProperty("affiliate_rebate_levels");
     expect(payload).not.toHaveProperty("affiliate_rebate_rate_l2");
+  });
+
+  describe("分组分润系数", () => {
+    const factorGroups = [
+      { id: 12, name: "Seedance 视频", status: "active", subscription_type: "standard" },
+      { id: 13, name: "Claude", status: "active", subscription_type: "standard" },
+    ];
+    const factorSettings = () => ({
+      ...baseSettingsResponse,
+      affiliate_enabled: true,
+      affiliate_rebate_base: "consumption",
+      affiliate_rebate_rate: 11,
+      affiliate_agent_level2_rate: 7,
+      affiliate_group_rebate_factors: [
+        { group_id: 12, factor: 30, group_name: "Seedance 视频" },
+        { group_id: 99, factor: 0, group_name: "" },
+      ],
+    });
+    const rows = (wrapper: ReturnType<typeof mountView>) =>
+      wrapper.findAll('[data-test="affiliate-group-factor-row"]');
+    const save = async (wrapper: ReturnType<typeof mountView>) => {
+      await wrapper.find("form").trigger("submit.prevent");
+      await flushPromises();
+    };
+
+    beforeEach(() => {
+      getGroups.mockResolvedValue(factorGroups);
+    });
+
+    it("仅在消费基数下显示", async () => {
+      getSettings.mockResolvedValueOnce(factorSettings());
+      const wrapper = mountView();
+      await flushPromises();
+      expect(wrapper.find('[data-test="affiliate-group-factors"]').exists()).toBe(true);
+
+      await wrapper.find('[data-test="affiliate-rebate-base-recharge"]').setValue();
+      await flushPromises();
+      expect(wrapper.find('[data-test="affiliate-group-factors"]').exists()).toBe(false);
+    });
+
+    it("回显分组与已删除分组，按利润池和二级比例换算预览", async () => {
+      getSettings.mockResolvedValueOnce(factorSettings());
+      const wrapper = mountView();
+      await flushPromises();
+
+      const [seedance, deleted] = rows(wrapper);
+      expect(seedance.get('[data-test="affiliate-group-factor-group"]').element).toHaveProperty("value", "12");
+      expect(seedance.get('[data-test="affiliate-group-factor-preview"]').text()).toBe(
+        "渠道经理 3.3% · 分销代理 2.1% · 渠道经理差额 1.2%",
+      );
+      expect(deleted.get('[data-test="affiliate-group-factor-group-static"]').text()).toBe("已删除分组 #99");
+      expect(deleted.get('[data-test="affiliate-group-factor-preview"]').text()).toBe(
+        "渠道经理 0% · 分销代理 0% · 渠道经理差额 0%",
+      );
+
+      await wrapper.get('[data-test="affiliate-pool-rate"]').setValue("20");
+      await seedance.get('[data-test="affiliate-group-factor-value"]').setValue("12.5");
+      expect(seedance.get('[data-test="affiliate-group-factor-preview"]').text()).toBe(
+        "渠道经理 2.5% · 分销代理 0.88% · 渠道经理差额 1.63%",
+      );
+    });
+
+    it("添加、删除行后随设置保存，已选分组不可重复选择", async () => {
+      getSettings.mockResolvedValueOnce(factorSettings());
+      const wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.get('[data-test="affiliate-group-factor-add"]').trigger("click");
+      expect(rows(wrapper)).toHaveLength(3);
+      const added = rows(wrapper)[2];
+      const options = added.findAll('[data-test="affiliate-group-factor-group"] option').map((o) => o.attributes("value"));
+      expect(options).toEqual(["13"]);
+      // 两个分组都已选，不能再添加。
+      await added.get('[data-test="affiliate-group-factor-group"]').setValue("13");
+      expect(wrapper.get('[data-test="affiliate-group-factor-add"]').attributes("disabled")).toBeDefined();
+      await added.get('[data-test="affiliate-group-factor-value"]').setValue("12.5");
+
+      await rows(wrapper)[1].get('[data-test="affiliate-group-factor-remove"]').trigger("click");
+      expect(rows(wrapper)).toHaveLength(2);
+
+      await save(wrapper);
+      expect(updateSettings).toHaveBeenCalledWith(
+        expect.objectContaining({
+          affiliate_group_rebate_factors: [
+            { group_id: 12, factor: 30 },
+            { group_id: 13, factor: 12.5 },
+          ],
+        }),
+      );
+    });
+
+    it.each([
+      ["未选分组", "group", "", "admin.settings.features.affiliate.groupFactors.groupRequired"],
+      ["系数越界", "value", "120", "admin.settings.features.affiliate.groupFactors.factorInvalid"],
+      ["系数为空", "value", "", "admin.settings.features.affiliate.groupFactors.factorInvalid"],
+    ])("%s时就地提示并阻止保存", async (_name, field, value, message) => {
+      getSettings.mockResolvedValueOnce(factorSettings());
+      const wrapper = mountView();
+      await flushPromises();
+
+      if (field === "group") {
+        await wrapper.get('[data-test="affiliate-group-factor-add"]').trigger("click");
+      } else {
+        await rows(wrapper)[0].get('[data-test="affiliate-group-factor-value"]').setValue(value);
+      }
+      const error = wrapper.get('[data-test="affiliate-group-factor-error"]');
+      expect(error.text()).toBe(message);
+
+      await save(wrapper);
+      expect(updateSettings).not.toHaveBeenCalled();
+      expect(showError).toHaveBeenCalledWith(message);
+    });
+
+    it("重复分组阻止保存", async () => {
+      getSettings.mockResolvedValueOnce({
+        ...factorSettings(),
+        affiliate_group_rebate_factors: [
+          { group_id: 12, factor: 30, group_name: "Seedance 视频" },
+          { group_id: 12, factor: 50, group_name: "Seedance 视频" },
+        ],
+      });
+      const wrapper = mountView();
+      await flushPromises();
+
+      expect(rows(wrapper)[1].get('[data-test="affiliate-group-factor-error"]').text()).toBe(
+        "admin.settings.features.affiliate.groupFactors.groupDuplicate",
+      );
+      await save(wrapper);
+      expect(updateSettings).not.toHaveBeenCalled();
+    });
   });
 
   it.each(["all", "agent", "user"])("注册赠送来源 %s 读回与保存", async (source) => {

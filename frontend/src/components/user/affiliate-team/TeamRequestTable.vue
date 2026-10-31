@@ -16,8 +16,13 @@
       <span class="text-gray-900 dark:text-gray-100">{{ row.model || '-' }}</span>
     </template>
     <template #cell-group_name="{ row }">
-      <span v-if="row.group_name" class="text-gray-700 dark:text-gray-300">{{ row.group_name }}</span>
-      <span v-else class="text-gray-400 dark:text-dark-500">{{ t('affiliate.team.filters.noGroup') }}</span>
+      <span class="inline-flex items-center gap-1.5">
+        <span v-if="row.group_name" class="text-gray-700 dark:text-gray-300">{{ row.group_name }}</span>
+        <span v-else class="text-gray-400 dark:text-dark-500">{{ t('affiliate.team.filters.noGroup') }}</span>
+        <TeamBadge v-if="row.rebate_factor !== 100" data-test="team-request-rebate-factor">
+          {{ t('affiliate.team.rebateFactor', { rate: formatRatePercent(row.rebate_factor) }) }}
+        </TeamBadge>
+      </span>
     </template>
     <template #cell-tokens="{ row }">
       <span v-if="row.image_count > 0" class="tabular-nums" data-test="team-request-images">
@@ -67,9 +72,11 @@ import DataTable from '@/components/common/DataTable.vue'
 import type { Column } from '@/components/common/types'
 import Icon from '@/components/icons/Icon.vue'
 import type { AffiliateTeamRequest } from '@/types'
+import { formatRatePercent } from '@/utils/affiliateRewards'
 import { formatTeamCharge, formatTeamCount } from '@/utils/affiliateTeam'
 import { formatDateTime } from '@/utils/format'
 import { formatCacheTokens } from '@/utils/formatters'
+import TeamBadge from './TeamBadge.vue'
 
 defineProps<{
   rows: AffiliateTeamRequest[]

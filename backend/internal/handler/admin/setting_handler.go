@@ -295,6 +295,7 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 		AffiliateAgentLevel1Threshold:                          settings.AffiliateAgentLevel1Threshold,
 		AffiliateAgentCountMode:                                settings.AffiliateAgentCountMode,
 		AffiliateSettleIntervalMinutes:                         settings.AffiliateSettleIntervalMinutes,
+		AffiliateGroupRebateFactors:                            h.settingService.AffiliateGroupRebateFactorViews(c.Request.Context(), settings.AffiliateGroupRebateFactors),
 		DefaultUserRPMLimit:                                    settings.DefaultUserRPMLimit,
 		DefaultSubscriptions:                                   defaultSubscriptions,
 		EnableModelFallback:                                    settings.EnableModelFallback,

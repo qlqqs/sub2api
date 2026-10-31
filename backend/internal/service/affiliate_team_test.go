@@ -11,6 +11,7 @@ import (
 )
 
 type fakeAffiliateTeamRepo struct {
+	requests  []AffiliateTeamRequest
 	state     AffiliateTeamViewerState
 	subAgents map[int64]*AffiliateTeamAgentSubject
 	customers map[int64]*AffiliateTeamCustomerSubject
@@ -59,7 +60,7 @@ func (f *fakeAffiliateTeamRepo) ListAgents(_ context.Context, _ int64, _ Affilia
 }
 func (f *fakeAffiliateTeamRepo) ListRequests(_ context.Context, _ int64, _ AffiliateTeamRange, q AffiliateTeamListQuery) ([]AffiliateTeamRequest, int64, error) {
 	f.lastQuery = q
-	return nil, 0, nil
+	return append([]AffiliateTeamRequest(nil), f.requests...), int64(len(f.requests)), nil
 }
 func (f *fakeAffiliateTeamRepo) GetViewerSubject(context.Context, int64) (AffiliateTeamViewerSubject, error) {
 	subject := f.subject
@@ -241,4 +242,17 @@ func TestAffiliateTeamListNormalizesQueryAndHidesDeletedUsers(t *testing.T) {
 	_, _, err = svc.ListAgents(context.Background(), 7, mustTeamRange(t, "", ""), AffiliateTeamListQuery{SortBy: AffiliateTeamSortCost})
 	require.NoError(t, err)
 	require.Equal(t, AffiliateTeamSortTeamCost, repo.lastQuery.SortBy)
+}
+
+func TestAffiliateTeamRequestFactorsBothAudiences(t *testing.T) {
+	group := int64(12)
+	repo := &fakeAffiliateTeamRepo{state: AffiliateTeamViewerState{AgentLevel: 1}, customers: map[int64]*AffiliateTeamCustomerSubject{42: {}}, requests: []AffiliateTeamRequest{{GroupID: &group}, {}}}
+	svc := NewAffiliateTeamService(repo, NewSettingService(&twoTierSettingRepo{values: map[string]string{SettingKeyAffiliateEnabled: "true", SettingKeyAffiliateGroupRebateFactors: `[{"group_id":12,"factor":30}]`}}, nil))
+	for _, audience := range []affiliateTeamAudience{affiliateTeamAudienceAgent, affiliateTeamAudienceAdmin} {
+		items, total, err := svc.listRequests(context.Background(), audience, 1, 42, AffiliateTeamRange{}, AffiliateTeamListQuery{})
+		require.NoError(t, err)
+		require.Equal(t, int64(2), total)
+		require.Equal(t, 30.0, items[0].RebateFactor)
+		require.Equal(t, 100.0, items[1].RebateFactor)
+	}
 }

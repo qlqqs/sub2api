@@ -498,3 +498,53 @@ func TestInflightEstimate_AccountMappingNoNegativeCaching(t *testing.T) {
 	require.True(t, priced, "new mapping (incl. wildcard) visible on next request")
 	require.Greater(t, est, 0.0)
 }
+
+func TestInflightEstimateVideoTierMatchesCompletion(t *testing.T) {
+	groupID := int64(31)
+	base, hd, ref, uhd, uhdRef, zero := 0.5318, 0.75, 0.9075, 3.75, 4.665, 0.0
+	pricing := ChannelModelPricing{Platform: PlatformOpenAI, Models: []string{"seedance-2.0"}, BillingMode: BillingModeVideo, PerRequestPrice: &base,
+		Intervals: []PricingInterval{
+			{TierLabel: "720p", PerRequestPrice: &hd}, {TierLabel: "720p-ref", PerRequestPrice: &ref},
+			{TierLabel: "4k", PerRequestPrice: &uhd}, {TierLabel: "4k-ref", PerRequestPrice: &uhdRef},
+			{TierLabel: "1080p-ref", PerRequestPrice: &zero},
+		}}
+	for _, source := range []string{"channel", "group"} {
+		t.Run(source, func(t *testing.T) {
+			cs := newTestChannelService(makeStandardRepo(Channel{ID: 1, Status: StatusActive, GroupIDs: []int64{groupID}, ModelPricing: []ChannelModelPricing{pricing}}, map[int64]string{groupID: PlatformOpenAI}))
+			svc := newInflightEstimateGateway(t, cs)
+			group := &Group{ID: groupID, Platform: PlatformOpenAI, RateMultiplier: 1}
+			if source == "group" {
+				group.ModelPricing = []ChannelModelPricing{pricing}
+			}
+			key := &APIKey{User: &User{ID: 1}, GroupID: &groupID, Group: group}
+			gw := &OpenAIGatewayService{billingService: svc.billingService, resolver: svc.resolver, channelService: cs}
+			for _, tc := range []struct {
+				tier    string
+				seconds int
+				price   float64
+			}{
+				{"480p", 5, base}, {"480p-ref", 9, base}, {"720p", 15, hd}, {"720p-ref", 25, ref},
+				{"4K", 15, uhd}, {"4k-ref", 25, uhdRef}, {"1080p", 5, base}, {"1080p-ref", 9, zero},
+			} {
+				est, _ := svc.EstimateInflightReservation(context.Background(), key, InflightEstimateRequest{Model: "seedance-2.0", Kind: InflightEstimateVideo,
+					Units: 1, VideoResolution: tc.tier, VideoDurationSeconds: tc.seconds})
+				want := tc.price * float64(tc.seconds)
+				require.InDelta(t, want, est, 1e-9, tc.tier)
+				cost := gw.calculateOpenAIVideoCost(context.Background(), "seedance-2.0", key,
+					&OpenAIForwardResult{VideoCount: 1, VideoResolution: tc.tier, VideoDurationSeconds: tc.seconds}, 1)
+				require.InDelta(t, want, cost.ActualCost, 1e-9, tc.tier)
+			}
+			// Flat overrides still take precedence over channel tiers, but not group model pricing.
+			flat := 0.01
+			group.VideoPrice720P = &flat
+			est, priced := svc.EstimateInflightReservation(context.Background(), key, InflightEstimateRequest{Model: "seedance-2.0", Kind: InflightEstimateVideo,
+				VideoResolution: "720p-ref", VideoDurationSeconds: 9})
+			require.True(t, priced)
+			want := flat * 9
+			if source == "group" {
+				want = ref * 9
+			}
+			require.InDelta(t, want, est, 1e-9)
+		})
+	}
+}

@@ -735,8 +735,12 @@ export default {
       officialUnitPerMillion: '{symbol} / 1M tokens',
       perUnitRequest: '/ request',
       perUnitImage: '/ image',
+      perUnitSecond: '/ second',
       perRequest: 'Per request',
-      perImage: 'Per image'
+      perImage: 'Per image',
+      perSecond: 'Per second',
+      plainVideo: 'Standard',
+      withRefVideo: 'With reference video'
     },
     // CUSTOM: "View prices" link from user pages to the model plaza
     priceLink: {
@@ -870,6 +874,7 @@ export default {
       backToAffiliate: 'Back to affiliate rewards',
       deleted: 'Deleted',
       subAgent: 'Distribution Agent',
+      rebateFactor: 'Rebate {rate}%',
       historical: 'Former',
       historicalHint: 'No longer your distribution agent; their earlier customers still earn you the difference',
       myCustomer: 'My customer',

@@ -160,7 +160,7 @@ func (r *paymentFulfillmentAffiliateRepoStub) ListUsersWithPendingConsumption(co
 	panic("unexpected ListUsersWithPendingConsumption call")
 }
 
-func (r *paymentFulfillmentAffiliateRepoStub) LockPendingConsumption(context.Context, int64, time.Duration) (*AffiliatePendingConsumption, error) {
+func (r *paymentFulfillmentAffiliateRepoStub) LockPendingConsumption(context.Context, int64, time.Duration, []AffiliateGroupRebateFactor) (*AffiliatePendingConsumption, error) {
 	panic("unexpected LockPendingConsumption call")
 }
 

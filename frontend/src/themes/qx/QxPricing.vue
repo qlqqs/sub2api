@@ -26,7 +26,7 @@
           <thead>
             <tr>
               <th scope="col">{{ t('qxTheme.pricing.model') }}</th>
-              <th v-if="hasTiers" scope="col">{{ t('qxTheme.pricing.context') }}</th>
+              <th v-if="hasTiers" scope="col">{{ hasTokenTiers ? t('qxTheme.pricing.context') : t('qxTheme.pricing.resolution') }}</th>
               <th scope="col" class="qx-num">{{ t('qxTheme.pricing.input') }}</th>
               <th scope="col" class="qx-num">{{ t('qxTheme.pricing.output') }}</th>
               <th scope="col" class="qx-num qx-hide-sm-col">{{ t('qxTheme.pricing.cacheRead') }}</th>
@@ -37,8 +37,20 @@
               <td><span class="qx-model">{{ row.name }}</span></td>
               <td v-if="hasTiers" class="qx-tier">
                 <div v-for="(tier, i) in row.tiers" :key="i">{{ tier.label }}</div>
+                <div v-for="tier in row.videoTiers" :key="tier.label">{{ tier.label }}</div>
               </td>
-              <template v-if="row.unitPrice">
+              <template v-if="row.videoTiers.length">
+                <td class="qx-num" colspan="2" data-test="qx-video-tiers">
+                  <div v-for="tier in row.videoTiers" :key="tier.label">
+                    {{ tier.price }} <span class="qx-unit">{{ unitSuffix(row.mode) }}</span>
+                    <span v-if="tier.refPrice" class="qx-unit">
+                      · {{ t('qxTheme.pricing.withRefVideo') }} {{ tier.refPrice }}
+                    </span>
+                  </div>
+                </td>
+                <td class="qx-num qx-hide-sm-col"><div>-</div></td>
+              </template>
+              <template v-else-if="row.unitPrice">
                 <td class="qx-num">
                   <div>{{ row.unitPrice }} <span class="qx-unit">{{ unitSuffix(row.mode) }}</span></div>
                 </td>
@@ -68,7 +80,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ModelPlazaGroup } from '@/api/modelPlaza'
-import { BILLING_MODE_IMAGE, type BillingMode } from '@/constants/channel'
+import { BILLING_MODE_IMAGE, BILLING_MODE_VIDEO, type BillingMode } from '@/constants/channel'
 import { buildQxPriceRows } from './pricing'
 
 const props = defineProps<{
@@ -87,10 +99,15 @@ watch(
 
 const activeGroup = computed(() => props.groups[activeIndex.value] ?? null)
 const rows = computed(() => (activeGroup.value ? buildQxPriceRows(activeGroup.value) : []))
-const hasTiers = computed(() => rows.value.some((r) => r.tiers.some((tier) => tier.label)))
+const hasTokenTiers = computed(() => rows.value.some((r) => r.tiers.some((tier) => tier.label)))
+const hasTiers = computed(() => hasTokenTiers.value || rows.value.some((r) => r.videoTiers.length > 0))
 const hasTimePricing = computed(() => rows.value.some((r) => r.hasTimePricing))
 
 function unitSuffix(mode: BillingMode): string {
-  return mode === BILLING_MODE_IMAGE ? t('qxTheme.pricing.perImage') : t('qxTheme.pricing.perRequest')
+  switch (mode) {
+    case BILLING_MODE_IMAGE: return t('qxTheme.pricing.perImage')
+    case BILLING_MODE_VIDEO: return t('qxTheme.pricing.perSecond')
+    default: return t('qxTheme.pricing.perRequest')
+  }
 }
 </script>

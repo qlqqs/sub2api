@@ -369,10 +369,12 @@ const (
 
 // InflightEstimateRequest 单请求估算输入。
 type InflightEstimateRequest struct {
-	Model     string
-	BodyBytes int
-	MaxTokens int
-	Kind      InflightEstimateKind
+	// RequireFullBalance 用于 Seedance 建任务：首笔请求也必须覆盖预估费用。
+	RequireFullBalance bool
+	Model              string
+	BodyBytes          int
+	MaxTokens          int
+	Kind               InflightEstimateKind
 	// Units 按次/按张数量（<=0 视为 1）。
 	Units int
 	// SearchCalls 叠加的搜索次数（按分组 search_price_per_1k 计）。
@@ -591,7 +593,14 @@ func (d inflightEstimateDeps) estimateOne(ctx context.Context, apiKey *APIKey, m
 			cost = tokenCost()
 		}
 	case InflightEstimateVideo:
-		if perRequestMode {
+		if resolved != nil && resolved.Mode == BillingModeVideo {
+			if resolved.Source == PricingSourceGroup || !apiKeyHasConfiguredVideoPrice(apiKey, model, req.VideoResolution) {
+				cost = d.resolver.GetVideoTierPrice(resolved, req.VideoResolution) * float64(units*NormalizeVideoBillingDurationSecondsOrDefault(req.VideoDurationSeconds)) * math.Max(textRate, imageRate)
+			} else if d.billing != nil {
+				cost = d.billing.CalculateVideoCost(model, req.VideoResolution, units, req.VideoDurationSeconds, videoPriceConfigFromAPIKey(apiKey), math.Max(textRate, imageRate)).ActualCost
+			}
+			break
+		} else if perRequestMode {
 			cost = maxPerRequestPrice(resolved) * float64(units) * math.Max(textRate, imageRate)
 		}
 		if d.billing != nil {

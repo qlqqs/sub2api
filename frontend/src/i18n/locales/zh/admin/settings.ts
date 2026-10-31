@@ -151,6 +151,18 @@ export default {
             exampleLevel2Self: '分销代理本人消费 {amount} → 渠道经理 {level1}',
             exampleNoUpline: '无上级渠道经理的分销代理 → 自己 {amount}',
           },
+          groupFactors: {
+            title: '分组分润系数',
+            hint: '该分组的消费先按系数折算再分润；未设置的分组按 100%，0 表示不分润。只影响之后的结算。',
+            add: '添加分组',
+            group: '选择分组',
+            factor: '系数 %',
+            deletedGroup: '已删除分组 #{id}',
+            preview: '渠道经理 {level1}% · 分销代理 {level2}% · 渠道经理差额 {diff}%',
+            groupRequired: '请选择分组',
+            groupDuplicate: '分组重复',
+            factorInvalid: '系数须在 0–100 之间',
+          },
           agentLevels: {
             title: '代理升级',
             description: '默认手动：只有管理员在「代理管理」设置的用户才是代理。升级、降级只影响之后新绑定的关系，已有客户的分润不变。',

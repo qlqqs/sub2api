@@ -5,6 +5,7 @@ package service
 import (
 	"context"
 	"io"
+	"math"
 	"net/http"
 	"testing"
 
@@ -114,4 +115,64 @@ func TestSeedancePreservesUpstreamErrorsWithoutRetry(t *testing.T) {
 	require.Equal(t, 429, w.Code)
 	require.Contains(t, w.Body.String(), "QuotaExceeded")
 	require.Len(t, upstream.requests, 1)
+}
+
+func TestSeedanceRequestBillingDefaults(t *testing.T) {
+	for _, tc := range []struct {
+		model, extra string
+		duration     int
+	}{
+		{"seedance-2.0", "", 15},
+		{"seedance-2.0", `,"duration":-1`, 15},
+		{"SEEDANCE-2.5", `,"duration":-1`, 30},
+		{"doubao-seedance-2-5-260628", `,"omni_reference_task_type":"edit"`, 30},
+		{"seedance-2.0", `,"duration":4,"resolution":"1080p","ratio":"9:16"`, 4},
+	} {
+		t.Run(tc.model+tc.extra, func(t *testing.T) {
+			info, err := ParseSeedanceRequest([]byte(`{"model":"` + tc.model + `","content":[{"type":"video_url","video_url":{"url":"https://example.com/ref.mp4"}}]` + tc.extra + `}`))
+			require.NoError(t, err)
+			require.Equal(t, tc.duration, info.DurationSeconds)
+			require.True(t, info.HasReferenceVideo)
+			if tc.duration == 4 {
+				require.Equal(t, "1080p", info.Resolution)
+				require.Equal(t, "9:16", info.Ratio)
+			} else {
+				require.Equal(t, "720p", info.Resolution)
+			}
+		})
+	}
+}
+
+func TestSeedanceBillingDurationSeconds(t *testing.T) {
+	for _, tc := range []struct {
+		name              string
+		out               int
+		ref               float64
+		hasVideo          bool
+		resolution, ratio string
+		want              int
+	}{
+		{"text only", 5, 0, false, "720p", "16:9", 5},
+		{"image or audio reference", 10, 0, false, "1080p", "1:1", 10},
+		{"5 output 3 reference", 5, 3, true, "720p", "16:9", 9},
+		{"5 output 12.6 reference", 5, 12.6, true, "480p", "9:16", 17},
+		{"10 output 4 reference", 10, 4, true, "1080p", "21:9", 17},
+		{"automatic output", 6, 0, false, "720p", "16:9", 6},
+		{"unknown ratio", 5, 12, true, "720p", "adaptive", 9},
+		{"unknown resolution", 10, 4, true, "8k", "16:9", 17},
+		{"4k long reference", 5, 12.6, true, "4k", "16:9", 17},
+		{"4k portrait reference", 5, 12.6, true, "4k", "9:16", 17},
+		{"cap 60", 30, 40, true, "720p", "4:3", 60},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			pixels := seedanceVideoPixels[tc.resolution][tc.ratio]
+			ref := 0
+			if tc.hasVideo {
+				ref = max(int(math.Floor(tc.ref)), (tc.out*2+2)/3)
+			}
+			tokens := pixels * (tc.out*24 + 1 + ref*24) / 1024
+			require.Equal(t, tc.want, SeedanceBillingDurationSeconds(tc.out, tokens, tc.resolution, tc.ratio, tc.hasVideo))
+		})
+	}
+	require.Equal(t, 5, SeedanceBillingDurationSeconds(5, 1, "720p", "16:9", true), "never below output length")
 }

@@ -50,17 +50,16 @@ func TestNormalizeAndLookupVideoModelPrices(t *testing.T) {
 
 func TestNormalizeVideoModelPricesDropsUnknownResolutions(t *testing.T) {
 	t.Parallel()
-	// "4k" and "1080i" are not billable tiers. Collapsing them into 480p would
-	// charge a 480p request at the operator's high-resolution price.
+	// Unknown tiers must not overwrite a recognized resolution price.
 	norm := NormalizeVideoModelPrices(map[string]map[string]float64{
 		"grok-imagine-video": {"480p": 0.05, "4k": 0.50, "1080i": 0.30},
 	})
 	require.NotNil(t, norm)
-	require.Equal(t, map[string]float64{VideoBillingResolution480P: 0.05}, norm[VideoPriceFamilyGrokImagineVideo])
+	require.Equal(t, map[string]float64{VideoBillingResolution480P: 0.05, VideoBillingResolution4K: 0.50}, norm[VideoPriceFamilyGrokImagineVideo])
 
 	// A model whose tiers are all unrecognized contributes no family at all.
 	require.Nil(t, NormalizeVideoModelPrices(map[string]map[string]float64{
-		"grok-imagine-video": {"4k": 0.50},
+		"grok-imagine-video": {"1080i": 0.50},
 	}))
 }
 
@@ -93,18 +92,18 @@ func TestNormalizeVideoModelPricesIsDeterministicAcrossAliasConflicts(t *testing
 
 func TestLookupVideoBillingResolutionReportsUnknownTiers(t *testing.T) {
 	t.Parallel()
-	for _, in := range []string{"480", "480p", "SD", "720", "hd", "1080", "full-hd", " fhd "} {
+	for _, in := range []string{"480", "480p", "SD", "720", "hd", "1080", "full-hd", " fhd ", "4k", "4K", "2160p", "2160", "uhd", "720p-ref", "4K-REF"} {
 		normalized, ok := LookupVideoBillingResolution(in)
 		require.True(t, ok, "input=%q", in)
 		require.NotEmpty(t, normalized)
 	}
-	for _, in := range []string{"", "4k", "1080i", "2160p", "potato"} {
+	for _, in := range []string{"", "1080i", "potato", "8k-ref"} {
 		normalized, ok := LookupVideoBillingResolution(in)
 		require.False(t, ok, "input=%q", in)
 		require.Empty(t, normalized)
 	}
 	// Runtime billing still needs a tier for unrecognized upstream values.
-	require.Equal(t, VideoBillingResolution480P, NormalizeVideoBillingResolutionOrDefault("4k"))
+	require.Equal(t, VideoBillingResolution4K, NormalizeVideoBillingResolutionOrDefault("4k"))
 	require.Equal(t, VideoBillingResolution1080P, NormalizeVideoBillingResolutionOrDefault("full_hd"))
 }
 
@@ -121,4 +120,27 @@ func TestVideoModelPriceMissingTierFallsBackToFlatTierPrice(t *testing.T) {
 	}, 1)
 
 	require.InDelta(t, flat720P, result.TotalCost, 1e-9)
+}
+
+func TestVideoBillingReferenceTierNormalizationAndModelPrices(t *testing.T) {
+	for input, want := range map[string]string{
+		"4K": "4k", "2160p": "4k", "2160": "4k", "UHD": "4k",
+		" 2160P-REF ": "4k-ref", "HD-ref": "720p-ref", "1080p-REF": "1080p-ref", "sd-ref": "480p-ref",
+	} {
+		require.Equal(t, want, NormalizeVideoBillingResolutionOrDefault(input))
+	}
+	prices := NormalizeVideoModelPrices(map[string]map[string]float64{"seedance-2.0": {
+		"480p": 0.5318, "720p": 0.75, "720p-ref": 0.9075, "4K": 3.75, "2160p-ref": 4.665,
+	}})
+	for tier, want := range map[string]float64{"480p-ref": 0.5318, "720p-ref": 0.9075, "4k": 3.75, "4k-ref": 4.665} {
+		price := LookupVideoModelPrice(prices, "seedance-2.0", tier)
+		require.NotNil(t, price)
+		require.Equal(t, want, *price)
+	}
+	flat := 0.75
+	group := &Group{VideoPrice480P: &flat, VideoPrice720P: &flat}
+	require.Equal(t, &flat, group.GetVideoPrice("720p-ref"))
+	require.Nil(t, group.GetVideoPrice("4k"), "4k must not borrow the flat 480p override")
+	bill := (&BillingService{}).CalculateVideoCost("seedance-2.0", "720p-ref", 1, 9, &VideoPriceConfig{Price720P: &flat}, 1)
+	require.InDelta(t, 6.75, bill.TotalCost, 1e-9)
 }

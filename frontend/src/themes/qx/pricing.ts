@@ -10,6 +10,7 @@ import type { ModelPlazaGroup, PlazaModel } from '@/api/modelPlaza'
 import type { UserPricingInterval } from '@/api/channels'
 import { formatScaled, resolveIntervalPrices } from '@/utils/pricing'
 import { BALANCE_SYMBOL, effectiveRate as resolveEffectiveRate } from '@/utils/balanceCurrency'
+import { videoPriceTiers } from '@/utils/videoPricingTiers'
 import {
   BILLING_MODE_IMAGE,
   BILLING_MODE_TOKEN,
@@ -28,11 +29,22 @@ export interface QxPriceTier {
   cacheRead: string
 }
 
+export interface QxVideoTier {
+  /** 分辨率，如「720p」。 */
+  label: string
+  /** 普通单价；未配置为 '-'。 */
+  price: string
+  /** 带参考视频的单价；未配置为 null。 */
+  refPrice: string | null
+}
+
 export interface QxPriceRow {
   name: string
   mode: BillingMode
   /** token 计费的各档价格。 */
   tiers: QxPriceTier[]
+  /** 视频按分辨率分档的单价；没有分档时为空，按 unitPrice 展示。 */
+  videoTiers: QxVideoTier[]
   /** 按图/按次计费的单价（不含单位后缀）。 */
   unitPrice: string | null
   /** 配置了分时倍率，首页只展示标准时段价。 */
@@ -100,11 +112,24 @@ function tokenTiers(m: PlazaModel, rate: number): QxPriceTier[] {
   }))
 }
 
+function paidUnit(value: number, rate: number): string {
+  return formatScaled(value * rate, 1, MIN_DECIMALS, BALANCE_SYMBOL)
+}
+
 function unitPrice(g: ModelPlazaGroup, m: PlazaModel): string | null {
   const value = m.pricing?.per_request_price ??
     (m.pricing?.intervals ?? []).find((iv) => iv.per_request_price != null)?.per_request_price
   if (value == null) return null
-  return formatScaled(value * requestRate(g, m), 1, MIN_DECIMALS, BALANCE_SYMBOL)
+  return paidUnit(value, requestRate(g, m))
+}
+
+function videoTiers(g: ModelPlazaGroup, m: PlazaModel): QxVideoTier[] {
+  const rate = requestRate(g, m)
+  return videoPriceTiers(m.pricing).map((tier) => ({
+    label: tier.resolution,
+    price: tier.price == null ? '-' : paidUnit(tier.price, rate),
+    refPrice: tier.refPrice == null ? null : paidUnit(tier.refPrice, rate)
+  }))
 }
 
 /** 与模型广场相同：token 计费在前；组内按官方输出价降序，无官方价靠后；同价按名称降序。 */
@@ -127,6 +152,7 @@ export function buildQxPriceRows(group: ModelPlazaGroup): QxPriceRow[] {
       name: m.name,
       mode,
       tiers: mode === BILLING_MODE_TOKEN ? tokenTiers(m, modelRate(group, m)) : [],
+      videoTiers: mode === BILLING_MODE_VIDEO ? videoTiers(group, m) : [],
       unitPrice: mode === BILLING_MODE_TOKEN ? null : unitPrice(group, m),
       hasTimePricing: (m.time_pricing?.periods?.length ?? 0) > 0
     }

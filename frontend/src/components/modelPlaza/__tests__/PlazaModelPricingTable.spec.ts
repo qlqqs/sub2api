@@ -106,6 +106,40 @@ describe('PlazaModelPricingTable', () => {
     wrapper.unmount()
   })
 
+  it('视频分档:按分辨率分列,普通与带参考视频各一行,缺的档位显示 -', () => {
+    const model = tokenModel({ name: 'seedance-2.0', official_pricing: null })
+    model.pricing!.billing_mode = 'video'
+    model.pricing!.per_request_price = 0.5318
+    const tier = (tier_label: string, per_request_price: number) => ({
+      min_tokens: 0, max_tokens: null, tier_label,
+      input_price: null, output_price: null, cache_write_price: null,
+      cache_read_price: null, per_request_price
+    })
+    model.pricing!.intervals = [
+      tier('720p', 0.75), tier('1080p', 1.875), tier('4k', 3.75),
+      tier('480p-ref', 0.5956), tier('720p-ref', 0.9075), tier('4k-ref', 4.665)
+    ]
+    const wrapper = mountTable([model], 1)
+    const grid = wrapper.get('[data-test="plaza-video-tiers"]')
+    const cells = grid.findAll(':scope > span').map((cell) => cell.text())
+    expect(cells).toEqual([
+      'modelPlaza.table.perUnitSecond', '480p', '720p', '1080p', '4k',
+      'modelPlaza.table.plainVideo', '¥0.5318', '¥0.75', '¥1.875', '¥3.75',
+      'modelPlaza.table.withRefVideo', '¥0.5956', '¥0.9075', '-', '¥4.665'
+    ])
+    wrapper.unmount()
+  })
+
+  it('视频单一价格保持原样,不显示分档', () => {
+    const model = tokenModel({ name: 'video-single', official_pricing: null })
+    model.pricing!.billing_mode = 'video'
+    model.pricing!.per_request_price = 0.75
+    const wrapper = mountTable([model], 1)
+    expect(wrapper.find('[data-test="plaza-video-tiers"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('¥0.75')
+    wrapper.unmount()
+  })
+
   it('倍率为 1 时本站价(¥/1M)等于渠道单价原值,官方价保持 $,价格保底 2 位小数', () => {
     const wrapper = mountTable([tokenModel()], 1)
     const text = wrapper.text()

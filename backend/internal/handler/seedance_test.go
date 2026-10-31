@@ -95,3 +95,75 @@ func TestSeedanceHandlerLifecycleAndOwnership(t *testing.T) {
 	}
 	require.Len(t, bindings.billed, 1)
 }
+
+func TestSeedanceInflightEstimate(t *testing.T) {
+	for _, tc := range []struct {
+		duration  int
+		reference bool
+		want      int
+	}{
+		{5, false, 5}, {5, true, 9}, {15, true, 25}, {30, true, 50}, {60, true, 60},
+	} {
+		info := service.GrokMediaRequestInfo{Resolution: "720p", DurationSeconds: tc.duration, HasReferenceVideo: tc.reference}
+		estimate := grokMediaInflightEstimate(service.SeedanceEndpointCreate, "seedance-2.5", info, []byte(`{}`))
+		require.True(t, estimate.RequireFullBalance)
+		require.Equal(t, tc.want, estimate.VideoDurationSeconds)
+		require.Equal(t, service.VideoBillingTier("720p", tc.reference), estimate.VideoResolution)
+		require.Equal(t, service.InflightEstimateVideo, estimate.Kind)
+		require.Equal(t, service.InflightEstimateRequest{}, grokMediaInflightEstimate(service.SeedanceEndpointStatus, "seedance-2.5", info, nil))
+	}
+}
+
+func TestSeedanceCompletionUsesPendingReferenceVideo(t *testing.T) {
+	h, _, _, _ := newGrokMediaSlotHandler(t, false, false, service.PlatformOpenAI)
+	c, _ := grokMediaSlotContext(context.Background(), true)
+	key, _ := middleware.GetAPIKeyFromContext(c)
+	subject, _ := middleware.GetAuthSubjectFromContext(c)
+	pending := service.GrokVideoPendingBilling{Model: "seedance-2.5", VideoResolution: "720p", VideoDurationSeconds: 30, HasReferenceVideo: true}
+	require.NoError(t, h.gatewayService.StoreGrokVideoPendingBilling(context.Background(), "seedance:reference", subject.UserID, key.ID, pending))
+	result := &service.OpenAIForwardResult{VideoCount: 1, VideoResolution: "720p", VideoRatio: "16:9", VideoDurationSeconds: 5, Usage: service.OpenAIUsage{OutputTokens: 1280 * 720 * (17*24 + 1) / 1024}}
+	billed := prepareSeedanceCompletionBilling(context.Background(), h, key, subject, "seedance:reference", result)
+	require.NotNil(t, billed)
+	require.Equal(t, 17, billed.VideoDurationSeconds)
+	require.Equal(t, "720p-ref", billed.VideoResolution)
+	require.Equal(t, result.Usage.OutputTokens, billed.Usage.OutputTokens)
+}
+
+func TestSeedance4KReferenceCompletionKeepsPhysicalResolutionForTokens(t *testing.T) {
+	h, _, _, _ := newGrokMediaSlotHandler(t, false, false, service.PlatformOpenAI)
+	c, _ := grokMediaSlotContext(context.Background(), true)
+	key, _ := middleware.GetAPIKeyFromContext(c)
+	subject, _ := middleware.GetAuthSubjectFromContext(c)
+	pending := service.GrokVideoPendingBilling{Model: "seedance-2.0", VideoResolution: "4K", HasReferenceVideo: true}
+	require.NoError(t, h.gatewayService.StoreGrokVideoPendingBilling(context.Background(), "seedance:4k", subject.UserID, key.ID, pending))
+	result := &service.OpenAIForwardResult{VideoCount: 1, VideoResolution: "2160p", VideoRatio: "9:16", VideoDurationSeconds: 5,
+		Usage: service.OpenAIUsage{OutputTokens: 2160 * 3840 * (17*24 + 1) / 1024}}
+	billed := prepareSeedanceCompletionBilling(context.Background(), h, key, subject, "seedance:4k", result)
+	require.NotNil(t, billed)
+	require.Equal(t, 17, billed.VideoDurationSeconds)
+	require.Equal(t, "4k-ref", billed.VideoResolution)
+	require.Equal(t, "2160p", result.VideoResolution)
+}
+
+func TestSeedanceAutomaticDurationAndReferenceInflightTier(t *testing.T) {
+	for _, duration := range []string{"", `,"duration":-1`} {
+		for _, content := range []string{
+			`{"type":"text","text":"waves"}`,
+			`{"type":"image_url","image_url":{"url":"https://example.com/a.png"}}`,
+			`{"type":"audio_url","audio_url":{"url":"https://example.com/a.mp3"}}`,
+			`{"type":"video_url","video_url":{"url":"https://example.com/a.mp4"}}`,
+		} {
+			info, err := service.ParseSeedanceRequest([]byte(`{"model":"seedance-2.0","resolution":"4K","content":[` + content + `]` + duration + `}`))
+			require.NoError(t, err)
+			require.Equal(t, 15, info.DurationSeconds)
+			estimate := grokMediaInflightEstimate(service.SeedanceEndpointCreate, info.Model, info, nil)
+			if info.HasReferenceVideo {
+				require.Equal(t, "4k-ref", estimate.VideoResolution)
+				require.Equal(t, 25, estimate.VideoDurationSeconds)
+			} else {
+				require.Equal(t, "4k", estimate.VideoResolution)
+				require.Equal(t, 15, estimate.VideoDurationSeconds)
+			}
+		}
+	}
+}

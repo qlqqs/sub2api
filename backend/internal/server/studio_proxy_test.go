@@ -200,3 +200,34 @@ func TestStudioProxy_StatusEndpoint(t *testing.T) {
 	w = doStudio(t, newStudioTestEngine(t, up.URL), http.MethodGet, "/api/v1/studio/status", nil)
 	require.JSONEq(t, `{"code":0,"message":"success","data":{"enabled":true}}`, w.Body)
 }
+
+func TestStudioProxy_PublicMediaSkipsJWTAndPreservesRange(t *testing.T) {
+	for _, method := range []string{http.MethodGet, http.MethodHead} {
+		t.Run(method, func(t *testing.T) {
+			up, hits := newStudioUpstream(t)
+			r := newStudioTestEngine(t, up.URL)
+			w := doStudio(t, r, method, "/api/nova/public-media/ref.mp4?exp=123&sig=abc", map[string]string{
+				"X-Sub2API-User-Id": "1", "X-Sub2API-User-Role": "admin", "X-Sub2API-Other": "forged", "Range": "bytes=0-9",
+			})
+			require.Equal(t, http.StatusOK, w.Code)
+			require.Len(t, *hits, 1)
+			for _, name := range []string{"X-Sub2API-User-Id", "X-Sub2API-User-Role", "X-Sub2API-Other"} {
+				require.Empty(t, (*hits)[0].headers.Get(name))
+			}
+			require.Equal(t, "bytes=0-9", (*hits)[0].headers.Get("Range"))
+			require.Equal(t, "/api/nova/public-media/ref.mp4?exp=123&sig=abc", (*hits)[0].path)
+			require.Equal(t, "private, max-age=3600", w.Header.Get("Cache-Control"))
+			require.Equal(t, "DENY", w.Header.Get("X-Frame-Options"), "preserve Nova response headers")
+			require.Equal(t, "frame-ancestors 'none'", w.Header.Get("Content-Security-Policy"))
+		})
+	}
+	up, _ := newStudioUpstream(t)
+	r := newStudioTestEngine(t, up.URL)
+	for _, path := range []string{"/api/nova/public-media/ref.mp4", "/api/nova/plugin-tasks", "/api/nova/public-media-other/ref.mp4"} {
+		w := doStudio(t, r, http.MethodPost, path, nil)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	}
+	w := doStudio(t, newStudioTestEngine(t, ""), http.MethodGet, "/api/nova/public-media/ref.mp4", nil)
+	require.Equal(t, http.StatusServiceUnavailable, w.Code)
+	require.Contains(t, studioContentSecurityPolicy, "media-src 'self' blob:")
+}

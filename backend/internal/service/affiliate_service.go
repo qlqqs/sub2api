@@ -102,7 +102,7 @@ type AffiliateSummary struct {
 
 // AffiliateAccrueSource 标识一笔返利的来源：充值订单（OrderID）或消费结算
 // （UsageUntil 为本次结算覆盖到的 usage_logs.created_at 上界）。两者都为 nil
-// 时来自兑换码或历史管理员加款（新赠送不返利，线下充值带 OrderID）。BaseAmount 是这笔返利的计算基数（充值额或计入返利的消费）。
+// 时来自兑换码或历史管理员加款（新赠送不返利，线下充值带 OrderID）。BaseAmount 是这笔返利的计算基数（充值额或封顶后按分组系数折算的消费）。
 type AffiliateAccrueSource struct {
 	OrderID    *int64
 	UsageUntil *time.Time
@@ -117,8 +117,10 @@ type AffiliatePendingConsumption struct {
 	UntilAt   time.Time
 	// DeltaCost 是 (SettledAt, UntilAt] 区间内的余额消费合计。
 	DeltaCost float64
+	// WeightedDeltaCost 是同一窗口按当前分组系数折算的消费。
+	WeightedDeltaCost float64
 	// PaidTotal 是真实支付的充值总额（扣除赠送与已退款）；SettledConsumption 是
-	// 之前已计入返利的累计消费。两者之差是本次最多可计入返利的额度。
+	// 之前已占用充值额度的原始消费（不乘分组系数）。两者之差是本次可用额度。
 	PaidTotal          float64
 	SettledConsumption float64
 }
@@ -315,7 +317,7 @@ type AffiliateRepository interface {
 	// ListUsersWithPendingConsumption 列出有邀请人且水位之后有新余额消费的用户。
 	ListUsersWithPendingConsumption(ctx context.Context, lag time.Duration, limit int) ([]int64, error)
 	// LockPendingConsumption 在事务内锁定用户行并读取待结算消费快照。
-	LockPendingConsumption(ctx context.Context, userID int64, lag time.Duration) (*AffiliatePendingConsumption, error)
+	LockPendingConsumption(ctx context.Context, userID int64, lag time.Duration, factors []AffiliateGroupRebateFactor) (*AffiliatePendingConsumption, error)
 	AdvanceConsumptionWatermark(ctx context.Context, userID int64, until time.Time, settledConsumption float64) error
 
 	// 管理端：用户级专属配置

@@ -3,7 +3,8 @@ package server
 // CUSTOM（fork）：创作工作台（Nova Studio）的同源转发。
 //
 // 浏览器只访问本站；/_nova/*（静态资源）与 /api/nova/*（含 WebSocket /api/nova/ws）
-// 转给 studio.nova_url 指向的 Nova 容器。/api/nova/* 先经用户 JWT 校验，再注入
+// 转给 studio.nova_url 指向的 Nova 容器。除签名公开素材与 WebSocket 外，
+// /api/nova/* 先经用户 JWT 校验，再注入
 // 用户 ID / 角色 / 真实 IP；客户端自带的同名头一律丢弃。
 // 双方契约见 qlqqs/nova-image-studio 的 docs/sub2api-embed.md。
 
@@ -37,7 +38,7 @@ const (
 	// connect-src 只允许同源：浏览器端也无法直连任何外部上游。
 	studioContentSecurityPolicy = "default-src 'self'; script-src 'self' 'unsafe-inline'; " +
 		"style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; " +
-		"connect-src 'self'; worker-src 'self' blob:; frame-src 'self' blob: data:; " +
+		"media-src 'self' blob:; connect-src 'self'; worker-src 'self' blob:; frame-src 'self' blob: data:; " +
 		"frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
 )
 
@@ -66,8 +67,8 @@ func installStudioProxy(r *gin.Engine, cfg *config.Config, jwtAuth gin.HandlerFu
 	})
 
 	r.Any(studioAPIPrefix+"/*path", func(c *gin.Context) {
-		if c.Request.URL.Path == studioWSPath {
-			// 浏览器 WebSocket 无法带 Authorization；由 Nova 校验一次性 ticket。
+		if c.Request.URL.Path == studioWSPath || isStudioPublicMediaRequest(c.Request) {
+			// Nova 校验 WebSocket 的一次性 ticket 与公开素材签名。
 			c.Next()
 			return
 		}
@@ -75,6 +76,11 @@ func installStudioProxy(r *gin.Engine, cfg *config.Config, jwtAuth gin.HandlerFu
 	}, func(c *gin.Context) {
 		serveStudio(c, proxy, false, trustForwarded)
 	})
+}
+
+// 公开素材仅由 Nova 校验签名；写操作和其他 API 仍需 JWT。
+func isStudioPublicMediaRequest(req *http.Request) bool {
+	return (req.Method == http.MethodGet || req.Method == http.MethodHead) && strings.HasPrefix(req.URL.Path, studioAPIPrefix+"/public-media/")
 }
 
 func isStudioStaticPath(path string) bool {
@@ -101,6 +107,10 @@ func newStudioReverseProxy(rawURL string) *httputil.ReverseProxy {
 			}
 		},
 		ModifyResponse: func(res *http.Response) error {
+			if isStudioPublicMediaRequest(res.Request) {
+				res.Header.Set("Cache-Control", "private, max-age=3600")
+				return nil
+			}
 			// 以本站设置的嵌入策略为准，避免与 Nova 自带的同名头叠加。
 			res.Header.Del("X-Frame-Options")
 			res.Header.Del("Content-Security-Policy")
@@ -130,7 +140,7 @@ func serveStudio(c *gin.Context, proxy *httputil.ReverseProxy, static, trustForw
 	req.Header.Del("Authorization")
 	req.Header.Del("Cookie")
 
-	if !static && req.URL.Path != studioWSPath {
+	if !static && req.URL.Path != studioWSPath && !isStudioPublicMediaRequest(req) {
 		subject, ok := middleware2.GetAuthSubjectFromContext(c)
 		if !ok {
 			middleware2.AbortWithError(c, http.StatusUnauthorized, "UNAUTHORIZED", "Authentication required")
@@ -147,7 +157,10 @@ func serveStudio(c *gin.Context, proxy *httputil.ReverseProxy, static, trustForw
 	// 全局安全头为整站设置了 DENY / nonce CSP，这里换成允许同源嵌入的专用策略。
 	h := c.Writer.Header()
 	h.Del("Content-Security-Policy")
-	h.Set("X-Frame-Options", "SAMEORIGIN")
+	h.Del("X-Frame-Options")
+	if !isStudioPublicMediaRequest(req) {
+		h.Set("X-Frame-Options", "SAMEORIGIN")
+	}
 	if static {
 		h.Set("Content-Security-Policy", studioContentSecurityPolicy)
 	}

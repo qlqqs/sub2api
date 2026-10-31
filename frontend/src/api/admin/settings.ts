@@ -402,6 +402,16 @@ export function deriveWeChatConnectStoredMode(
 }
 
 /**
+ * 按分组的分润系数（百分比 0–100）：消费先乘系数再分润；未设置的分组按 100。
+ * group_name 只在 GET 返回，分组已删除时为空串；PUT 时忽略。
+ */
+export interface AffiliateGroupRebateFactor {
+  group_id: number;
+  factor: number;
+  group_name?: string;
+}
+
+/**
  * System settings interface
  */
 export interface SystemSettings {
@@ -439,6 +449,7 @@ export interface SystemSettings {
   affiliate_agent_level1_threshold: number;
   affiliate_agent_count_mode: "all" | "recharged";
   affiliate_settle_interval_minutes: number;
+  affiliate_group_rebate_factors: AffiliateGroupRebateFactor[];
   /** 二级代理比例 R2，0-100 且 ≤ affiliate_rebate_rate（利润池 P）。 */
   affiliate_agent_level2_rate: number;
   affiliate_agent_custom_rate_enabled: boolean;
@@ -819,6 +830,7 @@ export interface UpdateSettingsRequest {
   affiliate_agent_level1_threshold?: number;
   affiliate_agent_count_mode?: "all" | "recharged";
   affiliate_settle_interval_minutes?: number;
+  affiliate_group_rebate_factors?: AffiliateGroupRebateFactor[];
   /** 二级代理比例 R2，0-100 且 ≤ affiliate_rebate_rate（利润池 P）。 */
   affiliate_agent_level2_rate?: number;
   affiliate_agent_custom_rate_enabled?: boolean;

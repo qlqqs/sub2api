@@ -7664,6 +7664,79 @@
                   </div>
                 </div>
 
+                <div v-if="form.affiliate_rebate_base === 'consumption'" class="mt-4" data-test="affiliate-group-factors">
+                  <div class="flex items-center justify-between gap-4">
+                    <div>
+                      <span class="input-label">{{ t('admin.settings.features.affiliate.groupFactors.title') }}</span>
+                      <p class="text-xs text-gray-400">{{ t('admin.settings.features.affiliate.groupFactors.hint') }}</p>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-sm shrink-0"
+                      :disabled="affiliateFactorGroupOptions(-1).length === 0"
+                      data-test="affiliate-group-factor-add"
+                      @click="addAffiliateGroupFactor"
+                    >
+                      {{ t('admin.settings.features.affiliate.groupFactors.add') }}
+                    </button>
+                  </div>
+                  <div v-if="form.affiliate_group_rebate_factors.length > 0" class="mt-2 space-y-2">
+                    <div
+                      v-for="(row, index) in form.affiliate_group_rebate_factors"
+                      :key="`affiliate-group-factor-${index}`"
+                      class="rounded border border-gray-200 p-3 dark:border-dark-600"
+                      data-test="affiliate-group-factor-row"
+                    >
+                      <div class="grid grid-cols-1 gap-3 md:grid-cols-[1fr_140px_auto] md:items-center">
+                        <Select
+                          v-if="!row.group_id || affiliateFactorGroups.some((g) => g.id === row.group_id)"
+                          :model-value="row.group_id || null"
+                          class="default-sub-group-select"
+                          :options="affiliateFactorGroupOptions(index)"
+                          :placeholder="t('admin.settings.features.affiliate.groupFactors.group')"
+                          data-test="affiliate-group-factor-group"
+                          @update:model-value="row.group_id = Number($event) || 0"
+                        />
+                        <span v-else class="text-sm text-gray-700 dark:text-gray-300" data-test="affiliate-group-factor-group-static">
+                          {{ row.group_name || t('admin.settings.features.affiliate.groupFactors.deletedGroup', { id: row.group_id }) }}
+                        </span>
+                        <div class="relative">
+                          <input
+                            v-model.number="row.factor"
+                            type="number"
+                            step="1"
+                            min="0"
+                            max="100"
+                            class="input pr-8"
+                            :aria-label="t('admin.settings.features.affiliate.groupFactors.factor')"
+                            :aria-invalid="affiliateGroupFactorErrors[index] ? 'true' : 'false'"
+                            data-test="affiliate-group-factor-value"
+                          />
+                          <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">%</span>
+                        </div>
+                        <button
+                          type="button"
+                          class="btn btn-secondary btn-sm text-red-600 hover:text-red-700 dark:text-red-400"
+                          data-test="affiliate-group-factor-remove"
+                          @click="form.affiliate_group_rebate_factors.splice(index, 1)"
+                        >
+                          {{ t('common.delete') }}
+                        </button>
+                      </div>
+                      <p
+                        v-if="affiliateGroupFactorErrors[index]"
+                        class="mt-2 text-xs text-red-600 dark:text-red-400"
+                        data-test="affiliate-group-factor-error"
+                      >
+                        {{ affiliateGroupFactorErrors[index] }}
+                      </p>
+                      <p v-else class="mt-2 text-xs text-gray-500 dark:text-gray-400" data-test="affiliate-group-factor-preview">
+                        {{ affiliateGroupFactorPreview(row.factor) }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="mt-4 flex items-center justify-between gap-4">
                   <div>
                     <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -9276,7 +9349,7 @@ import {
 } from "@/composables/useStepUp";
 import TotpStepUpDialog from "@/components/auth/TotpStepUpDialog.vue";
 import { affiliatesAPI } from "@/api/admin/affiliates";
-import { formatUsdShort } from "@/utils/affiliateRewards";
+import { formatRatePercent, formatUsdShort } from "@/utils/affiliateRewards";
 import { BALANCE_SYMBOL } from "@/utils/balanceCurrency";
 import { extractApiErrorMessage, extractI18nErrorMessage } from "@/utils/apiError";
 import { useAppStore } from "@/stores";
@@ -9412,6 +9485,7 @@ const adminApiKeyMasked = ref("");
 const adminApiKeyOperating = ref(false);
 const newAdminApiKey = ref("");
 const subscriptionGroups = ref<AdminGroup[]>([]);
+const affiliateFactorGroups = ref<AdminGroup[]>([]);
 
 // Upstream billing probe state
 const upstreamBillingProbeLoading = ref(true);
@@ -10035,6 +10109,7 @@ const form = reactive<SettingsForm>({
   affiliate_agent_level1_threshold: 0,
   affiliate_agent_count_mode: "all" as "all" | "recharged",
   affiliate_settle_interval_minutes: 60,
+  affiliate_group_rebate_factors: [],
   affiliate_agent_level2_rate: 10,
   affiliate_agent_custom_rate_enabled: false,
   affiliate_agent_appoint_enabled: true,
@@ -11485,6 +11560,7 @@ async function loadSettings() {
 async function loadSubscriptionGroups() {
   try {
     const groups = await adminAPI.groups.getAll();
+    affiliateFactorGroups.value = groups;
     subscriptionGroups.value = groups.filter(
       (group) =>
         group.subscription_type === "subscription" && group.status === "active",
@@ -11770,6 +11846,7 @@ async function saveSettings() {
       affiliate_agent_level1_threshold: Math.max(0, Math.floor(Number(form.affiliate_agent_level1_threshold) || 0)),
       affiliate_agent_count_mode: form.affiliate_agent_count_mode === "recharged" ? "recharged" : "all",
       affiliate_settle_interval_minutes: Math.min(1440, Math.max(5, Math.floor(Number(form.affiliate_settle_interval_minutes) || 60))),
+      affiliate_group_rebate_factors: form.affiliate_group_rebate_factors.map(({ group_id, factor }) => ({ group_id, factor })),
       affiliate_agent_level2_rate: clampAffiliateRate(form.affiliate_agent_level2_rate),
       affiliate_agent_custom_rate_enabled: form.affiliate_agent_custom_rate_enabled,
       affiliate_agent_appoint_enabled: form.affiliate_agent_appoint_enabled,
@@ -13304,6 +13381,47 @@ const affiliateLevel2RateExceeds = computed(
   () => affiliateNumber(form.affiliate_agent_level2_rate) > affiliateNumber(form.affiliate_rebate_rate),
 );
 
+// 每行的校验提示（空串 = 通过）：未选分组、分组重复、系数不在 0–100。
+const affiliateGroupFactorErrors = computed(() =>
+  form.affiliate_group_rebate_factors.map((row, index, rows) => {
+    if (!row.group_id) return t("admin.settings.features.affiliate.groupFactors.groupRequired");
+    if (rows.findIndex((other) => other.group_id === row.group_id) !== index) {
+      return t("admin.settings.features.affiliate.groupFactors.groupDuplicate");
+    }
+    const n = affiliateNumber(row.factor);
+    if (String(row.factor) === "" || !Number.isFinite(n) || n < 0 || n > 100) {
+      return t("admin.settings.features.affiliate.groupFactors.factorInvalid");
+    }
+    return "";
+  }),
+);
+
+// 当前行可选的分组：排除其他行已选的分组。
+function affiliateFactorGroupOptions(index: number): SelectOption[] {
+  const taken = new Set(
+    form.affiliate_group_rebate_factors.filter((_, i) => i !== index).map((row) => row.group_id),
+  );
+  return affiliateFactorGroups.value
+    .filter((group) => !taken.has(group.id))
+    .map((group) => ({ value: group.id, label: group.name }));
+}
+
+function addAffiliateGroupFactor() {
+  form.affiliate_group_rebate_factors.push({ group_id: 0, factor: 100 });
+}
+
+// 按当前利润池 P 与二级比例 R2 折算：渠道经理 P×f、分销代理 R2×f、渠道经理差额 (P−R2)×f。
+function affiliateGroupFactorPreview(factor: unknown): string {
+  const f = affiliateNumber(factor) / 100;
+  const pool = clampAffiliateRate(form.affiliate_rebate_rate);
+  const level2 = clampAffiliateRate(form.affiliate_agent_level2_rate);
+  return t("admin.settings.features.affiliate.groupFactors.preview", {
+    level1: formatRatePercent(pool * f),
+    level2: formatRatePercent(level2 * f),
+    diff: formatRatePercent(Math.max(0, pool - level2) * f),
+  });
+}
+
 // affiliateValidationError blocks saving: rates must be 0-100, amounts ≥ 0, and
 // the level-2 rate may not exceed the profit pool (backend rejects it with 400).
 const affiliateValidationError = computed(() => {
@@ -13316,6 +13434,8 @@ const affiliateValidationError = computed(() => {
   if (affiliateLevel2RateExceeds.value) {
     return t("admin.settings.features.affiliate.profit.level2RateExceeds");
   }
+  const groupFactorError = affiliateGroupFactorErrors.value.find(Boolean);
+  if (groupFactorError) return groupFactorError;
   const amounts: unknown[] = [
     form.affiliate_rebate_per_invitee_cap,
     form.affiliate_invite_reward_per_invitee_cap,

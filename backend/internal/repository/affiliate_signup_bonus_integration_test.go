@@ -82,11 +82,11 @@ func TestAffiliateSignupBonusMigrationAndIndependentRewards(t *testing.T) {
 	// 同一赠送用户的真实充值上限仍由订单决定，两个赠送均不增加上限。
 	_, err = repo.EnsureUserAffiliate(txCtx, u.ID)
 	require.NoError(t, err)
-	pending, err := repo.LockPendingConsumption(txCtx, u.ID, time.Second)
+	pending, err := repo.LockPendingConsumption(txCtx, u.ID, time.Second, nil)
 	require.NoError(t, err)
 	require.Zero(t, pending.PaidTotal)
 	mustInsertPaymentOrder(t, txCtx, client, u.ID, 20, 0, 0, "COMPLETED")
-	pending, err = repo.LockPendingConsumption(txCtx, u.ID, time.Second)
+	pending, err = repo.LockPendingConsumption(txCtx, u.ID, time.Second, nil)
 	require.NoError(t, err)
 	require.Equal(t, 20.0, pending.PaidTotal)
 }

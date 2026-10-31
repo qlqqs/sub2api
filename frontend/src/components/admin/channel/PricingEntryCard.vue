@@ -308,7 +308,7 @@ import ModelTagInput from './ModelTagInput.vue'
 import TimePricingSection from './TimePricingSection.vue'
 import type { PricingFormEntry, IntervalFormEntry } from './types'
 import { perTokenToMTok, getPlatformTagClass, isValidPositiveMultiplier, validateReasoningEffortMultipliers } from './types'
-import { REASONING_EFFORT_LEVELS, type ReasoningEffortLevel } from '@/constants/channel'
+import { REASONING_EFFORT_LEVELS, VIDEO_BASE_RESOLUTION, VIDEO_TIER_LABELS, type ReasoningEffortLevel } from '@/constants/channel'
 import type { BillingMode } from '@/api/admin/channels'
 import channelsAPI from '@/api/admin/channels'
 
@@ -383,11 +383,13 @@ function addInterval() {
 
 function addMediaTier() {
   const intervals = [...(props.entry.intervals || [])]
-  const labels = props.entry.billing_mode === 'video'
-    ? ['480p', '720p', '1080p']
-    : ['1K', '2K', '4K', 'HD']
+  // 视频：基础价即 480p，新档位取下一个未配置的档位（720p → 1080p → 4k → 各 -ref 档）。
+  const used = new Set(intervals.map((iv) => iv.tier_label))
+  const label = props.entry.billing_mode === 'video'
+    ? VIDEO_TIER_LABELS.find((l) => l !== VIDEO_BASE_RESOLUTION && !used.has(l)) ?? ''
+    : ['1K', '2K', '4K', 'HD'][intervals.length] || ''
   intervals.push({
-    min_tokens: 0, max_tokens: null, tier_label: labels[intervals.length] || '',
+    min_tokens: 0, max_tokens: null, tier_label: label,
     input_price: null, output_price: null, cache_write_price: null,
     cache_write_1h_price: null,
     cache_read_price: null, per_request_price: null,
