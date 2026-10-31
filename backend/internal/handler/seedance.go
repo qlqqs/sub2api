@@ -38,10 +38,10 @@ func (h *OpenAIGatewayHandler) SeedanceTasks(c *gin.Context) {
 	h.handleGrokMedia(c, endpoint, taskID)
 }
 
-// Ark reports actual completion tokens. Never infer tokens from duration or use
-// Grok's per-second video tariff. Repeated polls share the durable task dedup key.
+// A succeeded task is billed once per second of actual output at its resolution
+// tier. Repeated polls share the durable task dedup key.
 func prepareSeedanceCompletionBilling(ctx context.Context, h *OpenAIGatewayHandler, key *service.APIKey, subject middleware.AuthSubject, taskID string, result *service.OpenAIForwardResult) *service.OpenAIForwardResult {
-	if result == nil || result.Usage.OutputTokens <= 0 {
+	if result == nil || result.VideoCount <= 0 {
 		return nil
 	}
 	pending, err := h.gatewayService.LoadGrokVideoPendingBilling(ctx, taskID, subject.UserID, key.ID)

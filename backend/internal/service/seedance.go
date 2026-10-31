@@ -40,6 +40,11 @@ func ParseSeedanceRequest(body []byte) (GrokMediaRequestInfo, error) {
 	if !content.IsArray() || len(content.Array()) == 0 {
 		return info, fmt.Errorf("content must be a non-empty array")
 	}
+	// Billing happens when the task is polled through the gateway; an upstream
+	// callback would hand the video to the client without that poll.
+	if callback := gjson.GetBytes(body, "callback_url"); callback.Exists() && callback.Type != gjson.Null {
+		return info, fmt.Errorf("callback_url is not supported; poll GET /contents/generations/tasks/{id} for the result")
+	}
 	info.Model = strings.TrimSpace(model.String())
 	var texts []string
 	for _, item := range content.Array() {
@@ -146,8 +151,14 @@ func (s *OpenAIGatewayService) ForwardSeedance(ctx context.Context, c *gin.Conte
 	if endpoint == SeedanceEndpointStatus {
 		result.ResponseID = taskID
 		result.UpstreamModel = gjson.GetBytes(responseBody, "model").String()
+		// Seedance is billed per output second by resolution tier; tokens are
+		// recorded for reconciliation only. duration is the actual length once
+		// the task has succeeded, including auto-duration (-1) requests.
 		if gjson.GetBytes(responseBody, "status").String() == "succeeded" {
 			result.Usage.OutputTokens = max(0, int(gjson.GetBytes(responseBody, "usage.completion_tokens").Int()))
+			result.VideoCount = 1
+			result.VideoResolution = gjson.GetBytes(responseBody, "resolution").String()
+			result.VideoDurationSeconds = int(gjson.GetBytes(responseBody, "duration").Int())
 		}
 	}
 	writeGrokMediaResponse(c, resp, responseBody, s.responseHeaderFilter)

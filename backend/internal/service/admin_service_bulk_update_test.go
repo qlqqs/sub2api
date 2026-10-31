@@ -329,7 +329,7 @@ func TestAdminServiceBulkUpdateAccounts_NormalizesOpenAISettings(t *testing.T) {
 	result, err := svc.BulkUpdateAccounts(context.Background(), &BulkUpdateAccountsInput{
 		AccountIDs: []int64{1, 2},
 		Credentials: map[string]any{
-			openAIEndpointCapabilitiesCredentialKey: []any{"chat_completions", "embeddings"},
+			OpenAIEndpointCapabilitiesCredentialKey: []any{"chat_completions", "embeddings"},
 		},
 		Extra: map[string]any{
 			openAILongContextBillingEnabledKey: true,
@@ -341,8 +341,8 @@ func TestAdminServiceBulkUpdateAccounts_NormalizesOpenAISettings(t *testing.T) {
 	require.Equal(t, 2, result.Success)
 	require.Zero(t, result.LongContextInheritedCount)
 	require.Equal(t, 1, repo.bulkUpdateCalls)
-	require.Contains(t, repo.lastBulkUpdate.Credentials, openAIEndpointCapabilitiesCredentialKey)
-	require.Nil(t, repo.lastBulkUpdate.Credentials[openAIEndpointCapabilitiesCredentialKey])
+	require.Contains(t, repo.lastBulkUpdate.Credentials, OpenAIEndpointCapabilitiesCredentialKey)
+	require.Nil(t, repo.lastBulkUpdate.Credentials[OpenAIEndpointCapabilitiesCredentialKey])
 	require.Equal(t, true, repo.lastBulkUpdate.Extra[openAILongContextBillingEnabledKey])
 	require.Contains(t, repo.lastBulkUpdate.Extra, "openai_responses_mode")
 	require.Nil(t, repo.lastBulkUpdate.Extra["openai_responses_mode"])
@@ -377,12 +377,12 @@ func TestAdminServiceBulkUpdateAccounts_EmbeddingsOnlyResetsResponsesMode(t *tes
 	_, err := svc.BulkUpdateAccounts(context.Background(), &BulkUpdateAccountsInput{
 		AccountIDs: []int64{1},
 		Credentials: map[string]any{
-			openAIEndpointCapabilitiesCredentialKey: []string{"embeddings"},
+			OpenAIEndpointCapabilitiesCredentialKey: []string{"embeddings"},
 		},
 	})
 
 	require.NoError(t, err)
-	require.Equal(t, []string{"embeddings"}, repo.lastBulkUpdate.Credentials[openAIEndpointCapabilitiesCredentialKey])
+	require.Equal(t, []string{"embeddings"}, repo.lastBulkUpdate.Credentials[OpenAIEndpointCapabilitiesCredentialKey])
 	require.Contains(t, repo.lastBulkUpdate.Extra, "openai_responses_mode")
 	require.Nil(t, repo.lastBulkUpdate.Extra["openai_responses_mode"])
 }
@@ -395,14 +395,14 @@ func TestAdminServiceBulkUpdateAccounts_RejectsInvalidOpenAISettingValuesBeforeW
 		reason      string
 	}{
 		{name: "long context type", extra: map[string]any{openAILongContextBillingEnabledKey: "true"}, reason: "OPENAI_LONG_CONTEXT_BILLING_INVALID"},
-		{name: "empty capabilities", credentials: map[string]any{openAIEndpointCapabilitiesCredentialKey: []any{}}, reason: "OPENAI_ENDPOINT_CAPABILITIES_INVALID"},
-		{name: "unknown capability", credentials: map[string]any{openAIEndpointCapabilitiesCredentialKey: []any{"responses"}}, reason: "OPENAI_ENDPOINT_CAPABILITIES_INVALID"},
-		{name: "capabilities type", credentials: map[string]any{openAIEndpointCapabilitiesCredentialKey: "chat_completions"}, reason: "OPENAI_ENDPOINT_CAPABILITIES_INVALID"},
+		{name: "empty capabilities", credentials: map[string]any{OpenAIEndpointCapabilitiesCredentialKey: []any{}}, reason: "OPENAI_ENDPOINT_CAPABILITIES_INVALID"},
+		{name: "unknown capability", credentials: map[string]any{OpenAIEndpointCapabilitiesCredentialKey: []any{"responses"}}, reason: "OPENAI_ENDPOINT_CAPABILITIES_INVALID"},
+		{name: "capabilities type", credentials: map[string]any{OpenAIEndpointCapabilitiesCredentialKey: "chat_completions"}, reason: "OPENAI_ENDPOINT_CAPABILITIES_INVALID"},
 		{name: "responses mode", extra: map[string]any{"openai_responses_mode": "sometimes"}, reason: "OPENAI_RESPONSES_MODE_INVALID"},
 		{name: "responses type", extra: map[string]any{"openai_responses_mode": true}, reason: "OPENAI_RESPONSES_MODE_INVALID"},
 		{
 			name:        "embeddings conflict",
-			credentials: map[string]any{openAIEndpointCapabilitiesCredentialKey: []any{"embeddings"}},
+			credentials: map[string]any{OpenAIEndpointCapabilitiesCredentialKey: []any{"embeddings"}},
 			extra:       map[string]any{"openai_responses_mode": "force_responses"},
 			reason:      "OPENAI_RESPONSES_MODE_INVALID",
 		},
@@ -451,7 +451,7 @@ func TestAdminServiceBulkUpdateAccounts_RejectsInvalidOpenAITargetsBeforeWrite(t
 			accounts: []*Account{{ID: 1, Platform: PlatformOpenAI, Type: AccountTypeOAuth}},
 			input: &BulkUpdateAccountsInput{
 				AccountIDs:  []int64{1},
-				Credentials: map[string]any{openAIEndpointCapabilitiesCredentialKey: nil},
+				Credentials: map[string]any{OpenAIEndpointCapabilitiesCredentialKey: nil},
 			},
 		},
 		{
@@ -482,7 +482,7 @@ func TestAdminServiceBulkUpdateAccounts_ForcedResponsesRequiresChatCapability(t 
 		Platform: PlatformOpenAI,
 		Type:     AccountTypeAPIKey,
 		Credentials: map[string]any{
-			openAIEndpointCapabilitiesCredentialKey: []any{"embeddings"},
+			OpenAIEndpointCapabilitiesCredentialKey: []any{"embeddings"},
 		},
 	}}}
 	svc := &adminServiceImpl{accountRepo: repo}
@@ -503,7 +503,7 @@ func TestAdminServiceBulkUpdateAccounts_ForcedResponsesAcceptsChatCapabilityUpda
 		Platform: PlatformOpenAI,
 		Type:     AccountTypeAPIKey,
 		Credentials: map[string]any{
-			openAIEndpointCapabilitiesCredentialKey: []any{"embeddings"},
+			OpenAIEndpointCapabilitiesCredentialKey: []any{"embeddings"},
 		},
 	}}}
 	svc := &adminServiceImpl{accountRepo: repo}
@@ -511,7 +511,7 @@ func TestAdminServiceBulkUpdateAccounts_ForcedResponsesAcceptsChatCapabilityUpda
 	_, err := svc.BulkUpdateAccounts(context.Background(), &BulkUpdateAccountsInput{
 		AccountIDs: []int64{1},
 		Credentials: map[string]any{
-			openAIEndpointCapabilitiesCredentialKey: []any{"chat_completions"},
+			OpenAIEndpointCapabilitiesCredentialKey: []any{"chat_completions"},
 		},
 		Extra: map[string]any{"openai_responses_mode": "force_responses"},
 	})

@@ -33,14 +33,14 @@ func normalizeBulkOpenAISettings(input *BulkUpdateAccountsInput) (bulkOpenAISett
 		}
 	}
 
-	if raw, exists := input.Credentials[openAIEndpointCapabilitiesCredentialKey]; exists {
+	if raw, exists := input.Credentials[OpenAIEndpointCapabilitiesCredentialKey]; exists {
 		settings.endpointCapabilities = true
 		capabilities, includeChat, err := normalizeBulkOpenAIEndpointCapabilities(raw)
 		if err != nil {
 			return settings, err
 		}
 		settings.capabilitiesIncludeChat = includeChat
-		input.Credentials[openAIEndpointCapabilitiesCredentialKey] = capabilities
+		input.Credentials[OpenAIEndpointCapabilitiesCredentialKey] = capabilities
 	}
 
 	if raw, exists := input.Extra[openai_compat.ExtraKeyResponsesMode]; exists {

@@ -45,7 +45,7 @@ func TestSeedanceNativeForwarding(t *testing.T) {
 func TestSeedanceStatusAndDelete(t *testing.T) {
 	for _, status := range []string{"queued", "running", "failed", "cancelled", "expired", "succeeded"} {
 		t.Run(status, func(t *testing.T) {
-			body := `{"id":"task-1","status":"` + status + `","model":"ep-seedance","content":{"video_url":"https://cdn.example/video.mp4"},"usage":{"completion_tokens":12345}}`
+			body := `{"id":"task-1","status":"` + status + `","model":"ep-seedance","content":{"video_url":"https://cdn.example/video.mp4"},"usage":{"completion_tokens":12345},"resolution":"1080p","duration":7}`
 			upstream := &grokMediaContentUpstreamStub{response: grokMediaContentStatusResponse(body)}
 			svc := &OpenAIGatewayService{httpUpstream: upstream}
 			c, w := grokMediaContentTestContext(http.MethodGet, "/api/v3/contents/generations/tasks/task-1", nil)
@@ -55,10 +55,13 @@ func TestSeedanceStatusAndDelete(t *testing.T) {
 			require.Equal(t, "/api/v3/contents/generations/tasks/task-1", upstream.request.URL.Path)
 			if status == "succeeded" {
 				require.Equal(t, 12345, result.Usage.OutputTokens)
+				require.Equal(t, 1, result.VideoCount)
+				require.Equal(t, "1080p", result.VideoResolution)
+				require.Equal(t, 7, result.VideoDurationSeconds)
 			} else {
 				require.Zero(t, result.Usage.OutputTokens)
+				require.Zero(t, result.VideoCount)
 			}
-			require.Zero(t, result.VideoCount, "must use token billing, not Grok seconds")
 		})
 	}
 	upstream := &grokMediaContentUpstreamStub{response: grokMediaContentStatusResponse("")}
@@ -72,10 +75,12 @@ func TestSeedanceStatusAndDelete(t *testing.T) {
 }
 
 func TestSeedanceValidationAndCapability(t *testing.T) {
-	for _, body := range []string{`{`, `[]`, `{}`, `{"model":12,"content":[{}]}`, `{"model":"x","content":[]}`} {
+	for _, body := range []string{`{`, `[]`, `{}`, `{"model":12,"content":[{}]}`, `{"model":"x","content":[]}`, `{"model":"x","content":[{"type":"text","text":"a"}],"callback_url":"https://example.com/cb"}`, `{"model":"x","content":[{"type":"text","text":"a"}],"callback_url":""}`} {
 		_, err := ParseSeedanceRequest([]byte(body))
 		require.Error(t, err)
 	}
+	_, err := ParseSeedanceRequest([]byte(`{"model":"x","content":[{"type":"text","text":"a"}],"callback_url":null}`))
+	require.NoError(t, err)
 	info, err := ParseSeedanceRequest([]byte(`{"model":"x","content":[{"type":"text","text":"first"},{"type":"text","text":"second"},{"type":"image_url","image_url":{"url":"https://example.com/a.png"}}]}`))
 	require.NoError(t, err)
 	require.Contains(t, string(info.ModerationBody()), "first")

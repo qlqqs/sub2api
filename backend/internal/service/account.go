@@ -108,7 +108,7 @@ const (
 	OpenAIEndpointCapabilityResponses OpenAIEndpointCapability = "responses"
 )
 
-const openAIEndpointCapabilitiesCredentialKey = "openai_capabilities"
+const OpenAIEndpointCapabilitiesCredentialKey = "openai_capabilities"
 
 // GrokMediaEligibleExtraKey is an optional per-account override stored in
 // accounts.extra. true forces media routing on, false disables it, and an
@@ -1980,7 +1980,7 @@ func (a *Account) openAIEndpointCapabilitySet() (map[string]bool, bool) {
 	if a == nil || a.Credentials == nil {
 		return nil, false
 	}
-	raw, found := a.Credentials[openAIEndpointCapabilitiesCredentialKey]
+	raw, found := a.Credentials[OpenAIEndpointCapabilitiesCredentialKey]
 	if !found || raw == nil {
 		return nil, false
 	}
