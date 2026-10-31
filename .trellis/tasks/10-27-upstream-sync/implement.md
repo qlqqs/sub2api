@@ -101,3 +101,7 @@ npx -y pnpm@9 audit --prod --audit-level=high
 ## 正式发布更新
 
 CI 40546398450全成功；一号机于2026-10-27 17:20:07 UTC健康运行1fa919f68。备份、只读检查及其他容器不变有证据，详见verification/release-report.md。以上执行快照中的“未推送/部署”“CI待验证”仅代表当时状态，当前以本节为准。FIN-24与原始audit仍未修复，不归档任务。
+
+## 2026-10-31 后续六项批次
+
+见子任务 `../10-31-upstream-maintenance-six/verification/final-report.md`。本地main已ff到d851a3847（未推送）；六项21产品文件进入custom未提交。完整e2e442/442通过；原始/策略audit及正常缓存CSP存在基线失败，保持质量跟进。旧批次部署记录不变，本批未提交、推送或部署。

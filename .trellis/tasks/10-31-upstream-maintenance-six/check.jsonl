@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/guides/upstream-sync-guide.md", "reason": "选择性合入、授权、隔离和台账契约"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "后端测试和定制业务回归"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "i18n依赖升级及前端检查"}
+{"file": ".trellis/tasks/10-31-upstream-maintenance-six/design.md", "reason": "本批六项的边界及适配决定"}

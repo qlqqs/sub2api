@@ -1,0 +1,16 @@
+{
+  "custom_head": "27d51f9b594d430efcf40570a6ce04063e09701e",
+  "upstream_target": "d851a38477597157e78450d30af2d8504764d085",
+  "review_cursor": "f178e5ae32659e8901644a9f2378a0439ffa36ae",
+  "source_units": {
+    "0a2a29b32": "0a2a29b32e6724714c69822296ccd05a6b86bfdd",
+    "d851a3847": "d851a38477597157e78450d30af2d8504764d085",
+    "a3298b46e": "a3298b46ebe239fb0720b068a1eb3383955bdac2",
+    "8b3f33f28": "8b3f33f28ae3f2e5707b810eca187a3b40780638",
+    "dece26153": "dece26153621959ccd7635814f4b2d08304e681a",
+    "b2e7c6094": "b2e7c609430736bd0a4b89c5b27a079ccef820d4"
+  },
+  "unrelated_dirty_file": ".trellis/spec/guides/embedded-workbench-guide.md",
+  "unrelated_dirty_sha256": "127ecd436a66a64593e0bcb272784af0b9ba9c257b5bb0342e0290c2255eb632",
+  "stage": "planning_only"
+}

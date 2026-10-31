@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-10-31T07:45:08.003466+00:00",
+  "custom_head": "27d51f9b594d430efcf40570a6ce04063e09701e",
+  "upstream_target": "d851a38477597157e78450d30af2d8504764d085",
+  "product_files": 21,
+  "product_hashes_match": true,
+  "index_empty": true,
+  "unrelated_changes_preserved": true,
+  "validation_summary": {
+    "backend_unit_focused_race_build_vet_module_verify": "passed",
+    "frontend_lint_typecheck_tests": "passed: 443 files / 3524 tests, Node24.22.1",
+    "local_build": "passed",
+    "local_e2e": "442/442 passed; exit0; Nova and Chat executed",
+    "browser_normal": "35 checks passed; CSP check failed; 3 baseline nonce/304 violations; exit1",
+    "browser_no_http_cache": "36/36 passed; 0 CSP violations; exit0 (control only)",
+    "production_audit": "exit1; three baseline highs remain; exception policy exit1",
+    "govulncheck_golangci_lint": "not installed, not run"
+  },
+  "custom_frontend_install_exit": 0,
+  "custom_frontend_typecheck_exit": 0,
+  "integrated_commit": null,
+  "pushed": false,
+  "deployed": false,
+  "quality_gate": "not_all_green_baseline_audit_and_csp_followups"
+}

@@ -1,0 +1,17 @@
+{
+  "checks": [
+    "home-zh CSP present without unsafe-eval",
+    "home-zh renders content",
+    "home-zh no raw Qx locale keys",
+    "login-zh CSP present without unsafe-eval",
+    "login-zh renders content",
+    "login-zh no raw Qx locale keys",
+    "dashboard-zh CSP present without unsafe-eval",
+    "dashboard-zh renders content",
+    "dashboard-zh no raw Qx locale keys"
+  ],
+  "pageErrors": [],
+  "csp": [],
+  "consoleErrors": [],
+  "screenshots": "/tmp/sub2api-six-browser"
+}

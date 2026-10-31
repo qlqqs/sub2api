@@ -1,0 +1,111 @@
+{
+  "head": "27d51f9b594d430efcf40570a6ce04063e09701e",
+  "recorded_at": "2026-10-31T07:20:38.584615+00:00",
+  "files": [
+    {
+      "path": "backend/go.mod",
+      "sha256": "fbaf7a0ba2547ef2564e4a05de65aa54c30bc39682911f99e396ed4a51567030",
+      "baseline_sha256": "adf5c15bf5fb54d5957279d0fcaf7281f49651a754c9deb89fed0f44a8799135"
+    },
+    {
+      "path": "backend/go.sum",
+      "sha256": "a24f771e634805cfb45efa30e4b56ffd530bc6e4da9ba1f8b5a153e946a8f463",
+      "baseline_sha256": "b17668c6300c04027bd397650e60e28e514dc4abb9ab113e3cea634fdd708109"
+    },
+    {
+      "path": "backend/internal/service/admin_service_role_test.go",
+      "sha256": "c3f67d694ab60b203a1bb49d3d5966f0efa15a7c8ae13d3eed8ff8340ba7c117",
+      "baseline_sha256": "92c812d45a7a5042a6d6e7c07109342d52cef52f1f160d1bdced1c1e7adfd0e1"
+    },
+    {
+      "path": "backend/internal/service/admin_user.go",
+      "sha256": "17717e5aec67ed80edeff51d5b6b60d6bcee425a760d2ee3d639da9ddcf1924d",
+      "baseline_sha256": "0a4b706ecba382a183f465f25863309d51fc4b9235be8fdd6bc481f79151daa9"
+    },
+    {
+      "path": "backend/internal/service/channel_service.go",
+      "sha256": "1beafbafc96843e83b358152e82680d13192a5ee50ddee2275193fef0a5e9f70",
+      "baseline_sha256": "eda599c50135ce9933665a9138c0478b22663885d9f5e8262a3cdd0d0e0f989d"
+    },
+    {
+      "path": "backend/internal/service/channel_websearch_merge_test.go",
+      "sha256": "4ded107f0b1714d0ecf403b06ece8d5916ffcaa21dbd0f3c1a78408e1b62a4b7",
+      "baseline_sha256": null
+    },
+    {
+      "path": "backend/internal/service/openai_codex_models_service.go",
+      "sha256": "a6d1c6476f234bfab2005f92144ec3d6cd87682918fa1139be3e04686c90b27b",
+      "baseline_sha256": "4ca6b980f6845b64f3f654b1f018416b14aac37941820e6fa306aee3c28c337d"
+    },
+    {
+      "path": "backend/internal/service/openai_gateway_passthrough.go",
+      "sha256": "25375e048a4c46d23de43ac7923b7c33f83b78b1cc0d410386a8d56f0e763462",
+      "baseline_sha256": "90536adca0ec90ca67a61d0533944083c40c390fe9720193d3bb7804e7c4e856"
+    },
+    {
+      "path": "backend/internal/service/openai_gateway_response_handling.go",
+      "sha256": "f7d14c326876ce5a95915350cd7f68c0b045c496dd9bf69f7af2f1a8989612c4",
+      "baseline_sha256": "e28212bb54c98b9dcd129036ef8583d14f8c026de52d22747728ae9ec89b69b8"
+    },
+    {
+      "path": "backend/internal/service/openai_models_cache_recheck_test.go",
+      "sha256": "b96f13cab914899cdeca41fcb2968c075e81264949fce5b5684ef0b46570c5e7",
+      "baseline_sha256": null
+    },
+    {
+      "path": "backend/internal/service/openai_nonstream_custom_contract_test.go",
+      "sha256": "8c1871f749e6c5f0b221ba36fc393afd2c3e7ebfb316f143be0c256118406ae6",
+      "baseline_sha256": null
+    },
+    {
+      "path": "backend/internal/service/openai_oauth_passthrough_non_stream_test.go",
+      "sha256": "ab35c49df20870bb3c794b3bb78f2df8d8060d3d5c8b52119645a683b9b478cb",
+      "baseline_sha256": null
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "7110f10d5db8ea16fba209acf6483349811718cd1003ab719587b747bb3dcfdd",
+      "baseline_sha256": "b9b0f9906decc591868a5e5836906521219aa866b857a03c59ba1c189b38a52c"
+    },
+    {
+      "path": "frontend/pnpm-lock.yaml",
+      "sha256": "0c2e5969a1eca24a0c04251c16239cbf6f5c4ee9da066826f5bf2584eee7c8be",
+      "baseline_sha256": "f8db731dbe42ac0e796312724424b826817ca528ad847c8aa1aad7193c908f30"
+    },
+    {
+      "path": "frontend/src/components/payment/__tests__/SubscriptionPlanCard.spec.ts",
+      "sha256": "7f180196eaa426684276d8667163b4b780faf77345df625a4dd2bd49ac6f8464",
+      "baseline_sha256": "89302043c0a5ec02deb1736af1dcc143f17225aec5f82834ba01d52d2264abd6"
+    },
+    {
+      "path": "frontend/src/i18n/__tests__/runtime.spec.ts",
+      "sha256": "668e9ed19f91139e46a22f7fb0bd8724048f1594c1fa8ef4aa9afaa26e4e5851",
+      "baseline_sha256": null
+    },
+    {
+      "path": "frontend/src/i18n/locales/en/admin/channels.ts",
+      "sha256": "5d72d292caab1e1d1bd6a42265c6bb8f99f42a8d1cea6dc9e0bc89b16428bb18",
+      "baseline_sha256": "e760066b887d8a22de7ab77c389777c2c44a9aba79410c2bc4c4b3e78575087d"
+    },
+    {
+      "path": "frontend/src/i18n/locales/zh/admin/channels.ts",
+      "sha256": "7a0e38d792276af8da68f3e49e65c4e730d8e7bc711967ed94de3aff8404dfbb",
+      "baseline_sha256": "5f359c62dabd002e21c9dbcbe731cb05bed8579b15bdd063256297e7c7968705"
+    },
+    {
+      "path": "frontend/src/views/admin/ChannelsView.vue",
+      "sha256": "5578a0a0f4e3783bee8096d1592f456f1918d3a3e40fb03887e9f43d783a610b",
+      "baseline_sha256": "8d4ca99f3d1e985250df33282675df142ad5ac0a35d1cfb777de82face1aa496"
+    },
+    {
+      "path": "frontend/src/views/admin/__tests__/ChannelsView.webSearchEmulation.spec.ts",
+      "sha256": "d9169ea361116a7d14b8c9616d12b8307f5f47508ea144c4a93ebdf0f6014a8a",
+      "baseline_sha256": null
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "sha256": "5dfc13b71697873ccf1a73332ba5fbb520de7dbffdaa5f7bb38db4f4cb5853ea",
+      "baseline_sha256": "815b3dec61328dc35361667718016d2c192dd5236f90fd062c8a5d5293d22538"
+    }
+  ]
+}

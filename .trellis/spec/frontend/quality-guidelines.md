@@ -46,3 +46,13 @@ ESLint 当前允许 explicit `any`、ban-ts-comment、单词组件名及 `v-if`/
 - async 竞态、loading 和错误展示可预测，卸载后不回写状态。
 - 测试验证用户行为和协议，不只验证内部实现细节。
 - lint、typecheck、相关 Vitest 与 production build 均通过；未运行项有明确原因。
+
+## vue-i18n v11 与定制页面回归（2026-10-31）
+
+1. **范围**：vue-i18n / message-compiler 升级及 Qx 主题、中英文懒加载、套餐文字；保留 runtime-only 构建和现有 CSP。
+2. **入口**：`i18n/index.ts::{initI18n,loadLocaleMessages,setLocale}`；`vite.config.ts` 的 vue-i18n runtime-only alias；`components/common/LocaleSwitcher.vue` 的真实切换/刷新流程。
+3. **契约**：切换语言同步 `sub2api_locale`、HTML lang、标题及插值；v11 不再保留旧 `__INTLIFY_JIT_COMPILATION__` define，不加入 unsafe-eval。实际构建使用项目 Node 24.22.1 与 pnpm 9。
+4. **边界**：首次只加载选定语言；en/zh 互切加载另一语言；不支持的语言不改变当前状态。套餐单位断言实际翻译结果，不依赖旧 runtime 返回原始 key 的行为。
+5. **用例**：英文 `/ month`、中文 `/ 月` 正确；Qx 动态 tools/count 插值不残留占位符。后台渠道开关渲染与提交使用同一支持平台集合，关闭发送 false。
+6. **必需测试**：`i18n/__tests__/runtime.spec.ts` 使用真实语言包验证懒加载/切换/标题及阻断 Function/eval 后插值；`SubscriptionPlanCard.spec.ts` 保留定制货币与模型广场断言；`ChannelsView.webSearchEmulation.spec.ts` 核对支持平台保存。生产浏览器另检查 CSP 违规和真实切换。
+7. **错误与正确**：全量把 `t()` mock 成原始 key 不能证明依赖升级兼容；应保留真实 i18n 回归。mise shim 在独立 worktree 可能解析为其他已安装 Node，需记录实际 `node --version` 并使用固定版本 PATH，而非仅看 CI pin。

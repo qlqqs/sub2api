@@ -1,0 +1,32 @@
+{
+  "id": "upstream-maintenance-six",
+  "name": "upstream-maintenance-six",
+  "title": "上游六项安全与兼容修复合并（10月31日批次）",
+  "description": "选择性合入用户指定的六项上游更新，保留定制行为，在独立候选工作区验证后移入custom；不自动提交推送部署。",
+  "status": "in_progress",
+  "dev_type": "fullstack",
+  "scope": "upstream-maintenance-six",
+  "package": null,
+  "priority": "P2",
+  "creator": "qlqqs",
+  "assignee": "qlqqs",
+  "createdAt": "2026-10-31",
+  "completedAt": null,
+  "branch": "upstream-sync/2026-10-31-six",
+  "base_branch": "sub2api-custom",
+  "worktree_path": "/home/qlqq/workspace/sub2api-upstream-six",
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "10-27-upstream-sync",
+  "relatedFiles": [],
+  "notes": "六项21个产品文件已移入custom未提交；unit/race/build/vet、前端3524测试、本机e2e442/442通过。正常缓存浏览器CSP失败（基线304 nonce），无缓存36/36通过；原始/策略audit均exit1（基线follow-redirects/xlsx）。质量门禁未全绿，未推送部署，保持in_progress。",
+  "meta": {
+    "upstream_target": "d851a38477597157e78450d30af2d8504764d085",
+    "planning_custom_base": "27d51f9b594d430efcf40570a6ce04063e09701e",
+    "dispatch": "inline",
+    "integration_status": "applied_in_custom_worktree",
+    "quality_followups_open": true
+  }
+}

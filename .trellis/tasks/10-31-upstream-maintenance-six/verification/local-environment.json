@@ -1,0 +1,12 @@
+{
+  "recorded_at": "2026-10-31T07:32:10.580302+00:00",
+  "e2e_run": "/home/qlqq/workspace/sub2api-local/e2e/runs/20261031-072240",
+  "checks": 442,
+  "exit_code": 0,
+  "application": "sha256:76127e20e0066709d01d0c339975e53c27fb46e5942f9a611ab75aa2aaff55c8 healthy",
+  "node_build": "v24.22.1",
+  "candidate_manifest": "candidate-manifest.json",
+  "raw_result_records": 444,
+  "passed": 442,
+  "failed": 0
+}

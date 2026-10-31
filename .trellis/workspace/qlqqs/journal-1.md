@@ -556,3 +556,38 @@ CI四项通过，已备份部署一号机sub2api-custom，运行revision核对�
 ### Next Steps
 
 - 管理员可在邀请来源下拉框选择适用来源；无需进一步部署。
+
+
+## Session 23: 上游六项维护合入工作区：功能验证通过，质量跟进待处理
+<!-- trellis-session: v=2 fp=7cf6e2da19fc5514 -->
+
+**Date**: 2026-10-31
+**Task**: 上游六项维护合入工作区：功能验证通过，质量跟进待处理
+**Branch**: `sub2api-custom`
+
+### Summary
+
+六项21产品文件已移入custom且与候选指纹一致；本地main快进至d851a3847。未提交推送部署，任务保持in_progress。
+
+### Main Changes
+
+- 保留Node24.22.1、自定义CI、套餐及财务/分润契约；更新增量台账、任务报告和三份规范，原有工作台文档修改不动。
+- 存量frontend audit/例外策略均exit1（follow-redirects和xlsx）；正常缓存浏览器发现既有CSP nonce/304问题，均未扩大范围修复。
+
+### Git Commits
+
+(No commits - implementation changes remain uncommitted)
+
+### Testing
+
+- [OK] 后端module verify、定向/全量unit、缓存race、build、vet通过；缓存旧实现负向对照如期失败。
+- [OK] Node24.22.1+pnpm9：前端443文件3524测试、lint/typecheck通过；生产构建通过；本机完整e2e442/442，Nova和Chat均执行。
+- [OK] 浏览器35项功能检查通过；禁用HTTP缓存对照36/36且零CSP违规。正常缓存CSP检查失败另见csp-followup.md；不作为门禁通过。
+
+### Status
+
+**In progress** — 质量跟进与提交授权待完成。
+
+### Next Steps
+
+- 先决定follow-redirects与CSP/304跟进范围；另获提交、推送和七号机部署授权。本批不归档。

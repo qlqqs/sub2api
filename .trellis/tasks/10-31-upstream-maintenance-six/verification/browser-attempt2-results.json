@@ -1,0 +1,30 @@
+{
+  "checks": [
+    "home-zh CSP present without unsafe-eval",
+    "home-zh renders content",
+    "home-zh no raw Qx locale keys",
+    "login-zh CSP present without unsafe-eval",
+    "login-zh renders content",
+    "login-zh no raw Qx locale keys",
+    "dashboard-zh CSP present without unsafe-eval",
+    "dashboard-zh renders content",
+    "dashboard-zh no raw Qx locale keys",
+    "English dashboard title",
+    "dashboard-en renders content",
+    "dashboard-en no raw Qx locale keys",
+    "purchase-en CSP present without unsafe-eval",
+    "purchase-en renders content",
+    "purchase-en no raw Qx locale keys"
+  ],
+  "pageErrors": [],
+  "csp": [
+    {
+      "directive": "script-src-elem",
+      "blocked": "inline"
+    }
+  ],
+  "consoleErrors": [
+    "Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'nonce-HyDT9uzenwinp7J1SDFlMg==' https://challenges.cloudflare.com https://*.alicdn.com https://static.cloudflareinsights.com https://turing.captcha.qcloud.com https://turing.captcha.gtimg.com https://ca.turing.captcha.qcloud.com https://global.turing.captcha.gtimg.com https://www.tycaptcha.com https://cloudcache.tencentcs.com https://*.stripe.com https://static.airwallex.com https://checkout.airwallex.com https://static-demo.airwallex.com https://checkout-demo.airwallex.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-EeLzBdvYwJau4hh9EQU92pS13BZ8hIcubW+pK8ztM+Y='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked."
+  ],
+  "screenshots": "/tmp/sub2api-six-browser"
+}

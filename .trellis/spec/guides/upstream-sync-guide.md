@@ -76,7 +76,7 @@ PR 用 repo+number+head_sha+base_sha 记录版本，未合并 PR 不推进 main 
 ## 5. 验证与错误处理
 
 - 按源补丁依赖顺序，结合定制响应模型名、引用、图片流、财务和分润审查。
-- 后端测试移除 http_proxy/https_proxy/HTTP_PROXY/HTTPS_PROXY/ALL_PROXY/all_proxy 与 OPENAI_API_KEY；实际工具链以模块内 `go version` 为准。前端固定 `npx -y pnpm@9`，不调用全局 pnpm。
+- 后端测试移除 http_proxy/https_proxy/HTTP_PROXY/HTTPS_PROXY/ALL_PROXY/all_proxy 与 OPENAI_API_KEY；实际工具链以模块内 `go version` 为准。前端固定 `npx -y pnpm@9`，不调用全局 pnpm。候选 worktree 另核对 `node --version`；mise shim 不一定解析到项目固定版本，构建及最终验证显式使用该版本 PATH。
 - 同步安全版本时检查 go.mod、实际镜像、CI 断言、锁文件；不夹带未批准构建入口升级。不延长安全例外掩盖告警，区分原始审计失败与例外策略通过。
 - 本机 `SUB2API_REPO=<candidate> /home/qlqq/workspace/sub2api-local/build.sh` 可指定候选，但镜像、构建目录、compose/DB/e2e 数据共享，必须协调串行运行。不得使用旧基线前端产物冒充新构建，不全局清理 Docker。
 - 完整测试若跳过/失败，记录实际范围、原因、是否基线复现，不把跳过计为通过。

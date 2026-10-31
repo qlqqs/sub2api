@@ -1,0 +1,15 @@
+{
+  "url": "http://127.0.0.1:28080/dashboard",
+  "first_status": 200,
+  "revalidated_status": 304,
+  "etag": "\"663c9448eaf99366-de2bbf1f16bea46e\"",
+  "html_nonce": "R5/iHRNx8I234uCNcFrDHA==",
+  "revalidated_header_nonce": "/wTYMXboypC7a3u7wezEhA==",
+  "nonce_mismatch": true,
+  "baseline_code_unchanged": {
+    "backend/internal/web/embed_on.go": true,
+    "backend/internal/server/middleware/security_headers.go": true,
+    "frontend/src/components/common/LocaleSwitcher.vue": true
+  },
+  "baseline_head": "27d51f9b594d430efcf40570a6ce04063e09701e"
+}

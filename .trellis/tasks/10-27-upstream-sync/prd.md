@@ -68,3 +68,7 @@
 用户已批准实施、提交、推送及一号机部署。main及origin/main同步至f178e5ae3；产品b95be64f6、发布1fa919f68已上线。CI 40546398450全部成功，备份和生产只读健康/静态资源/鉴权通过；详见 verification/release-report.md。
 
 任务保持in_progress：AC2的本机e2e仍394/395（FIN-24），原始依赖审计exit1；CI lint/integration已补齐。AC4已验证重复队列及缺口等，其余重开/回退场景未宣称全部故障演练。AC5真实目标提交映射和AC8记录同步已完成。上线完成不代表遗留测试/审计限制已经修复。
+
+## 后续批次（2026-10-31）
+
+六项维护更新由子任务 `10-31-upstream-maintenance-six` 承接；本地main=d851a3847，21产品文件已进入custom工作区但未提交推送部署。最新验证、两个基线质量跟进及授权状态以子任务 `verification/final-report.md` 为准；本文前述发布事实属于10月27日首批。

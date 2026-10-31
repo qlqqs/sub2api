@@ -1,0 +1,868 @@
+{
+  "actions": [
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1115555,
+          "path": ".>@lobehub/icons>antd-style>@emotion/css>@emotion/babel-plugin>babel-plugin-macros>cosmiconfig>yaml",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "yaml",
+      "target": "1.10.3",
+      "depth": 8
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1119441,
+          "path": ".>@lobehub/icons>@lobehub/ui>mermaid>uuid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1241206,
+          "path": ".>@lobehub/icons>@lobehub/ui>katex",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": null,
+      "target": null,
+      "depth": 3
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1119442,
+          "path": ".>@lobehub/icons>@lobehub/ui>uuid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "uuid",
+      "target": "13.0.2",
+      "depth": 4
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1120138,
+          "path": ".>@lobehub/icons>@lobehub/ui>mermaid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1120140,
+          "path": ".>@lobehub/icons>@lobehub/ui>mermaid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1120326,
+          "path": ".>@lobehub/icons>@lobehub/ui>mermaid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1122162,
+          "path": ".>@lobehub/icons>@lobehub/ui>mermaid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1138097,
+          "path": ".>@lobehub/icons>@lobehub/ui>mermaid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1138099,
+          "path": ".>@lobehub/icons>@lobehub/ui>mermaid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1138100,
+          "path": ".>@lobehub/icons>@lobehub/ui>mermaid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1138101,
+          "path": ".>@lobehub/icons>@lobehub/ui>mermaid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        },
+        {
+          "id": 1138113,
+          "path": ".>@lobehub/icons>@lobehub/ui>mermaid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "mermaid",
+      "target": "11.17.2",
+      "depth": 4
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1193675,
+          "path": ".>@lobehub/icons>@lobehub/ui>leva>colord",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "colord",
+      "target": "2.10.0",
+      "depth": 5
+    },
+    {
+      "action": "update",
+      "resolves": [
+        {
+          "id": 1244003,
+          "path": ".>axios>follow-redirects",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "module": "follow-redirects",
+      "target": "1.16.2",
+      "depth": 3
+    },
+    {
+      "action": "review",
+      "module": "xlsx",
+      "resolves": [
+        {
+          "id": 1108110,
+          "path": ".>xlsx",
+          "dev": false,
+          "bundled": false,
+          "optional": false
+        },
+        {
+          "id": 1108111,
+          "path": ".>xlsx",
+          "dev": false,
+          "bundled": false,
+          "optional": false
+        }
+      ]
+    }
+  ],
+  "advisories": {
+    "1108110": {
+      "findings": [
+        {
+          "version": "0.18.5",
+          "paths": [
+            ". > xlsx@0.18.5"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2023-30533\n- https://cdn.sheetjs.com/advisories/CVE-2023-30533\n- https://git.sheetjs.com/sheetjs/sheetjs/src/branch/master/CHANGELOG.md\n- https://git.sheetjs.com/sheetjs/sheetjs/issues/2667\n- https://git.sheetjs.com/sheetjs/sheetjs/issues/2986\n- https://cdn.sheetjs.com\n- https://github.com/advisories/GHSA-4r6h-8v6p-xvw6",
+      "created": "2023-04-24T09:30:19.000Z",
+      "id": 1108110,
+      "npm_advisory_id": null,
+      "overview": "All versions of SheetJS CE through 0.19.2 are vulnerable to \"Prototype Pollution\" when reading specially crafted files. Workflows that do not read arbitrary files (for example, exporting data to spreadsheet files) are unaffected.\n\nA non-vulnerable version cannot be found via npm, as the repository hosted on GitHub and the npm package `xlsx` are no longer maintained. Version 0.19.3 can be downloaded via https://cdn.sheetjs.com/.",
+      "reported_by": null,
+      "title": "Prototype Pollution in sheetJS",
+      "metadata": null,
+      "cves": [
+        "CVE-2023-30533"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "xlsx",
+      "vulnerable_versions": "<0.19.3",
+      "github_advisory_id": "GHSA-4r6h-8v6p-xvw6",
+      "recommendation": "None",
+      "patched_versions": "<0.0.0",
+      "updated": "2025-09-19T15:23:41.000Z",
+      "cvss": {
+        "score": 7.8,
+        "vectorString": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H"
+      },
+      "cwe": [
+        "CWE-1321"
+      ],
+      "url": "https://github.com/advisories/GHSA-4r6h-8v6p-xvw6"
+    },
+    "1108111": {
+      "findings": [
+        {
+          "version": "0.18.5",
+          "paths": [
+            ". > xlsx@0.18.5"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2024-22363\n- https://cdn.sheetjs.com/advisories/CVE-2024-22363\n- https://cwe.mitre.org/data/definitions/1333.html\n- https://git.sheetjs.com/sheetjs/sheetjs/src/tag/v0.20.2\n- https://cdn.sheetjs.com\n- https://github.com/advisories/GHSA-5pgg-2g8v-p4x9",
+      "created": "2024-04-05T06:30:46.000Z",
+      "id": 1108111,
+      "npm_advisory_id": null,
+      "overview": "SheetJS Community Edition before 0.20.2 is vulnerable.to Regular Expression Denial of Service (ReDoS).\n\nA non-vulnerable version cannot be found via npm, as the repository hosted on GitHub and the npm package `xlsx` are no longer maintained. Version 0.20.2 can be downloaded via https://cdn.sheetjs.com/.",
+      "reported_by": null,
+      "title": "SheetJS Regular Expression Denial of Service (ReDoS)",
+      "metadata": null,
+      "cves": [
+        "CVE-2024-22363"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "xlsx",
+      "vulnerable_versions": "<0.20.2",
+      "github_advisory_id": "GHSA-5pgg-2g8v-p4x9",
+      "recommendation": "None",
+      "patched_versions": "<0.0.0",
+      "updated": "2025-09-19T15:23:26.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "cwe": [
+        "CWE-1333"
+      ],
+      "url": "https://github.com/advisories/GHSA-5pgg-2g8v-p4x9"
+    },
+    "1115555": {
+      "findings": [
+        {
+          "version": "1.10.2",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > @lobehub/fluent-emoji@4.1.0 > antd-style@4.1.0 > @emotion/css@11.13.5 > @emotion/babel-plugin@11.13.5 > babel-plugin-macros@3.1.0 > cosmiconfig@7.1.0 > yaml@1.10.2",
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > @lobehub/fluent-emoji@4.1.0 > antd-style@4.1.0 > @emotion/react@11.14.0 > @emotion/babel-plugin@11.13.5 > babel-plugin-macros@3.1.0 > cosmiconfig@7.1.0 > yaml@1.10.2",
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > antd-style@4.1.0 > @emotion/css@11.13.5 > @emotion/babel-plugin@11.13.5 > babel-plugin-macros@3.1.0 > cosmiconfig@7.1.0 > yaml@1.10.2",
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > antd-style@4.1.0 > @emotion/react@11.14.0 > @emotion/babel-plugin@11.13.5 > babel-plugin-macros@3.1.0 > cosmiconfig@7.1.0 > yaml@1.10.2",
+            ". > @lobehub/icons@4.0.2 > antd-style@4.1.0 > @emotion/css@11.13.5 > @emotion/babel-plugin@11.13.5 > babel-plugin-macros@3.1.0 > cosmiconfig@7.1.0 > yaml@1.10.2",
+            ". > @lobehub/icons@4.0.2 > antd-style@4.1.0 > @emotion/react@11.14.0 > @emotion/babel-plugin@11.13.5 > babel-plugin-macros@3.1.0 > cosmiconfig@7.1.0 > yaml@1.10.2"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/eemeli/yaml/security/advisories/GHSA-48c2-rrv3-qjmp\n- https://github.com/eemeli/yaml/commit/1e84ebbea7ec35011a4c61bbb820a529ee4f359b\n- https://github.com/eemeli/yaml/releases/tag/v1.10.3\n- https://github.com/eemeli/yaml/releases/tag/v2.8.3\n- https://nvd.nist.gov/vuln/detail/CVE-2026-33532\n- https://github.com/advisories/GHSA-48c2-rrv3-qjmp",
+      "created": "2026-03-25T20:08:24.000Z",
+      "id": 1115555,
+      "npm_advisory_id": null,
+      "overview": "Parsing a YAML document with `yaml` may throw a RangeError due to a stack overflow.\n\nThe node resolution/composition phase uses recursive function calls without a depth bound. An attacker who can supply YAML for parsing can trigger a `RangeError: Maximum call stack size exceeded` with a small payload (~2–10 KB). The `RangeError` is not a `YAMLParseError`, so applications that only catch YAML-specific errors will encounter an unexpected exception type. Depending on the host application's exception handling, this can fail requests or terminate the Node.js process.\n\nFlow sequences allow deep nesting with minimal bytes (2 bytes per level: one `[` and one `]`). On the default Node.js stack, approximately 1,000–5,000 levels of nesting (2–10 KB input) exhaust the call stack. The exact threshold is environment-dependent (Node.js version, stack size, call stack depth at invocation).\n\nNote: the library's `Parser` (CST phase) uses a stack-based iterative approach and is not affected. Only the compose/resolve phase uses actual call-stack recursion.\n\nAll three public parsing APIs are affected: `YAML.parse()`, `YAML.parseDocument()`, and `YAML.parseAllDocuments()`.\n\n### PoC\n\n```javascript\nconst YAML = require('yaml');\n\n// ~10 KB payload: 5000 levels of nested flow sequences\nconst payload = '['.repeat(5000) + '1' + ']'.repeat(5000);\n\ntry {\n  YAML.parse(payload);\n} catch (e) {\n  console.log(e.constructor.name); // RangeError (NOT YAMLParseError)\n  console.log(e.message);          // Maximum call stack size exceeded\n}\n```\n\nTest environment: Node.js v24.12.0, macOS darwin arm64\n\n| Version | Nesting Depth | Input Size | Result |\n|---|---|---|---|\n| 1.0.0 | 5,000 | 10,001 B | RangeError |\n| 1.10.2 | 5,000 | 10,001 B | RangeError |\n| 2.0.0 | 5,000 | 10,001 B | RangeError |\n| 2.8.2 | 5,000 | 10,001 B | RangeError |\n| 2.8.3 | 5,000 | 10,001 B | YAMLParseError |\n\nDepth threshold on yaml 2.8.2:\n\n| Nesting Depth | Input Size | Result |\n|---|---|---|\n| 500 | 1,001 B | Parses successfully |\n| 1,000 | 2,001 B | RangeError (threshold varies by stack size) |\n| 5,000 | 10,001 B | RangeError |",
+      "reported_by": null,
+      "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-33532"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "yaml",
+      "vulnerable_versions": ">=1.0.0 <1.10.3",
+      "github_advisory_id": "GHSA-48c2-rrv3-qjmp",
+      "recommendation": "Upgrade to version 1.10.3 or later",
+      "patched_versions": ">=1.10.3",
+      "updated": "2026-03-27T21:34:54.000Z",
+      "cvss": {
+        "score": 4.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-674"
+      ],
+      "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
+    },
+    "1119441": {
+      "findings": [
+        {
+          "version": "11.1.0",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > mermaid@11.14.0 > uuid@11.1.0"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/uuidjs/uuid/security/advisories/GHSA-w5hq-g745-h8pq\n- https://github.com/uuidjs/uuid/commit/3d2c5b0342f0fcb52a5ac681c3d47c13e7444b34\n- https://github.com/uuidjs/uuid/releases/tag/v14.0.0\n- https://nvd.nist.gov/vuln/detail/CVE-2026-41907\n- https://github.com/uuidjs/uuid/commit/32389c887c9e75f90442ee4cc95bbab0c4e8346e\n- https://github.com/uuidjs/uuid/commit/3d61d6ac1f782cf6b1dd8661c60f11722cd49a0d\n- https://github.com/uuidjs/uuid/commit/9d27ddf7046ce496ef39569ff84d948eeff9cb2a\n- https://github.com/uuidjs/uuid/releases/tag/v11.1.1\n- https://github.com/uuidjs/uuid/releases/tag/v12.0.1\n- https://github.com/uuidjs/uuid/releases/tag/v13.0.1\n- https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+      "created": "2026-04-22T20:53:24.000Z",
+      "id": 1119441,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\nThe `v3()`, `v5()`, and `v6()` [API methods](https://github.com/uuidjs/uuid#api-summary) (not `uuid` release versions) accept external output buffers but do not reject out-of-range writes (small `buf` or large `offset`).  \nBy contrast, `v4()`, `v1()`, and `v7()` API methods explicitly throw `RangeError` on invalid bounds.\n\nThis inconsistency allows **silent partial writes** into caller-provided buffers.\n\n\n### Affected code\n\n- `src/v35.ts` (`v3()`/`v5()` path) writes `buf[offset + i]` without bounds validation.\n- `src/v6.ts` writes `buf[offset + i]` without bounds validation.\n\n### Reproducible PoC\n\n```bash\ncd /home/StrawHat/uuid\nnpm ci\nnpm run build\n\nnode --input-type=module -e \"\nimport {v4,v5,v6} from './dist-node/index.js';\nconst ns='6ba7b810-9dad-11d1-80b4-00c04fd430c8';\nfor (const [name,fn] of [\n  ['v4()',()=>v4({},new Uint8Array(8),4)],\n  ['v5()',()=>v5('x',ns,new Uint8Array(8),4)],\n  ['v6()',()=>v6({},new Uint8Array(8),4)],\n]) {\n  try { fn(); console.log(name,'NO_THROW'); }\n  catch(e){ console.log(name,'THREW',e.name); }\n}\"\n```\n\nObserved:\n\n- `v4() THREW RangeError`\n- `v5() NO_THROW`\n- `v6() NO_THROW`\n\nExample partial overwrite evidence captured during audit:\n\n```text\nsame true buf [\n  170, 170, 170, 170,\n   75, 224, 100,  63\n]\nv6 [\n  187, 187, 187, 187,\n   31,  19, 185,  64\n]\n```\n\n### Security impact\n\n- **Primary**: integrity/robustness issue (silent partial output).\n- If an application assumes full UUID writes into preallocated buffers, this can produce malformed/truncated/partially stale identifiers without error.\n- In systems where caller-controlled offsets/buffer sizes are exposed indirectly, this may become a security-relevant logic flaw.\n\n### Suggested fix\n\nAdd the same guard used by `v4()`/`v1()`/`v7()`:\n\n```ts\nif (offset < 0 || offset + 16 > buf.length) {\n  throw new RangeError(`UUID byte range ${offset}:${offset + 15} is out of buffer bounds`);\n}\n```\n\nApply to:\n\n- `src/v35.ts` (covers `v3()` and `v5()`)\n- `src/v6.ts`",
+      "reported_by": null,
+      "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-41907"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "uuid",
+      "vulnerable_versions": "<11.1.1",
+      "github_advisory_id": "GHSA-w5hq-g745-h8pq",
+      "recommendation": "Upgrade to version 11.1.1 or later",
+      "patched_versions": ">=11.1.1",
+      "updated": "2026-05-21T18:25:57.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-787",
+        "CWE-1285"
+      ],
+      "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
+    },
+    "1119442": {
+      "findings": [
+        {
+          "version": "13.0.0",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > uuid@13.0.0"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/uuidjs/uuid/security/advisories/GHSA-w5hq-g745-h8pq\n- https://github.com/uuidjs/uuid/commit/3d2c5b0342f0fcb52a5ac681c3d47c13e7444b34\n- https://github.com/uuidjs/uuid/releases/tag/v14.0.0\n- https://nvd.nist.gov/vuln/detail/CVE-2026-41907\n- https://github.com/uuidjs/uuid/commit/32389c887c9e75f90442ee4cc95bbab0c4e8346e\n- https://github.com/uuidjs/uuid/commit/3d61d6ac1f782cf6b1dd8661c60f11722cd49a0d\n- https://github.com/uuidjs/uuid/commit/9d27ddf7046ce496ef39569ff84d948eeff9cb2a\n- https://github.com/uuidjs/uuid/releases/tag/v11.1.1\n- https://github.com/uuidjs/uuid/releases/tag/v12.0.1\n- https://github.com/uuidjs/uuid/releases/tag/v13.0.1\n- https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+      "created": "2026-04-22T20:53:24.000Z",
+      "id": 1119442,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\nThe `v3()`, `v5()`, and `v6()` [API methods](https://github.com/uuidjs/uuid#api-summary) (not `uuid` release versions) accept external output buffers but do not reject out-of-range writes (small `buf` or large `offset`).  \nBy contrast, `v4()`, `v1()`, and `v7()` API methods explicitly throw `RangeError` on invalid bounds.\n\nThis inconsistency allows **silent partial writes** into caller-provided buffers.\n\n\n### Affected code\n\n- `src/v35.ts` (`v3()`/`v5()` path) writes `buf[offset + i]` without bounds validation.\n- `src/v6.ts` writes `buf[offset + i]` without bounds validation.\n\n### Reproducible PoC\n\n```bash\ncd /home/StrawHat/uuid\nnpm ci\nnpm run build\n\nnode --input-type=module -e \"\nimport {v4,v5,v6} from './dist-node/index.js';\nconst ns='6ba7b810-9dad-11d1-80b4-00c04fd430c8';\nfor (const [name,fn] of [\n  ['v4()',()=>v4({},new Uint8Array(8),4)],\n  ['v5()',()=>v5('x',ns,new Uint8Array(8),4)],\n  ['v6()',()=>v6({},new Uint8Array(8),4)],\n]) {\n  try { fn(); console.log(name,'NO_THROW'); }\n  catch(e){ console.log(name,'THREW',e.name); }\n}\"\n```\n\nObserved:\n\n- `v4() THREW RangeError`\n- `v5() NO_THROW`\n- `v6() NO_THROW`\n\nExample partial overwrite evidence captured during audit:\n\n```text\nsame true buf [\n  170, 170, 170, 170,\n   75, 224, 100,  63\n]\nv6 [\n  187, 187, 187, 187,\n   31,  19, 185,  64\n]\n```\n\n### Security impact\n\n- **Primary**: integrity/robustness issue (silent partial output).\n- If an application assumes full UUID writes into preallocated buffers, this can produce malformed/truncated/partially stale identifiers without error.\n- In systems where caller-controlled offsets/buffer sizes are exposed indirectly, this may become a security-relevant logic flaw.\n\n### Suggested fix\n\nAdd the same guard used by `v4()`/`v1()`/`v7()`:\n\n```ts\nif (offset < 0 || offset + 16 > buf.length) {\n  throw new RangeError(`UUID byte range ${offset}:${offset + 15} is out of buffer bounds`);\n}\n```\n\nApply to:\n\n- `src/v35.ts` (covers `v3()` and `v5()`)\n- `src/v6.ts`",
+      "reported_by": null,
+      "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-41907"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "uuid",
+      "vulnerable_versions": ">=13.0.0 <13.0.1",
+      "github_advisory_id": "GHSA-w5hq-g745-h8pq",
+      "recommendation": "Upgrade to version 13.0.1 or later",
+      "patched_versions": ">=13.0.1",
+      "updated": "2026-05-21T18:25:57.000Z",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+      },
+      "cwe": [
+        "CWE-787",
+        "CWE-1285"
+      ],
+      "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
+    },
+    "1120138": {
+      "findings": [
+        {
+          "version": "11.14.0",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > mermaid@11.14.0"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/mermaid-js/mermaid/security/advisories/GHSA-ghcm-xqfw-q4vr\n- https://github.com/mermaid-js/mermaid/commit/37ff937f1da2e19f882fd1db01235db4d01f4056\n- https://github.com/mermaid-js/mermaid/commit/4e2d512bf5bf6f9de1a8f0a48da78dc4d09ac4f3\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.15.0\n- https://github.com/mermaid-js/mermaid/releases/tag/v10.9.6\n- https://mermaid.js.org/config/schema-docs/config.html#securitylevel\n- https://nvd.nist.gov/vuln/detail/CVE-2026-41149\n- https://github.com/advisories/GHSA-ghcm-xqfw-q4vr",
+      "created": "2026-05-11T19:36:46.000Z",
+      "id": 1120138,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nUnder the default configuration, Mermaid state diagram's `classDef` allow DOM injection that escapes the SVG, although `<script>` tags are removed, preventing XSS.\n\n#### Proof-of-concept\n\n```\nstateDiagram-v2\n  classDef xss fill:red</style></svg><style>*{x:x;y:y;overflow:visible!important;contain:none!important;transform:none!important;filter:none!important;clip-path:none!important}</style><div style=\"x:x;y:y;color:red;font:5em/1 monospace;display:grid;place-items:center;z-index:2147483647;width:100vw;height:100vh;position:fixed;top:0;left:0;background:black\">HACKED</div><svg><style>a:b\n  [*] --> A:::xss\n```\n\n### Patches\n\n- [v11.15.0](https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.15.0) (see [37ff937f1da2e19f882fd1db01235db4d01f4056](https://github.com/mermaid-js/mermaid/commit/37ff937f1da2e19f882fd1db01235db4d01f4056))\n- [v10.9.6](https://github.com/mermaid-js/mermaid/releases/tag/v10.9.6) (see [4e2d512bf5bf6f9de1a8f0a48da78dc4d09ac4f3](https://github.com/mermaid-js/mermaid/commit/4e2d512bf5bf6f9de1a8f0a48da78dc4d09ac4f3))\n\n### Workarounds\n\nIf you can not update to a patched version, setting [`\"securityLevel\": \"sandbox\"`](https://mermaid.js.org/config/schema-docs/config.html#securitylevel)  will prevent this, by rendering the mermaid diagram in a sandboxed `<iframe>`.\n\n### Credits\n\nThanks to @zsxsoft from @KeenSecurityLab for reporting this vulnerability.",
+      "reported_by": null,
+      "title": "Mermaid: Improper sanitization of `classDef` in state diagrams leads to HTML injection",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-41149"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "mermaid",
+      "vulnerable_versions": ">=11.0.0-alpha.1 <=11.14.0",
+      "github_advisory_id": "GHSA-ghcm-xqfw-q4vr",
+      "recommendation": "Upgrade to version 11.15.0 or later",
+      "patched_versions": ">=11.15.0",
+      "updated": "2026-06-08T23:21:04.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-94"
+      ],
+      "url": "https://github.com/advisories/GHSA-ghcm-xqfw-q4vr"
+    },
+    "1120140": {
+      "findings": [
+        {
+          "version": "11.14.0",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > mermaid@11.14.0"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/mermaid-js/mermaid/security/advisories/GHSA-xcj9-5m2h-648r\n- https://github.com/mermaid-js/mermaid/commit/8fead23c59166b7bab6a39eac81acebee2859102\n- https://github.com/mermaid-js/mermaid/commit/e9b0f34d8d82a6260077764ee45e1d7d90957a0f\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.15.0\n- https://github.com/mermaid-js/mermaid/releases/tag/v10.9.6\n- https://mermaid.js.org/config/schema-docs/config.html#securitylevel\n- https://nvd.nist.gov/vuln/detail/CVE-2026-41148\n- https://github.com/advisories/GHSA-xcj9-5m2h-648r",
+      "created": "2026-05-11T19:36:41.000Z",
+      "id": 1120140,
+      "npm_advisory_id": null,
+      "overview": "### Details\n\nThe state diagram and any other diagram type that routes user-controlled style strings through createCssStyles parser for Mermaid v11.14.0 and earlier captures `classDef` values with an unrestricted regex:\n\n```jison\n// packages/mermaid/src/diagrams/state/parser/stateDiagram.jison:83\n<CLASSDEFID>[^\\n]*   { this.popState(); return 'CLASSDEF_STYLEOPTS' }\n```\n\nThe value passes unsanitized through `addStyleClass()` -> `createCssStyles()` -> `style.innerHTML` (mermaidAPI.ts:418). A `}` in the value closes the generated CSS selector, and everything after becomes a new CSS rule on the page.\n\n### PoC\n\n```\nstateDiagram-v2 \n      classDef x }*{ background-image: url(\"http://media.giphy.com/media/SggILpMXO7Xt6/giphy.gif\")}\n```\n\nLive demo:\n<https://mermaid.live/edit#pako:eNpFjzFvgzAQhf-KdVNbEcBgMHhtlkqtOnSJKi8ONsYKBmRMlRTx3-skanvTfbp7996t0IxSAYPZC6_2Rmgn7O4rQ00v5nmvWnRG29OKjqI5aTcug9wZK7RiaHH9A4fO-4kliVXSiFibqbvEzWjvnHxo_fI6vR3e6cGXyX2qTcvhcYMItDMSmHeLisAqZ8UVYeUDQhx8p6ziwEIrhTtx4MNVM4nhcxztrywE0h2wVvRzoGWS_z_8rahBKvcckntgmN5OAFvhDIzUNCZZQXCR5nVaZkUEF2BVFpOcEkoxxhUuyRbB980yjStapKHqoKFlhvPtB7BFZEU>\n\n### Patches\n\nThis has been patched in:\n\n- [v11.15.0](https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.15.0) (see [e9b0f34d8d82a6260077764ee45e1d7d90957a0f](https://github.com/mermaid-js/mermaid/commit/e9b0f34d8d82a6260077764ee45e1d7d90957a0f))\n- [v10.9.6](https://github.com/mermaid-js/mermaid/releases/tag/v10.9.6) (see [8fead23c59166b7bab6a39eac81acebee2859102](https://github.com/mermaid-js/mermaid/commit/8fead23c59166b7bab6a39eac81acebee2859102))\n\n### Workarounds\n\nSetting [`\"securityLevel\": \"sandbox\"`](https://mermaid.js.org/config/schema-docs/config.html#securitylevel)  will prevent this, by rendering the mermaid diagram in a sandboxed `<iframe>`.\n\n### Impact\n\n Enables page defacement, user tracking via `url()` callbacks, and DOM attribute exfiltration via CSS `:has()` selectors.",
+      "reported_by": null,
+      "title": "Mermaid: Improper sanitization of `classDefs` in diagrams leads to CSS injection",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-41148"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "mermaid",
+      "vulnerable_versions": ">=11.0.0-alpha.1 <=11.14.0",
+      "github_advisory_id": "GHSA-xcj9-5m2h-648r",
+      "recommendation": "Upgrade to version 11.15.0 or later",
+      "patched_versions": ">=11.15.0",
+      "updated": "2026-06-08T23:20:59.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-94"
+      ],
+      "url": "https://github.com/advisories/GHSA-xcj9-5m2h-648r"
+    },
+    "1120326": {
+      "findings": [
+        {
+          "version": "11.14.0",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > mermaid@11.14.0"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/mermaid-js/mermaid/security/advisories/GHSA-6m6c-36f7-fhxh\n- https://github.com/mermaid-js/mermaid/commit/a59ea56174712ee5430dfd5bc877cb5151f501a6\n- https://github.com/mermaid-js/mermaid/commit/faafb5d49106dd32c367f3882505f2dd625aa30e\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.15.0\n- https://github.com/mermaid-js/mermaid/releases/tag/v10.9.6\n- https://nvd.nist.gov/vuln/detail/CVE-2026-41150\n- https://github.com/advisories/GHSA-6m6c-36f7-fhxh",
+      "created": "2026-05-11T19:36:55.000Z",
+      "id": 1120326,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nMermaid v11.14.0 and earlier are vulnerable to a denial-of-service attack when rendering gantt charts, if they use the [`excludes` attribute](https://mermaid.js.org/syntax/gantt.html?#excludes) to exclude all dates.\n\nExample:\n\n```\ngantt\n  excludes monday,tuesday,wednesday,thursday,friday,saturday,sunday\n  DoS :2025-01-01, 1d\n```\n\n`mermaid.parse` is unaffected, unless you then call the `ganttDb.getTasks()` (which is called when rendering a diagram).\n\n### Patches\n\nThis has been patched in:\n\n- [v11.15.0](https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.15.0) (see [faafb5d49106dd32c367f3882505f2dd625aa30e](https://github.com/mermaid-js/mermaid/commit/faafb5d49106dd32c367f3882505f2dd625aa30e))\n- [v10.9.6](https://github.com/mermaid-js/mermaid/releases/tag/v10.9.6) (see [a59ea56174712ee5430dfd5bc877cb5151f501a6](https://github.com/mermaid-js/mermaid/commit/a59ea56174712ee5430dfd5bc877cb5151f501a6))\n\n### Workarounds\n\nThere are no workarounds available without updating to a newer version of mermaid.",
+      "reported_by": null,
+      "title": "Mermaid Gantt Charts are vulnerable to an Infinite Loop DoS",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-41150"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "mermaid",
+      "vulnerable_versions": ">=11.0.0-alpha.1 <=11.14.0",
+      "github_advisory_id": "GHSA-6m6c-36f7-fhxh",
+      "recommendation": "Upgrade to version 11.15.0 or later",
+      "patched_versions": ">=11.15.0",
+      "updated": "2026-06-09T10:28:49.000Z",
+      "cvss": {
+        "score": 5.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
+      },
+      "cwe": [
+        "CWE-835"
+      ],
+      "url": "https://github.com/advisories/GHSA-6m6c-36f7-fhxh"
+    },
+    "1122162": {
+      "findings": [
+        {
+          "version": "11.14.0",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > mermaid@11.14.0"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/mermaid-js/mermaid/security/advisories/GHSA-87f9-hvmw-gh4p\n- https://github.com/mermaid-js/mermaid/commit/64769738d5b59211e1decb471ffbaca8afec51aa\n- https://github.com/mermaid-js/mermaid/commit/a9d9f0d8eb790349121508688cd338253fd80d76\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.15.0\n- https://github.com/mermaid-js/mermaid/releases/tag/v10.9.6\n- https://nvd.nist.gov/vuln/detail/CVE-2026-41159\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid@11.15.0\n- https://github.com/advisories/GHSA-87f9-hvmw-gh4p",
+      "created": "2026-05-11T19:37:00.000Z",
+      "id": 1122162,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nMermaid's default configuration allows injecting CSS that applies outside of the Mermaid diagram via the `fontFamily`, `themeCSS`, and `altFontFamily` configuration options.\n\nLive demo: [mermaid.live](https://mermaid.live/edit#pako:eNpNjktLxDAUhf9KvFBR6JS-60QQfODKlUvJ5k6TtsEmKTHFGUP-u-mI6Nmdy3fOPR56wwVQSBIvtXSUeAaD0e4ZlZxPDChhcLxFfwiEauOuLq_9Afv30ZpVczpaITS5kGox1qF2gfSeBwYhJAnThAyz-ewntI68vG5-0z3Z7e7IA9OQwmglB-rsKlJQwircLPgNZeAmocTPAi4GXGfHgOkQYwvqN2PUbzJuGSegA84f0a0LRyeeJI4W_xChubCPcbQD2pwbgHo4Aq2aKmvbqq3zoiu7pizqFE6RybN9VFfFY1HWXRVS-Dr_zLObrt7_V_gGGXZlGg)\n\nExample code:\n\n```\n%%{init: {\"fontFamily\": \"x;a{b} :not(&){background:green !important} c{d}\"}}%%\nflowchart LR\n    A --> B\n```\n\nThe injected CSS exploits stylis's `&` (scope reference) handling. `:not(&)` escapes the `#mermaid-xxx` automatic scoping, applying styles to all page elements. Global at-rules (`@font-face`, `@keyframes`, `@counter-style`) are also injectable as stylis hoists them to top level.\n\nThis allows page defacement and DOM attribute exfiltration via CSS `:has()` selectors.\n\n### Patches\n\n- [v11.15.0](https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.15.0) (see [64769738d5b59211e1decb471ffbaca8afec51aa](https://github.com/mermaid-js/mermaid/commit/64769738d5b59211e1decb471ffbaca8afec51aa))\n- [v10.9.6](https://github.com/mermaid-js/mermaid/releases/tag/v10.9.6) (see [a9d9f0d8eb790349121508688cd338253fd80d76](https://github.com/mermaid-js/mermaid/commit/a9d9f0d8eb790349121508688cd338253fd80d76))\n\n### Workarounds\n\nIf you can't upgrade mermaid, you can set the [`secure`](https://mermaid.js.org/config/schema-docs/config.html#secure) config value in the mermaid config to avoid allowing diagrams to modify `fontFamily`, `themeCSS`, `altFontFamily`, and `themeVariables`.\n\nSetting [`\"securityLevel\": \"sandbox\"`](https://mermaid.js.org/config/schema-docs/config.html#securitylevel)  will also prevent this.\n\n### Credits\n\nReported by @zsxsoft on behalf of @KeenSecurityLab",
+      "reported_by": null,
+      "title": "Mermaid: Improper sanitization of configuration leads to CSS injection",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-41159"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "mermaid",
+      "vulnerable_versions": ">=11.0.0-alpha.1 <=11.14.0",
+      "github_advisory_id": "GHSA-87f9-hvmw-gh4p",
+      "recommendation": "Upgrade to version 11.15.0 or later",
+      "patched_versions": ">=11.15.0",
+      "updated": "2026-06-09T10:29:19.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-94"
+      ],
+      "url": "https://github.com/advisories/GHSA-87f9-hvmw-gh4p"
+    },
+    "1138097": {
+      "findings": [
+        {
+          "version": "11.14.0",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > mermaid@11.14.0"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/mermaid-js/mermaid/security/advisories/GHSA-c4c3-pg64-4m4v\n- https://github.com/mermaid-js/mermaid/pull/8022\n- https://github.com/mermaid-js/mermaid/commit/2cd6dcf735533b323507e3e889ffdea870540b43\n- https://github.com/mermaid-js/mermaid/commit/c34b07a0815842327e70794d69b0c8c5a1e2a956\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.1\n- https://github.com/mermaid-js/mermaid/releases/tag/v10.9.8\n- https://github.com/advisories/GHSA-c4c3-pg64-4m4v",
+      "created": "2026-08-06T19:59:10.000Z",
+      "id": 1138097,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\nMermaid's configuration setters (`mermaid.initialize`, `mermaidAPI.setConfig`, and `mermaidAPI.updateSiteConfig`) merge the caller-supplied configuration object into Mermaid's internal config using the `assignWithDepth` deep-merge helper that is vulnerable to prototype pollution.\n\nBecause these APIs are intended to receive **trusted** configuration supplied by the application integrating Mermaid, Mermaid assesses the practical risk as **low**. The vulnerability is only reachable if an application forwards attacker-controlled data directly into one of these configuration entry points, which is outside their documented usage.\n\nUser-controlled configuration (e.g. configuration in diagram code using `%%{init: {}}%%` or YAML frontmatter) are already protected from prototype pollution.\n\n### Patches\n\nThis has been patched in https://github.com/mermaid-js/mermaid/commit/2cd6dcf735533b323507e3e889ffdea870540b43 and released in [Mermaid v11.16.1](https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.1).\n\nA backport has been made for the v10 branch in c34b07a0815842327e70794d69b0c8c5a1e2a956 and was released in [Mermaid v10.9.8](https://github.com/mermaid-js/mermaid/releases/tag/v10.9.8)\n\n### Impact\n\nMermaid believes it's unlikely that anybody is impacted, as these functions are configuration entry points expected to receive trusted, developer-controlled values as they can modify other security-relevant configuration.\n\n### Workarounds\n\nDon't pass user-controlled data to the `mermaid.initialize`, `mermaidAPI.setConfig`, and `mermaidAPI.updateSiteConfig` functions. Instead, users can use `%%{init: {}}%%` or YAML frontmatter in diagrams.\n\n### Reporters\n\n- liyi.zhou@sydney.edu.au (Liyi), https://lzhou1110.github.io/\n- ziyue0530@gmail.com (Ziyue), https://zyy0530.github.io/\n- cshe0476@uni.sydney.edu.au (Strick), https://str1ckl4nd.github.io/\n- chng0012@uni.sydney.edu.au (Maurice), http://maurice.busystar.org/\n- cyu210608@gmail.com (Chenchen), https://7thparkk.github.io/",
+      "reported_by": null,
+      "title": "Mermaid configuration APIs allow prototype pollution",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-71438"
+      ],
+      "access": "public",
+      "severity": "low",
+      "module_name": "mermaid",
+      "vulnerable_versions": ">=11.0.0-alpha.1 <11.16.1",
+      "github_advisory_id": "GHSA-c4c3-pg64-4m4v",
+      "recommendation": "Upgrade to version 11.16.1 or later",
+      "patched_versions": ">=11.16.1",
+      "updated": "2026-08-06T19:59:11.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-1321"
+      ],
+      "url": "https://github.com/advisories/GHSA-c4c3-pg64-4m4v"
+    },
+    "1138099": {
+      "findings": [
+        {
+          "version": "11.14.0",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > mermaid@11.14.0"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/mermaid-js/mermaid/security/advisories/GHSA-6x64-9x62-f2gx\n- https://github.com/mermaid-js/mermaid/pull/8022\n- https://github.com/mermaid-js/mermaid/commit/12d472c9ed43f94814b110da8d7a9ae6dd5266ed\n- https://github.com/mermaid-js/mermaid/commit/7e83f1533318b307764d961906a73377266f4c5e\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid@11.16.1\n- https://github.com/mermaid-js/mermaid/releases/tag/v10.9.8\n- https://github.com/advisories/GHSA-6x64-9x62-f2gx",
+      "created": "2026-08-06T19:55:31.000Z",
+      "id": 1138099,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\nMermaid does not fully restrict CSS to the rendered SVG subtree. Although selectors are prefixed with `#mermaid-X`, sibling (`~` and `+`) combinators can still escape the Mermaid container and inject styles to DOM elements adjacent to the diagram `<svg>`.\n\n**Most users of mermaid would not be affected by this**, as mermaid adds its `<svg>` as an only child of it's parent element. However, you may be affected if you manually insert the `<svg>` (or other elements) into the DOM yourself.\n\n### Details\n\nMermaid namespaces CSS through with a middleware intended to scope all rules to the diagram's SVG element. CSS nesting expands `& ~ * { ... }` to `#svgId ~ *`, which selects all sibling elements following the SVG in the DOM, outside the diagram boundary.\n\n### Impact\n\nAn attacker able to supply diagram source to a page (e.g., user-generated content rendered by Mermaid) could inject CSS rules affecting sibling elements to the diagram `<svg>` on the host page. This can be used for UI redressing, hiding content, conditional CSS-based probing, or phishing-style visual manipulation.\n\nJavaScript execution is not possible via this vector.\n\n### Patches\n\nThis has been patched in https://github.com/mermaid-js/mermaid/commit/12d472c9ed43f94814b110da8d7a9ae6dd5266ed and released in [Mermaid v11.16.1](https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.1).\n\nA backport has been made for the v10 branch in 7e83f1533318b307764d961906a73377266f4c5e and was released in [Mermaid v10.9.8](https://github.com/mermaid-js/mermaid/releases/tag/v10.9.8)\n\n### Workarounds\n\nIf you are inserting the `<svg>` into the DOM yourself, you can wrap it in an element with no other children, e.g. `<div><svg>...</svg></div>` or `element.innerHTML = svg`. Alternatively, you can use `mermaid.run()` or `mermaid.initialize()`  which will do this for you. \n\nSetting [\"securityLevel\": \"sandbox\"](https://mermaid.js.org/config/schema-docs/config.html#securitylevel) will also prevent this, or setting the [`secure`](https://mermaid.js.org/config/schema-docs/config.html#secure) config value in the mermaid config to avoid allowing diagrams to modify `fontFamily`, `themeCSS`, `altFontFamily`, and `themeVariables`.\n\nTo test, you can try using a `themeCSS` with `& + * { /* my CSS here */}` and see if it's applied outside of your mermaid `<svg>`.\n\n```mermaid-example\n---\nconfig:\n  themeCSS: |-\n    & + * { background:red !important; width:100vw !important; height:100vh !important; position:fixed !important; inset:0 !important; }\n---\ninfo\n```\n\n### References\n\n- GHSA-87f9-hvmw-gh4p/CVE-2026-41159 (related vulnerability)\n- https://github.com/mermaid-js/mermaid/commit/12d472c9ed43f94814b110da8d7a9ae6dd5266ed\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.1\n- https://github.com/mermaid-js/mermaid/commit/7e83f1533318b307764d961906a73377266f4c5e\n- https://github.com/mermaid-js/mermaid/releases/tag/v10.9.8",
+      "reported_by": null,
+      "title": "Mermaid allows CSS injection applying to sibling elements of the diagram",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-50159"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "mermaid",
+      "vulnerable_versions": ">=11.0.0-alpha.1 <11.16.1",
+      "github_advisory_id": "GHSA-6x64-9x62-f2gx",
+      "recommendation": "Upgrade to version 11.16.1 or later",
+      "patched_versions": ">=11.16.1",
+      "updated": "2026-08-06T19:55:33.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-94"
+      ],
+      "url": "https://github.com/advisories/GHSA-6x64-9x62-f2gx"
+    },
+    "1138100": {
+      "findings": [
+        {
+          "version": "11.14.0",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > mermaid@11.14.0"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/mermaid-js/mermaid/security/advisories/GHSA-3rrr-jr9j-h3q3\n- https://github.com/mermaid-js/mermaid/pull/8022\n- https://github.com/mermaid-js/mermaid/commit/99af3fc35ef0a9a9c8c6314521344d67523ddccf\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid@11.16.1\n- https://github.com/advisories/GHSA-3rrr-jr9j-h3q3",
+      "created": "2026-08-06T19:51:59.000Z",
+      "id": 1138100,
+      "npm_advisory_id": null,
+      "overview": "Rendering an untrusted `architecture-beta` diagram lets the diagram author write an arbitrary property with the value `horizontal` or `vertical` onto `Object.prototype`. A group id of `__proto__` is accepted as a valid parent.\n\n### Impact\n\nAny code in the same realm that reads a property of that name from an arbitrary object, or enumerates an object with bare `for...in`, observes the injected value (which can only be the string `horizontal` or `vertical`.\n\nThis may mean corrupted option/config defaults, bypassed truthiness checks, causing denial of service or logic corruption in the embedding application.\n\nBecause the injected value cannot be an object or function, this is not directly exploitable for remote code execution.\n\n### PoC\n\n```\narchitecture-beta\n      group mermaidPrototypePollutionMarker(cloud)[Marker]\n      service a(server)[A] in __proto__\n      service b(server)[B] in mermaidPrototypePollutionMarker\n      a:R -- L:b\n```\n\nThe vulnerable write was introduced in commit [cb0a4703bdf01d47508bde1c08aa9a980d70bc20](https://github.com/mermaid-js/mermaid/commit/cb0a4703bdf01d47508bde1c08aa9a980d70bc20) and first shipped in `mermaid@11.5.0`. The lines are unchanged in every release since.\n\n### Patches\n\nThis has been patched by https://github.com/mermaid-js/mermaid/commit/99af3fc35ef0a9a9c8c6314521344d67523ddccf, released in [Mermaid v11.16.1](https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.1)\n\n### Workarounds\n\nThere are no known workarounds. Please update to a patched version.\n\n### References\n\n_Are there any links users can visit to find out more?_\n\n- https://github.com/mermaid-js/mermaid/commit/99af3fc35ef0a9a9c8c6314521344d67523ddccf\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.1",
+      "reported_by": null,
+      "title": "Mermaid Architecture diagrams are vulnerable to prototype pollution",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-71437"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "mermaid",
+      "vulnerable_versions": ">=11.5.0 <11.16.1",
+      "github_advisory_id": "GHSA-3rrr-jr9j-h3q3",
+      "recommendation": "Upgrade to version 11.16.1 or later",
+      "patched_versions": ">=11.16.1",
+      "updated": "2026-08-06T19:52:01.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-1321"
+      ],
+      "url": "https://github.com/advisories/GHSA-3rrr-jr9j-h3q3"
+    },
+    "1138101": {
+      "findings": [
+        {
+          "version": "11.14.0",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > mermaid@11.14.0"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/mermaid-js/mermaid/security/advisories/GHSA-2v8p-3f2j-5mp7\n- https://github.com/mermaid-js/mermaid/pull/8022\n- https://github.com/mermaid-js/mermaid/commit/630aa7e5dd417e1f56bff2a1ce8df2c5ad08d289\n- https://github.com/mermaid-js/mermaid/commit/ef60adc837d9d5107af21285f01e83dea309bd0a\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid@11.16.1\n- https://github.com/mermaid-js/mermaid/releases/tag/v10.9.8\n- https://github.com/advisories/GHSA-2v8p-3f2j-5mp7",
+      "created": "2026-08-06T19:49:48.000Z",
+      "id": 1138101,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nMermaid XY Charts are vulnerable to an infinite loop DoS attack in the `setXAxisRangeData()`, when configuring an X-Axis with invalid parameters.\n\nAs each loop appends an element to an array, this would generally only cause an `RangeError: Invalid array length` to appear after a few seconds, but may cause the page/JavaScript process to crash due to memory exhaustion, depending on the environment.\n\n#### Proof-of-concept\n\n```txt\nxychart\n  x-axis 1 --> 1\n  line [1, 2]\n```\n\n### Patches\n\nThis has been patched in https://github.com/mermaid-js/mermaid/commit/630aa7e5dd417e1f56bff2a1ce8df2c5ad08d289 and released in [Mermaid v11.16.1](https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.1).\n\nA backport has been made for the v10 branch in ef60adc837d9d5107af21285f01e83dea309bd0a and was released in [Mermaid v10.9.8](https://github.com/mermaid-js/mermaid/releases/tag/v10.9.8)\n\n### Workarounds\n\nThere are no known workarounds. Please update to the latest version or apply the patch.\n\n### References\n\n- https://github.com/mermaid-js/mermaid/commit/630aa7e5dd417e1f56bff2a1ce8df2c5ad08d289\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.1\n- https://github.com/mermaid-js/mermaid/commit/ef60adc837d9d5107af21285f01e83dea309bd0a\n- https://github.com/mermaid-js/mermaid/releases/tag/v10.9.8",
+      "reported_by": null,
+      "title": "Mermaid XY Charts are vulnerable to an infinite loop DoS",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-71436"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "mermaid",
+      "vulnerable_versions": ">=11.0.0-alpha.1 <11.16.1",
+      "github_advisory_id": "GHSA-2v8p-3f2j-5mp7",
+      "recommendation": "Upgrade to version 11.16.1 or later",
+      "patched_versions": ">=11.16.1",
+      "updated": "2026-08-06T19:49:48.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-835",
+        "CWE-1325"
+      ],
+      "url": "https://github.com/advisories/GHSA-2v8p-3f2j-5mp7"
+    },
+    "1138113": {
+      "findings": [
+        {
+          "version": "11.14.0",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > mermaid@11.14.0"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/mermaid-js/mermaid/security/advisories/GHSA-rhh3-jpg6-66xh\n- https://github.com/mermaid-js/mermaid/pull/8022\n- https://github.com/mermaid-js/mermaid/commit/59b22fad2b3bb04f87a476c84a8a2b24679e607e\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.1\n- https://github.com/advisories/GHSA-rhh3-jpg6-66xh",
+      "created": "2026-08-06T20:01:07.000Z",
+      "id": 1138113,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nMermaid radar diagrams allow arbitrary large values for `ticks`, which can cause high CPU usage, freezing the webpage/JavaScript process for long periods of time, until the process is eventually killed due to OOM/running out of memory.\n\n#### Proof-of-concept\n\n```txt\nradar-beta\n  axis a, b\n  curve c {1, 1}\n  ticks 1000000000\n```\n\n### Patches\n\n_Has the problem been patched? What versions should users upgrade to?_\n\nThis problem has been patched by https://github.com/mermaid-js/mermaid/commit/59b22fad2b3bb04f87a476c84a8a2b24679e607e, which was released in [Mermaid v11.16.1](https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.1)\n\n### Workarounds\n\n_Is there a way for users to fix or remediate the vulnerability without upgrading?_\n\nThere are no known workarounds without updating to a patched version of mermaid.\n\n### References\n\n_Are there any links users can visit to find out more?_\n\n- https://github.com/mermaid-js/mermaid/commit/59b22fad2b3bb04f87a476c84a8a2b24679e607e\n- https://github.com/mermaid-js/mermaid/releases/tag/mermaid%4011.16.1",
+      "reported_by": null,
+      "title": "Mermaid radar diagrams are vulnerable to DoS",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-71439"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "mermaid",
+      "vulnerable_versions": ">=11.6.0 <11.16.1",
+      "github_advisory_id": "GHSA-rhh3-jpg6-66xh",
+      "recommendation": "Upgrade to version 11.16.1 or later",
+      "patched_versions": ">=11.16.1",
+      "updated": "2026-08-06T20:01:08.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-606",
+        "CWE-1322"
+      ],
+      "url": "https://github.com/advisories/GHSA-rhh3-jpg6-66xh"
+    },
+    "1193675": {
+      "findings": [
+        {
+          "version": "2.9.3",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > leva@0.10.1 > colord@2.9.3"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/omgovich/colord/security/advisories/GHSA-2wm5-q62r-hmrv\n- https://nvd.nist.gov/vuln/detail/CVE-2026-85062\n- https://github.com/omgovich/colord/pull/141\n- https://github.com/omgovich/colord/commit/87018089515ed66a85b1a95c3c7c3fd69a25bac2\n- https://github.com/advisories/GHSA-2wm5-q62r-hmrv",
+      "created": "2026-09-08T20:51:57.000Z",
+      "id": 1193675,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\n`colord`'s CSS color string matchers described a number as `([+-]?\\d*\\.?\\d+)`. In that form `\\d*` and `\\d+` can match the same digits, so a run of *n* digits can be divided between them in O(n²) ways, and rejecting an input retries every division. Parsing is synchronous and uninterruptible, so a long malformed color string blocks the thread:\n\n| input | time to reject |\n| --- | --- |\n| 16 KB | 224 ms |\n| 64 KB | 4.4 s |\n| 128 KB | 18.5 s |\n\nReachable through `colord()` and `getFormat()`, and through any method that accepts a color string — including `isEqual()`, `mix()` and `contrast()`. The affected matchers are `parseRgbaString` and `parseHslaString` (built in) and `parseHwbaString`, `parseLchaString`, `parseCmykaString` (plugins).\n\nGrowth is polynomial, not exponential — multi-kilobyte payloads are required for a noticeable stall.\n\n### Who is affected\n\nApplications that pass attacker-controlled strings of unbounded length to `colord()` — for example a server validating a color taken from a request body, JSON field, or uploaded stylesheet. `colord` applies no length limit before matching.\n\nTypical client-side use with short input is not meaningfully affected.\n\n### Patches\n\nFixed in **2.9.4**. The number is now written as `([+-]?(?:\\d*\\.\\d+|\\d+))`, which accepts exactly the same syntax but leaves only one way to match it, making rejection linear — 1 MB of input is rejected in ~5 ms.\n\n### Workarounds\n\nReject or truncate color strings longer than a sane limit (e.g. 100 characters) before passing them to `colord`.",
+      "reported_by": null,
+      "title": "Colord: Slow rejection of oversized malformed color strings",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-85062"
+      ],
+      "access": "public",
+      "severity": "moderate",
+      "module_name": "colord",
+      "vulnerable_versions": "<2.9.4",
+      "github_advisory_id": "GHSA-2wm5-q62r-hmrv",
+      "recommendation": "Upgrade to version 2.9.4 or later",
+      "patched_versions": ">=2.9.4",
+      "updated": "2026-09-08T20:51:58.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-1333"
+      ],
+      "url": "https://github.com/advisories/GHSA-2wm5-q62r-hmrv"
+    },
+    "1241206": {
+      "findings": [
+        {
+          "version": "0.16.45",
+          "paths": [
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > katex@0.16.45",
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > mermaid@11.14.0 > katex@0.16.45",
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > rehype-katex@7.0.1 > katex@0.16.45",
+            ". > @lobehub/icons@4.0.2 > @lobehub/ui@4.9.2 > remark-math@6.0.0 > micromark-extension-math@3.1.0 > katex@0.16.45"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/KaTeX/KaTeX/security/advisories/GHSA-238p-pmpm-9mq7\n- https://nvd.nist.gov/vuln/detail/CVE-2026-103923\n- https://github.com/KaTeX/KaTeX/pull/4260\n- https://github.com/KaTeX/KaTeX/commit/0adf7e77db6915d991803b29699f82b1ccf8d4f4\n- https://github.com/KaTeX/KaTeX/releases/tag/v0.18.2\n- https://github.com/advisories/GHSA-238p-pmpm-9mq7",
+      "created": "2026-10-05T23:41:05.000Z",
+      "id": 1241206,
+      "npm_advisory_id": null,
+      "overview": "### Impact\n\nKaTeX can act as a read-side prototype pollution gadget in applications where `Object.prototype` has already been polluted, or where an attacker can influence the prototype of the renderer options object. (KaTeX does not enable said prototype pollution. This advisory applies when combining KaTeX with other vulnerable software that allows for prototype pollution.)\n\nAffected versions may treat inherited properties from `Object.prototype` as renderer options, internal setting metadata, or namespace entries. In particular, an inherited `trust` value will be treated as though the application explicitly enabled trusted rendering, rather than using the documented default of `false`.\n\nWith attacker-controlled mathematical expressions, this can produce links capable of user-interaction cross-site scripting or load attacker-selected external resources. Exploitation requires the consuming application to insert KaTeX output into a web page without a separate sanitizer. (KaTeX does not execute scripts merely by rendering an expression.)\n\nOther inherited settings can alter rendering behavior or resource limits. Inherited setting metadata can affect how defaults and supplied options are processed, while inherited namespace properties can be mistaken for defined macros or other internal values.\n\n### Patches\n\nUpgrade to KaTeX v0.18.2 to remove this vulnerability.\n\n### Workarounds\n\n- Address any prototype-pollution vulnerability in the application or its dependencies.\n- `delete Object.prototype.trust`, `delete Object.prototype.default`, and `delete Object.prototype.processor` before calling KaTeX\n- Do not allow untrusted input to control the renderer options object or its prototype.\n- Sanitize KaTeX-generated HTML before inserting it into a document.\n\n### Details\n\nKaTeX previously used ordinary JavaScript property access in the following contexts:\n\n- Renderer settings could be inherited from the prototype of the options object.\n- Internal `default` and `processor` setting metadata could be inherited from `Object.prototype`.\n- Namespace lookup could treat inherited properties as built-in definitions.\n- Namespace group restoration could preserve an inherited property as though it had been an explicitly defined value.\n\nThe fix adds own-property checks to each of these paths. Inherited properties are no longer accepted as renderer settings, setting metadata, namespace definitions, or values to be restored after a group ends.\n\n### For more information\n\nIf you have any questions or comments about this advisory:\n\n- Open an issue or security advisory in the [KaTeX repository](https://github.com/KaTeX/KaTeX/)\n- Email us at [katex-security@mit.edu](mailto:katex-security@mit.edu)",
+      "reported_by": null,
+      "title": "KaTeX: Existing prototype pollution can bypass trust restrictions",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-103923"
+      ],
+      "access": "public",
+      "severity": "low",
+      "module_name": "katex",
+      "vulnerable_versions": ">=0.11.0 <0.18.2",
+      "github_advisory_id": "GHSA-238p-pmpm-9mq7",
+      "recommendation": "Upgrade to version 0.18.2 or later",
+      "patched_versions": ">=0.18.2",
+      "updated": "2026-10-05T23:41:06.000Z",
+      "cvss": {
+        "score": 0,
+        "vectorString": null
+      },
+      "cwe": [
+        "CWE-807"
+      ],
+      "url": "https://github.com/advisories/GHSA-238p-pmpm-9mq7"
+    },
+    "1244003": {
+      "findings": [
+        {
+          "version": "1.16.1",
+          "paths": [
+            ". > axios@1.20.0 > follow-redirects@1.16.1"
+          ]
+        }
+      ],
+      "found_by": null,
+      "deleted": null,
+      "references": "- https://github.com/follow-redirects/follow-redirects/security/advisories/GHSA-mrwp-f3q8-3g9p\n- https://nvd.nist.gov/vuln/detail/CVE-2026-116689\n- https://github.com/follow-redirects/follow-redirects/commit/b0a7751e9cd64cd8eeb6ec67d2f206a9cc88d3f8\n- https://github.com/follow-redirects/follow-redirects/releases/tag/v1.16.2\n- https://github.com/advisories/GHSA-mrwp-f3q8-3g9p",
+      "created": "2026-10-30T22:59:33.000Z",
+      "id": 1244003,
+      "npm_advisory_id": null,
+      "overview": "### Summary\n\nfollow-redirects 1.16.0 and 1.16.1 validate the documented sensitiveHeaders option with instanceof Array. An array created in another JavaScript realm is silently replaced with an empty list, so a caller-declared custom credential header can be forwarded to an attacker-controlled cross-origin redirect destination.\n\n### Details\n\nAffected versions\n\nThe sensitiveHeaders option was introduced in 1.16.0. Published 1.16.0 and 1.16.1 both reproduced, giving a tested affected range of 1.16.0 through 1.16.1. The source checkout was pinned at revision 46301256333c90b7faac7aa126effe72ec16d16e; the exact npm 1.16.1 artifact reproduced independently.\n\nRoot cause\n\nindex.js resets options.sensitiveHeaders when its local isArray() helper returns false. That helper uses value instanceof Array, which depends on realm identity. The same file already uses Array.isArray(options.headers), which correctly recognizes arrays across realms.\n\nSuggested remediation\n\nUse Array.isArray(value) for sensitiveHeaders, then validate and normalize each member as a header-name string. Add same-realm and node:vm cross-realm tests for cross-origin redirects, including the array-form headers representation. Verify that custom sensitive names are removed while unrelated headers remain unchanged.\n\nDuplicate review\n\nThe public advisory history contains other sensitive-header findings, including array-form headers and regular-expression handling, but focused repository searches found no report describing cross-realm validation as of 2026-10-25. A private or differently worded report may already exist.\n\n### Proof of concept\n\nStart two loopback HTTP servers. The first returns a 302 redirect to the second. Send X-API-Key and list that name in sensitiveHeaders, then compare a normal array with a genuine cross-realm array created by:\n\n```js\nconst vm = require('node:vm');\nconst sensitiveHeaders = vm.runInNewContext(`['X-API-Key']`);\n```\n\nObserved against both source and the exact npm 1.16.1 package:\n\n- Same-realm ['X-API-Key']: the redirect target did not receive the key.\n- Cross-realm ['X-API-Key']: Array.isArray(value) was true, value instanceof Array was false, and the redirect target received X-API-Key.\n- An unrelated X-Harmless header remained present in both cases.\n\nThe complete 3.5 KB loopback-only harness and raw JSON output are available privately.\n\n### Impact\n\ncustom credential disclosure. Exploitation requires a direct caller or wrapper that preserves a cross-realm sensitiveHeaders array, a custom credential listed in that option, and an attacker-controlled or compromised endpoint that returns a cross-origin redirect. The directly demonstrated result is disclosure of the custom header value, potentially exposing an API key or service token until revocation.\n\nBuilt-in Authorization, Proxy-Authorization, and Cookie protections remained effective. Exact Axios 1.20.0 with follow-redirects 1.16.1 did not reproduce because Axios normalized the array; this report does not claim that Axios is affected. No third-party service was tested.",
+      "reported_by": null,
+      "title": "follow-redirects: Cross-realm sensitiveHeaders arrays are discarded and custom credentials can follow redirects",
+      "metadata": null,
+      "cves": [
+        "CVE-2026-116689"
+      ],
+      "access": "public",
+      "severity": "high",
+      "module_name": "follow-redirects",
+      "vulnerable_versions": ">=1.16.0 <=1.16.1",
+      "github_advisory_id": "GHSA-mrwp-f3q8-3g9p",
+      "recommendation": "Upgrade to version 1.16.2 or later",
+      "patched_versions": ">=1.16.2",
+      "updated": "2026-10-30T22:59:34.000Z",
+      "cvss": {
+        "score": 5.9,
+        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+      },
+      "cwe": [
+        "CWE-201"
+      ],
+      "url": "https://github.com/advisories/GHSA-mrwp-f3q8-3g9p"
+    }
+  },
+  "muted": [],
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 2,
+      "moderate": 12,
+      "high": 3,
+      "critical": 0
+    },
+    "dependencies": 684,
+    "devDependencies": 0,
+    "optionalDependencies": 0,
+    "totalDependencies": 684
+  }
+}

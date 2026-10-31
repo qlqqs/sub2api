@@ -128,3 +128,13 @@ go build ./cmd/server
 5. **正例/基线/反例**：运行中的预览可取消；关闭弹窗不等于取消；`queued`/`applying`/`syncing`/`completed` 不能取消。
 6. **必需测试**：`TestFinanceRecalculationCancelFencesPreviewAndRejectsConfirmed` 覆盖操作者、重复取消、旧租约SavePreview/RenewLease拒绝、取消后Claim/QueueConfirm拒绝及已确认拒绝；service/handler/migration测试验证参数、身份及增量DDL。
 7. **错误与正确**：只在前端隐藏预览或仅改status会遗漏worker回写；正确做法是后端事务内状态与租约一起失效。前端同步失败只给“重新同步”，不引导重新执行已写入的成本。
+
+## 上游维护回归契约（2026-10-31）
+
+1. **范围**：OpenAI 模型列表缓存、OAuth 非流式聚合、渠道搜索配置、管理员保护；不改变定价和分润口径。
+2. **入口**：`refreshCachedOpenAIModels`、`handleSSEToJSON` / `handlePassthroughSSEToJSON`、`mergeWebSearchEmulationDimensions`、`adminServiceImpl.UpdateUser/DeleteUser`。
+3. **契约**：singleflight 闭包内重检 fresh 缓存；下游 `stream` 使用客户端原始意图，不被 OAuth 上游强制 `stream=true` 覆盖。聚合成功明确写 JSON Content-Type，保留模型别名、annotations、图片结果及 usage。`web_search_emulation` 仅按平台维度合并，其他 features_config 项维持整块替换。
+4. **边界矩阵**：缓存 fresh→零上游请求，stale→带 ETag 刷新；`incomplete/cancelled/canceled` 可提取 response，failed 继续既有错误路径。搜索维度缺省→继承，false→关闭，空对象/null→清空。禁用/删除管理员及降级最后一名管理员分别返回 400 + `ADMIN_DISABLE_FORBIDDEN` / `ADMIN_DELETE_FORBIDDEN` / `LAST_ADMIN_DEMOTE_FORBIDDEN`。
+5. **用例**：读到 stale 后另一个刷新已完成，再进入 singleflight 应复用新结果。图片完成后整轮 incomplete 的回归夹具应包含 `response.output_item.done`，不能凭终止 JSON 中出现图片就改写既有图片计数语义。
+6. **必需测试**：`openai_models_cache_recheck_test.go` 验证 fetch 次数和 ETag；`openai_nonstream_custom_contract_test.go` 及 `openai_oauth_passthrough_non_stream_test.go` 核对下游 JSON/流式与定制字段；`channel_websearch_merge_test.go` 验证 service 接线、维度继承及清空；`admin_service_role_test.go` 核对三种业务 reason。
+7. **错误与正确**：只在 singleflight 外查缓存仍会重复刷新；应在闭包内二次检查。复制上游 SSE 响应头后仅调用 `c.Data` 不会覆盖 Content-Type；聚合后需显式设置。
