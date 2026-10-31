@@ -481,6 +481,10 @@ const PluginIcon = {
   render: () => h(Icon, { name: 'cube' })
 }
 
+const DownloadIcon = {
+  render: () => h(Icon, { name: 'download' })
+}
+
 const BellIcon = {
   render: () =>
     h(
@@ -856,7 +860,9 @@ const adminNavItems = computed((): NavItem[] => {
     // CUSTOM: 财务明细
     { path: '/admin/finance', label: t('nav.finance'), icon: LedgerIcon, hideInSimpleMode: true },
     { path: '/admin/usage', label: t('nav.usage'), icon: ChartIcon },
-    { path: '/admin/audit-logs', label: t('nav.auditLogs'), icon: ShieldIcon, hideInSimpleMode: true }
+    { path: '/admin/audit-logs', label: t('nav.auditLogs'), icon: ShieldIcon, hideInSimpleMode: true },
+    // CUSTOM: QxAPI 客户端版本发布
+    { path: '/admin/client-releases', label: t('nav.clientReleases'), icon: DownloadIcon }
   ]
 
   const visible = applyFeatureFlags(baseItems)

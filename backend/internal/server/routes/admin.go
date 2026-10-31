@@ -106,6 +106,7 @@ func RegisterAdminRoutes(
 
 		// 本地进程插件管理
 		registerPluginRoutes(admin, h, stepUpAuth)
+		registerClientReleaseRoutes(admin, h, stepUpAuth) // CUSTOM
 
 		// API Key 管理
 		registerAdminAPIKeyRoutes(admin, h)
@@ -933,4 +934,17 @@ func channelMonitorModeV2Guard(settingService *service.SettingService) gin.Handl
 		}
 		c.Next()
 	}
+}
+
+// CUSTOM: Mutations share the existing plugin step-up gate.
+func registerClientReleaseRoutes(admin *gin.RouterGroup, h *handler.Handlers, stepUpAuth middleware.StepUpAuthMiddleware) {
+	releases := admin.Group("/client-releases")
+	releases.GET("", h.Admin.ClientRelease.List)
+	releases.POST("", gin.HandlerFunc(stepUpAuth), h.Admin.ClientRelease.Create)
+	releases.POST("/:id/files/:name/check", gin.HandlerFunc(stepUpAuth), h.Admin.ClientRelease.CheckUpload)
+	releases.PUT("/:id/files/:name", gin.HandlerFunc(stepUpAuth), h.Admin.ClientRelease.Upload)
+	releases.PUT("/:id/notes", h.Admin.ClientRelease.UpdateNotes)
+	releases.POST("/:id/publish", gin.HandlerFunc(stepUpAuth), h.Admin.ClientRelease.Publish)
+	releases.POST("/:id/withdraw", gin.HandlerFunc(stepUpAuth), h.Admin.ClientRelease.Withdraw)
+	releases.DELETE("/:id", gin.HandlerFunc(stepUpAuth), h.Admin.ClientRelease.Delete)
 }

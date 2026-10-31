@@ -236,6 +236,8 @@ export function useQxNav() {
         }
       ]),
       section('system', [
+        // CUSTOM: QxAPI 客户端版本发布
+        { path: '/admin/client-releases', label: t('nav.clientReleases'), icon: 'download' },
         { path: '/admin/settings', label: t('nav.settings'), icon: 'cog' },
         ...customMenuItemsForAdmin.value
       ])

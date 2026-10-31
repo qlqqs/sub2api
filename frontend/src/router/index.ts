@@ -610,6 +610,19 @@ const routes: RouteRecordRaw[] = [
       descriptionKey: 'admin.plugins.description'
     }
   },
+  // CUSTOM: QxAPI 客户端版本发布
+  {
+    path: '/admin/client-releases',
+    name: 'AdminClientReleases',
+    component: () => import('@/views/admin/ClientReleasesView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Client Releases',
+      titleKey: 'admin.clientReleases.title',
+      descriptionKey: 'admin.clientReleases.description'
+    }
+  },
   {
     path: '/admin/announcements',
     name: 'AdminAnnouncements',

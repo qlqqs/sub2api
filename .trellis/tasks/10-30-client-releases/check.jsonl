@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/backend/index.md", "reason": "后端规范入口"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "fork 小表与原生 SQL 仓储、迁移规则"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "前端规范入口"}
+{"file": ".trellis/tasks/10-30-qxapi-update-feed/design.md", "reason": "更新源接口约定"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "后端质量检查"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "前端质量检查"}

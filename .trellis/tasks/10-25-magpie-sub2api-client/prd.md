@@ -107,6 +107,7 @@
 
 - 品牌 QxAPI、公开仓库 `qlqqs/qxapi-client`、客户端直登、原版风格及裁剪范围均经用户确认。
 - 最终摘要一并提请确认的发行默认值：官网使用已知本站地址；反馈指向 `qlqqs/qxapi-client` 的 GitHub Issues；安装包与更新元数据发布到同一仓库的 GitHub Releases，不另建更新服务。不得将这些拟议默认值描述成已发布的地址。
+  - 2026-10-30 更新：更新源改为 sub2api 托管，不再使用 GitHub Releases，见 `10-30-qxapi-update-feed`。
 - 完整方案已获用户“可以”批准，进入本地实施。批准实施不等于批准提交/推送/部署。
 
 

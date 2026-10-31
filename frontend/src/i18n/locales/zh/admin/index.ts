@@ -9,6 +9,7 @@ import promptAudit from './promptAudit'
 import plugins from './plugins'
 import finance from './finance' // CUSTOM
 import financeRecalculation from './financeRecalculation' // CUSTOM
+import clientReleases from './clientReleases' // CUSTOM
 
 export default {
   ...overview,
@@ -22,4 +23,5 @@ export default {
   ...plugins,
   ...finance,
   ...financeRecalculation,
+  ...clientReleases,
 }

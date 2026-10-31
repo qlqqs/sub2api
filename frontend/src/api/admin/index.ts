@@ -43,6 +43,8 @@ import fxRateAPI from './fxRate'
 // CUSTOM: 财务明细页、账号模型成本倍率
 import financeAPI from './finance'
 import accountModelCostAPI from './accountModelCost'
+// CUSTOM: QxAPI 客户端版本发布
+import clientReleasesAPI from './clientReleases'
 
 /**
  * Unified admin API object for convenient access
@@ -85,7 +87,8 @@ export const adminAPI = {
   groupModelRates: groupModelRatesAPI,
   fxRate: fxRateAPI,
   finance: financeAPI,
-  accountModelCost: accountModelCostAPI
+  accountModelCost: accountModelCostAPI,
+  clientReleases: clientReleasesAPI
 }
 
 export {
@@ -126,7 +129,8 @@ export {
   groupModelRatesAPI,
   fxRateAPI,
   financeAPI,
-  accountModelCostAPI
+  accountModelCostAPI,
+  clientReleasesAPI
 }
 
 export default adminAPI
@@ -144,3 +148,9 @@ export type {
   PluginUISession,
   PluginTestResult
 } from './plugins'
+export type {
+  ClientRelease,
+  ClientReleaseFile,
+  ClientReleaseStatus,
+  ClientReleasePublishResult
+} from './clientReleases'

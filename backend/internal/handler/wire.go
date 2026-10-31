@@ -11,6 +11,7 @@ import (
 
 // ProvideAdminHandlers creates the AdminHandlers struct
 func ProvideAdminHandlers(
+	clientReleaseHandler *admin.ClientReleaseHandler, // CUSTOM
 	financeChannelCost *admin.FinanceChannelCostHandler,
 	financeRecalculation *admin.FinanceRecalculationHandler,
 	dashboardHandler *admin.DashboardHandler,
@@ -64,6 +65,7 @@ func ProvideAdminHandlers(
 	accountHandler.SetOpenCodeGoUsageService(opencodeGoUsage)
 	accountHandler.SetClaudeResetCreditService(claudeResetCredits)
 	return &AdminHandlers{
+		ClientRelease:          clientReleaseHandler, // CUSTOM
 		FinanceChannelCost:     financeChannelCost,
 		FinanceRecalculation:   financeRecalculation,
 		Dashboard:              dashboardHandler,
@@ -195,6 +197,7 @@ func ProvideAdminSettingHandler(settingService *service.SettingService, emailSer
 
 // ProvideHandlers creates the Handlers struct
 func ProvideHandlers(
+	clientReleaseHandler *ClientReleaseHandler, // CUSTOM
 	authHandler *AuthHandler,
 	userHandler *UserHandler,
 	affiliateTeamHandler *AffiliateTeamHandler,
@@ -222,6 +225,7 @@ func ProvideHandlers(
 	_ *service.OpenAIQuotaAutoResetService,
 ) *Handlers {
 	return &Handlers{
+		ClientRelease:    clientReleaseHandler, // CUSTOM
 		Auth:             authHandler,
 		User:             userHandler,
 		AffiliateTeam:    affiliateTeamHandler,
@@ -250,6 +254,7 @@ func ProvideHandlers(
 // ProviderSet is the Wire provider set for all handlers
 var ProviderSet = wire.NewSet(
 	// Top-level handlers
+	NewClientReleaseHandler, // CUSTOM
 	NewAuthHandler,
 	NewUserHandler,
 	NewAffiliateTeamHandler,
@@ -273,6 +278,7 @@ var ProviderSet = wire.NewSet(
 	ProvideBatchImageHandler,
 
 	// Admin handlers
+	admin.NewClientReleaseHandler, // CUSTOM
 	admin.NewDashboardHandler,
 	admin.NewUserHandler,
 	admin.NewGroupHandlerWithConfig,

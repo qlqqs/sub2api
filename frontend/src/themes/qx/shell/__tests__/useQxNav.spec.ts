@@ -117,7 +117,7 @@ describe('useQxNav', () => {
       '/admin/finance'
     ])
     expect(paths(s.contentSecurity)).toEqual(['/admin/announcements', '/admin/security-audit'])
-    expect(paths(s.system)).toEqual(['/admin/settings', '/custom/adm'])
+    expect(paths(s.system)).toEqual(['/admin/client-releases', '/admin/settings', '/custom/adm'])
     expect(paths(s.myAccount)[0]).toBe('/keys')
     expect(paths(s.myAccount)).not.toContain('/dashboard')
     const affiliates = s.business.items.find((i) => i.path === '/admin/affiliates')!
@@ -154,7 +154,7 @@ describe('useQxNav', () => {
     expect(paths(s.overview)).toEqual(['/admin/dashboard', '/admin/ops', '/admin/usage'])
     expect(paths(s.resources)).toEqual(['/admin/groups', '/admin/accounts', '/admin/proxies', '/admin/plugins'])
     expect(paths(s.myAccount)).toEqual(['/keys'])
-    expect(paths(s.system)).toEqual(['/admin/settings'])
+    expect(paths(s.system)).toEqual(['/admin/client-releases', '/admin/settings'])
   })
 
   it('admins keep their navigation in backend mode', () => {

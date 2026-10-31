@@ -31,6 +31,7 @@ type Application struct {
 	Cleanup       func()
 }
 
+// CUSTOM: Includes the fork-owned client release repository, service and handlers.
 func initializeApplication(buildInfo handler.BuildInfo) (*Application, error) {
 	wire.Build(
 		// Infrastructure layer ProviderSets

@@ -1,0 +1,29 @@
+{
+  "id": "qxapi-update-feed",
+  "name": "qxapi-update-feed",
+  "title": "QxAPI 客户端自动更新（sub2api 托管更新源）",
+  "description": "sub2api 后台上传 QxAPI 三平台安装包并提供更新源，qxapi-client 改用它自动更新；替代原 GitHub Releases 方案",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "qlqqs",
+  "assignee": "qlqqs",
+  "createdAt": "2026-10-30",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "sub2api-custom",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "10-30-client-releases",
+    "10-30-qxapi-client-updater"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
