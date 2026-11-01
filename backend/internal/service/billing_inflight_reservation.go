@@ -593,18 +593,19 @@ func (d inflightEstimateDeps) estimateOne(ctx context.Context, apiKey *APIKey, m
 			cost = tokenCost()
 		}
 	case InflightEstimateVideo:
+		videoRate := d.videoRate(ctx, apiKey, model)
 		if resolved != nil && resolved.Mode == BillingModeVideo {
 			if resolved.Source == PricingSourceGroup || !apiKeyHasConfiguredVideoPrice(apiKey, model, req.VideoResolution) {
-				cost = d.resolver.GetVideoTierPrice(resolved, req.VideoResolution) * float64(units*NormalizeVideoBillingDurationSecondsOrDefault(req.VideoDurationSeconds)) * math.Max(textRate, imageRate)
+				cost = d.resolver.GetVideoTierPrice(resolved, req.VideoResolution) * float64(units*NormalizeVideoBillingDurationSecondsOrDefault(req.VideoDurationSeconds)) * videoRate
 			} else if d.billing != nil {
-				cost = d.billing.CalculateVideoCost(model, req.VideoResolution, units, req.VideoDurationSeconds, videoPriceConfigFromAPIKey(apiKey), math.Max(textRate, imageRate)).ActualCost
+				cost = d.billing.CalculateVideoCost(model, req.VideoResolution, units, req.VideoDurationSeconds, videoPriceConfigFromAPIKey(apiKey), videoRate).ActualCost
 			}
 			break
 		} else if perRequestMode {
-			cost = maxPerRequestPrice(resolved) * float64(units) * math.Max(textRate, imageRate)
+			cost = maxPerRequestPrice(resolved) * float64(units) * videoRate
 		}
 		if d.billing != nil {
-			if b := d.billing.CalculateVideoCost(model, req.VideoResolution, units, req.VideoDurationSeconds, videoPriceConfigFromAPIKey(apiKey), math.Max(textRate, imageRate)); b != nil && b.ActualCost > cost {
+			if b := d.billing.CalculateVideoCost(model, req.VideoResolution, units, req.VideoDurationSeconds, videoPriceConfigFromAPIKey(apiKey), videoRate); b != nil && b.ActualCost > cost {
 				cost = b.ActualCost
 			}
 		}

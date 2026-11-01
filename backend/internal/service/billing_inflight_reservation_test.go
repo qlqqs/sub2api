@@ -548,3 +548,52 @@ func TestInflightEstimateVideoTierMatchesCompletion(t *testing.T) {
 		})
 	}
 }
+
+func TestInflightEstimateVideoUsesActualVideoMultiplier(t *testing.T) {
+	groupID := int64(332)
+	basePrice := 1.0
+	channel := Channel{
+		ID:       1,
+		Status:   StatusActive,
+		GroupIDs: []int64{groupID},
+		ModelPricing: []ChannelModelPricing{{
+			Platform:        PlatformOpenAI,
+			Models:          []string{"seedance-2.0"},
+			BillingMode:     BillingModeVideo,
+			PerRequestPrice: &basePrice,
+		}},
+	}
+	cs := newTestChannelService(makeStandardRepo(channel, map[int64]string{groupID: PlatformOpenAI}))
+	svc := newInflightEstimateGateway(t, cs)
+	key := func(group *Group) *APIKey {
+		return &APIKey{User: &User{ID: 7}, GroupID: &groupID, Group: group}
+	}
+	estimate := func(t *testing.T, group *Group, want float64) {
+		t.Helper()
+		cost, priced := svc.EstimateInflightReservation(context.Background(), key(group), InflightEstimateRequest{
+			Model: "seedance-2.0", Kind: InflightEstimateVideo, Units: 1,
+			VideoResolution: "720p", VideoDurationSeconds: 10,
+		})
+		require.True(t, priced)
+		require.InDelta(t, want, cost, 1e-12)
+	}
+
+	// The ordinary group multiplier is the video multiplier; peak pricing is ignored.
+	estimate(t, &Group{
+		ID: groupID, Platform: PlatformOpenAI, RateMultiplier: 0.75,
+		PeakRateEnabled: true, PeakStart: "00:00", PeakEnd: "23:59", PeakRateMultiplier: 9,
+	}, 7.5)
+
+	// Video independent pricing overrides the ordinary multiplier.
+	estimate(t, &Group{
+		ID: groupID, Platform: PlatformOpenAI, RateMultiplier: 0.75,
+		VideoRateIndependent: true, VideoRateMultiplier: 0.6,
+	}, 6)
+
+	// A matching group-model rate supplies the same base used by actual billing.
+	rates, _ := newTestGroupModelRateService(map[int64][]GroupModelRateRule{
+		groupID: {{Model: "seedance-2.0", RateMultiplier: 0.5}},
+	})
+	svc.SetGroupModelRateService(rates)
+	estimate(t, &Group{ID: groupID, Platform: PlatformOpenAI, RateMultiplier: 0.75}, 5)
+}

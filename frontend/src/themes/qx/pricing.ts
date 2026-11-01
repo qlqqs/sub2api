@@ -8,7 +8,7 @@
 
 import type { ModelPlazaGroup, PlazaModel } from '@/api/modelPlaza'
 import type { UserPricingInterval } from '@/api/channels'
-import { formatScaled, resolveIntervalPrices } from '@/utils/pricing'
+import { VIDEO_PRICE_DECIMALS, formatScaled, resolveIntervalPrices } from '@/utils/pricing'
 import { BALANCE_SYMBOL, effectiveRate as resolveEffectiveRate } from '@/utils/balanceCurrency'
 import { videoPriceTiers } from '@/utils/videoPricingTiers'
 import {
@@ -112,23 +112,25 @@ function tokenTiers(m: PlazaModel, rate: number): QxPriceTier[] {
   }))
 }
 
-function paidUnit(value: number, rate: number): string {
-  return formatScaled(value * rate, 1, MIN_DECIMALS, BALANCE_SYMBOL)
+/** 视频每秒单价最多 4 位小数。 */
+function paidUnit(m: PlazaModel, value: number, rate: number): string {
+  const maxDecimals = billingMode(m) === BILLING_MODE_VIDEO ? VIDEO_PRICE_DECIMALS : undefined
+  return formatScaled(value * rate, 1, MIN_DECIMALS, BALANCE_SYMBOL, maxDecimals)
 }
 
 function unitPrice(g: ModelPlazaGroup, m: PlazaModel): string | null {
   const value = m.pricing?.per_request_price ??
     (m.pricing?.intervals ?? []).find((iv) => iv.per_request_price != null)?.per_request_price
   if (value == null) return null
-  return paidUnit(value, requestRate(g, m))
+  return paidUnit(m, value, requestRate(g, m))
 }
 
 function videoTiers(g: ModelPlazaGroup, m: PlazaModel): QxVideoTier[] {
   const rate = requestRate(g, m)
   return videoPriceTiers(m.pricing).map((tier) => ({
     label: tier.resolution,
-    price: tier.price == null ? '-' : paidUnit(tier.price, rate),
-    refPrice: tier.refPrice == null ? null : paidUnit(tier.refPrice, rate)
+    price: tier.price == null ? '-' : paidUnit(m, tier.price, rate),
+    refPrice: tier.refPrice == null ? null : paidUnit(m, tier.refPrice, rate)
   }))
 }
 

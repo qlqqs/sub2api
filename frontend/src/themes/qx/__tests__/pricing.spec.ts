@@ -106,11 +106,11 @@ describe('buildQxPriceRows', () => {
     const tier = (tier_label: string, per_request_price: number) => ({ min_tokens: 0, max_tokens: null, tier_label, per_request_price })
     const seedance = model('seedance-2.0', {
       billing_mode: 'video',
-      per_request_price: 0.5318,
-      intervals: [tier('720p', 0.75), tier('4k', 3.75), tier('480p-ref', 0.5956), tier('4k-ref', 4.665)]
+      per_request_price: 0.7091,
+      intervals: [tier('720p', 1), tier('4k', 5), tier('480p-ref', 0.794191), tier('4k-ref', 6.22)]
     })
-    const single = model('video-single', { billing_mode: 'video', per_request_price: 0.75, intervals: [] })
-    const rows = buildQxPriceRows(group([seedance, single], { video_rate_independent: true, video_rate_multiplier: 1 }))
+    const single = model('video-single', { billing_mode: 'video', per_request_price: 1, intervals: [] })
+    const rows = buildQxPriceRows(group([seedance, single], { rate_multiplier: 0.75 }))
     const first = rows.find((r) => r.name === 'seedance-2.0')!
     const second = rows.find((r) => r.name === 'video-single')!
     expect(first.videoTiers).toEqual([

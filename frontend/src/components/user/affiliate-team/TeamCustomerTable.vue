@@ -16,9 +16,13 @@
     @row-click="openRow"
   >
     <template #cell-user="{ row }">
-      <TeamUserCell :user="row.user" :to="row.user.deleted ? undefined : customerRoute(row)">
+      <TeamUserCell :user="row.user" :to="row.user.deleted ? undefined : customerRoute(row)" hide-email>
         <TeamBadge v-if="row.agent_level === 2">{{ t('affiliate.team.subAgent') }}</TeamBadge>
       </TeamUserCell>
+    </template>
+    <template #cell-email="{ row }">
+      <span v-if="row.user.email && !row.user.deleted" class="text-gray-600 dark:text-gray-300">{{ row.user.email }}</span>
+      <span v-else class="text-gray-400 dark:text-dark-500">-</span>
     </template>
     <template #cell-line_agent="{ row }">
       <span :class="mutedClass(row) || 'text-gray-600 dark:text-gray-300'">
@@ -89,7 +93,8 @@ const label = useTeamLabel(context)
 
 // 合伙人的区域视角：加「所属渠道经理 / 归属代理」，不显示收益。
 const columns = computed<Column[]>(() => [
-  { key: 'user', label: t('affiliate.team.columns.customer') },
+  { key: 'user', label: t('affiliate.team.columns.username') },
+  { key: 'email', label: t('affiliate.team.columns.email') },
   ...(context.region
     ? [
         { key: 'line_agent', label: t('partner.region.columns.lineAgent') },

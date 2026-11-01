@@ -8,7 +8,8 @@
  *   formatScaled(1.25e-8,  1_000_000, 2) → "$0.0125" // longer decimals kept as-is
  *
  * Uses toPrecision(10) then strips trailing zeros to avoid IEEE 754 display noise.
- * `minFractionDigits` pads the result back up to a minimum number of decimals.
+ * `minFractionDigits` pads the result back up to a minimum number of decimals;
+ * `maxFractionDigits` rounds to at most that many decimals first.
  * CUSTOM: `symbol` defaults to the official-price `$`; prices already multiplied by
  * the group rate (actual deduction) pass BALANCE_SYMBOL instead.
  */
@@ -16,10 +17,13 @@ export function formatScaled(
   value: number | null,
   scale: number,
   minFractionDigits = 0,
-  symbol: string = OFFICIAL_SYMBOL
+  symbol: string = OFFICIAL_SYMBOL,
+  maxFractionDigits?: number
 ): string {
   if (value == null) return '-'
-  let s = Number((value * scale).toPrecision(10)).toString()
+  let n = value * scale
+  if (maxFractionDigits != null) n = Math.round(n * 10 ** maxFractionDigits) / 10 ** maxFractionDigits
+  let s = Number(n.toPrecision(10)).toString()
   if (minFractionDigits > 0 && !s.includes('e')) {
     const dot = s.indexOf('.')
     const digits = dot === -1 ? 0 : s.length - dot - 1
@@ -32,6 +36,9 @@ export function formatScaled(
 
 import type { UserPricingInterval } from '@/api/channels'
 import { OFFICIAL_SYMBOL } from './balanceCurrency'
+
+/** 视频每秒单价展示的最多小数位；扣费按精确值计算。 */
+export const VIDEO_PRICE_DECIMALS = 4
 
 type TokenPrices = Pick<UserPricingInterval, 'input_price' | 'output_price' | 'cache_write_price' | 'cache_write_1h_price' | 'cache_read_price'>
 

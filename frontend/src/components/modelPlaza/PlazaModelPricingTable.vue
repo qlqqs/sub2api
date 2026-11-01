@@ -353,7 +353,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { formatScaled, resolveIntervalPrices } from '@/utils/pricing'
+import { VIDEO_PRICE_DECIMALS, formatScaled, resolveIntervalPrices } from '@/utils/pricing'
 import { BALANCE_SYMBOL, OFFICIAL_SYMBOL, effectiveRate as resolveEffectiveRate, formatRateRatio } from '@/utils/balanceCurrency'
 import {
   discountTone,
@@ -539,10 +539,11 @@ function requestRate(m: PlazaModel): number {
     : rowRate(m)
 }
 
-/** 非 token 单价乘该行生效倍率，不换算为每百万 token。 */
+/** 非 token 单价乘该行生效倍率，不换算为每百万 token；视频每秒单价最多 4 位小数。 */
 function paidRequestPrice(m: PlazaModel, value: number | null | undefined): string {
   if (value == null) return '-'
-  return formatScaled(value * requestRate(m), 1, MIN_DECIMALS, BALANCE_SYMBOL)
+  const maxDecimals = billingMode(m) === BILLING_MODE_VIDEO ? VIDEO_PRICE_DECIMALS : undefined
+  return formatScaled(value * requestRate(m), 1, MIN_DECIMALS, BALANCE_SYMBOL, maxDecimals)
 }
 
 /** 官方参考价只乘官方时段因子，保持 $。 */

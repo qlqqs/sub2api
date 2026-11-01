@@ -58,6 +58,25 @@ func (s *OpenAIGatewayService) openAIUsageMultipliers(ctx context.Context, apiKe
 	return base, multiplier, imageMultiplier, videoMultiplier
 }
 
+// videoRate 复用 OpenAI 网关实际扣费的基础倍率与视频独立倍率，不叠加高峰因子。
+func (d inflightEstimateDeps) videoRate(ctx context.Context, apiKey *APIKey, model string) float64 {
+	base := 1.0
+	if d.cfg != nil {
+		base = d.cfg.Default.RateMultiplier
+	}
+	if apiKey != nil && apiKey.GroupID != nil && apiKey.Group != nil {
+		groupID := *apiKey.GroupID
+		base = resolveBaseRate(ctx, d.groupModelRates, groupID, model, func() float64 {
+			rate := apiKey.Group.RateMultiplier
+			if d.userGroupRate != nil && apiKey.User != nil {
+				rate = d.userGroupRate(ctx, apiKey.User.ID, groupID, rate)
+			}
+			return rate
+		})
+	}
+	return resolveVideoRateMultiplier(apiKey, base)
+}
+
 // inflightModelRates 返回预扣估算某个候选计费模型的 token / 图片倍率：命中分组模型倍率时
 // 按模型倍率叠加高峰因子，否则沿用分组级倍率（baseText / baseImage，即原逻辑）。
 func (d inflightEstimateDeps) inflightModelRates(ctx context.Context, apiKey *APIKey, model string, baseText, baseImage float64) (float64, float64) {

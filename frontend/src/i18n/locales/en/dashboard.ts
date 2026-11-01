@@ -907,7 +907,8 @@ export default {
         agents: 'Distribution Agents'
       },
       columns: {
-        customer: 'Customer',
+        username: 'Username',
+        email: 'Email',
         cost: 'Spend',
         requests: 'Requests',
         earnings: 'Earnings',

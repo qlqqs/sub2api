@@ -13,7 +13,7 @@
         {{ user.nickname || '-' }}
       </RouterLink>
       <span v-else class="font-medium text-gray-900 dark:text-white">{{ user.nickname || '-' }}</span>
-      <span v-if="user.email" class="text-xs text-gray-500 dark:text-dark-400">{{ user.email }}</span>
+      <span v-if="user.email && !hideEmail" class="text-xs text-gray-500 dark:text-dark-400">{{ user.email }}</span>
       <slot />
     </template>
   </span>
@@ -28,6 +28,8 @@ defineProps<{
   user: AffiliateTeamUser
   /** 可下钻时传入；已删除用户不可点击。 */
   to?: RouteLocationRaw
+  /** 邮箱单独成列时不在名字旁重复显示。 */
+  hideEmail?: boolean
 }>()
 
 // 管理端的已删除用户显示 ID。

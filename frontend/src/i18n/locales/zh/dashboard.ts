@@ -909,7 +909,8 @@ export default {
         agents: '分销代理'
       },
       columns: {
-        customer: '客户',
+        username: '用户名',
+        email: '邮箱',
         cost: '消费',
         requests: '请求',
         earnings: '收益',

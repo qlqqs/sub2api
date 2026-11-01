@@ -106,20 +106,20 @@ describe('PlazaModelPricingTable', () => {
     wrapper.unmount()
   })
 
-  it('视频分档:按分辨率分列,普通与带参考视频各一行,缺的档位显示 -', () => {
+  it('视频分档:按分辨率分列,普通与带参考视频各一行,缺的档位显示 -,单价最多 4 位小数', () => {
     const model = tokenModel({ name: 'seedance-2.0', official_pricing: null })
     model.pricing!.billing_mode = 'video'
-    model.pricing!.per_request_price = 0.5318
+    model.pricing!.per_request_price = 0.7091
     const tier = (tier_label: string, per_request_price: number) => ({
       min_tokens: 0, max_tokens: null, tier_label,
       input_price: null, output_price: null, cache_write_price: null,
       cache_read_price: null, per_request_price
     })
     model.pricing!.intervals = [
-      tier('720p', 0.75), tier('1080p', 1.875), tier('4k', 3.75),
-      tier('480p-ref', 0.5956), tier('720p-ref', 0.9075), tier('4k-ref', 4.665)
+      tier('720p', 1), tier('1080p', 2.5), tier('4k', 5),
+      tier('480p-ref', 0.794191), tier('720p-ref', 1.21), tier('4k-ref', 6.22)
     ]
-    const wrapper = mountTable([model], 1)
+    const wrapper = mountTable([model], 0.75)
     const grid = wrapper.get('[data-test="plaza-video-tiers"]')
     const cells = grid.findAll(':scope > span').map((cell) => cell.text())
     expect(cells).toEqual([

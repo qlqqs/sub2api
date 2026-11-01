@@ -22,4 +22,13 @@ describe('formatScaled', () => {
   ])('retains ordinary pricing and padding for %s', (value, scale, digits, expected) => {
     expect(formatScaled(value, scale, digits)).toBe(expected)
   })
+
+  it.each([
+    [0.531825, '$0.5318'],
+    [0.74455575, '$0.7446'],
+    [0.75, '$0.75'],
+    [3, '$3.00'],
+  ])('rounds %s to at most 4 decimals', (value, expected) => {
+    expect(formatScaled(value, 1, 2, '$', 4)).toBe(expected)
+  })
 })
