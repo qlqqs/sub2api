@@ -9,7 +9,6 @@ export default {
     batchSkip: '已选中 {n} 个合伙人，档位固定，将跳过',
     autoAttached: '{agent} 已自动挂到 {partner}（{region}）名下',
     columns: {
-      user: '账号',
       region: '所属合伙人',
       agentCount: '挂靠数',
       memberCount: '成员数',

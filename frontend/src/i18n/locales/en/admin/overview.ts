@@ -444,7 +444,6 @@ export default {
           downgraded: 'Downgraded'
         },
         columns: {
-          agent: 'Agent',
           level: 'Level'
         },
         meta: {
@@ -592,7 +591,6 @@ export default {
         selectAll: 'Select all on this page',
         selectRow: 'Select this user',
         col: {
-          user: 'User',
           level: 'Level',
           owner: 'Owning Agent',
           inviteCount: 'Direct Invites',
@@ -670,7 +668,6 @@ export default {
         },
         customers: {
           title: 'Customers of {email}',
-          user: 'Customer',
           level: 'Level',
           relation: 'Relation',
           relationOwner: 'Owned',

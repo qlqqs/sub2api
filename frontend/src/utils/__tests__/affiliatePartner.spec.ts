@@ -57,7 +57,7 @@ describe('affiliatePartner utils (CUSTOM)', () => {
   })
 
   it('names users and builds line routes without exposing ids', () => {
-    expect(partnerUserName({ id: 1, email: 'a***@x.com', username: '', deleted: false }, 'deleted')).toBe('a***@x.com')
+    expect(partnerUserName({ id: 1, email: 'a***@x.com', username: '', deleted: false }, 'deleted')).toBe('-')
     expect(partnerUserName({ id: 1, email: 'a', username: 'nick', deleted: true }, 'deleted')).toBe('deleted')
     expect(partnerUserName(null, 'deleted')).toBe('-')
 

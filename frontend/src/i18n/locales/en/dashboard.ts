@@ -913,7 +913,6 @@ export default {
         requests: 'Requests',
         earnings: 'Earnings',
         lastUsed: 'Last used',
-        agent: 'Agent',
         activeCustomers: 'Active / Customers',
         teamCost: 'Team spend',
         time: 'Time',

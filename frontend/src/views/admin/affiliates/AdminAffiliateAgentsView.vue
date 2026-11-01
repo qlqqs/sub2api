@@ -82,14 +82,15 @@
         >
           <template #cell-user="{ row }">
             <div class="space-y-0.5">
-              <div class="max-w-56 truncate text-sm font-medium text-gray-900 dark:text-white">{{ row.email || '-' }}</div>
-              <div class="max-w-56 truncate text-xs text-gray-500 dark:text-dark-400">
-                #{{ row.user_id }}<template v-if="row.username"> · {{ row.username }}</template>
-              </div>
+              <div class="max-w-56 truncate text-sm font-medium text-gray-900 dark:text-white">{{ row.username || '-' }}</div>
+              <div class="text-xs text-gray-500 dark:text-dark-400">#{{ row.user_id }}</div>
               <div v-if="row.aff_code_custom" class="text-xs">
                 <span class="rounded bg-primary-100 px-1.5 py-0.5 font-mono text-primary-700 dark:bg-primary-900/30 dark:text-primary-300" :title="t('admin.affiliates.agents.customCode')">{{ row.aff_code }}</span>
               </div>
             </div>
+          </template>
+          <template #cell-email="{ row }">
+            <div class="max-w-56 truncate text-sm text-gray-700 dark:text-gray-300">{{ row.email || '-' }}</div>
           </template>
           <template #cell-agent_level="{ row }">
             <div class="space-y-0.5" data-test="agent-level-cell">
@@ -426,10 +427,11 @@
         {{ t('admin.affiliates.agents.customers.empty') }}
       </div>
       <div v-else class="overflow-x-auto">
-        <table class="w-full min-w-[560px] text-left text-sm" data-test="agent-customers-table">
+        <table class="w-full min-w-[680px] text-left text-sm" data-test="agent-customers-table">
           <thead>
             <tr class="border-b border-gray-200 text-gray-500 dark:border-dark-700 dark:text-dark-400">
-              <th scope="col" class="px-3 py-2 font-medium">{{ t('admin.affiliates.agents.customers.user') }}</th>
+              <th scope="col" class="px-3 py-2 font-medium">{{ t('affiliate.team.columns.username') }}</th>
+              <th scope="col" class="px-3 py-2 font-medium">{{ t('affiliate.team.columns.email') }}</th>
               <th scope="col" class="px-3 py-2 font-medium">{{ t('admin.affiliates.agents.customers.level') }}</th>
               <th scope="col" class="px-3 py-2 font-medium">{{ t('admin.affiliates.agents.customers.relation') }}</th>
               <th scope="col" class="px-3 py-2 font-medium">{{ t('admin.affiliates.agents.customers.boundAt') }}</th>
@@ -439,9 +441,10 @@
           <tbody>
             <tr v-for="item in customers.items" :key="item.user_id + '-' + item.relation" class="border-b border-gray-100 last:border-b-0 dark:border-dark-800">
               <td class="px-3 py-2">
-                <div class="text-gray-900 dark:text-white">{{ item.email || '-' }}</div>
-                <div class="text-xs text-gray-500 dark:text-dark-400">#{{ item.user_id }}<template v-if="item.username"> · {{ item.username }}</template></div>
+                <div class="text-gray-900 dark:text-white">{{ item.username || '-' }}</div>
+                <div class="text-xs text-gray-500 dark:text-dark-400">#{{ item.user_id }}</div>
               </td>
+              <td class="px-3 py-2 text-gray-700 dark:text-gray-300">{{ item.email || '-' }}</td>
               <td class="px-3 py-2 text-gray-700 dark:text-gray-300">{{ levelShort(item.agent_level) }}</td>
               <td class="px-3 py-2">
                 <span :class="['badge whitespace-nowrap', item.relation === 'owner' ? 'badge-primary' : 'badge-warning']">
@@ -527,7 +530,8 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined
 let loadSequence = 0
 
 const columns = computed<Column[]>(() => [
-  { key: 'user', label: t('admin.affiliates.agents.col.user') },
+  { key: 'user', label: t('affiliate.team.columns.username') },
+  { key: 'email', label: t('affiliate.team.columns.email') },
   { key: 'agent_level', label: t('admin.affiliates.agents.col.level') },
   { key: 'owner', label: t('admin.affiliates.agents.col.owner') },
   { key: 'partner', label: t('admin.partners.columns.region') },

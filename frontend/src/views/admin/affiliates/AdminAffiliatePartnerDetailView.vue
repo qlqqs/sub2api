@@ -109,7 +109,8 @@
                 <table class="table min-w-max whitespace-nowrap" data-test="partner-agents-table">
                   <thead>
                     <tr>
-                      <th scope="col">{{ t('admin.partners.columns.user') }}</th>
+                      <th scope="col">{{ t('affiliate.team.columns.username') }}</th>
+                      <th scope="col">{{ t('affiliate.team.columns.email') }}</th>
                       <th scope="col">{{ t('admin.partners.agents.attachedAt') }}</th>
                       <th scope="col">{{ t('admin.partners.agents.source') }}</th>
                       <th scope="col" class="!text-right">{{ t('admin.partners.agents.team') }}</th>
@@ -122,7 +123,7 @@
                   </thead>
                   <tbody>
                     <tr v-if="detail.agents.length === 0">
-                      <td colspan="9" class="py-8 text-center text-gray-500 dark:text-dark-400">{{ t('admin.partners.agents.empty') }}</td>
+                      <td colspan="10" class="py-8 text-center text-gray-500 dark:text-dark-400">{{ t('admin.partners.agents.empty') }}</td>
                     </tr>
                     <tr v-for="agent in detail.agents" :key="agent.user.id" data-test="partner-agent-row">
                       <td>
@@ -130,10 +131,11 @@
                           :to="{ name: 'AdminAffiliateTeamViewer', params: { viewerId: String(agent.user.id) } }"
                           class="text-sm font-medium text-primary-600 hover:underline dark:text-primary-400"
                         >
-                          {{ agent.user.email || '-' }}
+                          {{ agent.user.username || '-' }}
                         </RouterLink>
-                        <div class="text-xs text-gray-500 dark:text-dark-400">#{{ agent.user.id }}<template v-if="agent.user.username"> · {{ agent.user.username }}</template></div>
+                        <div class="text-xs text-gray-500 dark:text-dark-400">#{{ agent.user.id }}</div>
                       </td>
+                      <td class="text-sm text-gray-700 dark:text-gray-300">{{ agent.user.email || '-' }}</td>
                       <td class="text-xs">{{ formatDateTime(agent.attached_at) }}</td>
                       <td class="text-xs">
                         <template v-if="agent.source === 'promote'">{{ t('admin.partners.agents.sourcePromote') }}</template>

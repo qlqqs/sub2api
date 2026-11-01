@@ -22,6 +22,9 @@
         </TeamBadge>
       </TeamUserCell>
     </template>
+    <template #cell-email="{ row }">
+      <TeamEmailCell :user="row.user" />
+    </template>
     <template #cell-active_customers="{ row }">
       <span class="tabular-nums">
         {{ formatTeamCount(row.active_customers) }}<span class="text-gray-400 dark:text-dark-500"> / {{ formatTeamCount(row.customers) }}</span>
@@ -49,6 +52,7 @@ import type { AffiliateTeamAgent, AffiliateTeamSortOrder } from '@/types'
 import { formatTeamCount, formatTeamMoney } from '@/utils/affiliateTeam'
 import TeamBadge from './TeamBadge.vue'
 import TeamShareCell from './TeamShareCell.vue'
+import TeamEmailCell from './TeamEmailCell.vue'
 import TeamUserCell from './TeamUserCell.vue'
 import { useAffiliateTeamContext, useTeamLabel } from './teamContext'
 
@@ -70,7 +74,8 @@ const context = useAffiliateTeamContext()
 const label = useTeamLabel(context)
 
 const columns = computed<Column[]>(() => [
-  { key: 'user', label: t('affiliate.team.columns.agent') },
+  { key: 'user', label: t('affiliate.team.columns.username') },
+  { key: 'email', label: t('affiliate.team.columns.email') },
   { key: 'active_customers', label: t('affiliate.team.columns.activeCustomers'), sortable: true, class: 'text-right' },
   { key: 'team_cost', label: t('affiliate.team.columns.teamCost'), sortable: true, class: 'text-right' },
   { key: 'earnings', label: label('affiliate.team.columns.earnings'), sortable: true, class: 'text-right' }

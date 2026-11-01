@@ -28,6 +28,9 @@
       </RouterLink>
       <TeamUserCell v-else :user="row.user" :to="viewerRoute(row)" />
     </template>
+    <template #cell-email="{ row }">
+      <TeamEmailCell :user="row.user" />
+    </template>
     <template #cell-agent_level="{ row }">
       <span class="whitespace-nowrap text-gray-600 dark:text-gray-300" data-test="team-owner-level">{{ levelText(row) }}</span>
     </template>
@@ -55,6 +58,7 @@ import { useRouter, type RouteLocationRaw } from 'vue-router'
 import DataTable from '@/components/common/DataTable.vue'
 import type { Column } from '@/components/common/types'
 import TeamShareCell from '@/components/user/affiliate-team/TeamShareCell.vue'
+import TeamEmailCell from '@/components/user/affiliate-team/TeamEmailCell.vue'
 import TeamUserCell from '@/components/user/affiliate-team/TeamUserCell.vue'
 import type { AffiliateTeamOwner, AffiliateTeamSortOrder } from '@/types'
 import { formatTeamCount, formatTeamMoney, formatTeamShare, teamUserName } from '@/utils/affiliateTeam'
@@ -77,7 +81,8 @@ const { t } = useI18n()
 const router = useRouter()
 
 const columns = computed<Column[]>(() => [
-  { key: 'user', label: t('admin.affiliates.team.columns.agent') },
+  { key: 'user', label: t('affiliate.team.columns.username') },
+  { key: 'email', label: t('affiliate.team.columns.email') },
   { key: 'agent_level', label: t('admin.affiliates.team.columns.level') },
   { key: 'active_customers', label: t('affiliate.team.columns.activeCustomers'), sortable: true, class: 'text-right' },
   { key: 'team_cost', label: t('affiliate.team.columns.teamCost'), sortable: true, class: 'text-right' },

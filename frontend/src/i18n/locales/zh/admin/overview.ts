@@ -444,7 +444,6 @@ export default {
           downgraded: '已降级'
         },
         columns: {
-          agent: '代理',
           level: '等级'
         },
         meta: {
@@ -592,7 +591,6 @@ export default {
         selectAll: '全选当前页',
         selectRow: '选择该用户',
         col: {
-          user: '用户',
           level: '等级',
           owner: '归属代理',
           inviteCount: '直属邀请',
@@ -670,7 +668,6 @@ export default {
         },
         customers: {
           title: '客户列表：{email}',
-          user: '客户',
           level: '等级',
           relation: '关系',
           relationOwner: '归属客户',

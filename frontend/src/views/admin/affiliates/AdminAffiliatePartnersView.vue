@@ -28,9 +28,12 @@
               class="block space-y-0.5"
               data-test="partner-detail-link"
             >
-              <span class="block max-w-56 truncate text-sm font-medium text-primary-600 hover:underline dark:text-primary-400">{{ row.user.email || '-' }}</span>
-              <span class="block text-xs text-gray-500 dark:text-dark-400">#{{ row.user.id }}<template v-if="row.user.username"> · {{ row.user.username }}</template></span>
+              <span class="block max-w-56 truncate text-sm font-medium text-primary-600 hover:underline dark:text-primary-400">{{ row.user.username || '-' }}</span>
+              <span class="block text-xs text-gray-500 dark:text-dark-400">#{{ row.user.id }}</span>
             </RouterLink>
+          </template>
+          <template #cell-email="{ row }">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ row.user.email || '-' }}</span>
           </template>
           <template #cell-region_name="{ row }">
             <span class="text-sm font-medium text-gray-900 dark:text-white">{{ row.region_name }}</span>
@@ -95,7 +98,8 @@ const createOpen = ref(false)
 const rowKey = (row: AdminPartnerItem) => row.user.id
 
 const columns = computed<Column[]>(() => [
-  { key: 'user', label: t('admin.partners.columns.user') },
+  { key: 'user', label: t('affiliate.team.columns.username') },
+  { key: 'email', label: t('affiliate.team.columns.email') },
   { key: 'region_name', label: t('admin.partners.fields.regionName') },
   { key: 'share_rate', label: t('admin.partners.fields.shareRate') },
   { key: 'agent_count', label: t('admin.partners.columns.agentCount') },

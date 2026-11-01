@@ -7,13 +7,14 @@
         <thead>
           <tr>
             <th scope="col">{{ t('partner.lines.line') }}</th>
+            <th scope="col">{{ t('affiliate.team.columns.email') }}</th>
             <th scope="col" class="!text-right">{{ t('partner.lines.members') }}</th>
             <th v-for="col in COLUMNS" :key="col" scope="col" class="!text-right">{{ t(`partner.lines.${col}`) }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="lines.length === 0">
-            <td :colspan="COLUMNS.length + 2" class="py-6 text-center text-gray-500 dark:text-dark-400">{{ t('partner.lines.empty') }}</td>
+            <td :colspan="COLUMNS.length + 3" class="py-6 text-center text-gray-500 dark:text-dark-400">{{ t('partner.lines.empty') }}</td>
           </tr>
           <tr v-for="({ line, to }, index) in rows" :key="line.line_agent?.id ?? `direct-${index}`" data-test="partner-line-row">
             <td>
@@ -25,9 +26,9 @@
                 {{ lineName(line) }}
               </RouterLink>
               <span v-else class="font-medium text-gray-900 dark:text-white">{{ lineName(line) }}</span>
-              <span v-if="line.line_agent && line.line_agent.username && line.line_agent.email" class="ml-2 text-xs text-gray-500 dark:text-dark-400">
-                {{ line.line_agent.email }}
-              </span>
+            </td>
+            <td :class="line.line_agent?.email && !line.line_agent.deleted ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400 dark:text-dark-500'">
+              {{ line.line_agent?.email && !line.line_agent.deleted ? line.line_agent.email : '-' }}
             </td>
             <td class="text-right tabular-nums">{{ line.members }}</td>
             <td v-for="col in COLUMNS" :key="col" class="text-right">

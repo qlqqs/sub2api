@@ -16,13 +16,12 @@
     @row-click="openRow"
   >
     <template #cell-user="{ row }">
-      <TeamUserCell :user="row.user" :to="row.user.deleted ? undefined : customerRoute(row)" hide-email>
+      <TeamUserCell :user="row.user" :to="row.user.deleted ? undefined : customerRoute(row)">
         <TeamBadge v-if="row.agent_level === 2">{{ t('affiliate.team.subAgent') }}</TeamBadge>
       </TeamUserCell>
     </template>
     <template #cell-email="{ row }">
-      <span v-if="row.user.email && !row.user.deleted" class="text-gray-600 dark:text-gray-300">{{ row.user.email }}</span>
-      <span v-else class="text-gray-400 dark:text-dark-500">-</span>
+      <TeamEmailCell :user="row.user" />
     </template>
     <template #cell-line_agent="{ row }">
       <span :class="mutedClass(row) || 'text-gray-600 dark:text-gray-300'">
@@ -69,6 +68,7 @@ import type { AffiliateTeamCustomer, AffiliateTeamSortOrder } from '@/types'
 import { formatTeamCount, formatTeamMoney, teamUserName } from '@/utils/affiliateTeam'
 import { formatDateTime, formatRelativeTime } from '@/utils/format'
 import TeamBadge from './TeamBadge.vue'
+import TeamEmailCell from './TeamEmailCell.vue'
 import TeamShareCell from './TeamShareCell.vue'
 import TeamUserCell from './TeamUserCell.vue'
 import { useAffiliateTeamContext, useTeamLabel } from './teamContext'

@@ -915,7 +915,6 @@ export default {
         requests: '请求',
         earnings: '收益',
         lastUsed: '最近使用',
-        agent: '代理',
         activeCustomers: '活跃 / 客户',
         teamCost: '团队消费',
         time: '时间',

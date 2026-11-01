@@ -9,7 +9,6 @@ export default {
     batchSkip: '{n} selected partner(s) keep their level and will be skipped',
     autoAttached: '{agent} was attached to {partner} ({region})',
     columns: {
-      user: 'Account',
       region: 'Partner',
       agentCount: 'Attached',
       memberCount: 'Members',

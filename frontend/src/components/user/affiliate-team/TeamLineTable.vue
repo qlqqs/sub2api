@@ -24,6 +24,9 @@
       </RouterLink>
       <span v-else class="font-medium text-gray-900 dark:text-white">{{ t('partner.region.directTeam') }}</span>
     </template>
+    <template #cell-email="{ row }">
+      <TeamEmailCell :user="row.line_agent" />
+    </template>
     <template #cell-active_customers="{ row }">
       <span class="tabular-nums">
         {{ formatTeamCount(row.active_customers) }}<span class="text-gray-400 dark:text-dark-500"> / {{ formatTeamCount(row.customers) }}</span>
@@ -50,6 +53,7 @@ import type { Column } from '@/components/common/types'
 import type { PartnerTeamLine } from '@/api/affiliatePartner'
 import { formatTeamCount, formatTeamMoney } from '@/utils/affiliateTeam'
 import TeamShareCell from './TeamShareCell.vue'
+import TeamEmailCell from './TeamEmailCell.vue'
 import TeamUserCell from './TeamUserCell.vue'
 import { useAffiliateTeamContext } from './teamContext'
 
@@ -66,6 +70,7 @@ const context = useAffiliateTeamContext()
 
 const columns = computed<Column[]>(() => [
   { key: 'line', label: t('partner.lines.line') },
+  { key: 'email', label: t('affiliate.team.columns.email') },
   { key: 'active_customers', label: t('affiliate.team.columns.activeCustomers'), class: 'text-right' },
   { key: 'requests', label: t('affiliate.team.columns.requests'), class: 'text-right' },
   { key: 'team_cost', label: t('affiliate.team.columns.teamCost'), class: 'text-right' }

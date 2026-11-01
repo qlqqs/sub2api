@@ -22,7 +22,7 @@ export function partnerRateFromPercent(input: string | number | null | undefined
 export function partnerUserName(user: PartnerUserRef | null | undefined, deletedLabel: string): string {
   if (!user) return '-'
   if (user.deleted) return deletedLabel
-  return user.username || user.email || '-'
+  return user.username || '-'
 }
 
 /** 结算单状态的徽标样式（style.css 的 badge-*）。 */
