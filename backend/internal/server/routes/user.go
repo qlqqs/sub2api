@@ -48,6 +48,22 @@ func RegisterUserRoutes(
 				team.GET("/agents", h.AffiliateTeam.ListAgents)
 				team.GET("/customers/:user_id/requests", h.AffiliateTeam.ListRequests)
 			}
+			// CUSTOM(fork): 区域利润与消费查询均计入重型限流。
+			partner := user.Group("/aff/partner")
+			partner.Use(panelRateLimiter.Heavy())
+			{
+				partner.GET("/overview", h.AffiliatePartner.Overview)
+				partner.GET("/statements", h.AffiliatePartner.UserStatements)
+				partner.GET("/statements/:month", h.AffiliatePartner.UserStatement)
+				partner.GET("/team/overview", h.AffiliatePartner.TeamOverview)
+				partner.GET("/team/customers", h.AffiliatePartner.TeamCustomers)
+				partner.GET("/team/lines", h.AffiliatePartner.TeamLines)
+				partner.GET("/team/customers/:user_id/requests", h.AffiliatePartner.TeamRequests)
+				partner.GET("/team/agents/:agent_id/overview", h.AffiliatePartner.AgentOverview)
+				partner.GET("/team/agents/:agent_id/customers", h.AffiliatePartner.AgentCustomers)
+				partner.GET("/team/agents/:agent_id/agents", h.AffiliatePartner.AgentAgents)
+				partner.GET("/team/agents/:agent_id/customers/:user_id/requests", h.AffiliatePartner.AgentRequests)
+			}
 			user.POST("/account-bindings/email/send-code", h.User.SendEmailBindingCode)
 			user.POST("/account-bindings/email", h.User.BindEmailIdentity)
 			user.DELETE("/account-bindings/:provider", h.User.UnbindIdentity)

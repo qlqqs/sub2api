@@ -146,6 +146,7 @@ type AffiliateOwnerSnapshot struct {
 // AffiliateNode 是解析归属链与计算分润时需要的单个用户信息。Active 为 false 表示
 // 账号已删除（结算时跳过其份额，但仍可沿其快照继续向上找）。
 type AffiliateNode struct {
+	Partner      bool // CUSTOM(fork): 保留有效代理身份，仅停止奖励。
 	UserID       int64
 	AgentLevel   int
 	AgentOwnerID *int64
@@ -234,14 +235,15 @@ type AffiliateAppointInfo struct {
 }
 
 type AffiliateDetail struct {
-	UserID          int64   `json:"user_id"`
-	AffCode         string  `json:"aff_code"`
-	InviterID       *int64  `json:"inviter_id,omitempty"`
-	AffCount        int     `json:"aff_count"`
-	AffQuota        float64 `json:"aff_quota"`
-	AffFrozenQuota  float64 `json:"aff_frozen_quota"`
-	AffHistoryQuota float64 `json:"aff_history_quota"`
-	RebateBase      string  `json:"rebate_base"`
+	Partner         *PartnerInfo `json:"partner"`
+	UserID          int64        `json:"user_id"`
+	AffCode         string       `json:"aff_code"`
+	InviterID       *int64       `json:"inviter_id,omitempty"`
+	AffCount        int          `json:"aff_count"`
+	AffQuota        float64      `json:"aff_quota"`
+	AffFrozenQuota  float64      `json:"aff_frozen_quota"`
+	AffHistoryQuota float64      `json:"aff_history_quota"`
+	RebateBase      string       `json:"rebate_base"`
 	// AgentLevel：1 一级代理，2 二级代理，3 普通用户。
 	AgentLevel       int  `json:"agent_level"`
 	AgentLevelLocked bool `json:"agent_level_locked"`
@@ -262,7 +264,7 @@ type AffiliateDetail struct {
 	InviteeSignupBonus float64                    `json:"invitee_signup_bonus"`
 	FirstRechargeBonus *AffiliateInviteeBonusInfo `json:"first_recharge_bonus,omitempty"`
 	RewardTotals       AffiliateRewardTotals      `json:"reward_totals"`
-	Appoint            *AffiliateAppointInfo      `json:"appoint,omitempty"`
+	Appoint            *AffiliateAppointInfo      `json:"appoint"`
 	// TeamAccess：能否进入代理团队消费页（当前是代理，或名下仍有快照客户）。
 	TeamAccess bool `json:"team_access"`
 }
@@ -336,6 +338,7 @@ type AffiliateRepository interface {
 // AffiliateAdminFilter 代理管理列表筛选条件。Search、AgentLevel、OwnerID 都为空时只列
 // 代理与有专属设置的用户；任一存在时按条件查全部用户。
 type AffiliateAdminFilter struct {
+	PartnerID  int64 // CUSTOM(fork): 按区域筛选。
 	Search     string
 	AgentLevel int   // 0 = 不限
 	OwnerID    int64 // 0 = 不限
@@ -345,18 +348,20 @@ type AffiliateAdminFilter struct {
 
 // AffiliateAdminEntry 代理管理列表条目
 type AffiliateAdminEntry struct {
-	UserID                   int64    `json:"user_id"`
-	Email                    string   `json:"email"`
-	Username                 string   `json:"username"`
-	AffCode                  string   `json:"aff_code"`
-	AffCodeCustom            bool     `json:"aff_code_custom"`
-	AffRebateRatePercent     *float64 `json:"aff_rebate_rate_percent,omitempty"`
-	AffCount                 int      `json:"aff_count"`
-	AgentLevel               int      `json:"agent_level"`
-	AgentLevelLocked         bool     `json:"agent_level_locked"`
-	AgentLevelSource         string   `json:"agent_level_source"`
-	AgentLevelUpdatedBy      *int64   `json:"agent_level_updated_by"`
-	AgentLevelUpdatedByEmail string   `json:"agent_level_updated_by_email"`
+	IsPartner                bool              `json:"is_partner"`
+	Partner                  *PartnerRegionRef `json:"partner"`
+	UserID                   int64             `json:"user_id"`
+	Email                    string            `json:"email"`
+	Username                 string            `json:"username"`
+	AffCode                  string            `json:"aff_code"`
+	AffCodeCustom            bool              `json:"aff_code_custom"`
+	AffRebateRatePercent     *float64          `json:"aff_rebate_rate_percent,omitempty"`
+	AffCount                 int               `json:"aff_count"`
+	AgentLevel               int               `json:"agent_level"`
+	AgentLevelLocked         bool              `json:"agent_level_locked"`
+	AgentLevelSource         string            `json:"agent_level_source"`
+	AgentLevelUpdatedBy      *int64            `json:"agent_level_updated_by"`
+	AgentLevelUpdatedByEmail string            `json:"agent_level_updated_by_email"`
 	AffiliateAgentRef
 	// AgentOwnerBoundAt / AgentOwnerSetBy*：归属写入时间与管理员操作人（绑定写入时操作人为空）。
 	AgentOwnerBoundAt    *time.Time `json:"agent_owner_bound_at"`
@@ -480,6 +485,7 @@ type AffiliateUserOverview struct {
 }
 
 type AffiliateService struct {
+	partnerRepo          PartnerRepository // CUSTOM(fork): 区域身份与自动挂靠。
 	repo                 AffiliateRepository
 	settingService       *SettingService
 	authCacheInvalidator APIKeyAuthCacheInvalidator
@@ -589,7 +595,11 @@ func (s *AffiliateService) ListInvitees(ctx context.Context, userID int64, query
 		return nil, 0, err
 	}
 	// 与 GetAffiliateDetail 的 Appoint 一致：一级代理且开启任命时才可任命。
-	canAppoint := normalizeAgentLevel(summary.AgentLevel) == AffiliateAgentLevelTop && s.rewardConfig(ctx).AppointEnabled
+	partner, err := s.partnerInfo(ctx, userID)
+	if err != nil {
+		return nil, 0, err
+	}
+	canAppoint := normalizeAgentLevel(summary.AgentLevel) == AffiliateAgentLevelTop && s.rewardConfig(ctx).AppointEnabled && partner == nil
 	for i := range invitees {
 		inv := &invitees[i]
 		inv.Email = maskEmail(inv.Email)

@@ -979,7 +979,8 @@ var ProviderSet = wire.NewSet(
 	NewModelPricingResolver,
 	NewModelPlazaService,
 	NewContentModerationService,
-	NewAffiliateService,
+	ProvideAffiliateService, // CUSTOM(fork): 注入区域身份仓储。
+	NewPartnerService,
 	NewAffiliateTeamService,
 	ProvidePaymentConfigService,
 	ProvidePaymentService,
@@ -995,7 +996,7 @@ var ProviderSet = wire.NewSet(
 	ProvideUserPlatformQuotaUsageFlusher,
 	NewFinanceChannelCostService,
 	ProvideFinanceRecalculationService,
-	NewFinanceService,              // CUSTOM(fork)
+	ProvideFinanceService,          // CUSTOM(fork)
 	ProvideAccountModelCostService, // CUSTOM(fork)
 	ProvideGroupModelRateService,   // CUSTOM: 分组内单个模型倍率（setter 注入到计费 / 广场 / 复制分组）
 	ProvideFxRateService,           // CUSTOM: 美元汇率（后台定时更新）

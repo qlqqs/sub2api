@@ -59,6 +59,7 @@ type Handlers struct {
 	Auth             *AuthHandler
 	User             *UserHandler
 	AffiliateTeam    *AffiliateTeamHandler
+	AffiliatePartner *AffiliatePartnerHandler // CUSTOM(fork): 合伙人。
 	APIKey           *APIKeyHandler
 	Usage            *UsageHandler
 	Redeem           *RedeemHandler

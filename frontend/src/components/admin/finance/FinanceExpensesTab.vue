@@ -23,6 +23,7 @@
                 <th scope="col" class="text-right">{{ t('admin.finance.expenses.columns.amount') }}</th>
                 <th scope="col">{{ t('admin.finance.expenses.columns.amortize') }}</th>
                 <th scope="col">{{ t('admin.finance.expenses.columns.account') }}</th>
+                <th scope="col">{{ t('admin.finance.expenses.columns.partner') }}</th>
                 <th scope="col">{{ t('admin.finance.expenses.columns.note') }}</th>
                 <th scope="col">{{ t('admin.finance.expenses.columns.createdBy') }}</th>
                 <th scope="col" class="text-right">{{ t('admin.finance.expenses.columns.actions') }}</th>
@@ -30,7 +31,7 @@
             </thead>
             <tbody>
               <tr v-if="data.items.length === 0">
-                <td colspan="8" class="py-8 text-center text-gray-500 dark:text-gray-400">{{ t('admin.finance.noData') }}</td>
+                <td colspan="9" class="py-8 text-center text-gray-500 dark:text-gray-400">{{ t('admin.finance.noData') }}</td>
               </tr>
               <tr v-for="item in data.items" :key="item.id">
                 <td class="font-mono text-xs">{{ item.occurred_on }}</td>
@@ -44,6 +45,10 @@
                 </td>
                 <td class="text-xs">
                   <template v-if="item.account_id != null">#{{ item.account_id }} {{ item.account_name ?? '' }}</template>
+                  <span v-else class="text-gray-400">—</span>
+                </td>
+                <td class="text-xs" data-testid="finance-expense-region">
+                  <template v-if="item.partner_user_id != null">{{ item.partner_region_name ?? '#' + item.partner_user_id }}</template>
                   <span v-else class="text-gray-400">—</span>
                 </td>
                 <td class="max-w-xs truncate text-xs" :title="item.note">{{ item.note || '—' }}</td>
@@ -90,6 +95,7 @@
       :show="dialogOpen"
       :expense="editing"
       :accounts="accounts"
+      :partners="partners"
       @close="dialogOpen = false"
       @saved="onSaved"
     />
@@ -113,6 +119,7 @@ import {
   FINANCE_EXPENSE_CATEGORIES,
   type FinanceExpense,
   type FinanceExpenseCategory,
+  type FinanceExpensePartnerOption,
   type FinanceSettingsAccount
 } from '@/api/admin/finance'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
@@ -176,6 +183,17 @@ async function loadAccounts() {
   }
 }
 void loadAccounts()
+
+// CUSTOM: 区域候选来自合伙人列表
+const partners = ref<FinanceExpensePartnerOption[]>([])
+async function loadPartners() {
+  try {
+    partners.value = (await adminAPI.affiliatePartners.listPartners()).map((p) => ({ user_id: p.user.id, region_name: p.region_name }))
+  } catch {
+    partners.value = []
+  }
+}
+void loadPartners()
 
 const dialogOpen = ref(false)
 const editing = ref<FinanceExpense | null>(null)

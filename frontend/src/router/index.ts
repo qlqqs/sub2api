@@ -337,6 +337,127 @@ const routes: RouteRecordRaw[] = [
       descriptionKey: 'affiliate.description'
     }
   },
+  // CUSTOM: 合伙人：区域团队消费（区域 / 直属团队 / 挂靠的渠道经理三个视角共用一个视图）与利润分成，权限由后端判断。
+  {
+    path: '/affiliate/region',
+    name: 'AffiliateRegion',
+    component: () => import('@/views/user/AffiliateRegionView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
+  {
+    path: '/affiliate/region/customers/:id',
+    name: 'AffiliateRegionCustomer',
+    component: () => import('@/views/user/AffiliateRegionView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
+  {
+    path: '/affiliate/region/direct',
+    name: 'AffiliateRegionDirect',
+    component: () => import('@/views/user/AffiliateRegionView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
+  {
+    path: '/affiliate/region/direct/agents/:id',
+    name: 'AffiliateRegionDirectAgent',
+    component: () => import('@/views/user/AffiliateRegionView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
+  {
+    path: '/affiliate/region/direct/customers/:id',
+    name: 'AffiliateRegionDirectCustomer',
+    component: () => import('@/views/user/AffiliateRegionView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
+  {
+    path: '/affiliate/region/agents/:agentId',
+    name: 'AffiliateRegionAgent',
+    component: () => import('@/views/user/AffiliateRegionView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
+  {
+    path: '/affiliate/region/agents/:agentId/agents/:id',
+    name: 'AffiliateRegionAgentAgent',
+    component: () => import('@/views/user/AffiliateRegionView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
+  {
+    path: '/affiliate/region/agents/:agentId/customers/:id',
+    name: 'AffiliateRegionAgentCustomer',
+    component: () => import('@/views/user/AffiliateRegionView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
+  {
+    path: '/affiliate/partner',
+    name: 'AffiliatePartner',
+    component: () => import('@/views/user/AffiliatePartnerView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
+  {
+    path: '/affiliate/partner/:month',
+    name: 'AffiliatePartnerStatement',
+    component: () => import('@/views/user/AffiliatePartnerStatementView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Affiliate',
+      titleKey: 'affiliate.title',
+      descriptionKey: 'affiliate.description'
+    }
+  },
   {
     path: '/available-channels',
     name: 'UserAvailableChannels',
@@ -735,6 +856,31 @@ const routes: RouteRecordRaw[] = [
       title: 'Affiliate Agents',
       titleKey: 'nav.affiliateAgents',
       descriptionKey: 'admin.affiliates.agentsDescription'
+    }
+  },
+  // CUSTOM: 合伙人：列表与详情（概览 / 渠道经理 / 结算单）
+  {
+    path: '/admin/affiliates/partners',
+    name: 'AdminAffiliatePartners',
+    component: () => import('@/views/admin/affiliates/AdminAffiliatePartnersView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Affiliate Partners',
+      titleKey: 'nav.affiliatePartners',
+      descriptionKey: 'admin.partners.description'
+    }
+  },
+  {
+    path: '/admin/affiliates/partners/:userId',
+    name: 'AdminAffiliatePartnerDetail',
+    component: () => import('@/views/admin/affiliates/AdminAffiliatePartnerDetailView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Affiliate Partners',
+      titleKey: 'nav.affiliatePartners',
+      descriptionKey: 'admin.partners.description'
     }
   },
   // 团队消费：汇总页 + 某代理的视角（三层共用一个视图，与代理端 /affiliate/team 相同）

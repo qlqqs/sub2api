@@ -3,9 +3,10 @@
     <div class="space-y-1.5">
       <!-- 代理端根页无权访问时只留下方的说明卡片 -->
       <TeamToolbar
-        v-if="isAdmin || !(view === 'team' && notFound)"
+        v-if="summaryRoute || !(view === 'team' && notFound)"
         :crumbs="crumbs"
-        :section-tabs="!isAdmin && view === 'team'"
+        :section-tabs="!summaryRoute && view === 'team'"
+        :partner-tabs="context.audience === 'partner'"
         :start-date="query.start"
         :end-date="query.end"
         :refreshing="refreshing"
@@ -83,7 +84,7 @@
           <span class="tabular-nums" data-test="team-subject-id">#{{ customer.user.user_id }}</span>
         </template>
         <RouterLink
-          v-if="customer.is_sub_agent"
+          v-if="customer.is_sub_agent && !region"
           :to="agentRoute(customer.user.user_id)"
           class="rounded transition-opacity hover:opacity-80"
           data-test="team-subject-sub-agent"
@@ -91,29 +92,32 @@
           <TeamBadge>{{ t('affiliate.team.subAgent') }}</TeamBadge>
         </RouterLink>
         <span
-          v-if="(customer.user.nickname && customer.user.email) || customer.is_sub_agent || (isAdmin && !customer.user.deleted)"
+          v-if="(customer.user.nickname && customer.user.email) || (customer.is_sub_agent && !region) || (isAdmin && !customer.user.deleted)"
           class="text-gray-300 dark:text-dark-600"
           aria-hidden="true"
         >·</span>
-        <span v-if="customer.relation === 'owner' || !customer.owner_agent">{{ label('affiliate.team.myCustomer') }}</span>
+        <!-- 区域视角：归属代理可能是任一层的代理，只显示名字 -->
+        <span v-if="!customer.owner_agent || (!region && customer.relation === 'owner')">{{ label('affiliate.team.myCustomer') }}</span>
         <i18n-t v-else keypath="affiliate.team.customerOf" tag="span" scope="global" data-test="team-subject-owner">
           <template #name>
             <RouterLink
-              v-if="!customer.owner_agent.deleted"
+              v-if="!customer.owner_agent.deleted && !region"
               :to="agentRoute(customer.owner_agent.user_id)"
               class="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
             >
               {{ teamUserName(customer.owner_agent, deletedLabel(customer.owner_agent)) }}
             </RouterLink>
-            <span v-else>{{ deletedLabel(customer.owner_agent) }}</span>
+            <span v-else>{{ teamUserName(customer.owner_agent, deletedLabel(customer.owner_agent)) }}</span>
           </template>
         </i18n-t>
         <template v-if="customer.bound_at">
           <span class="text-gray-300 dark:text-dark-600" aria-hidden="true">·</span>
           <span class="tabular-nums">{{ t('affiliate.team.boundAt', { date: formatLocalDate(new Date(customer.bound_at)) }) }}</span>
         </template>
-        <span class="text-gray-300 dark:text-dark-600" aria-hidden="true">·</span>
-        <span class="tabular-nums">{{ label('affiliate.team.lifetimeEarnings', { amount: formatTeamMoney(customer.lifetime_earnings) }) }}</span>
+        <template v-if="!region">
+          <span class="text-gray-300 dark:text-dark-600" aria-hidden="true">·</span>
+          <span class="tabular-nums">{{ label('affiliate.team.lifetimeEarnings', { amount: formatTeamMoney(customer.lifetime_earnings) }) }}</span>
+        </template>
         <template v-if="context.routes.usage">
           <span class="text-gray-300 dark:text-dark-600" aria-hidden="true">·</span>
           <RouterLink
@@ -126,7 +130,7 @@
         </template>
       </div>
 
-      <p v-if="!isAdmin && overview?.viewer.downgraded" class="text-sm text-gray-500 dark:text-dark-400" data-test="team-downgraded">
+      <p v-if="context.audience === 'agent' && overview?.viewer.downgraded" class="text-sm text-gray-500 dark:text-dark-400" data-test="team-downgraded">
         {{ t('affiliate.team.downgradedNotice') }}
       </p>
     </div>
@@ -178,7 +182,7 @@
               @click="onTabChange(tab.key)"
             >
               {{ tab.label }}
-              <span class="ml-1 tabular-nums text-gray-400 dark:text-dark-500">{{ formatTeamCount(tab.count) }}</span>
+              <span v-if="tab.count !== null" class="ml-1 tabular-nums text-gray-400 dark:text-dark-500">{{ formatTeamCount(tab.count) }}</span>
             </button>
           </div>
           <h3 v-else class="text-sm font-semibold text-gray-900 dark:text-white" data-test="team-list-title">
@@ -237,7 +241,7 @@
             <div class="flex flex-col items-center gap-2 text-sm text-gray-500 dark:text-dark-400" data-test="team-empty">
               <span>{{ query.q ? t('affiliate.team.empty.noMatches') : t('affiliate.team.empty.noCustomers') }}</span>
               <RouterLink
-                v-if="!query.q && view === 'team' && !isAdmin"
+                v-if="!query.q && view === 'team' && !summaryRoute"
                 :to="{ name: 'Affiliate' }"
                 class="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
               >
@@ -246,6 +250,16 @@
             </div>
           </template>
         </TeamCustomerTable>
+        <TeamLineTable
+          v-else-if="listKind === 'lines'"
+          :rows="lines"
+          :loading="!listReady"
+          :drill-query="drillDownQuery"
+        >
+          <template #empty>
+            <span class="text-sm text-gray-500 dark:text-dark-400" data-test="team-empty">{{ t('partner.region.empty.noLines') }}</span>
+          </template>
+        </TeamLineTable>
         <TeamAgentTable
           v-else-if="listKind === 'agents'"
           :rows="agents"
@@ -266,7 +280,7 @@
         </TeamRequestTable>
 
         <Pagination
-          v-if="listReady && total > 0"
+          v-if="listReady && total > 0 && listKind !== 'lines'"
           :total="total"
           :page="query.page"
           :page-size="query.size"
@@ -289,6 +303,7 @@ import Select from '@/components/common/Select.vue'
 import TeamAgentTable from './TeamAgentTable.vue'
 import TeamBadge from './TeamBadge.vue'
 import TeamCustomerTable from './TeamCustomerTable.vue'
+import TeamLineTable from './TeamLineTable.vue'
 import TeamModelShare from './TeamModelShare.vue'
 import TeamProgressBar from './TeamProgressBar.vue'
 import TeamRequestTable from './TeamRequestTable.vue'
@@ -324,10 +339,12 @@ import type {
   AffiliateTeamUser,
   BasePaginationResponse
 } from '@/types'
+import type { PartnerTeamLine } from '@/api/affiliatePartner'
 import { extractI18nErrorMessage } from '@/utils/apiError'
 import { formatTeamCount, formatTeamMoney, teamUserName } from '@/utils/affiliateTeam'
 
-type ListKind = 'customers' | 'agents' | 'requests'
+/** lines = 合伙人区域视角的渠道经理线（代替下级代理表）。 */
+type ListKind = 'customers' | 'agents' | 'lines' | 'requests'
 
 /**
  * 团队消费页主体（代理端 /affiliate/team 与管理端代理视角共用）。接口、路由与受众相关文案取自
@@ -354,6 +371,7 @@ const notFound = ref(false)
 const customers = ref<AffiliateTeamCustomer[]>([])
 const agents = ref<AffiliateTeamAgent[]>([])
 const requests = ref<AffiliateTeamRequest[]>([])
+const lines = ref<PartnerTeamLine[]>([])
 const total = ref(0)
 /** 当前列表数据属于哪种表；与 listKind 不一致时显示骨架。 */
 const loadedListKind = ref<ListKind | null>(null)
@@ -380,11 +398,13 @@ const context: AffiliateTeamContext = {
 }
 provideAffiliateTeamContext(context)
 const label = useTeamLabel(context)
+const region = context.region
 
 const customer = computed(() => overview.value?.customer ?? null)
 const listKind = computed<ListKind>(() => {
   if (view.value === 'customer') return 'requests'
-  return view.value === 'team' && query.value.tab === 'agents' ? 'agents' : 'customers'
+  if (view.value !== 'team' || query.value.tab !== 'agents') return 'customers'
+  return region ? 'lines' : 'agents'
 })
 const listReady = computed(() => loadedListKind.value === listKind.value)
 const refreshing = computed(() => overviewLoading.value || listLoading.value)
@@ -426,6 +446,7 @@ function resetScope() {
   customers.value = []
   agents.value = []
   requests.value = []
+  lines.value = []
   total.value = 0
   loadedListKind.value = null
   loadedOverviewKey = ''
@@ -464,6 +485,10 @@ async function loadOverview(): Promise<void> {
 
 async function fetchList(kind: ListKind, signal: AbortSignal): Promise<BasePaginationResponse<unknown>> {
   const q = query.value
+  if (kind === 'lines' && region) {
+    const items = await region.listLines(rangeParams(), { signal })
+    return { items, total: items.length, page: 1, page_size: items.length, pages: 1 }
+  }
   const page = { page: q.page, page_size: q.size }
   if (kind === 'requests') {
     return context.api.listRequests(subjectId.value, {
@@ -499,6 +524,7 @@ async function loadList(): Promise<void> {
     const items = res.items ?? []
     if (kind === 'requests') requests.value = items as AffiliateTeamRequest[]
     else if (kind === 'agents') agents.value = items as AffiliateTeamAgent[]
+    else if (kind === 'lines') lines.value = items as PartnerTeamLine[]
     else customers.value = items as AffiliateTeamCustomer[]
     total.value = res.total ?? 0
     loadedListKind.value = kind
@@ -556,9 +582,9 @@ onBeforeUnmount(() => {
   listController?.abort()
 })
 
-// URL 带了 tab=agents 但没有下级代理：回到「我的客户」。
+// URL 带了 tab=agents 但没有下级代理：回到「我的客户」。区域视角的渠道经理线总有直属团队一行。
 watch(() => overview.value?.counts, (counts) => {
-  if (counts && counts.sub_agents === 0 && view.value === 'team' && query.value.tab === 'agents') {
+  if (!region && counts && counts.sub_agents === 0 && view.value === 'team' && query.value.tab === 'agents') {
     onTabChange('customers')
   }
 })
@@ -579,14 +605,14 @@ const summaryRoute = computed<RouteLocationRaw | null>(() =>
 const crumbs = computed<TeamCrumb[]>(() => {
   // 代理端：团队消费 / 二级 / 客户；管理端在前面加汇总页，团队根为被查看的代理。
   const prefix: TeamCrumb[] = summaryRoute.value
-    ? [{ label: t('admin.affiliates.team.title'), to: summaryRoute.value }]
+    ? [{ label: label('admin.affiliates.team.title'), to: summaryRoute.value }]
     : []
-  if (notFound.value && (isAdmin || view.value !== 'team')) {
-    return isAdmin ? prefix : [{ label: t('affiliate.team.title'), to: teamRoute.value }]
+  const rootLabel = context.rootLabel ? context.rootLabel() : isAdmin ? subjectName.value : t('affiliate.team.title')
+  if (notFound.value && (summaryRoute.value || view.value !== 'team')) {
+    return summaryRoute.value ? prefix : [{ label: rootLabel, to: teamRoute.value }]
   }
   const data = overview.value
-  const rootLabel = isAdmin ? subjectName.value : t('affiliate.team.title')
-  const rootLoading = isAdmin && !subject.value
+  const rootLoading = context.rootLabel ? !rootLabel : isAdmin && !subject.value
   if (view.value === 'team') {
     return [...prefix, rootLoading ? { label: '', loading: true } : { label: rootLabel }]
   }
@@ -599,7 +625,7 @@ const crumbs = computed<TeamCrumb[]>(() => {
   const c = data?.customer
   if (!c) return [...prefix, root, { label: '', loading: true }]
   const self: TeamCrumb = { label: teamUserName(c.user, deletedLabel(c.user)) }
-  if (c.relation === 'upline' && c.owner_agent) {
+  if (!region && c.relation === 'upline' && c.owner_agent) {
     const owner = c.owner_agent
     return [...prefix, root, { label: teamUserName(owner, deletedLabel(owner)), to: owner.deleted ? undefined : agentRoute(owner.user_id) }, self]
   }
@@ -611,17 +637,22 @@ const notFoundState = computed<{ message: string; to: RouteLocationRaw; link: st
     return { message: label('affiliate.team.notFound'), to: summaryRoute.value, link: label('affiliate.team.backToTeam') }
   }
   if (view.value === 'team') {
-    return { message: t('affiliate.team.forbidden'), to: { name: 'Affiliate' }, link: t('affiliate.team.backToAffiliate') }
+    return { message: label('affiliate.team.forbidden'), to: { name: 'Affiliate' }, link: t('affiliate.team.backToAffiliate') }
   }
   return { message: t('affiliate.team.notFound'), to: teamRoute.value, link: t('affiliate.team.backToTeam') }
 })
 
 // ---------- 列表头 ----------
 
-const showTabs = computed(() => view.value === 'team' && (overview.value?.counts?.sub_agents ?? 0) > 0)
-const tabs = computed(() => [
-  { key: 'customers' as const, label: label('affiliate.team.tabs.customers'), count: overview.value?.counts?.direct_customers ?? 0 },
-  { key: 'agents' as const, label: t('affiliate.team.tabs.agents'), count: overview.value?.counts?.sub_agents ?? 0 }
+const showTabs = computed(() => view.value === 'team' && (!!region || (overview.value?.counts?.sub_agents ?? 0) > 0))
+// 区域视角：客户数取汇总，渠道经理线不显示数量。
+const tabs = computed<Array<{ key: AffiliateTeamTab; label: string; count: number | null }>>(() => [
+  {
+    key: 'customers',
+    label: label('affiliate.team.tabs.customers'),
+    count: region ? overview.value?.summary.customers ?? 0 : overview.value?.counts?.direct_customers ?? 0
+  },
+  { key: 'agents', label: label('affiliate.team.tabs.agents'), count: region ? null : overview.value?.counts?.sub_agents ?? 0 }
 ])
 
 const listTitle = computed(() => {
@@ -635,7 +666,8 @@ const listTitle = computed(() => {
 const listCount = computed<number | null>(() => {
   const data = overview.value
   if (!data || view.value === 'customer') return null
-  return view.value === 'agent' ? data.summary.customers : data.counts?.direct_customers ?? null
+  if (view.value === 'agent' || region) return data.summary.customers
+  return data.counts?.direct_customers ?? null
 })
 
 const modelOptions = computed(() => {

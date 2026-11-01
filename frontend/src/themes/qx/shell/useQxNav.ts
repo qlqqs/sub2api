@@ -200,6 +200,7 @@ export function useQxNav() {
           children: [
             { path: '/admin/affiliates/agents', label: t('nav.affiliateAgents'), icon: 'user' },
             { path: '/admin/affiliates/team', label: t('nav.affiliateTeam'), icon: 'usage' },
+            { path: '/admin/affiliates/partners', label: t('nav.affiliatePartners'), icon: 'users' },
             { path: '/admin/affiliates/invites', label: t('nav.affiliateInviteRecords'), icon: 'userPlus' },
             { path: '/admin/affiliates/rebates', label: t('nav.affiliateRebateRecords'), icon: 'orders' },
             { path: '/admin/affiliates/transfers', label: t('nav.affiliateTransferRecords'), icon: 'swap' }

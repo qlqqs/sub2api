@@ -65,7 +65,7 @@ function mountView() {
         ConfirmDialog: ConfirmDialogStub,
         RouterLink: RouterLinkStub,
         // 分区 Tab 依赖路由，单独测试（AffiliateSectionTabs.spec.ts）。
-        AffiliateSectionTabs: { template: '<nav data-test="affiliate-section-tabs" />' },
+        AffiliateSectionTabs: { props: ['partner'], template: '<nav data-test="affiliate-section-tabs" :data-partner="String(!!partner)" />' },
       },
     },
   })
@@ -495,6 +495,42 @@ describe('AffiliateView', () => {
 
       expect(withFriends.get('[data-test="affiliate-invitees-empty"]').text()).toBe('affiliate.invitees.noMatches')
       expect(withFriends.find('[data-test="affiliate-invitee-search"]').exists()).toBe(true)
+    })
+  })
+
+  // CUSTOM: 合伙人
+  describe('partner', () => {
+    const partner = { region_name: '三科大', share_rate: '0.4000', next_share_rate: '0.3500', next_rate_month: '2026-12', since: '2026-11-02T10:00:00+08:00' }
+
+    it('shows the partner card instead of agent rates and passes the partner tabs flag', async () => {
+      getAffiliateDetail.mockResolvedValueOnce(baseDetail({ agent_level: 1, agent_rate_percent: 11, team_rate_percent: 4, team_access: true, appoint: null, partner }))
+      listAffiliateInvitees.mockResolvedValueOnce(inviteePage([
+        { user_id: 5, email: 'f***@x.com', username: 'friend', total_rebate: 0, owned_by_me: true, agent_level: 3, appointable: false },
+      ]))
+      const wrapper = mountView()
+      await flushPromises()
+
+      expect(wrapper.get('[data-test="affiliate-section-tabs"]').attributes('data-partner')).toBe('true')
+      const card = wrapper.get('[data-test="affiliate-partner-card"]')
+      expect(card.get('[data-test="affiliate-partner-region"]').text()).toBe('三科大')
+      expect(card.get('[data-test="affiliate-partner-rate"]').text()).toBe('partner.rate{"rate":"40%"}')
+      expect(card.get('[data-test="affiliate-partner-next-rate"]').text()).toBe('partner.nextRate{"month":"2026-12","rate":"35%"}')
+      expect(card.text()).toContain('partner.basis')
+      expect(wrapper.find('[data-test="affiliate-agent-card"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="affiliate-agent-rate"]').exists()).toBe(false)
+      // 合伙人不能任命：没有任命列和按钮；邀请码照常显示。
+      expect(wrapper.find('[data-test="affiliate-col-agent-role"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="affiliate-appoint"]').exists()).toBe(false)
+      expect(wrapper.get('[data-test="affiliate-invite-card"]').text()).toContain('CODE')
+    })
+
+    it('keeps the agent card for non-partners', async () => {
+      getAffiliateDetail.mockResolvedValueOnce(baseDetail({ agent_level: 1, agent_rate_percent: 11, team_access: true, partner: null }))
+      const wrapper = mountView()
+      await flushPromises()
+      expect(wrapper.get('[data-test="affiliate-section-tabs"]').attributes('data-partner')).toBe('false')
+      expect(wrapper.find('[data-test="affiliate-partner-card"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="affiliate-agent-card"]').exists()).toBe(true)
     })
   })
 })

@@ -10,6 +10,7 @@ import plugins from './plugins'
 import finance from './finance' // CUSTOM
 import financeRecalculation from './financeRecalculation' // CUSTOM
 import clientReleases from './clientReleases' // CUSTOM
+import partners from './partners' // CUSTOM: 合伙人
 
 export default {
   ...overview,
@@ -24,4 +25,5 @@ export default {
   ...finance,
   ...financeRecalculation,
   ...clientReleases,
+  ...partners,
 }

@@ -75,7 +75,7 @@ func TestAffiliateHandlerBatchSetAgentLevel(t *testing.T) {
 
 	resp := doAgentLevelJSON(router, http.MethodPost, "/api/v1/admin/affiliates/users/batch-agent-level", `{"user_ids":[1,2,0],"agent_level":1}`)
 	require.Equal(t, http.StatusOK, resp.Code, resp.Body.String())
-	require.JSONEq(t, `{"code":0,"message":"success","data":{"affected":3}}`, resp.Body.String())
+	require.JSONEq(t, `{"code":0,"message":"success","data":{"affected":3,"auto_attached":[]}}`, resp.Body.String())
 	require.Equal(t, []agentLevelSet{{ids: []int64{1, 2}, level: 1}}, repo.manual)
 
 	resp = doAgentLevelJSON(router, http.MethodPost, "/api/v1/admin/affiliates/users/batch-agent-level", `{"user_ids":[],"agent_level":1}`)

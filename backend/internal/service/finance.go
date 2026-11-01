@@ -75,10 +75,10 @@ type FinanceOrder struct {
 	LegacyFee, LegacyRefund                                bool
 }
 type FinanceLedger struct {
-	ID, UserID         int64
-	At                 time.Time
-	Action, RewardType string
-	Amount             decimal.Decimal
+	ID, UserID, SourceUserID int64
+	At                       time.Time
+	Action, RewardType       string
+	Amount                   decimal.Decimal
 }
 type FinanceUserEvent struct {
 	UserID int64
@@ -110,14 +110,16 @@ type FinanceSettings struct {
 	Accounts            []FinanceAccount `json:"accounts"`
 }
 type FinanceExpenseInput struct {
-	OccurredOn   string `json:"occurred_on"`
-	Category     string `json:"category"`
-	Amount       string `json:"amount"`
-	AmortizeDays int    `json:"amortize_days"`
-	AccountID    *int64 `json:"account_id"`
-	Note         string `json:"note"`
+	PartnerUserID *int64 `json:"partner_user_id"` // CUSTOM(fork): 区域专项支出。
+	OccurredOn    string `json:"occurred_on"`
+	Category      string `json:"category"`
+	Amount        string `json:"amount"`
+	AmortizeDays  int    `json:"amortize_days"`
+	AccountID     *int64 `json:"account_id"`
+	Note          string `json:"note"`
 }
 type FinanceExpense struct {
+	PartnerRegionName *string `json:"partner_region_name"`
 	FinanceExpenseInput
 	ID             int64     `json:"id"`
 	AccountName    *string   `json:"account_name"`
@@ -145,7 +147,23 @@ type FinanceRepository interface {
 	SaveExpense(context.Context, int64, int64, FinanceExpenseInput) (*FinanceExpense, error)
 	DeleteExpense(context.Context, int64) error
 }
-type FinanceService struct{ repo FinanceRepository }
+
+// CUSTOM(fork): 财务通过端口读取合伙人整月分成。
+type PartnerShare struct {
+	Amount    decimal.Decimal
+	Estimated bool
+}
+type PartnerShareProvider interface {
+	PartnerShares(context.Context, string, string) (map[string]PartnerShare, error)
+}
+type FinanceService struct {
+	repo     FinanceRepository
+	partners PartnerShareProvider
+}
+
+func ProvideFinanceService(repo FinanceRepository, partners *PartnerService) *FinanceService {
+	return &FinanceService{repo: repo, partners: partners}
+}
 
 func NewFinanceService(repo FinanceRepository) *FinanceService { return &FinanceService{repo: repo} }
 func (s *FinanceService) Settings(ctx context.Context) (FinanceSettings, error) {
@@ -275,7 +293,15 @@ func financeReplays(data *FinanceData) map[int64]FinanceRevenue {
 	}
 	return out
 }
+
+// CUSTOM(fork): 财务页固定说明与实际数据提示分开，合伙人只取后者。
+const financeReplayNotice = "余额消耗按北京日重放；历史用量或兑换流水被清理后无法完整还原收入"
+
 func financeWarnings(data *FinanceData, r FinanceRange, replays map[int64]FinanceRevenue) []string {
+	return append(financeDataWarnings(data, r, replays), financeReplayNotice)
+}
+
+func financeDataWarnings(data *FinanceData, r FinanceRange, replays map[int64]FinanceRevenue) []string {
 	w := []string{}
 	subs, legacy := 0, 0
 	for _, o := range data.Orders {
@@ -312,7 +338,6 @@ func financeWarnings(data *FinanceData, r FinanceRange, replays map[int64]Financ
 			break
 		}
 	}
-	w = append(w, "余额消耗按北京日重放；历史用量或兑换流水被清理后无法完整还原收入")
 	return w
 }
 func financeLabel(label string, deleted bool) string {

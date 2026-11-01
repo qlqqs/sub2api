@@ -5,6 +5,7 @@ import channelMonitorV2 from './channelMonitorV2'
 import batchImage from './batchImage'
 import admin from './admin'
 import misc from './misc'
+import partner from './partner' // CUSTOM: 合伙人
 import qxTheme from '@/themes/qx/locales/en' // CUSTOM
 
 export default {
@@ -15,5 +16,6 @@ export default {
   ...batchImage,
   admin,
   ...misc,
+  ...partner,
   ...qxTheme,
 }

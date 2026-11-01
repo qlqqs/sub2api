@@ -19,7 +19,7 @@ const SelectStub = {
   props: ['modelValue', 'options'],
   emits: ['update:modelValue'],
   template:
-    '<select :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><option v-for="o in options" :key="String(o.value)" :value="o.value">{{ o.label }}</option></select>'
+    '<select :value="modelValue" @change="$emit(\'update:modelValue\', options[$event.target.selectedIndex].value)"><option v-for="o in options" :key="String(o.value)" :value="o.value">{{ o.label }}</option></select>'
 }
 
 function mountDialog(props: Record<string, unknown> = {}) {
@@ -96,6 +96,8 @@ describe('FinanceExpenseDialog (CUSTOM)', () => {
       amortize_days: 31,
       account_id: 1,
       account_name: 'vm2api - pro',
+      partner_user_id: null,
+      partner_region_name: null,
       note: 'ChatGPT Pro #3',
       daily_amount: '45.16129032',
       created_by_email: 'admin@x',
@@ -123,5 +125,41 @@ describe('FinanceExpenseDialog (CUSTOM)', () => {
       expect.objectContaining({ category: 'upstream_subscription', amount: '1400', amortize_days: 30, account_id: null, note: 'Pro #3' })
     )
     expect(wrapper.emitted('saved')).toHaveLength(1)
+  })
+
+  // CUSTOM: 区域专项支出
+  it('posts the chosen region and keeps an unknown region when editing', async () => {
+    const partners = [{ user_id: 75, region_name: '三科大' }, { user_id: 62, region_name: '重大' }]
+    const wrapper = mountDialog({ partners })
+    const select = wrapper.get('[data-testid="finance-expense-partner"]')
+    expect(select.findAll('option').map((o) => o.text())).toEqual(['admin.finance.expenses.form.partnerNone', '三科大', '重大'])
+    await wrapper.get('[data-testid="finance-expense-amount"]').setValue('30')
+    await select.setValue('62')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(api.createExpense).toHaveBeenCalledWith(expect.objectContaining({ amount: '30', partner_user_id: 62 }))
+
+    const edit = mountDialog({
+      partners,
+      expense: {
+        id: 9,
+        occurred_on: '2026-10-20',
+        category: 'other',
+        amount: '30.00',
+        amortize_days: 30,
+        account_id: null,
+        account_name: null,
+        partner_user_id: 80,
+        partner_region_name: '旧区域',
+        note: '',
+        daily_amount: '1',
+        created_by_email: null,
+        created_at: '',
+        updated_at: ''
+      }
+    })
+    const editSelect = edit.get('[data-testid="finance-expense-partner"]')
+    expect(editSelect.findAll('option').map((o) => o.text())).toContain('旧区域')
+    expect((editSelect.element as HTMLSelectElement).value).toBe('80')
   })
 })

@@ -191,6 +191,16 @@ export interface AffiliateRewardTotals {
   invitee_signup_bonus: number
 }
 
+/** CUSTOM: 合伙人身份（GET /user/aff 的 partner 字段）；比例为字符串小数，"0.4000" = 40%。 */
+export interface AffiliatePartnerInfo {
+  region_name: string
+  share_rate: string
+  /** 已设置下月新比例时有值。 */
+  next_share_rate: string | null
+  next_rate_month: string | null
+  since: string
+}
+
 export interface UserAffiliateDetail {
   user_id: number
   aff_code: string
@@ -225,6 +235,8 @@ export interface UserAffiliateDetail {
   appoint?: { max: number; used: number } | null
   /** 能否进入代理团队消费页：当前是代理，或名下仍有快照客户（被降级者看老客户）。 */
   team_access: boolean
+  /** CUSTOM: 合伙人身份；不是合伙人时为 null。 */
+  partner?: AffiliatePartnerInfo | null
 }
 
 // ==================== Affiliate Team (代理团队消费页) ====================
@@ -336,6 +348,9 @@ export interface AffiliateTeamCustomer {
   last_used_at: string | null
   /** 占当前范围团队消费的比例（0-1）。 */
   cost_share: number
+  /** CUSTOM: 仅合伙人区域视角：归属代理、所在渠道经理线（null = 合伙人直属团队）。 */
+  owner?: AffiliateTeamUser | null
+  line_agent?: AffiliateTeamUser | null
 }
 
 export interface AffiliateTeamAgent {

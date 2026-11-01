@@ -125,6 +125,7 @@ describe('useQxNav', () => {
     expect(affiliates.children?.map((c) => c.path)).toEqual([
       '/admin/affiliates/agents',
       '/admin/affiliates/team',
+      '/admin/affiliates/partners',
       '/admin/affiliates/invites',
       '/admin/affiliates/rebates',
       '/admin/affiliates/transfers'

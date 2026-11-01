@@ -38,6 +38,7 @@ describe('financeExpense (CUSTOM)', () => {
       amortize_mode: 'once',
       amortize_days: 'abc',
       account_id: 1,
+      partner_user_id: null,
       note: ''
     })
     expect(result).toMatchObject({ ok: true, payload: { amortize_days: 1 } })
@@ -51,6 +52,7 @@ describe('financeExpense (CUSTOM)', () => {
       amortize_mode: 'daily',
       amortize_days: '30',
       account_id: 1,
+      partner_user_id: 75,
       note: ' ChatGPT Pro #3 '
     })
     expect(result).toEqual({
@@ -61,6 +63,7 @@ describe('financeExpense (CUSTOM)', () => {
         amount: '1400.00',
         amortize_days: 30,
         account_id: 1,
+        partner_user_id: 75,
         note: 'ChatGPT Pro #3'
       }
     })
@@ -74,6 +77,7 @@ describe('financeExpense (CUSTOM)', () => {
       amortize_mode: 'daily',
       amortize_days: '1',
       account_id: null,
+      partner_user_id: null,
       note: 'x'.repeat(501)
     })
     expect(result).toEqual({

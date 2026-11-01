@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/lib/pq"
 	"sort"
 	"strings"
 
@@ -46,6 +47,8 @@ SELECT sm.agent_owner_id FROM user_affiliates sm WHERE sm.agent_upline_id = ` + 
 // scopeSQL 返回范围 CTE 的 WHERE 条件（作用于别名 ua）。
 func scopeSQL(args *teamArgs, viewer string, scope service.AffiliateTeamScope) string {
 	switch {
+	case scope.MemberIDs != nil:
+		return "ua.user_id = ANY(" + args.add(pq.Array(scope.MemberIDs)) + "::bigint[])"
 	case scope.AgentID > 0:
 		return "ua.agent_owner_id = " + args.add(scope.AgentID) + " AND ua.agent_upline_id = " + viewer
 	case scope.CustomerID > 0:
@@ -248,6 +251,10 @@ GROUP BY GROUPING SETS ((r.bucket_date), (r.model), (r.user_id))`, args.values..
 		return out.Models[i].Model < out.Models[j].Model
 	})
 
+	// CUSTOM(fork): 区域视角不统计合伙人分润。
+	if scope.MemberIDs != nil {
+		return out, nil
+	}
 	earnArgs := &teamArgs{values: append([]any{}, args.values[:scopeArgs]...)}
 	t1, t2 := earnArgs.add(rng.Start), earnArgs.add(rng.End)
 	rows, err = client.QueryContext(ctx, scopeCTE+`
@@ -344,10 +351,15 @@ var affiliateTeamCustomerSorts = map[string]string{
 
 func (r *affiliateTeamRepository) ListCustomers(ctx context.Context, viewerID int64, rng service.AffiliateTeamRange, query service.AffiliateTeamListQuery) ([]service.AffiliateTeamCustomerEntry, int64, error) {
 	args := &teamArgs{}
-	viewer := args.add(viewerID)
-	where := "ua.agent_owner_id = " + viewer
-	if query.AgentID > 0 {
-		where = "ua.agent_owner_id = " + args.add(query.AgentID) + " AND ua.agent_upline_id = " + viewer
+	viewer, where := "", ""
+	if query.MemberIDs != nil {
+		where = "ua.user_id = ANY(" + args.add(pq.Array(query.MemberIDs)) + "::bigint[])"
+	} else {
+		viewer = args.add(viewerID)
+		where = "ua.agent_owner_id = " + viewer
+		if query.AgentID > 0 {
+			where = "ua.agent_owner_id = " + args.add(query.AgentID) + " AND ua.agent_upline_id = " + viewer
+		}
 	}
 	searchSQL := "TRUE"
 	switch {
@@ -359,7 +371,18 @@ func (r *affiliateTeamRepository) ListCustomers(ctx context.Context, viewerID in
 	}
 	baseArgs := len(args.values)
 	d1, d2 := args.add(rng.StartDate), args.add(rng.EndDate)
-	t1, t2 := args.add(rng.Start), args.add(rng.End)
+	// CUSTOM(fork): 区域客户不查询分润；计数参数只包含范围和搜索。
+	earnSQL := `SELECT NULL::bigint AS user_id, 0::numeric AS earnings WHERE FALSE`
+	if query.MemberIDs == nil {
+		t1, t2 := args.add(rng.Start), args.add(rng.End)
+		earnSQL = `SELECT l.source_user_id AS user_id, SUM(l.amount) AS earnings
+    FROM user_affiliate_ledger l
+    WHERE l.user_id = ` + viewer + `
+      AND l.reward_type IN ` + affiliateTeamAgentRewardTypes + `
+      AND l.created_at >= ` + t1 + ` AND l.created_at < ` + t2 + `
+      AND l.source_user_id IN (SELECT user_id FROM scope)
+    GROUP BY l.source_user_id`
+	}
 
 	rowsCTE := `
 WITH scope AS (
@@ -373,13 +396,7 @@ WITH scope AS (
     JOIN scope s ON s.user_id = r.user_id
     GROUP BY r.user_id
 ), earn AS (
-    SELECT l.source_user_id AS user_id, SUM(l.amount) AS earnings
-    FROM user_affiliate_ledger l
-    WHERE l.user_id = ` + viewer + `
-      AND l.reward_type IN ` + affiliateTeamAgentRewardTypes + `
-      AND l.created_at >= ` + t1 + ` AND l.created_at < ` + t2 + `
-      AND l.source_user_id IN (SELECT user_id FROM scope)
-    GROUP BY l.source_user_id
+    ` + earnSQL + `
 ), entries AS (
     SELECT s.user_id,
            COALESCE(u.username, '') AS nickname,

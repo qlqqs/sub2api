@@ -3,7 +3,7 @@
   <div class="space-y-4">
     <section>
       <h3 class="mb-2 text-sm font-semibold text-gray-900 dark:text-white">{{ t('admin.finance.overview.periodTitle') }}</h3>
-      <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
         <div v-for="card in periodCards" :key="card.key" class="card p-4" :data-testid="`finance-card-${card.key}`">
           <p class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ card.label }}</p>
           <p class="mt-1 text-xl font-bold text-gray-900 dark:text-white">
@@ -121,6 +121,22 @@ const periodCards = computed<PeriodCard[]>(() => {
       label: t('admin.finance.overview.cards.profit'),
       value: s.profit,
       hint: t('admin.finance.overview.cards.profitHint')
+    },
+    // CUSTOM: 合伙人分成与平台净利润（分成按整月计入）
+    {
+      key: 'partner_share',
+      label: t('admin.finance.overview.cards.partnerShare'),
+      value: s.partner_share,
+      hint: [
+        s.partner_share_scope === 'whole_months' ? t('admin.finance.overview.cards.partnerShareWholeMonths') : '',
+        s.partner_share_estimated ? t('admin.finance.profit.estimated') : ''
+      ].filter(Boolean).join(' · ')
+    },
+    {
+      key: 'net_profit',
+      label: t('admin.finance.overview.cards.netProfit'),
+      value: s.net_profit,
+      hint: t('admin.finance.overview.cards.netProfitHint')
     },
     {
       key: 'profit_margin',

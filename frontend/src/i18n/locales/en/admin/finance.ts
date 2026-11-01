@@ -44,7 +44,11 @@ export default {
         profit: 'Profit',
         profitHint: 'Revenue − account cost − commission − other expenses',
         profitMargin: 'Profit margin',
-        profitMarginHint: 'Profit ÷ recognized revenue'
+        profitMarginHint: 'Profit ÷ recognized revenue',
+        partnerShare: 'Partner share',
+        partnerShareWholeMonths: 'Whole months',
+        netProfit: 'Platform net profit',
+        netProfitHint: 'Profit − partner share'
       },
       consumptionTitle: 'Balance consumption',
       consumption: 'Total balance consumed',
@@ -88,8 +92,11 @@ export default {
         commission: 'Commission',
         expenses: 'Other expenses',
         profit: 'Profit',
-        profitMargin: 'Margin'
-      }
+        profitMargin: 'Margin',
+        partnerShare: 'Partner share',
+        netProfit: 'Platform net profit'
+      },
+      estimated: 'Estimate'
     },
     recharge: {
       cards: {
@@ -207,6 +214,7 @@ export default {
         amount: 'Amount',
         amortize: 'Amortization',
         account: 'Account',
+        partner: 'Region',
         note: 'Note',
         createdBy: 'Entered by',
         actions: 'Actions'
@@ -225,6 +233,8 @@ export default {
         amortizeDailyHint: 'Spread evenly per day starting on the date incurred; the last day absorbs rounding. Subscription accounts default to 30 days',
         account: 'Linked account',
         accountNone: 'None',
+        partner: 'Region',
+        partnerNone: 'Shared (no region)',
         note: 'Note',
         notePlaceholder: 'e.g. ChatGPT Pro #3'
       },

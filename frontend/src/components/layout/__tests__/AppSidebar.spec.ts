@@ -88,6 +88,9 @@ describe('AppSidebar affiliate group', () => {
     const children = group?.[1] ?? ''
     expect(children.indexOf("'/admin/affiliates/agents'")).toBeLessThan(children.indexOf("'/admin/affiliates/team'"))
     expect(children.indexOf("'/admin/affiliates/team'")).toBeLessThan(children.indexOf("'/admin/affiliates/invites'"))
+    // CUSTOM: 合伙人在团队消费之后、邀请记录之前；团队消费仍紧跟代理管理
+    const paths = [...children.matchAll(/path: '([^']+)'/g)].map((m) => m[1])
+    expect(paths.slice(0, 4)).toEqual(['/admin/affiliates/agents', '/admin/affiliates/team', '/admin/affiliates/partners', '/admin/affiliates/invites'])
     expect(children).toMatch(/path: '\/admin\/affiliates\/team', label: t\('nav\.affiliateTeam'\)/)
   })
 

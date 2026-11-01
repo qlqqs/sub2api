@@ -47,8 +47,21 @@ export interface FinancePeriodTotals {
   profit_margin: string | null
 }
 
-export interface FinanceSeriesRow extends FinancePeriodTotals {
+/** CUSTOM: 合伙人分成（按整月计入）；日粒度的行不含这几项，为 "0" / false。 */
+export interface FinancePartnerShare {
+  partner_share: FinanceAmount
+  net_profit: FinanceAmount
+  /** 含未确认结算单（草稿或当月预估）。 */
+  partner_share_estimated: boolean
+}
+
+export interface FinanceSeriesRow extends FinancePeriodTotals, FinancePartnerShare {
   period: string
+}
+
+export interface FinanceSummaryTotals extends FinancePeriodTotals, FinancePartnerShare {
+  /** "whole_months"：合伙人分成取范围涉及的整月。 */
+  partner_share_scope: string
 }
 
 export interface FinanceSnapshot {
@@ -65,7 +78,7 @@ export interface FinanceSnapshot {
 
 export interface FinanceSummary {
   range: { start: string; end: string; granularity: FinanceGranularity }
-  totals: FinancePeriodTotals
+  totals: FinanceSummaryTotals
   series: FinanceSeriesRow[]
   snapshot: FinanceSnapshot
   warnings: string[]
@@ -211,16 +224,25 @@ export interface FinanceExpenseInput {
   amount: FinanceAmount
   amortize_days: number
   account_id: number | null
+  /** CUSTOM: 区域专项支出（合伙人用户 ID）；null 为公共支出。 */
+  partner_user_id: number | null
   note: string
 }
 
 export interface FinanceExpense extends FinanceExpenseInput {
   id: number
   account_name: string | null
+  partner_region_name: string | null
   daily_amount: FinanceAmount
   created_by_email: string | null
   created_at: string
   updated_at: string
+}
+
+/** CUSTOM: 支出的区域候选。 */
+export interface FinanceExpensePartnerOption {
+  user_id: number
+  region_name: string
 }
 
 export interface FinanceExpenseQuery {
@@ -292,6 +314,15 @@ function periodTotals(source: unknown): FinancePeriodTotals {
   return { ...amounts(obj(source), PERIOD_AMOUNT_KEYS), profit_margin: ratio(obj(source).profit_margin) }
 }
 
+function partnerShare(source: unknown): FinancePartnerShare {
+  const o = obj(source)
+  return {
+    partner_share: amount(o.partner_share),
+    net_profit: amount(o.net_profit),
+    partner_share_estimated: o.partner_share_estimated === true
+  }
+}
+
 const SNAPSHOT_KEYS = [
   'balance_total',
   'balance_paid',
@@ -313,8 +344,8 @@ export function normalizeSummary(data: unknown): FinanceSummary {
       end: str(range.end),
       granularity: range.granularity === 'month' ? 'month' : 'day'
     },
-    totals: periodTotals(o.totals),
-    series: arr(o.series).map((row) => ({ period: str(obj(row).period), ...periodTotals(row) })),
+    totals: { ...periodTotals(o.totals), ...partnerShare(o.totals), partner_share_scope: str(obj(o.totals).partner_share_scope) },
+    series: arr(o.series).map((row) => ({ period: str(obj(row).period), ...periodTotals(row), ...partnerShare(row) })),
     snapshot: amounts(obj(o.snapshot), SNAPSHOT_KEYS),
     warnings: arr(o.warnings).filter((w): w is string => typeof w === 'string' && w !== ''),
     computed_at: str(o.computed_at)
@@ -444,6 +475,7 @@ export function normalizeExpense(raw: unknown): FinanceExpense {
   const r = obj(raw)
   const category = FINANCE_EXPENSE_CATEGORIES.find((c) => c === r.category) ?? 'other'
   const accountId = r.account_id == null || r.account_id === '' ? null : int(r.account_id)
+  const partnerId = r.partner_user_id == null || r.partner_user_id === '' ? null : int(r.partner_user_id)
   return {
     id: int(r.id),
     occurred_on: str(r.occurred_on),
@@ -452,6 +484,8 @@ export function normalizeExpense(raw: unknown): FinanceExpense {
     amortize_days: int(r.amortize_days) || 1,
     account_id: accountId,
     account_name: nullableStr(r.account_name),
+    partner_user_id: partnerId,
+    partner_region_name: nullableStr(r.partner_region_name),
     note: str(r.note),
     daily_amount: amount(r.daily_amount),
     created_by_email: nullableStr(r.created_by_email),

@@ -31,14 +31,27 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
-/** 邀请返利的两个分区：邀请（/affiliate）与团队消费（/affiliate/team）。按路由名判定当前分区。 */
+/**
+ * 邀请返利的分区：邀请（/affiliate）与团队消费（/affiliate/team）；合伙人的团队消费是区域视角
+ * （/affiliate/region），另有利润分成（/affiliate/partner）。按路由名判定当前分区。
+ */
+const props = defineProps<{ partner?: boolean }>()
+
 const { t } = useI18n()
 const route = useRoute()
 
-const onTeam = computed(() => String(route.name ?? '').startsWith('AffiliateTeam'))
+const routeName = computed(() => String(route.name ?? ''))
 
 const tabs = computed(() => [
-  { key: 'invite', label: t('affiliate.tabs.invite'), to: { name: 'Affiliate' }, active: route.name === 'Affiliate' },
-  { key: 'team', label: t('affiliate.team.title'), to: { name: 'AffiliateTeam' }, active: onTeam.value }
+  { key: 'invite', label: t('affiliate.tabs.invite'), to: { name: 'Affiliate' }, active: routeName.value === 'Affiliate' },
+  {
+    key: 'team',
+    label: t('affiliate.team.title'),
+    to: { name: props.partner ? 'AffiliateRegion' : 'AffiliateTeam' },
+    active: routeName.value.startsWith('AffiliateTeam') || routeName.value.startsWith('AffiliateRegion')
+  },
+  ...(props.partner
+    ? [{ key: 'partner', label: t('partner.tab'), to: { name: 'AffiliatePartner' }, active: routeName.value.startsWith('AffiliatePartner') }]
+    : [])
 ])
 </script>

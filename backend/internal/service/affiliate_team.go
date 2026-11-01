@@ -58,20 +58,22 @@ type AffiliateTeamRange struct {
 // AffiliateTeamScope 描述查询范围：默认是整个团队；AgentID > 0 时为该二级代理在我下面的团队；
 // CustomerID > 0 时为单个客户。
 type AffiliateTeamScope struct {
+	MemberIDs  []int64 // CUSTOM(fork): 非 nil 时使用合伙人区域成员。
 	ViewerID   int64
 	AgentID    int64
 	CustomerID int64
 }
 
 type AffiliateTeamListQuery struct {
-	AgentID  int64
-	Search   string
-	SortBy   string
-	SortDesc bool
-	Page     int
-	PageSize int
-	Model    string
-	GroupID  *int64
+	MemberIDs []int64 // CUSTOM(fork): 区域成员已由服务层校验。
+	AgentID   int64
+	Search    string
+	SortBy    string
+	SortDesc  bool
+	Page      int
+	PageSize  int
+	Model     string
+	GroupID   *int64
 	// Level 只用于管理端汇总页：AffiliateTeamLevel* 之一，空串为全部。
 	Level string
 	// AdminSearch 由 service 按受众设置：管理端搜索为昵称 / 邮箱模糊，纯数字时另按用户 ID 精确匹配。

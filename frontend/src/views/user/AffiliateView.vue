@@ -8,11 +8,30 @@
       </div>
 
       <template v-else-if="detail">
-        <!-- 分区：邀请 | 团队消费（只对能进入团队消费页的用户显示） -->
-        <AffiliateSectionTabs v-if="detail.team_access" />
+        <!-- 分区：邀请 | 团队消费（只对能进入团队消费页的用户显示）；合伙人多一个「利润分成」 -->
+        <AffiliateSectionTabs v-if="detail.team_access || detail.partner" :partner="!!detail.partner" />
+
+        <!-- CUSTOM: 合伙人：区域与分成比例，不显示代理比例 -->
+        <div v-if="detail.partner" class="card p-5" data-test="affiliate-partner-card">
+          <p class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ t('partner.title') }}<span class="mx-2 text-gray-300 dark:text-dark-600">·</span><span data-test="affiliate-partner-region">{{ detail.partner.region_name }}</span>
+          </p>
+          <p class="mt-1 text-2xl font-semibold text-primary-600 dark:text-primary-400" data-test="affiliate-partner-rate">
+            {{ t('partner.rate', { rate: formatPartnerRate(detail.partner.share_rate) }) }}
+          </p>
+          <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+            <span>{{ t('partner.basis') }}</span>
+            <template v-if="detail.partner.next_share_rate">
+              <span class="mx-1 text-gray-300 dark:text-dark-600">·</span>
+              <span data-test="affiliate-partner-next-rate">{{ t('partner.nextRate', { month: detail.partner.next_rate_month, rate: formatPartnerRate(detail.partner.next_share_rate) }) }}</span>
+            </template>
+            <span class="mx-1 text-gray-300 dark:text-dark-600">·</span>
+            <span>{{ t('partner.sinceAt', { time: formatDateTime(detail.partner.since) }) }}</span>
+          </p>
+        </div>
 
         <!-- 代理：档位与比例 -->
-        <div v-if="isAgent" class="card p-5" data-test="affiliate-agent-card">
+        <div v-else-if="isAgent" class="card p-5" data-test="affiliate-agent-card">
           <p class="text-lg font-semibold text-gray-900 dark:text-white" data-test="affiliate-agent-level">
             {{ levelLabel(detail.agent_level) }}
           </p>
@@ -239,6 +258,7 @@ import { useClipboard } from '@/composables/useClipboard'
 import { formatDateTime } from '@/utils/format'
 import { formatBalance } from '@/utils/balanceCurrency'
 import { extractApiErrorMessage, extractI18nErrorMessage } from '@/utils/apiError'
+import { formatPartnerRate } from '@/utils/affiliatePartner'
 import {
   formatRatePercent,
   formatUsdShort,

@@ -25,6 +25,18 @@
             <option value="">{{ t('admin.affiliates.agents.levelFilterAll') }}</option>
             <option v-for="level in AGENT_LEVELS" :key="level" :value="String(level)">{{ levelLabel(level) }}</option>
           </select>
+          <!-- CUSTOM: 按合伙人区域筛选 -->
+          <select
+            v-if="partners.length > 0"
+            v-model="filters.partnerId"
+            class="input w-full sm:w-44"
+            :aria-label="t('admin.partners.filterLabel')"
+            data-test="agents-partner-filter"
+            @change="reloadFromFirstPage"
+          >
+            <option value="">{{ t('admin.partners.filterAll') }}</option>
+            <option v-for="partner in partners" :key="partner.user.id" :value="String(partner.user.id)">{{ partner.region_name }}</option>
+          </select>
           <div class="w-full sm:w-64">
             <AffiliateUserLookup
               input-id="agents-owner-filter"
@@ -82,7 +94,8 @@
           <template #cell-agent_level="{ row }">
             <div class="space-y-0.5" data-test="agent-level-cell">
               <div class="flex items-center gap-1 text-sm">
-                <span :class="row.agent_level === 3 ? 'text-gray-500 dark:text-dark-400' : 'font-medium text-gray-900 dark:text-white'">
+                <span v-if="row.is_partner" class="badge badge-purple" data-test="agent-partner-badge">{{ t('partner.title') }}</span>
+                <span v-else :class="row.agent_level === 3 ? 'text-gray-500 dark:text-dark-400' : 'font-medium text-gray-900 dark:text-white'">
                   {{ levelLabel(row.agent_level) }}
                 </span>
                 <Icon
@@ -116,6 +129,10 @@
                 {{ row.agent_owner_id == null ? t('admin.affiliates.agents.upline.set') : t('admin.affiliates.agents.upline.change') }}
               </button>
             </div>
+          </template>
+          <template #cell-partner="{ row }">
+            <span v-if="row.partner" class="text-sm text-gray-700 dark:text-gray-300" data-test="agent-partner-region">{{ row.partner.region_name }}</span>
+            <span v-else class="text-sm text-gray-400 dark:text-dark-500">—</span>
           </template>
           <template #cell-aff_count="{ row }">
             <span class="text-sm text-gray-900 dark:text-white">{{ row.aff_count }}</span>
@@ -209,10 +226,18 @@
         </div>
         <div>
           <label for="agent-adjust-level" class="input-label">{{ t('admin.affiliates.agents.adjustDialog.level') }}</label>
-          <select id="agent-adjust-level" v-model.number="adjust.level" class="input" data-test="agent-adjust-level">
+          <select
+            id="agent-adjust-level"
+            v-model.number="adjust.level"
+            class="input"
+            :disabled="adjust.entry.is_partner"
+            data-test="agent-adjust-level"
+          >
             <option v-for="level in AGENT_LEVELS" :key="level" :value="level">{{ levelLabel(level) }}</option>
           </select>
-          <p class="mt-1 text-xs text-gray-400">{{ t('admin.affiliates.agents.adjustDialog.levelHint') }}</p>
+          <p class="mt-1 text-xs text-gray-400">
+            {{ adjust.entry.is_partner ? t('admin.partners.levelFixed') : t('admin.affiliates.agents.adjustDialog.levelHint') }}
+          </p>
         </div>
         <div>
           <label for="agent-adjust-rate" class="input-label">{{ t('admin.affiliates.agents.adjustDialog.customRate') }}</label>
@@ -245,7 +270,7 @@
           />
           <p class="mt-1 text-xs text-gray-400">{{ t('admin.affiliates.agents.adjustDialog.inviteCodeHint') }}</p>
         </div>
-        <label v-if="adjust.entry.agent_level_locked" class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+        <label v-if="adjust.entry.agent_level_locked && !adjust.entry.is_partner" class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
           <input v-model="adjust.unlock" type="checkbox" data-test="agent-adjust-unlock" />
           {{ t('admin.affiliates.agents.adjustDialog.unlock') }}
         </label>
@@ -375,10 +400,13 @@
           <option v-for="level in AGENT_LEVELS" :key="level" :value="level">{{ levelLabel(level) }}</option>
         </select>
         <p class="text-xs text-gray-400">{{ t('admin.affiliates.agents.batchDialog.hint') }}</p>
+        <p v-if="batchPartnerIds.length > 0" class="text-xs text-amber-600 dark:text-amber-400" data-test="agents-batch-partner-skip">
+          {{ t('admin.partners.batchSkip', { n: batchPartnerIds.length }) }}
+        </p>
       </div>
       <template #footer>
         <button type="button" class="btn btn-secondary" :disabled="batch.saving" @click="batch.open = false">{{ t('common.cancel') }}</button>
-        <button type="button" class="btn btn-primary" :disabled="batch.saving" data-test="agents-batch-submit" @click="submitBatch">
+        <button type="button" class="btn btn-primary" :disabled="batch.saving || batchUserIds.length === 0" data-test="agents-batch-submit" @click="submitBatch">
           {{ batch.saving ? t('common.saving') : t('common.save') }}
         </button>
       </template>
@@ -465,8 +493,10 @@ import Icon from '@/components/icons/Icon.vue'
 import AffiliateUserLookup from './AffiliateUserLookup.vue'
 import type { Column } from '@/components/common/types'
 import { useAppStore } from '@/stores/app'
+import affiliatePartnersAPI, { type AdminPartnerItem } from '@/api/admin/affiliatePartners'
 import {
   affiliatesAPI,
+  type AffiliateAutoAttached,
   type AffiliateAdminEntry,
   type AffiliateAgentCustomer,
   type AgentLevel,
@@ -486,10 +516,11 @@ const appStore = useAppStore()
 const loading = ref(false)
 const entries = ref<AffiliateAdminEntry[]>([])
 const selectedIds = ref<number[]>([])
-const filters = reactive<{ search: string; level: string; owner: SimpleUser | null }>({
+const filters = reactive<{ search: string; level: string; owner: SimpleUser | null; partnerId: string }>({
   search: '',
   level: '',
   owner: null,
+  partnerId: '',
 })
 const pagination = reactive({ page: 1, page_size: 20, total: 0 })
 let searchTimer: ReturnType<typeof setTimeout> | undefined
@@ -499,6 +530,7 @@ const columns = computed<Column[]>(() => [
   { key: 'user', label: t('admin.affiliates.agents.col.user') },
   { key: 'agent_level', label: t('admin.affiliates.agents.col.level') },
   { key: 'owner', label: t('admin.affiliates.agents.col.owner') },
+  { key: 'partner', label: t('admin.partners.columns.region') },
   { key: 'aff_count', label: t('admin.affiliates.agents.col.inviteCount') },
   { key: 'owned_customer_count', label: t('admin.affiliates.agents.col.customerCount') },
   { key: 'agent_profit_total', label: t('admin.affiliates.agents.col.profitTotal') },
@@ -541,6 +573,31 @@ function showError(error: unknown) {
   appStore.showError(extractI18nErrorMessage(error, t, 'admin.affiliates.errors', t('common.error')))
 }
 
+// CUSTOM: 合伙人：筛选选项；设为渠道经理时自动挂靠的提示
+const partners = ref<AdminPartnerItem[]>([])
+
+async function loadPartners() {
+  try {
+    partners.value = await affiliatePartnersAPI.listPartners()
+  } catch {
+    partners.value = []
+  }
+}
+
+function showAutoAttached(items: AffiliateAutoAttached[] | undefined) {
+  if (!items || items.length === 0) return
+  appStore.showInfo(
+    items
+      .map((item) => t('admin.partners.autoAttached', {
+        agent: `#${item.agent_user_id}`,
+        partner: item.partner.email || item.partner.username,
+        region: item.region_name,
+      }))
+      .join('；'),
+    6000,
+  )
+}
+
 async function loadEntries() {
   const sequence = ++loadSequence
   loading.value = true
@@ -551,6 +608,7 @@ async function loadEntries() {
       search: filters.search.trim(),
       agent_level: filters.level ? (Number(filters.level) as AgentLevel) : null,
       owner_id: filters.owner?.id ?? null,
+      partner_id: filters.partnerId ? Number(filters.partnerId) : null,
     })
     if (sequence !== loadSequence) return
     entries.value = res.items ?? []
@@ -765,8 +823,9 @@ async function saveAdjust(payload: UpdateAffiliateUserRequest) {
   adjust.saving = true
   adjust.error = ''
   try {
-    await affiliatesAPI.updateUserSettings(adjust.entry.user_id, payload)
+    const res = await affiliatesAPI.updateUserSettings(adjust.entry.user_id, payload)
     appStore.showSuccess(t('common.saved'))
+    showAutoAttached(res.auto_attached)
     adjust.open = false
     await loadEntries()
   } catch (error) {
@@ -822,7 +881,8 @@ async function submitAddDialog() {
   if (!addDialog.user || addDialog.saving) return
   addDialog.saving = true
   try {
-    await affiliatesAPI.updateUserSettings(addDialog.user.id, { agent_level: addDialog.level })
+    const res = await affiliatesAPI.updateUserSettings(addDialog.user.id, { agent_level: addDialog.level })
+    showAutoAttached(res.auto_attached)
     if (addDialog.level === 2 && addDialog.upline) {
       try {
         await affiliatesAPI.setAgentOwner(addDialog.user.id, addDialog.upline.id)
@@ -898,6 +958,12 @@ async function submitUpline() {
 // ---------- 批量设等级 ----------
 const batch = reactive<{ open: boolean; saving: boolean; level: AgentLevel }>({ open: false, saving: false, level: 2 })
 
+/** 合伙人的档位固定：批量设档位时跳过。 */
+const batchPartnerIds = computed(() =>
+  entries.value.filter((entry) => entry.is_partner && selectedIds.value.includes(entry.user_id)).map((entry) => entry.user_id),
+)
+const batchUserIds = computed(() => selectedIds.value.filter((id) => !batchPartnerIds.value.includes(id)))
+
 function openBatchDialog() {
   if (selectedIds.value.length === 0) return
   batch.level = 2
@@ -905,11 +971,12 @@ function openBatchDialog() {
 }
 
 async function submitBatch() {
-  if (batch.saving || selectedIds.value.length === 0) return
+  if (batch.saving || batchUserIds.value.length === 0) return
   batch.saving = true
   try {
-    await affiliatesAPI.batchSetAgentLevel({ user_ids: [...selectedIds.value], agent_level: batch.level })
+    const res = await affiliatesAPI.batchSetAgentLevel({ user_ids: [...batchUserIds.value], agent_level: batch.level })
     appStore.showSuccess(t('common.saved'))
+    showAutoAttached(res.auto_attached)
     batch.open = false
     selectedIds.value = []
     await loadEntries()
@@ -971,6 +1038,7 @@ onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
   document.addEventListener('keydown', handleKeydown)
   void loadEntries()
+  void loadPartners()
 })
 
 onBeforeUnmount(() => {

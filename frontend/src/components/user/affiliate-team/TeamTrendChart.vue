@@ -5,7 +5,7 @@
         <span class="h-2.5 w-2.5 rounded-sm" :style="{ backgroundColor: COST_COLOR }" aria-hidden="true"></span>
         {{ t('affiliate.team.chart.cost') }}
       </span>
-      <span class="inline-flex items-center gap-1.5">
+      <span v-if="showEarnings" class="inline-flex items-center gap-1.5">
         <span class="h-0.5 w-3.5 rounded-full" :style="{ backgroundColor: EARNINGS_COLOR }" aria-hidden="true"></span>
         {{ label('affiliate.team.chart.earnings') }}
       </span>
@@ -46,7 +46,7 @@ import { Bar } from 'vue-chartjs'
 import type { AffiliateTeamTrendPoint } from '@/types'
 import { formatBalance } from '@/utils/balanceCurrency'
 import { formatTeamMoney } from '@/utils/affiliateTeam'
-import { useTeamLabel } from './teamContext'
+import { useAffiliateTeamContext, useTeamLabel } from './teamContext'
 
 // 柱状图叠加一条收益折线：只注册用到的部件。
 ChartJS.register(BarController, BarElement, LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip)
@@ -61,7 +61,10 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-const label = useTeamLabel()
+const context = useAffiliateTeamContext()
+const label = useTeamLabel(context)
+// 合伙人的区域视角没有收益折线。
+const showEarnings = !context.region
 
 const isDarkMode = computed(() => isDocumentDark())
 const axisColors = computed(() => ({
@@ -69,7 +72,8 @@ const axisColors = computed(() => ({
   grid: isDarkMode.value ? '#334155' : '#f3f4f6'
 }))
 
-const isEmpty = computed(() => props.trend.every((point) => point.cost === 0 && point.earnings === 0))
+// 区域视角的趋势点不带 earnings。
+const isEmpty = computed(() => props.trend.every((point) => point.cost === 0 && !point.earnings))
 const singleDay = computed(() => props.trend.length === 1)
 
 const chartData = computed<ChartData<'bar' | 'line', number[], string>>(() => ({
@@ -85,7 +89,7 @@ const chartData = computed<ChartData<'bar' | 'line', number[], string>>(() => ({
       maxBarThickness: 24,
       order: 1
     },
-    {
+    ...(showEarnings ? [{
       type: 'line' as const,
       label: label('affiliate.team.chart.earnings'),
       data: props.trend.map((point) => point.earnings),
@@ -97,7 +101,7 @@ const chartData = computed<ChartData<'bar' | 'line', number[], string>>(() => ({
       pointRadius: singleDay.value ? 4 : 0,
       pointHoverRadius: 4,
       order: 0
-    }
+    }] : [])
   ]
 }))
 

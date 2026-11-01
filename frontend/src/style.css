@@ -316,8 +316,13 @@
     @apply w-full text-sm;
   }
 
+  /* CUSTOM: 默认左对齐用 :where 降到零优先级，表头上的 text-right / text-center 才能生效 */
+  .table :where(th) {
+    @apply text-left;
+  }
+
   .table th {
-    @apply px-4 py-3 text-left font-medium;
+    @apply px-4 py-3 font-medium;
     @apply text-gray-600 dark:text-dark-300;
     @apply bg-gray-50 dark:bg-dark-800/50;
     @apply border-b border-gray-200 dark:border-dark-700;

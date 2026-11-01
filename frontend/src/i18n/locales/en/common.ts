@@ -176,6 +176,7 @@ export default {
     affiliateManagement: 'Affiliate Rebates',
     affiliateAgents: 'Agents',
     affiliateTeam: 'Team Spend',
+    affiliatePartners: 'Partners', // CUSTOM
     affiliateInviteRecords: 'Invite Records',
     affiliateRebateRecords: 'Rebate Records',
     affiliateTransferRecords: 'Transfer Records',

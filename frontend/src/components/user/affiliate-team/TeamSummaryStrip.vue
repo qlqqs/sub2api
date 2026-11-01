@@ -42,7 +42,7 @@ import type { AffiliateTeamCounts, AffiliateTeamPlatformSummary, AffiliateTeamSu
 import type { AffiliateTeamView } from '@/composables/useAffiliateTeamQuery'
 import { formatTeamCount, formatTeamMoney, formatTeamRate, formatTeamShare } from '@/utils/affiliateTeam'
 import { formatTokensK } from '@/utils/format'
-import { useTeamLabel } from './teamContext'
+import { useAffiliateTeamContext, useTeamLabel } from './teamContext'
 
 interface Metric {
   key: string
@@ -63,7 +63,8 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-const label = useTeamLabel()
+const context = useAffiliateTeamContext()
+const label = useTeamLabel(context)
 
 const loaded = computed(() => (props.view === 'platform' ? props.platform : props.summary) != null)
 
@@ -98,6 +99,26 @@ const metrics = computed<Metric[]>(() => {
   }
 
   const s = props.summary
+  // 合伙人的区域视角：不显示收益，团队层用请求数补位。
+  if (context.region) {
+    const requests: Metric = { key: 'requests', label: t('affiliate.team.summary.requests'), value: formatTeamCount(s?.requests) }
+    if (props.view === 'customer') {
+      return [
+        { key: 'cost', label: t('affiliate.team.summary.cost'), value: formatTeamMoney(s?.cost) },
+        requests,
+        { key: 'tokens', label: t('affiliate.team.summary.tokens'), value: formatTokensK(s?.tokens ?? 0) }
+      ]
+    }
+    return [
+      { key: 'cost', label: t('affiliate.team.summary.cost'), value: formatTeamMoney(s?.cost) },
+      {
+        key: 'active',
+        label: t('affiliate.team.summary.activeCustomers'),
+        value: `${formatTeamCount(s?.active_customers)} / ${formatTeamCount(s?.customers)}`
+      },
+      requests
+    ]
+  }
   const cost: Metric = {
     key: 'cost',
     label: t('affiliate.team.summary.cost'),

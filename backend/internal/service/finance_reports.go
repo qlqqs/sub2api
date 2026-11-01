@@ -16,7 +16,34 @@ func (s *FinanceService) Summary(ctx context.Context, span FinanceRange) (map[st
 	if err != nil {
 		return nil, err
 	}
-	return financeSummary(data, span), nil
+	out := financeSummary(data, span)
+	shares := map[string]PartnerShare{}
+	if s.partners != nil {
+		shares, err = s.partners.PartnerShares(ctx, span.Start[:7], span.End[:7])
+		if err != nil {
+			return nil, err
+		}
+	}
+	total := PartnerShare{}
+	for _, v := range shares {
+		total.Amount = total.Amount.Add(v.Amount)
+		total.Estimated = total.Estimated || v.Estimated
+	}
+	apply := func(row map[string]any, share PartnerShare) {
+		row["partner_share"] = financeMoney(share.Amount)
+		profit, _ := decimal.NewFromString(row["profit"].(string))
+		row["net_profit"] = financeMoney(profit.Sub(share.Amount))
+		row["partner_share_estimated"] = share.Estimated
+	}
+	totals := out["totals"].(map[string]any)
+	apply(totals, total)
+	totals["partner_share_scope"] = "whole_months"
+	if span.Granularity == "month" {
+		for _, row := range out["series"].([]map[string]any) {
+			apply(row, shares[row["period"].(string)])
+		}
+	}
+	return out, nil
 }
 func financeSummary(data *FinanceData, span FinanceRange) map[string]any {
 	replays := financeReplays(data)

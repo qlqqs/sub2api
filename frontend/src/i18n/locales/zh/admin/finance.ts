@@ -44,7 +44,11 @@ export default {
         profit: '利润',
         profitHint: '收入 − 账号成本 − 分润 − 其他支出',
         profitMargin: '利润率',
-        profitMarginHint: '利润 ÷ 已确认收入'
+        profitMarginHint: '利润 ÷ 已确认收入',
+        partnerShare: '合伙人分成',
+        partnerShareWholeMonths: '按整月计入',
+        netProfit: '平台净利润',
+        netProfitHint: '利润 − 合伙人分成'
       },
       consumptionTitle: '余额消耗构成',
       consumption: '余额消耗合计',
@@ -88,8 +92,11 @@ export default {
         commission: '分润',
         expenses: '其他支出',
         profit: '利润',
-        profitMargin: '利润率'
-      }
+        profitMargin: '利润率',
+        partnerShare: '合伙人分成',
+        netProfit: '平台净利润'
+      },
+      estimated: '预估'
     },
     recharge: {
       cards: {
@@ -207,6 +214,7 @@ export default {
         amount: '金额',
         amortize: '摊销',
         account: '关联账号',
+        partner: '区域',
         note: '备注',
         createdBy: '录入人',
         actions: '操作'
@@ -225,6 +233,8 @@ export default {
         amortizeDailyHint: '从发生日期起连续逐日平摊（含发生日），最后一天补齐尾差；订阅账号默认按 30 天摊销',
         account: '关联账号',
         accountNone: '不关联',
+        partner: '区域',
+        partnerNone: '公共支出（不指定区域）',
         note: '备注',
         notePlaceholder: '如 ChatGPT Pro #3'
       },

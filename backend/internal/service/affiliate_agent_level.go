@@ -170,6 +170,9 @@ func (s *AffiliateService) AdminSetAgentLevel(ctx context.Context, userIDs []int
 	if len(cleaned) == 0 {
 		return nil
 	}
+	if err := s.CheckPartnerLevels(ctx, cleaned); err != nil {
+		return err
+	}
 	return s.repo.SetAgentLevelManual(ctx, cleaned, level, adminID)
 }
 
@@ -181,6 +184,9 @@ func (s *AffiliateService) AdminSetAgentLevelLocked(ctx context.Context, userIDs
 	cleaned := cleanUserIDs(userIDs)
 	if len(cleaned) == 0 {
 		return nil
+	}
+	if err := s.CheckPartnerLevels(ctx, cleaned); err != nil {
+		return err
 	}
 	return s.repo.SetAgentLevelLocked(ctx, cleaned, locked)
 }
@@ -231,9 +237,6 @@ func (s *AffiliateService) AppointAgentLevel(ctx context.Context, appointerID, t
 		return ErrAffiliateAppointForbidden
 	}
 	cfg := s.rewardConfig(ctx)
-	if !cfg.AppointEnabled {
-		return ErrAffiliateAppointForbidden
-	}
 	return s.repo.WithTx(ctx, func(txCtx context.Context) error {
 		// 按 user_id 顺序加锁，避免与反向操作死锁。
 		first, second := appointerID, targetID
@@ -249,6 +252,16 @@ func (s *AffiliateService) AppointAgentLevel(ctx context.Context, appointerID, t
 			locked[id] = row
 		}
 		appointer, target := locked[appointerID], locked[targetID]
+		nodes, err := s.repo.GetAffiliateNodes(txCtx, []int64{appointerID})
+		if err != nil {
+			return err
+		}
+		if nodes[appointerID].Partner {
+			return ErrPartnerCannotAppoint
+		}
+		if !cfg.AppointEnabled {
+			return ErrAffiliateAppointForbidden
+		}
 		if normalizeAgentLevel(appointer.AgentLevel) != AffiliateAgentLevelTop {
 			return ErrAffiliateAppointForbidden
 		}

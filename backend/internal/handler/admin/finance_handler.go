@@ -176,6 +176,11 @@ func (h *FinanceHandler) Export(c *gin.Context) {
 	// 列顺序固定；内容仅为后端产生的日期和数字，不含可执行的用户公式。
 	keys := []string{"period", "revenue", "revenue_paid", "revenue_commission", "free_consumed", "overdraft_consumed", "consumption", "account_cost", "account_cost_internal", "commission", "expenses", "profit", "profit_margin"}
 	header := []string{"期间", "已确认收入", "付费收入", "分润转入收入", "赠送消耗", "透支消耗", "余额消耗", "账号成本", "内部测试成本", "分润支出", "其他支出", "利润", "利润率"}
+	// CUSTOM(fork): 月度导出包含整月分成。
+	if r.Granularity == "month" {
+		keys = append(keys, "partner_share", "net_profit")
+		header = append(header, "合伙人分成", "平台净利润")
+	}
 	var buf bytes.Buffer
 	if _, err = buf.WriteString("\xef\xbb\xbf"); err != nil {
 		response.ErrorFrom(c, err)

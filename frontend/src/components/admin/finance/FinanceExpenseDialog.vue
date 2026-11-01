@@ -96,6 +96,15 @@
         />
       </div>
       <div>
+        <label class="input-label" for="finance-expense-partner">{{ t('admin.finance.expenses.form.partner') }}</label>
+        <Select
+          id="finance-expense-partner"
+          v-model="draft.partner_user_id"
+          :options="partnerOptions"
+          data-testid="finance-expense-partner"
+        />
+      </div>
+      <div>
         <label class="input-label" for="finance-expense-note">{{ t('admin.finance.expenses.form.note') }}</label>
         <textarea
           id="finance-expense-note"
@@ -132,6 +141,7 @@ import {
   FINANCE_EXPENSE_CATEGORIES,
   type FinanceExpense,
   type FinanceExpenseCategory,
+  type FinanceExpensePartnerOption,
   type FinanceSettingsAccount
 } from '@/api/admin/finance'
 import { useAppStore } from '@/stores/app'
@@ -154,8 +164,10 @@ const props = withDefaults(
     /** 编辑的条目；为空表示新增。 */
     expense?: FinanceExpense | null
     accounts?: FinanceSettingsAccount[]
+    /** CUSTOM: 区域候选（合伙人）。 */
+    partners?: FinanceExpensePartnerOption[]
   }>(),
-  { expense: null, accounts: () => [] }
+  { expense: null, accounts: () => [], partners: () => [] }
 )
 
 const emit = defineEmits<{ close: []; saved: [expense: FinanceExpense] }>()
@@ -181,6 +193,7 @@ function reset() {
           amount: e.amount,
           ...amortizeFieldsFromDays(e.amortize_days),
           account_id: e.account_id,
+          partner_user_id: e.partner_user_id,
           note: e.note
         }
       : newExpenseDraft(beijingDate())
@@ -224,6 +237,16 @@ const accountOptions = computed<SelectOption[]>(() => {
     list.push({ value: current.account_id, label: `#${current.account_id} ${current.account_name ?? ''}`.trim() })
   }
   return [{ value: null, label: t('admin.finance.expenses.form.accountNone') }, ...list]
+})
+
+// CUSTOM: 区域专项支出；留空为公共支出
+const partnerOptions = computed<SelectOption[]>(() => {
+  const list: SelectOption[] = props.partners.map((p) => ({ value: p.user_id, label: p.region_name }))
+  const current = props.expense
+  if (current?.partner_user_id != null && !list.some((p) => p.value === current.partner_user_id)) {
+    list.push({ value: current.partner_user_id, label: current.partner_region_name ?? `#${current.partner_user_id}` })
+  }
+  return [{ value: null, label: t('admin.finance.expenses.form.partnerNone') }, ...list]
 })
 
 function errorText(error: ExpenseFieldError): string {

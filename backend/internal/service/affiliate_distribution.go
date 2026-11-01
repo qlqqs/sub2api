@@ -98,7 +98,7 @@ func planAgentShares(consumer *AffiliateSummary, nodes map[int64]AffiliateNode, 
 
 	out := shares[:0]
 	for _, share := range shares {
-		if share.RatePercent > 0 && share.BeneficiaryID != consumer.UserID && nodeActive(nodes, share.BeneficiaryID) {
+		if share.RatePercent > 0 && share.BeneficiaryID != consumer.UserID && nodeRewardable(nodes, share.BeneficiaryID) {
 			out = append(out, share)
 		}
 	}
@@ -112,7 +112,7 @@ func planInviteShare(consumer *AffiliateSummary, nodes map[int64]AffiliateNode, 
 		return nil
 	}
 	inviterID := *consumer.InviterID
-	if !nodeActive(nodes, inviterID) {
+	if !nodeRewardable(nodes, inviterID) {
 		return nil
 	}
 	return &affiliateShare{inviterID, cfg.InviteRate, AffiliateRewardInvitePercent}
@@ -231,4 +231,9 @@ func normalizeAffiliateRewardTypeFilter(value string) string {
 	default:
 		return ""
 	}
+}
+
+// CUSTOM(fork): 合伙人不再收到代理分润或邀请奖励，丢弃份额不转给别人。
+func nodeRewardable(nodes map[int64]AffiliateNode, id int64) bool {
+	return nodeActive(nodes, id) && !nodes[id].Partner
 }

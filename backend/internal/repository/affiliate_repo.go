@@ -398,7 +398,7 @@ SELECT ua.user_id,
        ua.inviter_id,
        ua.aff_rebate_rate_percent::double precision,
        (u.id IS NOT NULL AND u.deleted_at IS NULL) AS active,
-       COALESCE(u.email, '')
+       COALESCE(u.email, ''), EXISTS(SELECT 1 FROM affiliate_partners p WHERE p.user_id=ua.user_id)
 FROM user_affiliates ua
 LEFT JOIN users u ON u.id = ua.user_id
 WHERE ua.user_id = ANY($1)`, pq.Array(userIDs))
@@ -410,7 +410,7 @@ WHERE ua.user_id = ANY($1)`, pq.Array(userIDs))
 		var node service.AffiliateNode
 		var ownerID, inviterID sql.NullInt64
 		var customRate sql.NullFloat64
-		if err := rows.Scan(&node.UserID, &node.AgentLevel, &ownerID, &inviterID, &customRate, &node.Active, &node.Email); err != nil {
+		if err := rows.Scan(&node.UserID, &node.AgentLevel, &ownerID, &inviterID, &customRate, &node.Active, &node.Email, &node.Partner); err != nil {
 			return nil, err
 		}
 		node.AgentOwnerID = nullableInt64Ptr(ownerID)
@@ -1691,11 +1691,17 @@ func (r *affiliateRepository) ListUsersWithCustomSettings(ctx context.Context, f
 		pageSize = 20
 	}
 	offset := (page - 1) * pageSize
+	// CUSTOM(fork): 区域筛选参与总数与分页。
+	state, err := partnerReadState(ctx, clientFromContext(ctx, r.client))
+	if err != nil {
+		return nil, 0, err
+	}
+	members := service.ResolvePartnerMembers(state.Partners, state.Attachments, state.Snapshots)
 
 	clauses := []string{"u.deleted_at IS NULL"}
 	args := make([]any, 0, 5)
 	search := strings.TrimSpace(filter.Search)
-	if search == "" && filter.AgentLevel == 0 && filter.OwnerID == 0 {
+	if search == "" && filter.AgentLevel == 0 && filter.OwnerID == 0 && filter.PartnerID == 0 {
 		clauses = append(clauses, `(ua.aff_code_custom = true
        OR ua.aff_rebate_rate_percent IS NOT NULL
        OR ua.agent_level <> 3
@@ -1712,6 +1718,16 @@ func (r *affiliateRepository) ListUsersWithCustomSettings(ctx context.Context, f
 	if filter.OwnerID > 0 {
 		args = append(args, filter.OwnerID)
 		clauses = append(clauses, fmt.Sprintf("ua.agent_owner_id = $%d", len(args)))
+	}
+	if filter.PartnerID > 0 {
+		ids := []int64{}
+		for id, m := range members {
+			if m.PartnerID == filter.PartnerID {
+				ids = append(ids, id)
+			}
+		}
+		args = append(args, pq.Array(ids))
+		clauses = append(clauses, fmt.Sprintf("ua.user_id = ANY($%d::bigint[])", len(args)))
 	}
 	baseFrom := `
 FROM user_affiliates ua
@@ -1782,6 +1798,10 @@ LIMIT $` + fmt.Sprint(len(args)-1) + ` OFFSET $` + fmt.Sprint(len(args))
 		e.AgentOwnerSetBy = nullableInt64Ptr(ownerSetBy)
 		if ownerBoundAt.Valid {
 			e.AgentOwnerBoundAt = &ownerBoundAt.Time
+		}
+		_, e.IsPartner = state.Partners[e.UserID]
+		if m, ok := members[e.UserID]; ok {
+			e.Partner = &service.PartnerRegionRef{UserID: m.PartnerID, RegionName: state.Partners[m.PartnerID].RegionName}
 		}
 		entries = append(entries, e)
 	}

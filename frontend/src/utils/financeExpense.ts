@@ -32,6 +32,8 @@ export interface ExpenseDraft {
   /** 仅「按天摊销」时使用。 */
   amortize_days: string | number
   account_id: number | null
+  /** CUSTOM: 区域（合伙人用户 ID），留空为公共支出。 */
+  partner_user_id: number | null
   note: string
 }
 
@@ -45,6 +47,7 @@ export function newExpenseDraft(today: string, category: FinanceExpenseCategory 
     amortize_mode: defaultAmortizeMode(category),
     amortize_days: EXPENSE_AMORTIZE_DAILY_DEFAULT,
     account_id: null,
+    partner_user_id: null,
     note: ''
   }
 }
@@ -98,6 +101,7 @@ export function validateExpenseDraft(
       amount,
       amortize_days: days,
       account_id: draft.account_id,
+      partner_user_id: draft.partner_user_id,
       note
     }
   }

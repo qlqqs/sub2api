@@ -5,6 +5,7 @@
 
 import { normalizeAffiliateRewardTotals, normalizeInviteeSignupBonus } from '@/utils/affiliateRewards'
 import { apiClient } from './client'
+import { normalizeAffiliatePartnerInfo } from './affiliatePartner'
 import {
   resolveWeChatOAuthStartStrict,
   prepareOAuthBindAccessTokenCookie,
@@ -183,7 +184,12 @@ export async function startOAuthBinding(
 
 export async function getAffiliateDetail(): Promise<UserAffiliateDetail> {
   const { data } = await apiClient.get<UserAffiliateDetail>('/user/aff')
-  return { ...data, invitee_signup_bonus: normalizeInviteeSignupBonus(data.invitee_signup_bonus), reward_totals: normalizeAffiliateRewardTotals(data.reward_totals) }
+  return {
+    ...data,
+    invitee_signup_bonus: normalizeInviteeSignupBonus(data.invitee_signup_bonus),
+    reward_totals: normalizeAffiliateRewardTotals(data.reward_totals),
+    partner: normalizeAffiliatePartnerInfo(data.partner) // CUSTOM: 合伙人
+  }
 }
 
 export interface AffiliateInviteeListParams {

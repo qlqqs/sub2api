@@ -7,6 +7,7 @@
 import { normalizeAffiliateRewardTotals } from '@/utils/affiliateRewards'
 import { apiClient } from '../client'
 import type { AffiliateRewardTotals, PaginatedResponse } from '@/types'
+import type { PartnerUserRef } from '../affiliatePartner'
 
 /** 1 = 一级代理, 2 = 二级代理, 3 = 普通用户. */
 export type AgentLevel = 1 | 2 | 3
@@ -49,6 +50,23 @@ export interface AffiliateAdminEntry extends AffiliateAgentSnapshot {
   owned_customer_count: number
   /** agent_direct + agent_diff received as beneficiary. */
   agent_profit_total: number
+  /** CUSTOM: 合伙人本人（档位锁定为渠道经理，不能改档位）。 */
+  is_partner?: boolean
+  /** CUSTOM: 所属区域；合伙人本人填自己。 */
+  partner?: AffiliatePartnerRegion | null
+}
+
+/** CUSTOM: 代理列表里的所属区域。 */
+export interface AffiliatePartnerRegion {
+  user_id: number
+  region_name: string
+}
+
+/** CUSTOM: 设为渠道经理时自动挂到所在区域的合伙人名下。 */
+export interface AffiliateAutoAttached {
+  agent_user_id: number
+  partner: PartnerUserRef
+  region_name: string
 }
 
 export interface ListAffiliateUsersParams {
@@ -58,6 +76,8 @@ export interface ListAffiliateUsersParams {
   agent_level?: AgentLevel | null
   /** Filter by owning (upline) agent id. */
   owner_id?: number | null
+  /** CUSTOM: 只返回该合伙人区域内的用户。 */
+  partner_id?: number | null
 }
 
 /** One customer of an agent: owner = the agent owns the customer, upline = the agent earns the diff. */
@@ -267,6 +287,7 @@ export async function listUsers(
         search: params.search ?? '',
         agent_level: params.agent_level || undefined,
         owner_id: params.owner_id || undefined,
+        partner_id: params.partner_id || undefined,
       },
     },
   )
@@ -342,8 +363,8 @@ export async function bindInviter(
 export async function updateUserSettings(
   userId: number,
   payload: UpdateAffiliateUserRequest,
-): Promise<{ user_id: number }> {
-  const { data } = await apiClient.put<{ user_id: number }>(
+): Promise<{ user_id: number; auto_attached?: AffiliateAutoAttached[] }> {
+  const { data } = await apiClient.put<{ user_id: number; auto_attached?: AffiliateAutoAttached[] }>(
     `/admin/affiliates/users/${userId}`,
     payload,
   )
@@ -371,8 +392,8 @@ export async function batchSetRate(
 
 export async function batchSetAgentLevel(
   payload: BatchSetAgentLevelRequest,
-): Promise<{ affected: number }> {
-  const { data } = await apiClient.post<{ affected: number }>(
+): Promise<{ affected: number; auto_attached?: AffiliateAutoAttached[] }> {
+  const { data } = await apiClient.post<{ affected: number; auto_attached?: AffiliateAutoAttached[] }>(
     '/admin/affiliates/users/batch-agent-level',
     payload,
   )

@@ -22,7 +22,7 @@ type financeQueryer interface {
 	QueryRowContext(context.Context, string, ...any) *sql.Row
 }
 
-func financeRows(ctx context.Context, q financeQueryer, query string, scan func(*sql.Rows) error, args ...any) error {
+func financeRows(ctx context.Context, q partnerRowsQueryer, query string, scan func(*sql.Rows) error, args ...any) error {
 	rows, err := q.QueryContext(ctx, query, args...)
 	if err != nil {
 		return err
@@ -59,6 +59,19 @@ func (r *financeRepository) Load(ctx context.Context, span service.FinanceRange)
 		return nil, err
 	}
 	defer func() { _ = tx.Rollback() }()
+	d, err := financeLoad(ctx, tx, span, false)
+	if err != nil {
+		return nil, err
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
+// CUSTOM(fork): 财务与区域利润共用快照；区域另按成员起点扫描成本。
+func financeLoad(ctx context.Context, tx financeQueryer, span service.FinanceRange, skipCosts bool) (*service.FinanceData, error) {
+	var err error
 	d := &service.FinanceData{}
 	if err = tx.QueryRowContext(ctx, `SELECT CURRENT_TIMESTAMP`).Scan(&d.ComputedAt); err != nil {
 		return nil, err
@@ -96,9 +109,9 @@ func (r *financeRepository) Load(ctx context.Context, span service.FinanceRange)
 	if err != nil {
 		return nil, fmt.Errorf("finance orders: %w", err)
 	}
-	err = financeRows(ctx, tx, `SELECT id,user_id,created_at,action,COALESCE(reward_type,'invite_percent'),amount FROM user_affiliate_ledger ORDER BY created_at,id`, func(rows *sql.Rows) error {
+	err = financeRows(ctx, tx, `SELECT id,user_id,COALESCE(source_user_id,0),created_at,action,COALESCE(reward_type,'invite_percent'),amount FROM user_affiliate_ledger ORDER BY created_at,id`, func(rows *sql.Rows) error {
 		var l service.FinanceLedger
-		if e := rows.Scan(&l.ID, &l.UserID, &l.At, &l.Action, &l.RewardType, &l.Amount); e != nil {
+		if e := rows.Scan(&l.ID, &l.UserID, &l.SourceUserID, &l.At, &l.Action, &l.RewardType, &l.Amount); e != nil {
 			return e
 		}
 		d.Ledger = append(d.Ledger, l)
@@ -124,8 +137,9 @@ func (r *financeRepository) Load(ctx context.Context, span service.FinanceRange)
 	if err != nil {
 		return nil, fmt.Errorf("finance events: %w", err)
 	}
-	start, end := span.Bounds()
-	err = financeRows(ctx, tx, `SELECT (l.created_at AT TIME ZONE 'Asia/Shanghai')::date::text,l.account_id,COALESCE(l.group_id,0),l.user_id,
+	if !skipCosts {
+		start, end := span.Bounds()
+		err = financeRows(ctx, tx, `SELECT (l.created_at AT TIME ZONE 'Asia/Shanghai')::date::text,l.account_id,COALESCE(l.group_id,0),l.user_id,
  COALESCE(a.name,'未知账号'),COALESCE(g.name,'无分组'),COALESCE(u.email,'未知用户'),COALESCE(NULLIF(BTRIM(l.requested_model),''),l.model),
  a.id IS NULL OR a.deleted_at IS NOT NULL,(l.group_id IS NOT NULL AND g.id IS NULL) OR g.deleted_at IS NOT NULL,u.id IS NULL OR u.deleted_at IS NOT NULL,
  EXISTS(SELECT 1 FROM account_model_cost_multipliers m WHERE m.account_id=l.account_id),
@@ -141,15 +155,16 @@ func (r *financeRepository) Load(ctx context.Context, span service.FinanceRange)
  FROM usage_logs l LEFT JOIN accounts a ON a.id=l.account_id LEFT JOIN groups g ON g.id=l.group_id LEFT JOIN users u ON u.id=l.user_id
  WHERE l.created_at >= $1 AND l.created_at < $2
  GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13`, func(rows *sql.Rows) error {
-		var c service.FinanceCost
-		if e := rows.Scan(&c.Day, &c.AccountID, &c.GroupID, &c.UserID, &c.AccountName, &c.GroupName, &c.UserEmail, &c.Model, &c.AccountDeleted, &c.GroupDeleted, &c.UserDeleted, &c.ModelRate, &c.HasPerImagePricing, &c.Requests, &c.Images, &c.Consumption, &c.Subscription, &c.Cost); e != nil {
-			return e
+			var c service.FinanceCost
+			if e := rows.Scan(&c.Day, &c.AccountID, &c.GroupID, &c.UserID, &c.AccountName, &c.GroupName, &c.UserEmail, &c.Model, &c.AccountDeleted, &c.GroupDeleted, &c.UserDeleted, &c.ModelRate, &c.HasPerImagePricing, &c.Requests, &c.Images, &c.Consumption, &c.Subscription, &c.Cost); e != nil {
+				return e
+			}
+			d.Costs = append(d.Costs, c)
+			return nil
+		}, start, end)
+		if err != nil {
+			return nil, fmt.Errorf("finance costs: %w", err)
 		}
-		d.Costs = append(d.Costs, c)
-		return nil
-	}, start, end)
-	if err != nil {
-		return nil, fmt.Errorf("finance costs: %w", err)
 	}
 	d.Expenses, err = financeReadExpenses(ctx, tx, `e.deleted_at IS NULL AND e.occurred_on <= $2::date AND e.occurred_on + (e.amortize_days-1) >= $1::date`, []any{span.Start, span.End}, "")
 	if err != nil {
@@ -174,9 +189,6 @@ func (r *financeRepository) Load(ctx context.Context, span service.FinanceRange)
 	}, span.Start, span.End)
 	if err != nil {
 		return nil, fmt.Errorf("finance expense accounts: %w", err)
-	}
-	if err = tx.Commit(); err != nil {
-		return nil, err
 	}
 	return d, nil
 }
@@ -221,10 +233,10 @@ func (r *financeRepository) SaveSettings(ctx context.Context, ids []int64) error
 }
 func financeReadExpenses(ctx context.Context, q financeQueryer, where string, args []any, tail string) ([]service.FinanceExpense, error) {
 	out := []service.FinanceExpense{}
-	err := financeRows(ctx, q, `SELECT e.id,e.occurred_on::text,e.category,e.amount,e.amortize_days,e.account_id,e.note,a.name,COALESCE(u.email,''),e.created_at,e.updated_at FROM finance_expenses e LEFT JOIN accounts a ON a.id=e.account_id LEFT JOIN users u ON u.id=e.created_by WHERE `+where+` ORDER BY e.occurred_on DESC,e.id DESC `+tail, func(rows *sql.Rows) error {
+	err := financeRows(ctx, q, `SELECT e.id,e.occurred_on::text,e.category,e.amount,e.amortize_days,e.account_id,e.note,a.name,COALESCE(u.email,''),e.created_at,e.updated_at,e.partner_user_id,p.region_name FROM finance_expenses e LEFT JOIN accounts a ON a.id=e.account_id LEFT JOIN users u ON u.id=e.created_by LEFT JOIN affiliate_partners p ON p.user_id=e.partner_user_id WHERE `+where+` ORDER BY e.occurred_on DESC,e.id DESC `+tail, func(rows *sql.Rows) error {
 		var e service.FinanceExpense
 		var amount decimal.Decimal
-		if err := rows.Scan(&e.ID, &e.OccurredOn, &e.Category, &amount, &e.AmortizeDays, &e.AccountID, &e.Note, &e.AccountName, &e.CreatedByEmail, &e.CreatedAt, &e.UpdatedAt); err != nil {
+		if err := rows.Scan(&e.ID, &e.OccurredOn, &e.Category, &amount, &e.AmortizeDays, &e.AccountID, &e.Note, &e.AccountName, &e.CreatedByEmail, &e.CreatedAt, &e.UpdatedAt, &e.PartnerUserID, &e.PartnerRegionName); err != nil {
 			return err
 		}
 		e.Amount = amount.StringFixed(2)
@@ -250,6 +262,16 @@ func (r *financeRepository) SaveExpense(ctx context.Context, id, actor int64, in
 		return nil, err
 	}
 	defer func() { _ = tx.Rollback() }()
+	// CUSTOM(fork): 专项支出只关联已设立的合伙人。
+	if in.PartnerUserID != nil {
+		var exists bool
+		if err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM affiliate_partners WHERE user_id=$1)`, *in.PartnerUserID).Scan(&exists); err != nil {
+			return nil, err
+		}
+		if !exists {
+			return nil, infraerrors.BadRequest("FINANCE_EXPENSE_PARTNER_INVALID", "关联合伙人不存在")
+		}
+	}
 	if in.AccountID != nil {
 		var exists bool
 		if err = tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM accounts WHERE id=$1)`, *in.AccountID).Scan(&exists); err != nil {
@@ -260,10 +282,10 @@ func (r *financeRepository) SaveExpense(ctx context.Context, id, actor int64, in
 		}
 	}
 	if id == 0 {
-		err = tx.QueryRowContext(ctx, `INSERT INTO finance_expenses(occurred_on,category,amount,amortize_days,account_id,note,created_by) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id`, in.OccurredOn, in.Category, in.Amount, in.AmortizeDays, in.AccountID, in.Note, actor).Scan(&id)
+		err = tx.QueryRowContext(ctx, `INSERT INTO finance_expenses(occurred_on,category,amount,amortize_days,account_id,note,created_by,partner_user_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`, in.OccurredOn, in.Category, in.Amount, in.AmortizeDays, in.AccountID, in.Note, actor, in.PartnerUserID).Scan(&id)
 	} else {
 		var res sql.Result
-		res, err = tx.ExecContext(ctx, `UPDATE finance_expenses SET occurred_on=$2,category=$3,amount=$4,amortize_days=$5,account_id=$6,note=$7,updated_at=NOW() WHERE id=$1 AND deleted_at IS NULL`, id, in.OccurredOn, in.Category, in.Amount, in.AmortizeDays, in.AccountID, in.Note)
+		res, err = tx.ExecContext(ctx, `UPDATE finance_expenses SET occurred_on=$2,category=$3,amount=$4,amortize_days=$5,account_id=$6,note=$7,partner_user_id=$8,updated_at=NOW() WHERE id=$1 AND deleted_at IS NULL`, id, in.OccurredOn, in.Category, in.Amount, in.AmortizeDays, in.AccountID, in.Note, in.PartnerUserID)
 		if err == nil {
 			n, e := res.RowsAffected()
 			if e != nil {

@@ -20,6 +20,16 @@
         <TeamBadge v-if="row.agent_level === 2">{{ t('affiliate.team.subAgent') }}</TeamBadge>
       </TeamUserCell>
     </template>
+    <template #cell-line_agent="{ row }">
+      <span :class="mutedClass(row) || 'text-gray-600 dark:text-gray-300'">
+        {{ row.line_agent ? teamUserName(row.line_agent, label('affiliate.team.deleted', { id: row.line_agent.user_id })) : t('partner.region.directTeam') }}
+      </span>
+    </template>
+    <template #cell-owner="{ row }">
+      <span :class="mutedClass(row) || 'text-gray-600 dark:text-gray-300'">
+        {{ row.owner ? teamUserName(row.owner, label('affiliate.team.deleted', { id: row.owner.user_id })) : '-' }}
+      </span>
+    </template>
     <template #cell-cost="{ row }">
       <TeamShareCell :value="formatTeamMoney(row.cost)" :share="row.cost_share" :muted="row.user.deleted" />
     </template>
@@ -52,7 +62,7 @@ import { useRouter, type RouteLocationRaw } from 'vue-router'
 import DataTable from '@/components/common/DataTable.vue'
 import type { Column } from '@/components/common/types'
 import type { AffiliateTeamCustomer, AffiliateTeamSortOrder } from '@/types'
-import { formatTeamCount, formatTeamMoney } from '@/utils/affiliateTeam'
+import { formatTeamCount, formatTeamMoney, teamUserName } from '@/utils/affiliateTeam'
 import { formatDateTime, formatRelativeTime } from '@/utils/format'
 import TeamBadge from './TeamBadge.vue'
 import TeamShareCell from './TeamShareCell.vue'
@@ -77,11 +87,18 @@ const router = useRouter()
 const context = useAffiliateTeamContext()
 const label = useTeamLabel(context)
 
+// 合伙人的区域视角：加「所属渠道经理 / 归属代理」，不显示收益。
 const columns = computed<Column[]>(() => [
   { key: 'user', label: t('affiliate.team.columns.customer') },
+  ...(context.region
+    ? [
+        { key: 'line_agent', label: t('partner.region.columns.lineAgent') },
+        { key: 'owner', label: t('partner.region.columns.owner') }
+      ]
+    : []),
   { key: 'cost', label: t('affiliate.team.columns.cost'), sortable: true, class: 'text-right' },
   { key: 'requests', label: t('affiliate.team.columns.requests'), sortable: true, class: 'text-right' },
-  { key: 'earnings', label: label('affiliate.team.columns.earnings'), sortable: true, class: 'text-right' },
+  ...(context.region ? [] : [{ key: 'earnings', label: label('affiliate.team.columns.earnings'), sortable: true, class: 'text-right' }]),
   { key: 'last_used_at', label: t('affiliate.team.columns.lastUsed'), sortable: true, class: 'text-right' }
 ])
 

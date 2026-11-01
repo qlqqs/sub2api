@@ -15,6 +15,8 @@ const {
   routerPush,
   showError,
   showSuccess,
+  showInfo,
+  listPartners,
 } = vi.hoisted(() => ({
   listUsers: vi.fn(),
   lookupUsers: vi.fn(),
@@ -27,7 +29,14 @@ const {
   routerPush: vi.fn(),
   showError: vi.fn(),
   showSuccess: vi.fn(),
+  showInfo: vi.fn(),
+  listPartners: vi.fn(),
 }))
+
+vi.mock('@/api/admin/affiliatePartners', () => {
+  const affiliatePartnersAPI = { listPartners }
+  return { affiliatePartnersAPI, default: affiliatePartnersAPI }
+})
 
 vi.mock('@/api/admin/affiliates', () => {
   const affiliatesAPI = {
@@ -48,7 +57,7 @@ vi.mock('vue-router', () => ({
 }))
 
 vi.mock('@/stores/app', () => ({
-  useAppStore: () => ({ showError, showSuccess }),
+  useAppStore: () => ({ showError, showSuccess, showInfo }),
 }))
 
 vi.mock('vue-i18n', async (importOriginal) => {
@@ -148,6 +157,7 @@ describe('AdminAffiliateAgentsView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useRealTimers()
+    listPartners.mockResolvedValue([])
   })
 
   it('renders agents with level source, ownership, counters and exclusive rate', async () => {
@@ -394,5 +404,82 @@ describe('AdminAffiliateAgentsView', () => {
     expect(setAgentOwner).toHaveBeenCalledWith(42, 9)
     wrapper.unmount()
     vi.useRealTimers()
+  })
+
+  // CUSTOM: 合伙人
+  it('shows the partner badge and region, filters by partner and locks the partner level', async () => {
+    listPartners.mockResolvedValue([{ user: { id: 75, email: 'p@x.com', username: 'p', deleted: false }, region_name: '三科大' }])
+    listUsers.mockResolvedValue(page([
+      entry({ user_id: 75, agent_level: 1, is_partner: true, partner: { user_id: 75, region_name: '三科大' } }),
+      entry({ user_id: 80, agent_level: 2, is_partner: false, partner: { user_id: 75, region_name: '三科大' } }),
+      entry({ user_id: 81, agent_level: 3, is_partner: false, partner: null }),
+    ]))
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    const partnerRow = wrapper.get('[data-test="row-0"]')
+    expect(partnerRow.find('[data-test="agent-partner-badge"]').text()).toBe('partner.title')
+    expect(partnerRow.get('[data-test="cell-partner"]').text()).toBe('三科大')
+    expect(wrapper.get('[data-test="row-1"]').get('[data-test="cell-partner"]').text()).toBe('三科大')
+    expect(wrapper.get('[data-test="row-2"]').get('[data-test="cell-partner"]').text()).toBe('—')
+
+    await wrapper.get('[data-test="agents-partner-filter"]').setValue('75')
+    await flushPromises()
+    expect(listUsers).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1, partner_id: 75 }))
+
+    await wrapper.findAll('[data-test="agent-adjust"]')[0].trigger('click')
+    expect(wrapper.get('[data-test="agent-adjust-level"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.text()).toContain('admin.partners.levelFixed')
+    wrapper.unmount()
+  })
+
+  it('skips partners in the batch level change and reports auto attachments', async () => {
+    listUsers.mockResolvedValue(page([
+      entry({ user_id: 75, agent_level: 1, is_partner: true }),
+      entry({ user_id: 80, agent_level: 3, is_partner: false }),
+    ]))
+    batchSetAgentLevel.mockResolvedValue({
+      affected: 1,
+      auto_attached: [{ agent_user_id: 80, partner: { id: 75, email: 'p@x.com', username: 'p', deleted: false }, region_name: '三科大' }],
+    })
+
+    const wrapper = mountView()
+    await flushPromises()
+    wrapper.getComponent(DataTableStub).vm.$emit('update:selectedKeys', [75, 80])
+    await flushPromises()
+
+    await wrapper.get('[data-test="agents-batch-open"]').trigger('click')
+    expect(wrapper.get('[data-test="agents-batch-partner-skip"]').text()).toBe('admin.partners.batchSkip{"n":1}')
+    await wrapper.get('[data-test="agents-batch-level"]').setValue('1')
+    await wrapper.get('[data-test="agents-batch-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(batchSetAgentLevel).toHaveBeenCalledWith({ user_ids: [80], agent_level: 1 })
+    expect(showInfo).toHaveBeenCalledWith(
+      'admin.partners.autoAttached{"agent":"#80","partner":"p@x.com","region":"三科大"}',
+      6000,
+    )
+    wrapper.unmount()
+  })
+
+  it('reports the auto attachment after promoting one user', async () => {
+    listUsers.mockResolvedValue(page([entry({ user_id: 80, agent_level: 3 })]))
+    updateUserSettings.mockResolvedValue({
+      user_id: 80,
+      auto_attached: [{ agent_user_id: 80, partner: { id: 75, email: 'p@x.com', username: 'p', deleted: false }, region_name: '三科大' }],
+    })
+
+    const wrapper = mountView()
+    await flushPromises()
+    await wrapper.get('[data-test="agent-adjust"]').trigger('click')
+    await wrapper.get('[data-test="agent-adjust-level"]').setValue('1')
+    await wrapper.get('[data-test="agent-adjust-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(updateUserSettings).toHaveBeenCalledWith(80, expect.objectContaining({ agent_level: 1 }))
+    expect(showInfo).toHaveBeenCalledTimes(1)
+    expect(showInfo.mock.calls[0][0]).toContain('三科大')
+    wrapper.unmount()
   })
 })

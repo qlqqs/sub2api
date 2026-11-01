@@ -7,11 +7,15 @@
           <tr>
             <th scope="col" class="sticky left-0 z-10">{{ t('admin.finance.profit.columns.period') }}</th>
             <th v-for="col in COLUMNS" :key="col.key" scope="col" class="text-right">{{ t(col.label) }}</th>
+            <template v-if="monthly">
+              <th scope="col" class="text-right" data-testid="finance-col-partner-share">{{ t('admin.finance.profit.columns.partnerShare') }}</th>
+              <th scope="col" class="text-right">{{ t('admin.finance.profit.columns.netProfit') }}</th>
+            </template>
           </tr>
         </thead>
         <tbody>
           <tr v-if="rows.length === 0">
-            <td :colspan="COLUMNS.length + 1" class="py-8 text-center text-gray-500 dark:text-gray-400">
+            <td :colspan="COLUMNS.length + (monthly ? 3 : 1)" class="py-8 text-center text-gray-500 dark:text-gray-400">
               {{ t('admin.finance.noData') }}
             </td>
           </tr>
@@ -25,6 +29,15 @@
               >{{ formatRatio(row.profit_margin) }}</span>
               <FinanceMoney v-else :value="row[col.key]" :currency="false" :color-negative="col.key === 'profit'" />
             </td>
+            <template v-if="monthly">
+              <td class="text-right">
+                <span v-if="row.partner_share_estimated" class="mr-1 text-xs text-amber-600 dark:text-amber-400" data-testid="finance-partner-estimated">
+                  {{ t('admin.finance.profit.estimated') }}
+                </span>
+                <FinanceMoney :value="row.partner_share" :currency="false" />
+              </td>
+              <td class="text-right"><FinanceMoney :value="row.net_profit" :currency="false" /></td>
+            </template>
           </tr>
         </tbody>
         <tfoot v-if="rows.length > 0">
@@ -38,6 +51,15 @@
               >{{ formatRatio(totals.profit_margin) }}</span>
               <FinanceMoney v-else :value="totals[col.key]" :currency="false" :color-negative="col.key === 'profit'" />
             </td>
+            <template v-if="monthly">
+              <td class="text-right">
+                <span v-if="totals.partner_share_estimated" class="mr-1 text-xs font-normal text-amber-600 dark:text-amber-400">
+                  {{ t('admin.finance.profit.estimated') }}
+                </span>
+                <FinanceMoney :value="totals.partner_share" :currency="false" />
+              </td>
+              <td class="text-right"><FinanceMoney :value="totals.net_profit" :currency="false" /></td>
+            </template>
           </tr>
         </tfoot>
       </table>
@@ -72,6 +94,8 @@ const COLUMNS: Array<{ key: keyof FinancePeriodTotals; label: string }> = [
 ]
 
 const rows = computed(() => props.summary.series)
+/** CUSTOM: 合伙人分成按整月计入，只在月粒度显示。 */
+const monthly = computed(() => props.summary.range.granularity === 'month')
 const totals = computed(() => props.summary.totals)
 
 function isMarginNegative(value: string | null): boolean {

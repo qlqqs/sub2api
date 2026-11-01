@@ -32,26 +32,25 @@ func (r *affiliateRepository) CountQualifiedInvitees(ctx context.Context, invite
 	return int(total), nil
 }
 
+// CUSTOM(fork): 自动升级与区域挂靠原子提交。
 func (r *affiliateRepository) PromoteAgentLevelAuto(ctx context.Context, userID int64, level int) (bool, error) {
-	client := clientFromContext(ctx, r.client)
-	res, err := client.ExecContext(ctx, `
-UPDATE user_affiliates
-SET agent_level = $2,
-    agent_level_source = $3,
-    agent_level_updated_at = NOW(),
-    agent_level_updated_by = NULL,
-    updated_at = NOW()
-WHERE user_id = $1
-  AND agent_level_locked = FALSE
-  AND agent_level > $2`, userID, level, service.AffiliateAgentLevelSourceAuto)
-	if err != nil {
-		return false, fmt.Errorf("promote agent level: %w", err)
-	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return false, fmt.Errorf("read promote agent level result: %w", err)
-	}
-	return affected > 0, nil
+	var promoted bool
+	err := r.withTx(ctx, func(ctx context.Context, c *dbent.Client) error {
+		res, err := c.ExecContext(ctx, `UPDATE user_affiliates SET agent_level=$2,agent_level_source=$3,agent_level_updated_at=NOW(),agent_level_updated_by=NULL,updated_at=NOW() WHERE user_id=$1 AND agent_level_locked=FALSE AND agent_level>$2`, userID, level, service.AffiliateAgentLevelSourceAuto)
+		if err != nil {
+			return err
+		}
+		n, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		promoted = n > 0
+		if promoted && level == 1 {
+			return autoAttachPartnerAgents(ctx, c, []int64{userID}, 0)
+		}
+		return nil
+	})
+	return promoted, err
 }
 
 // SetAgentLevelManual 管理员设置等级。等级数字越大越低：目标等级数字更大是降级，
@@ -65,6 +64,9 @@ func (r *affiliateRepository) SetAgentLevelManual(ctx context.Context, userIDs [
 			if _, err := ensureUserAffiliateWithClient(txCtx, txClient, uid); err != nil {
 				return err
 			}
+		}
+		if err := lockPartnerLevels(txCtx, txClient, userIDs); err != nil {
+			return err
 		}
 		_, err := txClient.ExecContext(txCtx, `
 UPDATE user_affiliates
@@ -82,6 +84,9 @@ WHERE user_id = ANY($3)`, level, service.AffiliateAgentLevelSourceManual, pq.Arr
 		if err != nil {
 			return fmt.Errorf("set agent level: %w", err)
 		}
+		if level == 1 {
+			return autoAttachPartnerAgents(txCtx, txClient, userIDs, operatorID)
+		}
 		return nil
 	})
 }
@@ -95,6 +100,9 @@ func (r *affiliateRepository) SetAgentLevelLocked(ctx context.Context, userIDs [
 			if _, err := ensureUserAffiliateWithClient(txCtx, txClient, uid); err != nil {
 				return err
 			}
+		}
+		if err := lockPartnerLevels(txCtx, txClient, userIDs); err != nil {
+			return err
 		}
 		_, err := txClient.ExecContext(txCtx, `
 UPDATE user_affiliates

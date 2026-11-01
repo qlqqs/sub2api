@@ -1,0 +1,10 @@
+{"file": ".trellis/spec/backend/index.md", "reason": "layer guidelines for partner feature"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "layer guidelines for partner feature"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "layer guidelines for partner feature"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "layer guidelines for partner feature"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "layer guidelines for partner feature"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "layer guidelines for partner feature"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "layer guidelines for partner feature"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "layer guidelines for partner feature"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "layer guidelines for partner feature"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "layer guidelines for partner feature"}

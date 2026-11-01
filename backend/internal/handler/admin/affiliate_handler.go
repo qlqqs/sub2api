@@ -65,6 +65,14 @@ func (h *AffiliateHandler) ListUsers(c *gin.Context) {
 		filter.OwnerID = ownerID
 	}
 
+	if raw := strings.TrimSpace(c.Query("partner_id")); raw != "" {
+		id, err := strconv.ParseInt(raw, 10, 64)
+		if err != nil || id <= 0 {
+			response.BadRequest(c, "所属合伙人无效")
+			return
+		}
+		filter.PartnerID = id
+	}
 	entries, total, err := h.affiliateService.AdminListCustomUsers(c.Request.Context(), filter)
 	if err != nil {
 		response.ErrorFrom(c, err)
@@ -104,6 +112,13 @@ func (h *AffiliateHandler) UpdateUserSettings(c *gin.Context) {
 		return
 	}
 
+	if req.AgentLevel != nil || req.AgentLevelLocked != nil {
+		if err := h.affiliateService.CheckPartnerLevels(c.Request.Context(), []int64{userID}); err != nil {
+			response.ErrorFrom(c, err)
+			return
+		}
+	}
+	autoAttached := []service.PartnerAutoAttachment{}
 	if req.AffCode != nil {
 		if err := h.affiliateService.AdminUpdateUserAffCode(c.Request.Context(), userID, *req.AffCode); err != nil {
 			response.ErrorFrom(c, err)
@@ -124,7 +139,9 @@ func (h *AffiliateHandler) UpdateUserSettings(c *gin.Context) {
 	}
 
 	if req.AgentLevel != nil {
-		if err := h.affiliateService.AdminSetAgentLevel(c.Request.Context(), []int64{userID}, *req.AgentLevel, adminIDFromContext(c)); err != nil {
+		var err error
+		autoAttached, err = h.affiliateService.AdminSetAgentLevelWithAttachments(c.Request.Context(), []int64{userID}, *req.AgentLevel, adminIDFromContext(c))
+		if err != nil {
 			response.ErrorFrom(c, err)
 			return
 		}
@@ -136,7 +153,7 @@ func (h *AffiliateHandler) UpdateUserSettings(c *gin.Context) {
 		}
 	}
 
-	response.Success(c, gin.H{"user_id": userID})
+	response.Success(c, gin.H{"user_id": userID, "auto_attached": autoAttached})
 }
 
 // ClearUserSettings removes ALL of a user's custom affiliate settings — clears
@@ -151,6 +168,10 @@ func (h *AffiliateHandler) ClearUserSettings(c *gin.Context) {
 	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if err != nil || userID <= 0 {
 		response.BadRequest(c, "Invalid user_id")
+		return
+	}
+	if err := h.affiliateService.CheckPartnerLevels(c.Request.Context(), []int64{userID}); err != nil {
+		response.ErrorFrom(c, err)
 		return
 	}
 	if err := h.affiliateService.AdminSetUserRebateRate(c.Request.Context(), userID, nil); err != nil {
@@ -190,11 +211,12 @@ func (h *AffiliateHandler) BatchSetAgentLevel(c *gin.Context) {
 		response.BadRequest(c, "user_ids cannot be empty")
 		return
 	}
-	if err := h.affiliateService.AdminSetAgentLevel(c.Request.Context(), req.UserIDs, req.AgentLevel, adminIDFromContext(c)); err != nil {
+	autoAttached, err := h.affiliateService.AdminSetAgentLevelWithAttachments(c.Request.Context(), req.UserIDs, req.AgentLevel, adminIDFromContext(c))
+	if err != nil {
 		response.ErrorFrom(c, err)
 		return
 	}
-	response.Success(c, gin.H{"affected": len(req.UserIDs)})
+	response.Success(c, gin.H{"affected": len(req.UserIDs), "auto_attached": autoAttached})
 }
 
 // ReevaluateAgentLevels re-runs the auto-upgrade evaluation for every user who

@@ -3,6 +3,7 @@
        没有面包屑（管理端汇总页，标题已在顶部栏）时日期与刷新靠右。 -->
   <component
     :is="sectionTabs ? AffiliateSectionTabs : 'div'"
+    v-bind="sectionTabs ? { partner: partnerTabs } : {}"
     :class="sectionTabs ? undefined : ['flex flex-wrap items-center gap-3', crumbs.length > 0 ? 'justify-between' : 'justify-end']"
   >
     <nav v-if="!sectionTabs && crumbs.length > 0" :aria-label="t('affiliate.team.breadcrumb')" class="min-w-0" data-test="team-breadcrumb">
@@ -73,6 +74,8 @@ defineProps<{
   refreshing?: boolean
   /** 团队消费根页显示分区 Tab，代替面包屑。 */
   sectionTabs?: boolean
+  /** 合伙人的分区 Tab（多一个「利润分成」）。 */
+  partnerTabs?: boolean
 }>()
 
 const emit = defineEmits<{

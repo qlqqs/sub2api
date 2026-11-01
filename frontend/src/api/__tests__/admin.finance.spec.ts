@@ -151,12 +151,42 @@ describe('admin finance api (CUSTOM)', () => {
       amount: '20.00',
       amortize_days: 1,
       account_id: null,
+      partner_user_id: null,
       note: ''
     }
     post.mockResolvedValue({ data: { id: 4, ...input, account_id: null } })
     const created = await createExpense(input)
     expect(post).toHaveBeenCalledWith('/admin/finance/expenses', input)
     expect(created).toMatchObject({ id: 4, category: 'server', account_id: null })
+  })
+
+  // CUSTOM: 合伙人分成与区域专项支出
+  it('normalizes partner share fields on monthly rows and totals', () => {
+    const summary = normalizeSummary({
+      range: { start: '2026-10-01', end: '2026-11-30', granularity: 'month' },
+      totals: { profit: '100', partner_share: '22.32', net_profit: '77.68', partner_share_estimated: true, partner_share_scope: 'whole_months' },
+      series: [
+        { period: '2026-10', profit: '40', partner_share: '10.00', net_profit: '30', partner_share_estimated: false },
+        { period: '2026-11', profit: '60' }
+      ]
+    })
+    expect(summary.totals).toMatchObject({
+      partner_share: '22.32',
+      net_profit: '77.68',
+      partner_share_estimated: true,
+      partner_share_scope: 'whole_months'
+    })
+    expect(summary.series[0]).toMatchObject({ partner_share: '10.00', net_profit: '30', partner_share_estimated: false })
+    expect(summary.series[1]).toMatchObject({ partner_share: '0', net_profit: '0', partner_share_estimated: false })
+  })
+
+  it('keeps the expense region and its name', async () => {
+    get.mockResolvedValue({
+      data: { items: [{ id: 5, amount: '30.00', partner_user_id: 75, partner_region_name: '三科大' }, { id: 6, amount: '1' }], total: 2 }
+    })
+    const page = await listExpenses({})
+    expect(page.items[0]).toMatchObject({ partner_user_id: 75, partner_region_name: '三科大' })
+    expect(page.items[1]).toMatchObject({ partner_user_id: null, partner_region_name: null })
   })
 
   it('normalizes settings even when PUT omits the account list', async () => {

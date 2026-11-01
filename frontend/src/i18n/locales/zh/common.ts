@@ -176,6 +176,7 @@ export default {
     affiliateManagement: '邀请返利',
     affiliateAgents: '代理管理',
     affiliateTeam: '团队消费',
+    affiliatePartners: '合伙人', // CUSTOM
     affiliateInviteRecords: '邀请记录',
     affiliateRebateRecords: '返利记录',
     affiliateTransferRecords: '提取记录',

@@ -862,6 +862,25 @@ func registerAffiliateRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 			users.DELETE("/:user_id", h.Admin.Affiliate.ClearUserSettings)
 		}
 
+		// CUSTOM(fork): 合伙人写操作沿用管理端审计中间件。
+		partners := affiliates.Group("/partners")
+		{
+			partners.GET("", h.AffiliatePartner.List)
+			partners.GET("/preview", h.AffiliatePartner.Preview)
+			partners.POST("", h.AffiliatePartner.Create)
+			partners.GET("/:partner_id", h.AffiliatePartner.Detail)
+			partners.PUT("/:partner_id", h.AffiliatePartner.Update)
+			partners.GET("/:partner_id/agents/preview", h.AffiliatePartner.PreviewAttach)
+			partners.POST("/:partner_id/agents", h.AffiliatePartner.Attach)
+			partners.GET("/:partner_id/statements", h.AffiliatePartner.Statements)
+			partners.GET("/:partner_id/statements/:month", h.AffiliatePartner.Statement)
+			partners.POST("/:partner_id/statements/:month/confirm", h.AffiliatePartner.Confirm)
+			partners.POST("/:partner_id/statements/:month/pay", h.AffiliatePartner.Pay)
+			partners.GET("/:partner_id/statements/:month/export", h.AffiliatePartner.Export)
+			partners.POST("/:partner_id/adjustments", h.AffiliatePartner.AddAdjustment)
+			partners.DELETE("/:partner_id/adjustments/:id", h.AffiliatePartner.DeleteAdjustment)
+		}
+
 		// 团队消费（只读）：汇总页与某代理的视角，复用代理端团队页的查询；只用路由组的全局限流。
 		team := affiliates.Group("/team")
 		{

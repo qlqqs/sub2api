@@ -18,9 +18,14 @@ func (s *AffiliateService) GetAffiliateDetail(ctx context.Context, userID int64)
 	if err != nil {
 		return nil, err
 	}
+	partner, err := s.partnerInfo(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 	cfg := s.rewardConfig(ctx)
 	level := normalizeAgentLevel(summary.AgentLevel)
 	detail := &AffiliateDetail{
+		Partner:          partner,
 		UserID:           summary.UserID,
 		AffCode:          summary.AffCode,
 		InviterID:        summary.InviterID,
@@ -85,7 +90,7 @@ func (s *AffiliateService) GetAffiliateDetail(ctx context.Context, userID int64)
 	if detail.RewardTotals, err = s.repo.SumRewardTotals(ctx, userID); err != nil {
 		return nil, err
 	}
-	if level == AffiliateAgentLevelTop && cfg.AppointEnabled {
+	if partner == nil && level == AffiliateAgentLevelTop && cfg.AppointEnabled {
 		used, err := s.repo.CountAgentAppointments(ctx, userID)
 		if err != nil {
 			return nil, err
