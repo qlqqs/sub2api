@@ -613,3 +613,34 @@ CI四项通过，已备份部署一号机sub2api-custom，运行revision核对�
 ### Status
 
 **发布完成**；audit及CSP/304质量跟进仍开放，任务保持in_progress。
+
+
+## Session 25: 部署团队与合伙人用户名/邮箱分列
+<!-- trellis-session: v=2 fp=17202464ff6a770b -->
+
+**Date**: 2026-11-01
+**Task**: 部署团队与合伙人用户名/邮箱分列
+**Branch**: `sub2api-custom`
+
+### Summary
+
+提交并推送 18 个前端文件，CI 41292725229 全部通过，备份后更新七号机 sub2api 主服务。
+
+### Main Changes
+
+- 团队、代理和合伙人列表用户名/邮箱独立成列；生产 revision 91a7e363b，其他容器/配置/迁移未变。
+- 备份 /root/sub2api-custom/backups/pre-affiliate-columns-20261101T093502Z，含数据库/data/配置/旧镜像和回滚脚本。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `91a7e363b` | fix(affiliate): split username and email columns across team and partner tables |
+
+### Testing
+
+- [OK] 本机 lint、typecheck、3606 项测试通过；公网 IP、正式域名页面及资源、健康与合伙人只读 API 验证通过。
+
+### Status
+
+[OK] **Completed**

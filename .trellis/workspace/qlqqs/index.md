@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 24
-- **Last Active**: 2026-10-31
+- **Total Sessions**: 25
+- **Last Active**: 2026-11-01
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~615 | Active |
+| `journal-1.md` | ~646 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 25 | 2026-11-01 | 部署团队与合伙人用户名/邮箱分列 | `91a7e363b` | `sub2api-custom` |
 | 24 | 2026-10-31 | 六项上游维护更新推送与七号机部署 | `5957c600052bee92c7feaf5fd22b7af9647413df` | `sub2api-custom` |
 | 23 | 2026-10-31 | 上游六项维护合入工作区：功能验证通过，质量跟进待处理 | - | `sub2api-custom` |
 | 22 | 2026-10-29 | 注册赠送来源：提交推送与一号机部署 | `2ffc49db745c01351d0cef662c60053d7aebcfed` | `sub2api-custom` |
