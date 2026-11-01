@@ -92,7 +92,7 @@ func TestFinanceBreakdownAccountExpenses(t *testing.T) {
 	require.Equal(t, "fixed", fixedRow["cost_mode"])
 	require.Equal(t, "1", fixedRow["expense_cost"])
 
-	summary := financeSummary(data, span)
+	summary := financeSummary(data, span, nil)
 	require.Equal(t, "12.66666667", summary["totals"].(map[string]any)["expenses"])
 	// 账号归属不能让总览重复计支出。
 	unlinked := *data
@@ -100,5 +100,5 @@ func TestFinanceBreakdownAccountExpenses(t *testing.T) {
 	for i := range unlinked.Expenses {
 		unlinked.Expenses[i].AccountID = nil
 	}
-	require.Equal(t, summary, financeSummary(&unlinked, span))
+	require.Equal(t, summary, financeSummary(&unlinked, span, nil))
 }

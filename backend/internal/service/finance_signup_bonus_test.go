@@ -38,6 +38,6 @@ func TestFinanceInviteeSignupBonusIsIndependentGift(t *testing.T) {
 	commissions, err := svc.Affiliate(context.Background(), span)
 	require.NoError(t, err)
 	require.Equal(t, "0", commissions["accrued"].(financeAmounts)["total"].String())
-	summary := financeSummary(data, span)
+	summary := financeSummary(data, span, nil)
 	require.Equal(t, "0", summary["totals"].(map[string]any)["commission"])
 }

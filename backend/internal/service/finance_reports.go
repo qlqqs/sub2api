@@ -16,36 +16,23 @@ func (s *FinanceService) Summary(ctx context.Context, span FinanceRange) (map[st
 	if err != nil {
 		return nil, err
 	}
-	out := financeSummary(data, span)
-	shares := map[string]PartnerShare{}
+	var shares map[string]PartnerShare
 	if s.partners != nil {
 		shares, err = s.partners.PartnerShares(ctx, span.Start[:7], span.End[:7])
 		if err != nil {
 			return nil, err
 		}
 	}
-	total := PartnerShare{}
-	for _, v := range shares {
-		total.Amount = total.Amount.Add(v.Amount)
-		total.Estimated = total.Estimated || v.Estimated
-	}
-	apply := func(row map[string]any, share PartnerShare) {
-		row["partner_share"] = financeMoney(share.Amount)
-		profit, _ := decimal.NewFromString(row["profit"].(string))
-		row["net_profit"] = financeMoney(profit.Sub(share.Amount))
-		row["partner_share_estimated"] = share.Estimated
-	}
-	totals := out["totals"].(map[string]any)
-	apply(totals, total)
-	totals["partner_share_scope"] = "whole_months"
-	if span.Granularity == "month" {
-		for _, row := range out["series"].([]map[string]any) {
-			apply(row, shares[row["period"].(string)])
-		}
-	}
-	return out, nil
+	return financeSummary(data, span, shares), nil
 }
-func financeSummary(data *FinanceData, span FinanceRange) map[string]any {
+
+// CUSTOM(fork): 合伙人分成按整月计入，净利润 = 利润 − 合伙人分成。
+func financePartnerShare(row map[string]any, profit decimal.Decimal, share PartnerShare) {
+	row["partner_share"] = financeMoney(share.Amount)
+	row["net_profit"] = financeMoney(profit.Sub(share.Amount))
+	row["partner_share_estimated"] = share.Estimated
+}
+func financeSummary(data *FinanceData, span FinanceRange, shares map[string]PartnerShare) map[string]any {
 	replays := financeReplays(data)
 	daily := map[string]financeAmounts{}
 	start, end := span.Bounds()
@@ -139,9 +126,20 @@ func financeSummary(data *FinanceData, span FinanceRange) map[string]any {
 	for _, k := range keys {
 		row := financeFinalize(periods[k])
 		row["period"] = k
+		if span.Granularity == "month" {
+			financePartnerShare(row, periods[k]["profit"], shares[k])
+		}
 		series = append(series, row)
 	}
-	return map[string]any{"range": span, "totals": financeFinalize(totals), "series": series, "snapshot": snapshot, "warnings": financeWarnings(data, span, replays), "computed_at": data.ComputedAt.In(AffiliateTeamLocation)}
+	totalShare := PartnerShare{}
+	for _, v := range shares {
+		totalShare.Amount = totalShare.Amount.Add(v.Amount)
+		totalShare.Estimated = totalShare.Estimated || v.Estimated
+	}
+	totalsRow := financeFinalize(totals)
+	financePartnerShare(totalsRow, totals["profit"], totalShare)
+	totalsRow["partner_share_scope"] = "whole_months"
+	return map[string]any{"range": span, "totals": totalsRow, "series": series, "snapshot": snapshot, "warnings": financeWarnings(data, span, replays), "computed_at": data.ComputedAt.In(AffiliateTeamLocation)}
 }
 func (s *FinanceService) Recharge(ctx context.Context, span FinanceRange) (map[string]any, error) {
 	d, err := s.repo.Load(ctx, span)

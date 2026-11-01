@@ -71,7 +71,7 @@ func TestFinanceSummaryCrossMonthAndFixedCosts(t *testing.T) {
 	span, err := ParseFinanceRange("2026-01-31", "2026-02-02", "month", now)
 	require.NoError(t, err)
 	d := &FinanceData{Users: []FinanceUser{{ID: 1, Balance: fd("4")}}, Events: []FinanceUserEvent{{1, fe("2026-01-31", "free", "10", "0", 0)}, {1, fe("2026-02-01", "consume", "6", "0", 0)}}, Costs: []FinanceCost{{Day: "2026-02-01", UserID: 1, AccountID: 3, Cost: fd("1.2")}, {Day: "2026-02-01", UserID: 1, AccountID: 1, Cost: fd("99")}}, FixedIDs: []int64{1}, Expenses: []FinanceExpense{{FinanceExpenseInput: FinanceExpenseInput{OccurredOn: "2026-01-31", Amount: "10", AmortizeDays: 3}}}, ComputedAt: now}
-	out := financeSummary(d, span)
+	out := financeSummary(d, span, nil)
 	tot := out["totals"].(map[string]any)
 	require.Equal(t, "-11.2", tot["profit"])
 	require.Equal(t, "1.2", tot["account_cost_internal"])

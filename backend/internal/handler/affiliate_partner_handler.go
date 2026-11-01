@@ -383,9 +383,8 @@ func partnerCSVText(s string) string {
 	return s
 }
 func partnerStatementCSV(d service.PartnerStatementDetail) ([]byte, error) {
-	var b bytes.Buffer
-	b.Write([]byte{239, 187, 191})
-	w := csv.NewWriter(&b)
+	b := bytes.NewBuffer([]byte{239, 187, 191})
+	w := csv.NewWriter(b)
 	t := d.Totals
 	records := [][]string{
 		{"月份", "状态", "比例", "余额消耗", "收入", "账号成本", "分润", "专项支出", "调整", "利润", "期初亏损", "期末亏损", "分成基数", "分成金额"},
