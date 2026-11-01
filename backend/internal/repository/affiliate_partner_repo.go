@@ -32,6 +32,12 @@ func (r *partnerRepository) query(ctx context.Context) financeQueryer {
 	return r.db
 }
 
+// CUSTOM(fork): 写操作都在 WithPartnerLock 的事务内执行。
+func partnerTx(ctx context.Context) *sql.Tx {
+	tx, _ := ctx.Value(partnerTxKey{}).(*sql.Tx)
+	return tx
+}
+
 type partnerRowsQueryer interface {
 	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
 }

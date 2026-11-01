@@ -102,7 +102,7 @@ func (r *partnerRepository) WithPartnerLock(ctx context.Context, id int64, fn fu
 }
 func (r *partnerRepository) Update(ctx context.Context, id int64, name *string, rate *decimal.Decimal, actor int64, month string) error {
 	return r.WithPartnerLock(ctx, id, func(ctx context.Context) error {
-		tx := ctx.Value(partnerTxKey{}).(*sql.Tx)
+		tx := partnerTx(ctx)
 		if name != nil {
 			if _, err := tx.ExecContext(ctx, `UPDATE affiliate_partners SET region_name=$2,updated_at=NOW() WHERE user_id=$1`, id, *name); err != nil {
 				return err
@@ -128,7 +128,7 @@ func (r *partnerRepository) Update(ctx context.Context, id int64, name *string, 
 	})
 }
 func (r *partnerRepository) SaveStatement(ctx context.Context, id, actor int64, d service.PartnerStatementDetail) error {
-	tx := ctx.Value(partnerTxKey{}).(*sql.Tx)
+	tx := partnerTx(ctx)
 	// CUSTOM(fork): 确认时间同时冻结到 DTO 和索引列。
 	now := time.Now()
 	d.Totals.ConfirmedAt = &now
@@ -142,7 +142,7 @@ func (r *partnerRepository) SaveStatement(ctx context.Context, id, actor int64, 
 }
 func (r *partnerRepository) PayStatement(ctx context.Context, id int64, month string, actor int64, day, note string) error {
 	return r.WithPartnerLock(ctx, id, func(ctx context.Context) error {
-		tx := ctx.Value(partnerTxKey{}).(*sql.Tx)
+		tx := partnerTx(ctx)
 		var status string
 		err := tx.QueryRowContext(ctx, `SELECT status FROM affiliate_partner_statements WHERE partner_user_id=$1 AND month=$2::date`, id, month+"-01").Scan(&status)
 		if err == sql.ErrNoRows {
@@ -160,7 +160,7 @@ func (r *partnerRepository) PayStatement(ctx context.Context, id int64, month st
 func (r *partnerRepository) AddAdjustment(ctx context.Context, id int64, month, amount, note string, actor int64) (*service.PartnerAdjustment, error) {
 	var out service.PartnerAdjustment
 	err := r.WithPartnerLock(ctx, id, func(ctx context.Context) error {
-		tx := ctx.Value(partnerTxKey{}).(*sql.Tx)
+		tx := partnerTx(ctx)
 		if err := partnerAdjustmentMonth(ctx, tx, id, month); err != nil {
 			return err
 		}
@@ -185,7 +185,7 @@ func partnerAdjustmentMonth(ctx context.Context, tx *sql.Tx, id int64, month str
 }
 func (r *partnerRepository) DeleteAdjustment(ctx context.Context, id, adjustment int64) error {
 	return r.WithPartnerLock(ctx, id, func(ctx context.Context) error {
-		tx := ctx.Value(partnerTxKey{}).(*sql.Tx)
+		tx := partnerTx(ctx)
 		var month string
 		err := tx.QueryRowContext(ctx, `SELECT to_char(month,'YYYY-MM') FROM affiliate_partner_adjustments WHERE partner_user_id=$1 AND id=$2`, id, adjustment).Scan(&month)
 		if err == sql.ErrNoRows {
