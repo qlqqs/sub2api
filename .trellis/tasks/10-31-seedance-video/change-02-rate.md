@@ -212,3 +212,14 @@ SQL 核对证据 `/tmp/seedance-qa/change02/actual-cost-check.json`；UI 日志 
 - `PlazaModelPricingTable.vue` 的 `paidRequestPrice`、`themes/qx/pricing.ts` 的 `paidUnit`：视频模型传 4 位，分档和单一价都适用；图片、按次、token 不变。可用渠道页显示的是渠道原价配置值，未改。
 - 测试：`pricing.formatScaled.spec.ts` 加舍入用例；模型广场与 qx 的视频分档用例改为原价 × 0.75，期望值即 change-01 售价表。相关单测 21 个文件、202 个用例通过；`lint:check`、`typecheck` 通过；`pnpm-lock.yaml` 无变化。
 - 重新构建本机环境后截图 `/tmp/seedance-fe-s/change02-plaza-group-24.png`（QA 的 p12 分组）：2.0 普通 ¥0.5318 / 0.75 / 1.875 / 3.75，参考 ¥0.5956 / 0.9075 / 2.2575 / 4.665；2.5 普通 ¥0.7446 / 1.125 / 2.775，参考 ¥0.8616 / 1.3575 / 3.3525。
+
+
+### 七号机部署与真实上游冒烟（2026-11-01）
+
+- 用户授权提交、推送和部署。sub2api `e99994f66`、Nova `827fbd7` 的 Custom Image 均成功；七号机已拉取并重建，运行 revision 与这两次提交一致。
+- 生产分组 10 倍率改为 0.75，视频独立倍率、高峰倍率关闭；渠道 3（定价 144/145）的基础价及 12 个分档改为本文原价。数据库事务提交后重建应用；已读回核对，无用户专属/模型倍率覆盖。
+- 使用独立测试账号，仅提交 1 个真实 mmgate 普通档任务：`seedance-2.0`、720p、5 秒。任务 `video_n3gzrc18cgz4ibgmwrjtu2hs` 最终 succeeded；输出 tokens 108900。
+- 用量 ID 1193：`total_cost=5`、`actual_cost=3.75`、`rate_multiplier=0.75`、`video_duration_seconds=5`、`video_resolution=720p`。重复查询后仍只有 1 条用量；余额从 10 降至 6.25。
+- MP4 下载 200、3,673,465 字节；Range 206，MP4 文件头验证通过。证据：`/tmp/seedance-fe-s/change02-real-evidence.json`、`/tmp/seedance-fe-s/change02-real-720p.mp4`。
+- 测试账号和 Key 已停用，保留账务记录。未改本机 e2e 的 localhost 限制；生产测试使用独立临时脚本。
+- 此结论是普通档网关真实冒烟通过，不代表六模式/Nova 的完整真实 E2E；参考素材公网签名回源、带参考视频真实计费及 Nova 浏览器链路仍待验收。
